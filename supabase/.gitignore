@@ -1,0 +1,11 @@
+# Supabase
+.branches
+.temp/
+
+# Supabase secrets reais (se algum dia existirem aqui)
+.env
+.env.*
+!.env.example
+
+# Turtle / EAS workdir (protecao extra)
+.turtle

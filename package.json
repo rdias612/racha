@@ -1,0 +1,17 @@
+{
+  "name": "futamigos",
+  "private": true,
+  "version": "0.0.0",
+  "description": "FutAmigos MVP - app de pelada quinta-feira (APK Android).",
+  "scripts": {
+    "db:push": "supabase db push",
+    "db:reset": "supabase db reset",
+    "db:seed": "supabase db reset",
+    "db:types": "supabase gen types typescript --linked > types/database.types.ts",
+    "db:new-migration": "supabase migration new"
+  },
+  "comments": {
+    "_note": "package.json minimo T1.2. T1.1 (scaffold Expo) fara merge adicionando start/lint/build/android + deps Expo/TS. Scripts db:* sao de propriedade de T1.2.",
+    "db:seed": "Supabase CLI aplica supabase/seed.sql automaticamente durante `db reset`. Use db:reset para recriar DB local completo com seed (T1.3b)."
+  }
+}
