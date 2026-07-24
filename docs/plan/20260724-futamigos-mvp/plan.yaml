@@ -156,7 +156,9 @@ tasks:
     description: "Migration com TODA a DDL: GROUPS, PROFILES, MATCHES, MATCH_PRESENCES, MATCH_PARTICIPANTS, PAYMENTS, EXPENSES, DEVICE_TOKENS. Incluir FKs (cascade rules explicitas), indexes (match_id, user_id, group_id), check constraints. Criar enums: user_type, match_status, rsvp_status, payment_type, payment_status, expense_type. Habilitar extensoes: pg_cron (schema cron), pg_net, e verificar Supabase Vault habilitado (pre-req de T5.0). Aderencia estrita ao ERD do PRD. SEM seed ainda (T1.3b) e SEM RLS ainda (T1.7)."
     wave: 1
     agent: gem-implementer
-    status: pending
+    status: completed
+    verified_at: 2026-07-24
+    verified_by: gem-reviewer (verified_ok apos fixes; paridade PRD, 8 tabelas + 6 enums + 15 indexes OK; fk_auth_users confirmation: manter FK, seed T1.3b via auth.admin.createUser Node script)
     covers: [fase-0-schema]
     dependencies: [T1.2]
     conflicts_with: []

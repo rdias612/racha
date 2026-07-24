@@ -13,11 +13,13 @@
     "db:push": "supabase db push",
     "db:reset": "supabase db reset",
     "db:seed": "supabase db reset",
+    "seed:auth": "tsx supabase/seed-auth.ts",
     "db:types": "supabase gen types typescript --linked > types/database.types.ts",
     "db:new-migration": "supabase migration new"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.2",
+    "@supabase/supabase-js": "^2.110.8",
     "expo": "~52.0.46",
     "expo-constants": "~17.0.8",
     "expo-linking": "~7.0.5",
@@ -39,15 +41,19 @@
     "@types/react": "~18.3.12",
     "@types/react-dom": "~18.3.1",
     "babel-preset-expo": "^12.0.5",
+    "dotenv": "^17.4.2",
     "eslint": "^9.18.0",
     "prettier": "^3.4.2",
     "prettier-plugin-tailwindcss": "^0.5.14",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.23.1",
+    "tsx": "^4.19.2",
     "typescript": "~5.3.3",
     "typescript-eslint": "^8.21.0"
   },
   "comments": {
     "_note": "Merge de T1.1 (scaffold Expo) sobre T1.2 (scripts db:*). Scripts db:* sao propriedade de T1.2.",
-    "db:seed": "Supabase CLI aplica supabase/seed.sql automaticamente durante `db reset`. Use db:reset para recriar DB local completo com seed (T1.3b)."
+    "db:seed": "Supabase CLI aplica supabase/seed.sql automaticamente durante `db reset`.",
+    "seed:auth": "Cria goleiros + admin fake em auth.users via service_role (T1.3b). Exige .env.server com SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY."
   }
 }

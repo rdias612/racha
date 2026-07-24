@@ -81,6 +81,7 @@ create table if not exists public.groups (
   monthly_fee numeric(10,2) not null default 0,
   default_casual_fee numeric(10,2) not null default 20.00,
   goalkeeper_expense numeric(10,2) not null default 40.00,
+  monthly_capacity integer not null default 16,
   timezone text not null default 'America/Sao_Paulo',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -91,13 +92,16 @@ create table if not exists public.groups (
   constraint groups_default_casual_fee_check
     check (default_casual_fee >= 0),
   constraint groups_goalkeeper_expense_check
-    check (goalkeeper_expense >= 0)
+    check (goalkeeper_expense >= 0),
+  constraint groups_monthly_capacity_check
+    check (monthly_capacity between 1 and 100)
 );
 
 comment on table public.groups is 'Racha/pelada. Centraliza configuracao (dia, valores, timezone). 1 grupo fixo no MVP.';
 comment on column public.groups.id is 'PK uuid (gen_random_uuid).';
 comment on column public.groups.name is 'Nome do racha (PT-BR).';
 comment on column public.groups.day_of_week is 'Dia da semana: 0=Domingo ... 4=Quinta ... 6=Sabado. Default 4.';
+comment on column public.groups.monthly_capacity is 'Numero maximo de mensalistas/vagas confirmadas (PRD regra 1): default 16 (14 linha + 2 goleiros). CHECK 1..100.';
 comment on column public.groups.monthly_fee is 'Mensalidade padrao (R$). Default 0 ate definicao do admin.';
 comment on column public.groups.default_casual_fee is 'Taxa fixa de avulso por partida (R$). Default 20.00.';
 comment on column public.groups.goalkeeper_expense is 'Custo total dos 2 goleiros pagos (R$). Default 40.00.';
@@ -153,19 +157,23 @@ create table if not exists public.matches (
   id uuid primary key default gen_random_uuid(),
   group_id uuid not null references public.groups(id) on delete cascade,
   date_time timestamptz not null,
+  day_of_week integer not null default 4,
   team_scores jsonb not null default '{}'::jsonb,
   goalkeeper_expense numeric(10,2) not null default 40.00,
   status match_status not null default 'scheduled',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint matches_goalkeeper_expense_check
-    check (goalkeeper_expense >= 0)
+    check (goalkeeper_expense >= 0),
+  constraint matches_day_of_week_check
+    check (day_of_week between 0 and 6)
 );
 
 comment on table public.matches is 'Partida agendada/ativa/finalizada/cancelada. Pertence sempre a um grupo.';
 comment on column public.matches.id is 'PK uuid (gen_random_uuid).';
 comment on column public.matches.group_id is 'FK para groups (NOT NULL - denormalizado para RLS). CASCADE no delete do grupo.';
 comment on column public.matches.date_time is 'Data/hora UTC do jogo (Quinta 19:00 BRT => 22:00 UTC).';
+comment on column public.matches.day_of_week is 'Dia da semana (snapshot do groups.day_of_week): 0=Domingo ... 4=Quinta ... 6=Sabado. Default 4.';
 comment on column public.matches.team_scores is 'Placar final por time_group: {"1": 8, "2": 6}. JSONB.';
 comment on column public.matches.goalkeeper_expense is 'Snapshot do custo de goleiros na epoca da partida (R$). Default 40.00.';
 comment on column public.matches.status is 'Estado da partida (enum match_status). Quando -> active, congela participantes.';
@@ -364,7 +372,7 @@ create index if not exists device_tokens_user_id_idx
 --                 payment_status, expense_type)
 --   Tabelas:   8 (groups, profiles, matches, match_presences,
 --                 match_participants, payments, expenses, device_tokens)
---   Indexes:   16 (incluindo partial index payments_pending_idx)
+--   Indexes:   15 (incluindo partial index payments_pending_idx)
 --   Extensões: pg_cron (schema cron), pg_net, vault (nativo Supabase)
 --
 -- RISCOS DOCUMENTADOS (revisar na Wave 1 / handoff T1.3b):

@@ -117,7 +117,55 @@ supabase db pull          # gera migration a partir do estado remoto
 
 ## 6. Seed
 
-`supabase/seed.sql` e' aplicado **automaticamente** todo `supabase db reset`. No MVP, sera populado em `T1.3b` (GROUPS fixo + 2 goleiros + 1 admin fake). Nao existe script `db:seed` separado - reza-se o contrato do CLI.
+O seed do MVP e' dividido em duas partes (T1.3b):
+
+1. **`supabase/seed.sql`** - aplicado automaticamente todo `supabase db reset`: cria apenas o registro do racha (`public.groups` com UUID estavel `00000000-0000-0000-0000-000000000001`).
+2. **`supabase/seed-auth.ts`** - script Node/TS manual que cria **goleiros + admin fake** em `auth.users` via Admin API (`service_role`), e sincroniza `PROFILES`. Necessario porque SQL puro nao consegue inserir em `auth.users` (tabela gerenciada por GoTrue/Supabase Auth).
+
+### 6.1 Executando o seed (passo a passo)
+
+1. Aplique migrations + seed de groups:
+
+   ```powershell
+   npm run db:reset
+   ```
+
+   Este comando recria o DB local Docker, aplica TODAS as `supabase/migrations/*.sql` e em seguida `supabase/seed.sql` (group fixo).
+
+2. Configure `.env.server` (se ainda nao fez) com `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY`:
+
+   ```powershell
+   Copy-Item .env.server.example .env.server
+   # edite .env.server preenchendo SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY
+   ```
+
+3. Crie goleiros + admin fake:
+
+   ```powershell
+   npm run seed:auth
+   ```
+
+   O script e' **idempotente**: pode ser re-executado a qualquer momento; ele lookup por email antes de criar e faz `upsert` em PROFILES. Ele NUNCA loga a `service_role` (apenas confirma a presenca).
+
+4. Promover o primeiro usuario real a administrador (depois do primeiro login OAuth Google):
+
+   ```sql
+   -- pegue <id> em Dashboard > Authentication > Users (ID do user real)
+   update public.profiles
+      set is_admin = true
+    where id = '<primeiro_user_id_auth_users>';
+   ```
+
+   Apos promover o usuario real, o admin fake (`admin@futamigos.local`) pode ser removido ou mantido como fallback.
+
+### 6.2 Resolucao de problemas do seed-auth
+
+| Sintoma | Solucao |
+| ------- | ------ |
+| `SUPABASE_URL ausente` | Preencher `.env.server` (secao 4). |
+| `createUser falhou: ...` | Verificar se `service_role` e' valida e nao expirada. |
+| `upsert profile(...) falhou` | Provavel trigger `handle_new_user` (T1.5) ainda nao existe; o script insere manualmente - ok. |
+| Duplicate key em auth.users | Re-execute: script e' idempotente via lookup por email. |
 
 ## 7. Problemas comuns
 
