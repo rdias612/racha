@@ -191,7 +191,9 @@ tasks:
     description: "Migration de seed: (a) 1 GROUPS estavel com UUID hardcoded (name='Racha Quintas', day_of_week=4, monthly_fee, default_casual_fee=R$20, goalkeeper_expense=R$40). (b) 2 PROFILES goleiro_pago sem auth.users (user_type='goleiro_pago'). (c) >=1 PROFILES admin fake (is_admin=true, user_type='mensalista') sem auth.users - permite ao primeiro usuario real ser promovido manualmente via UPDATE no console Supabase (ver handoff comment). Constraints adicionais se necessario. Nao depende de OAuth para existir."
     wave: 1
     agent: gem-implementer
-    status: pending
+    status: completed
+    verified_at: 2026-07-24
+    verified_by: gem-reviewer (verified_ok apos fix dupla tsx em devDeps; seed.sql so groups, seed-auth.ts idempotente, sem leak service_role, async/await, sem any)
     covers: [fase-0-schema, fase-1-seed]
     dependencies: [T1.3a]
     conflicts_with: []

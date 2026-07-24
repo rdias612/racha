@@ -98,9 +98,7 @@ const supabase: SupabaseClient = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
  * Busca id de usuario auth por email.
  * Retorna { id } ou null se nao existir.
  */
-async function findAuthUserByEmail(
-  email: string,
-): Promise<string | null> {
+async function findAuthUserByEmail(email: string): Promise<string | null> {
   // listUsers retorna ate 1000 por pagina; MVP tem poucos usuarios fake.
   const { data, error } = await supabase.auth.admin.listUsers({
     page: 1,
@@ -145,22 +143,17 @@ async function ensureAuthUser(target: UpserTarget): Promise<string> {
  * - Trigger handle_new_user (T1.5) pode ter criado a linha: UPDATE.
  * - Se nao existir: INSERT manual (idempotente via upsert).
  */
-async function syncProfile(
-  userId: string,
-  target: UpserTarget,
-): Promise<void> {
-  const { error } = await supabase
-    .from('profiles')
-    .upsert(
-      {
-        id: userId,
-        group_id: GROUP_ID,
-        full_name: target.full_name,
-        user_type: target.user_type,
-        is_admin: target.is_admin,
-      },
-      { onConflict: 'id' },
-    );
+async function syncProfile(userId: string, target: UpserTarget): Promise<void> {
+  const { error } = await supabase.from('profiles').upsert(
+    {
+      id: userId,
+      group_id: GROUP_ID,
+      full_name: target.full_name,
+      user_type: target.user_type,
+      is_admin: target.is_admin,
+    },
+    { onConflict: 'id' },
+  );
   if (error) {
     fail(`upsert profile(${target.email}) falhou: ${error.message}`);
   }

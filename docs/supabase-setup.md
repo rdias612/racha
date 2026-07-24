@@ -160,12 +160,12 @@ O seed do MVP e' dividido em duas partes (T1.3b):
 
 ### 6.2 Resolucao de problemas do seed-auth
 
-| Sintoma | Solucao |
-| ------- | ------ |
-| `SUPABASE_URL ausente` | Preencher `.env.server` (secao 4). |
-| `createUser falhou: ...` | Verificar se `service_role` e' valida e nao expirada. |
+| Sintoma                      | Solucao                                                                                       |
+| ---------------------------- | --------------------------------------------------------------------------------------------- |
+| `SUPABASE_URL ausente`       | Preencher `.env.server` (secao 4).                                                            |
+| `createUser falhou: ...`     | Verificar se `service_role` e' valida e nao expirada.                                         |
 | `upsert profile(...) falhou` | Provavel trigger `handle_new_user` (T1.5) ainda nao existe; o script insere manualmente - ok. |
-| Duplicate key em auth.users | Re-execute: script e' idempotente via lookup por email. |
+| Duplicate key em auth.users  | Re-execute: script e' idempotente via lookup por email.                                       |
 
 ## 7. Problemas comuns
 
