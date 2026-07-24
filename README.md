@@ -59,7 +59,15 @@ Veja [`docs/supabase-setup.md`](docs/supabase-setup.md) para login, link e fluxo
 | `npm run db:types`         | Gera `types/database.types.ts` a partir do schema remoto |
 | `npm run db:new-migration` | Cria nova migration timestamped |
 
-> Scripts Expo (`start`, `lint`, `build:android`) serao adicionados em T1.1 (scaffold).
+## Scripts npm (T1.1 - App)
+
+| Script              | Comando               | Descricao                                         |
+| ------------------- | --------------------- | ------------------------------------------------- |
+| `npm start`         | `expo start`          | Inicia o bundler Expo Dev Server                  |
+| `npm run android`   | `expo start --android`| Abre no emulador/dispositivo Android              |
+| `npm run ios`       | `expo start --ios`    | Abre no simulador iOS (pos-MVP)                   |
+| `npm run lint`      | `eslint .`            | Linter (flat config + typescript-eslint)          |
+| `npm run tsc`       | `tsc --noEmit`        | Type-check TypeScript strict                      |
 
 ## Estrutura
 
