@@ -51,23 +51,23 @@ Veja [`docs/supabase-setup.md`](docs/supabase-setup.md) para login, link e fluxo
 
 ## Scripts npm (T1.2 - DB)
 
-| Script | Descricao |
-| --- | --- |
-| `npm run db:push`          | Aplica migrations pendentes ao projeto remoto |
-| `npm run db:reset`         | Recria DB local + aplica seed (dev, destrutivo) |
+| Script                     | Descricao                                                     |
+| -------------------------- | ------------------------------------------------------------- |
+| `npm run db:push`          | Aplica migrations pendentes ao projeto remoto                 |
+| `npm run db:reset`         | Recria DB local + aplica seed (dev, destrutivo)               |
 | `npm run db:seed`          | Alias para `db reset` (o CLI aplica seed.sql automaticamente) |
-| `npm run db:types`         | Gera `types/database.types.ts` a partir do schema remoto |
-| `npm run db:new-migration` | Cria nova migration timestamped |
+| `npm run db:types`         | Gera `types/database.types.ts` a partir do schema remoto      |
+| `npm run db:new-migration` | Cria nova migration timestamped                               |
 
 ## Scripts npm (T1.1 - App)
 
-| Script              | Comando               | Descricao                                         |
-| ------------------- | --------------------- | ------------------------------------------------- |
-| `npm start`         | `expo start`          | Inicia o bundler Expo Dev Server                  |
-| `npm run android`   | `expo start --android`| Abre no emulador/dispositivo Android              |
-| `npm run ios`       | `expo start --ios`    | Abre no simulador iOS (pos-MVP)                   |
-| `npm run lint`      | `eslint .`            | Linter (flat config + typescript-eslint)          |
-| `npm run tsc`       | `tsc --noEmit`        | Type-check TypeScript strict                      |
+| Script            | Comando                | Descricao                                |
+| ----------------- | ---------------------- | ---------------------------------------- |
+| `npm start`       | `expo start`           | Inicia o bundler Expo Dev Server         |
+| `npm run android` | `expo start --android` | Abre no emulador/dispositivo Android     |
+| `npm run ios`     | `expo start --ios`     | Abre no simulador iOS (pos-MVP)          |
+| `npm run lint`    | `eslint .`             | Linter (flat config + typescript-eslint) |
+| `npm run tsc`     | `tsc --noEmit`         | Type-check TypeScript strict             |
 
 ## Estrutura
 

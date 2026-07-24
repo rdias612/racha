@@ -58,15 +58,15 @@ Copy-Item supabase/.env.example supabase/.env
 
 ### Onde obter valores
 
-| Variavel | Origem |
-| --- | --- |
-| `EXPO_PUBLIC_SUPABASE_URL`        | Dashboard > Project Settings > API > Project URL |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY`   | Dashboard > Project Settings > API > Project API keys > `anon` `public` |
-| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`| Google Cloud Console > APIs & Services > Credentials > OAuth 2.0 Client ID |
-| `SUPABASE_SERVICE_ROLE_KEY`       | Dashboard > Project Settings > API > Project API keys > `service_role` |
-| `EXPO_ACCESS_TOKEN`               | expo.dev > Account Settings > Access Tokens |
-| `SUPABASE_PROJECT_REF`            | Dashboard > Project Settings > General > Reference ID |
-| `SUPABASE_DB_URL`                 | Dashboard > Project Settings > Database > Connection string (modo `transaction`/`session`) |
+| Variavel                           | Origem                                                                                     |
+| ---------------------------------- | ------------------------------------------------------------------------------------------ |
+| `EXPO_PUBLIC_SUPABASE_URL`         | Dashboard > Project Settings > API > Project URL                                           |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY`    | Dashboard > Project Settings > API > Project API keys > `anon` `public`                    |
+| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | Google Cloud Console > APIs & Services > Credentials > OAuth 2.0 Client ID                 |
+| `SUPABASE_SERVICE_ROLE_KEY`        | Dashboard > Project Settings > API > Project API keys > `service_role`                     |
+| `EXPO_ACCESS_TOKEN`                | expo.dev > Account Settings > Access Tokens                                                |
+| `SUPABASE_PROJECT_REF`             | Dashboard > Project Settings > General > Reference ID                                      |
+| `SUPABASE_DB_URL`                  | Dashboard > Project Settings > Database > Connection string (modo `transaction`/`session`) |
 
 ### Por que `service_role` **nunca** entra no APK
 
@@ -121,23 +121,23 @@ supabase db pull          # gera migration a partir do estado remoto
 
 ## 7. Problemas comuns
 
-| Sintoma | Solucao |
-| --- | --- |
-| `supabase: command not found` | Reinstalar (Secao 2); checar `PATH`; reiniciar terminal. |
-| `link` falha apos `login` | Verificar `~/.supabase/access-token`; re-rodar `supabase login`. |
-| `db reset` DB local travado | `supabase stop` + `supabase start`; Docker Desktop aberto. |
-| `gen types` sem `--linked` | Ir para raiz do repo apos `supabase link` concluido. |
+| Sintoma                        | Solucao                                                               |
+| ------------------------------ | --------------------------------------------------------------------- |
+| `supabase: command not found`  | Reinstalar (Secao 2); checar `PATH`; reiniciar terminal.              |
+| `link` falha apos `login`      | Verificar `~/.supabase/access-token`; re-rodar `supabase login`.      |
+| `db reset` DB local travado    | `supabase stop` + `supabase start`; Docker Desktop aberto.            |
+| `gen types` sem `--linked`     | Ir para raiz do repo apos `supabase link` concluido.                  |
 | RLS bloqueia consulta legitima | Nao usar `service_role` para contornar. Revisar policies (T1.7/T5.3). |
 
 ## 8. Referencia rapida - scripts npm
 
-| Script | Comando equivalente | Quando usar |
-| --- | --- | --- |
-| `npm run db:push`          | `supabase db push`                          | Aplicar migrations ao remoto |
-| `npm run db:reset`         | `supabase db reset`                         | Recriar DB local + seed (dev) |
-| `npm run db:seed`          | `supabase db reset`                         | Idiomatico - alias para reset com seed |
-| `npm run db:types`         | `supabase gen types typescript --linked`    | Regenerar `types/database.types.ts` |
-| `npm run db:new-migration` | `supabase migration new`                    | Criar nova migration timestamped |
+| Script                     | Comando equivalente                      | Quando usar                            |
+| -------------------------- | ---------------------------------------- | -------------------------------------- |
+| `npm run db:push`          | `supabase db push`                       | Aplicar migrations ao remoto           |
+| `npm run db:reset`         | `supabase db reset`                      | Recriar DB local + seed (dev)          |
+| `npm run db:seed`          | `supabase db reset`                      | Idiomatico - alias para reset com seed |
+| `npm run db:types`         | `supabase gen types typescript --linked` | Regenerar `types/database.types.ts`    |
+| `npm run db:new-migration` | `supabase migration new`                 | Criar nova migration timestamped       |
 
 ## 9. Estado atual desta task (T1.2)
 

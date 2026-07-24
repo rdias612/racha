@@ -74,10 +74,12 @@ tasks:
   # ═══════════════════════ WAVE 1: FASE 0 - SETUP INFRA ═══════════════════════
   - id: T1.1
     title: "Scaffold do app Expo + TS + Expo Router"
-    description: "Inicializar projeto Expo SDK 52+ managed com TypeScript strict, Expo Router (file-based), estrutura de pastas (app/, components/, lib/, stores/, hooks/). Configurar tsconfig, eslint, prettier, .env scheme. Criar README com instru\u00e7\u00f5es de setup local."
+    description: "Inicializar projeto Expo SDK 52+ managed com TypeScript strict, Expo Router (file-based), estrutura de pastas (app/, components/, lib/, stores/, hooks/). Configurar tsconfig, eslint, prettier, .env scheme. Criar README com instruções de setup local."
     wave: 1
     agent: gem-implementer
-    status: pending
+    status: completed
+    verified_at: 2026-07-24
+    verified_by: gem-reviewer (verified_ok - strict/tsconfig/env split OK, sem ts-ignore/any/fictitious deps)
     covers: [fase-0-setup]
     dependencies: []
     conflicts_with: []
@@ -112,7 +114,9 @@ tasks:
     description: "Inicializar `supabase/` no repo, configurar supabase/config.toml referenciando o projeto remoto, criar diretorio `supabase/migrations/` versionado. Adicionar scripts npm (db:push, db:reset, db:seed). Validar `supabase db pull` contra projeto remoto. Criar .env.example (cliente/APK) e .env.server.example (dev/migrations)."
     wave: 1
     agent: gem-devops
-    status: pending
+    status: completed
+    verified_at: 2026-07-24
+    verified_by: gem-reviewer (verified_ok - env split cliente/server seguro, H1 OK, config.toml usa env() binding; microfix: GOOGLE_WEB_CLIENT_SECRET adicionado a supabase/.env.example)
     covers: [fase-0-setup, db-versioning]
     dependencies: []
     conflicts_with: []

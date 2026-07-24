@@ -2,13 +2,7 @@
 // Placeholder - sera regenerado por `npm run db:types` apos `supabase link`.
 // Veja docs/supabase-setup.md.
 
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[];
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export interface Database {
   public: {
