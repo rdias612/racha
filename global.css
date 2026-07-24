@@ -1,3 +1,40 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* =====================================================================
+ * global.css
+ * Task: T1.5 - Design system FutAmigos.
+ *
+ * CSS variables PT-BR friendly - mirror do tailwind.config.js.
+ * Uso principal: web build / ferramentas dev. NativeWind expo as classes
+ * utility em runtime via `className="..."`.
+ *
+ * Nao sobrescreve padroes do React Native (Platform.select no RN e nativo).
+ * =====================================================================
+ */
+
+:root {
+  /* Verde campo - cor primaria (PRD: pelada campo). */
+  --field-color: #16a34a;
+  --field-color-dark: #15803d;
+  --field-color-light: #86efac;
+
+  /* Tons de cinza neutros (UI bases). */
+  --pitch-50: #f8fafc;
+  --pitch-100: #f1f5f9;
+  --pitch-200: #e2e8f0;
+  --pitch-300: #cbd5e1;
+  --pitch-400: #94a3b8;
+  --pitch-500: #64748b;
+  --pitch-600: #475569;
+  --pitch-700: #334155;
+  --pitch-800: #1e293b;
+  --pitch-900: #0f172a;
+
+  /* Semantica. */
+  --goalkeeper-color: #ea580c;
+  --warning-color: #eab308;
+  --success-color: #22c55e;
+  --danger-color: #dc2626;
+}
