@@ -361,7 +361,9 @@ tasks:
     description: "Resolver blocker B5: garantir que sempre exista um MATCHES futuro valido para FK de MATCH_PRESENCES. Tres componentes: (a) Seed inicial na primeira execucao: inserir proxima quinta-feira 19:00 America/Sao_Paulo (calculo em SQL via generate_series/date_trunc). (b) Job pg_cron semanal toda Sexta-feira 20:00 BRT (Sexta 23:00 UTC) que cria automaticamente o MATCHES da quinta-feira seguinte (idempotente via unique(group_id, date_time)). (c) UI admin para criar/editar/cancelar match manualmente (substituir campo, status=cancelled) - flexibilidade operacional. Esta task e' gate de FK para T2.2 ( RSVP UI) e T2.3 (desistencia)."
     wave: 2
     agent: gem-implementer
-    status: pending
+    status: completed
+    verified_at: 2026-07-25
+    verified_by: gem-implementer (self-report; pending review em T8.1 - migration 00000000000008 + lib/matches.ts + admin/matches.tsx)
     covers: [fase-0-cron, fase-2-matches]
     dependencies: [T1.3a, T1.3b, T1.7]
     conflicts_with: []
@@ -405,7 +407,9 @@ tasks:
     description: "Implementar Expo Router layout `(tabs)` com 4 abas: Presenca, Caixa, Sorteio, Perfil. Criar stores Zustand (`usePresenceStore`, `useMatchStore`, `usePaymentStore`, `useProfileStore`) com selectors tipados. Configurar Realtime subscriptions para MATCH_PRESENCES e PAYMENTS. helpers de timezone (BRT<->UTC)."
     wave: 2
     agent: gem-implementer
-    status: pending
+    status: completed
+    verified_at: 2026-07-25
+    verified_by: gem-implementer (self-report; pending review em T8.1 - _layout.tsx realtime + 3 stores + lib/timezone.ts + lib/realtime.ts + tests/timezone.smoke.ts 19/19)
     covers: [fase-1-core, fase-2-shell]
     dependencies: [T1.4, T1.5]
     conflicts_with: []
@@ -437,7 +441,9 @@ tasks:
     description: "Tela principal 'Presenca': cards visuais separando [Confirmados / Pendentes aprovacao / Fila espera FIFO]. Aderencia ao fluxo do PRD: mensalista auto-confirma, avulso fica pending_approval. Exibir corte visual (linha) na capacidade 16. Usar NativeWind para styling, PT-BR copy."
     wave: 2
     agent: gem-designer
-    status: pending
+    status: completed
+    verified_at: 2026-07-25
+    verified_by: gem-designer (self-report; tsc+eslint 0/0; 3 PresenceList + PlayerCard + DESIGN.md; UI estatica com mock data para T2.3 plugar handlers)
     covers: [fase-2-lista]
     dependencies: [T2.1]
     conflicts_with: []
@@ -474,7 +480,9 @@ tasks:
     description: "Implementar logica de RSVP conforme PRD regra 4: (a) Mensalista confirma -> status=confirmed direto. (b) Avulso confirma -> status=pending_approval. (c) Botao Desistir em confirmado. (d) Validar cutoff terca 19h BRT. (e) Apos cutoff terca 19h BRT: mensalista desistente que re-confirma presenca e' tratado como novo avulso - INSERT MATCH_PRESENCES (status='waiting_list') no final da fila FIFO (M4 rebate). Expor RN calls a partir do PresenceStore."
     wave: 2
     agent: gem-implementer
-    status: pending
+    status: completed
+    verified_at: 2026-07-25
+    verified_by: gem-implementer (self-report; 15/15 smoke tests; 6/6 ACs; lib/rsvp.ts + stores/presence.ts estendido + bind UI; validacao IO/device handoff)
     covers: [fase-2-rsvp]
     dependencies: [T2.0, T2.1, T2.2]
     conflicts_with: []
@@ -510,7 +518,9 @@ tasks:
     description: "Implementar promocao FIFO automatica e manual: quando mensalista desiste (status=declined) e ha avulso na fila, o primeiro avulso pendente e' promovido a status=confirmed. Cenario recursivo: se 1o avulso recusar, tenta proximo. UI admin: lista de pendentes com bot\u00f5es Promover/Rejeitar. Logica no DB via SQL function `promote_next_casual(group_id, match_id)` chamada pelo client admin."
     wave: 3
     agent: gem-implementer
-    status: pending
+    status: completed
+    verified_at: 2026-07-25
+    verified_by: gem-implementer (self-report; 14/14 smoke; migration 00000000000009 + lib/fifo.ts + admin/pending.tsx; FOR UPDATE SKIP LOCKED; SECURITY DEFINER; validacao device handoff)
     covers: [fase-2-fifo]
     dependencies: [T2.3]
     conflicts_with: []
@@ -546,7 +556,9 @@ tasks:
     description: "Implementar gerador de mensagens PT-BR formatadas para 3 categorias: (a) 'Texto de Segunda': lista completa de confirmados/pendentes/fila para o grupo do racha. (b) 'Alerta 48h' (Ter 19h): recap lista final. (c) 'Novidade de confirmacao': avulso promovido. Usar expo-sharing ou Linking Deep Link `whatsapp://send?text=`. Validar abertura no WhatsApp nativo. Fallback (L3): se WhatsApp nao instalado, copiar texto formatado para clipboard (expo-clipboard) + exibir toast PT-BR 'Texto copiado! Cole no WhatsApp.'"
     wave: 3
     agent: gem-implementer
-    status: pending
+    status: completed
+    verified_at: 2026-07-25
+    verified_by: gem-implementer (self-report; 33/33 smoke; 7/7 ACs; lib/whatsapp.ts + ShareButton.tsx + bind em index.tsx gate admin; deps expo-sharing/expo-clipboard instaladas; device handoff)
     covers: [fase-3-whatsapp]
     dependencies: [T3.1]
     conflicts_with: []
@@ -584,7 +596,9 @@ tasks:
     description: "Tela 'Caixa' mostrando lista de PAYMENTS (mensalidades + avulsos) com columnas: jogador, tipo (Mensal/Avulso), valor, status (pending/marked/paid). Agrupar por mes corrente. Painel transparente conforme regra 6: todos usuarios veem todos pagamentos do grupo. filtros por status."
     wave: 4
     agent: gem-designer
-    status: pending
+    status: completed
+    verified_at: 2026-07-25
+    verified_by: gem-designer (self-report; tsc+eslint 0/0; caixa.tsx + PaymentRow.tsx props-driven p/ T4.2; UI estatica com mock; R$ pt-BR OK)
     covers: [fase-4-financeiro-ui]
     dependencies: [T1.3a, T1.7, T2.1]
     conflicts_with: []
