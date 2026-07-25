@@ -154,7 +154,7 @@ export async function markAsPaid(paymentId: string): Promise<PaymentRow> {
   const stamp = nowIso();
   const { data, error } = await supabase
     .from('payments')
-    .update({ marked_paid_at: stamp, updated_at: stamp } as never)
+    .update({ marked_paid_at: stamp } as never)
     .eq('id', paymentId)
     .select()
     .single();

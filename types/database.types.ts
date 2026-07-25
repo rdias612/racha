@@ -240,6 +240,10 @@ export interface Database {
           is_goalkeeper: boolean;
         }[];
       };
+      add_walk_in_participant: {
+        Args: { match_id: string; player_id: string; team_group: number };
+        Returns: MatchParticipantRow[];
+      };
     };
     Enums: {
       user_type: UserType;

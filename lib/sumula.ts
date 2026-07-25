@@ -30,7 +30,14 @@
  *     sao bloqueados upstream pela UI (botao so aparece em status active).
  */
 
-import type { Json, MatchParticipantRow, MatchRow, MatchStatus } from '@/types/database.types';
+import type {
+  Json,
+  MatchParticipantRow,
+  MatchParticipantUpdate,
+  MatchRow,
+  MatchStatus,
+  MatchUpdate,
+} from '@/types/database.types';
 
 // ----- Types ----------------------------------------------------------------
 
@@ -280,8 +287,11 @@ export async function fetchMatchSumula(matchId: string): Promise<{
  */
 export async function updateTeamScores(matchId: string, teamScores: TeamScoresMap): Promise<void> {
   const supabase = await getSupabase();
-  const payload = { team_scores: buildTeamScoresJson(teamScores) as Json };
-  const { error } = await supabase.from('matches').update(payload).eq('id', matchId);
+  const payload: MatchUpdate = { team_scores: buildTeamScoresJson(teamScores) as Json };
+  const { error } = await supabase
+    .from('matches')
+    .update(payload as never)
+    .eq('id', matchId);
   if (error) throw new Error(friendlyError(error as DbLikeError));
 }
 
@@ -298,7 +308,7 @@ export async function updateParticipantStat(
 ): Promise<void> {
   const supabase = await getSupabase();
   const clamped = clampStat(value);
-  const payload = { [field]: clamped } as Partial<MatchParticipantRow>;
+  const payload: MatchParticipantUpdate = { [field]: clamped };
   const { error } = await supabase
     .from('match_participants')
     .update(payload as never)
@@ -306,20 +316,7 @@ export async function updateParticipantStat(
   if (error) throw new Error(friendlyError(error as DbLikeError));
 }
 
-/**
- * Add avulso nao-confirmado in-game (PRD regra 4): INSERT em MATCH_PRESENCES
- * confirmed + INSERT em MATCH_PARTICIPANTS. RLS insert em match_presences
- * exige user_id = auth.uid() OU admin - aqui admin via service_role-style policy.
- *
- * Fluxo:
- *   1. INSERT match_presences (status='confirmed', confirmed_at=now()).
- *      Idempotente via UNIQUE (match_id, user_id): ignora conflito (23505).
- *   2. UPSERT match_participants com team_group fornecido (default 1).
- *      Idempotente via UNIQUE (match_id, player_id): se ja existir, UPDATE
- *      apenas o team_group (preserva stats existentes).
- *
- * Retorna a linha match_participants criada/atualizada.
- */
+/** Add avulso via RPC atomica SECURITY DEFINER, preservando stats no upsert. */
 export async function addWalkInParticipant(input: {
   matchId: string;
   playerId: string;
@@ -328,35 +325,16 @@ export async function addWalkInParticipant(input: {
   const supabase = await getSupabase();
   const { matchId, playerId, teamGroup } = input;
   const safeTeam = Number.isFinite(teamGroup) && teamGroup >= 1 ? Math.trunc(teamGroup) : 1;
+  const { data, error } = await supabase.rpc('add_walk_in_participant', {
+    match_id: matchId,
+    player_id: playerId,
+    team_group: safeTeam,
+  } as never);
 
-  // 1. match_presences confirmed idempotente.
-  const { error: mpErr } = await supabase.from('match_presences').upsert(
-    {
-      match_id: matchId,
-      user_id: playerId,
-      status: 'confirmed' as const,
-      confirmed_at: new Date().toISOString(),
-    },
-    { onConflict: 'match_id,user_id', ignoreDuplicates: true },
-  );
-  if (mpErr) throw new Error(friendlyError(mpErr as DbLikeError));
-
-  // 2. match_participants upsert (preserva stats se ja existir).
-  const { data, error: partErr } = await supabase
-    .from('match_participants')
-    .upsert(
-      {
-        match_id: matchId,
-        player_id: playerId,
-        team_group: safeTeam,
-      },
-      { onConflict: 'match_id,player_id' },
-    )
-    .select('*')
-    .single();
-
-  if (partErr) throw new Error(friendlyError(partErr as DbLikeError));
-  return data as unknown as MatchParticipantRow;
+  if (error) throw new Error(friendlyError(error as DbLikeError));
+  const participant = data?.[0];
+  if (!participant) throw new Error('Participante nao retornado pela RPC.');
+  return participant as MatchParticipantRow;
 }
 
 /**
@@ -375,10 +353,13 @@ export async function finishMatch(
     throw new Error('So e possivel finalizar uma partida em andamento (status=active).');
   }
   const supabase = await getSupabase();
-  const payload = {
+  const payload: MatchUpdate = {
     status: 'finished' as MatchStatus,
     updated_at: new Date().toISOString(),
   };
-  const { error } = await supabase.from('matches').update(payload).eq('id', matchId);
+  const { error } = await supabase
+    .from('matches')
+    .update(payload as never)
+    .eq('id', matchId);
   if (error) throw new Error(friendlyError(error as DbLikeError));
 }

@@ -882,7 +882,9 @@ tasks:
     description: "Tela de sumula pos-jogo (MATCH_PARTICIPANTS) que captura placar (MATCHES.team_scores jsonb) e estatisticas por jogador: goals_scored, goals_assisted, own_goals. UI admin para editar durante/pos jogo. Toggle 'finalizar partida' que seta MATCHES.status='finished'. Lista de MATCH_PARTICIPANTS carregada do sorteio T6.1, permitindo edicao."
     wave: 6
     agent: gem-implementer
-    status: pending
+    status: completed
+    verified_at: 2026-07-25
+    verified_by: gem-reviewer (verified_ok; RPC walk-in SECURITY DEFINER com search_path=public + is_admin; PUBLIC EXECUTE revogado; 17/17 smoke; tsc restante somente em lib/fifo.ts e lib/teams.ts preexistentes)
     covers: [fase-6-sumula]
     dependencies: [T6.1]
     conflicts_with: []
@@ -915,7 +917,9 @@ tasks:
     description: "Tela 'Perfil' mostrando: dados do PROFILES proprio, estatisticas crus agregadas (SUM goals_scored, assists, own_goals sobre MATCH_PARTICIPANTS historical). Sem calculos complexos (rendimento dupla etc fica pos-MVP). Links para logout, settings (notificacoes). UI PT-BR. Sem referencia ao campo morto 'avatar' (N2) - usar avatar_url se desejar exibir foto."
     wave: 7
     agent: gem-designer
-    status: pending
+    status: completed
+    verified_at: 2026-07-25
+    verified_by: gem-reviewer (verified_ok; avatar_url/nome/user_type, agregados simples, logout e links admin; scoped diagnostics 0; tsc global somente fifo.ts/teams.ts preexistentes)
     covers: [fase-8-perfil]
     dependencies: [T6.2]
     conflicts_with: []
@@ -979,7 +983,10 @@ tasks:
     description: "Review completo do backend: validar paridade ERD-PRD versus codigo SQL aplicado, RLS em 8 tabelas, 4 jobs cron ativos (dia 5 + Seg/Ter/Qui), trigger auth->PROFILES, function FIFO, draw_teams. Report todos divergencias."
     wave: 8
     agent: gem-reviewer
-    status: pending
+    status: blocked
+    diag: "Review estático concluído; bloqueada até Docker Desktop/Postgres estar disponível para aplicar migrations e validar RLS, grants, cron e Vault em runtime."
+    verified_at: 2026-07-25
+    verified_by: gem-reviewer (static review OK; runtime validation pending)
     covers: [fase-0-9-review]
     dependencies: [T1.7, T5.2, T5.0, T6.1]
     conflicts_with: []
