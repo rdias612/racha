@@ -68,7 +68,11 @@ assertEq(
 );
 
 assertEq(
-  deriveStatus({ marked_paid_at: '2026-07-25T10:00:00Z', approved_at: null, paid_at: null } as Stamps),
+  deriveStatus({
+    marked_paid_at: '2026-07-25T10:00:00Z',
+    approved_at: null,
+    paid_at: null,
+  } as Stamps),
   'marked',
   'jogador marcou, admin nao aprovou => marked',
 );
@@ -87,13 +91,21 @@ assertEq(
 console.log('\n[invariant] approved_at => paid (marcado ou nao marcado)');
 
 assertEq(
-  deriveStatus({ marked_paid_at: null, approved_at: '2026-07-25T12:00:00Z', paid_at: null } as Stamps),
+  deriveStatus({
+    marked_paid_at: null,
+    approved_at: '2026-07-25T12:00:00Z',
+    paid_at: null,
+  } as Stamps),
   'paid',
   'approved_at sozinho => paid (marcacao pulada)',
 );
 
 assertEq(
-  deriveStatus({ marked_paid_at: null, approved_at: null, paid_at: '2026-07-25T12:00:00Z' } as Stamps),
+  deriveStatus({
+    marked_paid_at: null,
+    approved_at: null,
+    paid_at: '2026-07-25T12:00:00Z',
+  } as Stamps),
   'paid',
   'paid_at sozinho => paid (snapshot final)',
 );
@@ -116,12 +128,20 @@ assertEq(
   'variacao 1: tudo null -> pending',
 );
 assertEq(
-  deriveStatus({ marked_paid_at: '2026-07-25T10:00:00Z', approved_at: null, paid_at: null } as Stamps),
+  deriveStatus({
+    marked_paid_at: '2026-07-25T10:00:00Z',
+    approved_at: null,
+    paid_at: null,
+  } as Stamps),
   'marked',
   'variacao 2: soh marked_paid_at -> marked',
 );
 assertEq(
-  deriveStatus({ marked_paid_at: '2026-07-25T10:00:00Z', approved_at: '2026-07-25T12:00:00Z', paid_at: null } as Stamps),
+  deriveStatus({
+    marked_paid_at: '2026-07-25T10:00:00Z',
+    approved_at: '2026-07-25T12:00:00Z',
+    paid_at: null,
+  } as Stamps),
   'paid',
   'variacao 3: marked + approved (sem paid_at) -> paid (paid_at eh snapshot opcional)',
 );
@@ -138,7 +158,11 @@ const afterMark: Stamps = { ...initialState, marked_paid_at: '2026-07-25T10:00:0
 assertEq(deriveStatus(afterMark), 'marked', 'apos marcar: marked');
 
 // Admin aprova -> setar approved_at (+ paid_at snapshot)
-const afterApprove: Stamps = { ...afterMark, approved_at: '2026-07-25T12:00:00Z', paid_at: '2026-07-25T12:00:00Z' };
+const afterApprove: Stamps = {
+  ...afterMark,
+  approved_at: '2026-07-25T12:00:00Z',
+  paid_at: '2026-07-25T12:00:00Z',
+};
 assertEq(deriveStatus(afterApprove), 'paid', 'apos aprovar: paid');
 
 // Idempotencia: novo set de approved_at/paid_at mantem paid
@@ -147,8 +171,16 @@ assertEq(deriveStatus(afterReApprove), 'paid', 're-aprovar: paid (idempotente)')
 
 // Transicao ILEGAL: ja pago => desmarcar marked_paid_at nao volta a paid
 // (defensivo: approved_at ainda setado => paid persiste)
-const illegalReset: Stamps = { marked_paid_at: null, approved_at: afterApprove.approved_at, paid_at: afterApprove.paid_at };
-assertEq(deriveStatus(illegalReset), 'paid', 'reset marcacao pos-aprovacao: paid persiste (approved_at prevalece)');
+const illegalReset: Stamps = {
+  marked_paid_at: null,
+  approved_at: afterApprove.approved_at,
+  paid_at: afterApprove.paid_at,
+};
+assertEq(
+  deriveStatus(illegalReset),
+  'paid',
+  'reset marcacao pos-aprovacao: paid persiste (approved_at prevalece)',
+);
 
 // ----- canUserMark: RBAC proprio jogador -----------------------------------
 console.log('\n[canUserMark] jogador marca somente o proprio pagamento');

@@ -1,6 +1,6 @@
 /**
  * lib/realtime.ts
- * Task: T2.1 - Subscriptions Supabase Realtime centralizadas.
+ * Task: T2.1 (RSVP + Payments) + T4.3 (Expenses + reminder pos-jogo).
  *
  * Por que existir (YAGNI-aware):
  *   - Stores Zustand sao puras (sem IO). Realtime IO fica aqui para manter
@@ -10,6 +10,10 @@
  *   - subscribePresences(matchId) - escuta INSERT/UPDATE/DELETE em
  *     match_presences para o match corrente. Repassa payload para a store.
  *   - subscribePayments(groupId) - escuta mutacoes em payments do grupo.
+ *   - subscribeExpenses(groupId) - escuta mutacoes em expenses do grupo (T4.3).
+ *   - subscribeMatchesForReminder(groupId, opts) - detecta MATCHES.status ->
+ *     finished e dispara reminder LOCAL no device (T4.3). Mantem estado
+ *     prevStatus interno idempotente (evita re-disparo).
  *
  * Restricoes:
  *   - Realtime respeita RLS por padrao no Supabase (so chegam registros
@@ -28,7 +32,9 @@ import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/
 import { supabase } from '@/lib/supabase';
 import { usePresenceStore } from '@/stores/presence';
 import { usePaymentStore } from '@/stores/payment';
-import type { MatchPresenceRow, PaymentRow } from '@/types/database.types';
+import { useExpenseStore } from '@/stores/expense';
+import { shouldFireGoalkeeperReminder } from '@/lib/expenses';
+import type { MatchPresenceRow, PaymentRow, ExpenseRow } from '@/types/database.types';
 
 type PresencePayload =
   | { eventType: 'INSERT'; new: MatchPresenceRow }
@@ -38,6 +44,23 @@ type PresencePayload =
 type PaymentPayload =
   | { eventType: 'INSERT'; new: PaymentRow }
   | { eventType: 'UPDATE'; new: PaymentRow }
+  | { eventType: 'DELETE'; old: { id: string } };
+
+type ExpensePayload =
+  | { eventType: 'INSERT'; new: ExpenseRow }
+  | { eventType: 'UPDATE'; new: ExpenseRow }
+  | { eventType: 'DELETE'; old: { id: string } };
+
+type MatchStatusPayload =
+  | {
+      eventType: 'INSERT';
+      new: { id: string; status?: string; goalkeeper_expense?: number; date_time?: string };
+    }
+  | {
+      eventType: 'UPDATE';
+      new: { id: string; status?: string; goalkeeper_expense?: number; date_time?: string };
+      old?: { status?: string };
+    }
   | { eventType: 'DELETE'; old: { id: string } };
 
 /**
@@ -106,6 +129,103 @@ export function subscribePayments(groupId: string): RealtimeChannel {
         event: '*',
         schema: 'public',
         table: 'payments',
+        filter: `group_id=eq.${groupId}`,
+      },
+      onChange,
+    )
+    .subscribe();
+}
+
+/**
+ * Subscreve mutacoes de EXPENSES filtrando por group_id (T4.3).
+ * Mantem a store de despesas sincronizada com ADMIN INSERT/UPDATE/DELETE;
+ * UI (Caixa saldo + tela admin) reflete instantaneamente.
+ */
+export function subscribeExpenses(groupId: string): RealtimeChannel {
+  const expenseStore = useExpenseStore.getState();
+
+  const onChange = (payload: RealtimePostgresChangesPayload<ExpenseRow>) => {
+    const typed = payload as unknown as ExpensePayload;
+    switch (typed.eventType) {
+      case 'INSERT':
+        expenseStore.addExpense(typed.new);
+        break;
+      case 'UPDATE':
+        expenseStore.upsertExpense(typed.new.id, typed.new);
+        break;
+      case 'DELETE':
+        expenseStore.removeExpense(typed.old.id);
+        break;
+    }
+  };
+
+  return supabase
+    .channel(`expenses:${groupId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'expenses',
+        filter: `group_id=eq.${groupId}`,
+      },
+      onChange,
+    )
+    .subscribe();
+}
+
+/**
+ * Subscreve mutacoes de MATCHES para disparar reminder LOCAL (T4.3) quando
+ * status -> finished (so no device admin). Mantem estado prevStatus interno
+ * para deteccao idempotente da transicao (nao re-dispara em refresh).
+ *
+ * `onFireReminder` e injetado (DIP) p/ testabilidade e desacoplamento de IO
+ * Notifications. Em producao, callers passam fireGoalkeeperReminderNow de
+ * lib/expenseReminder.ts.
+ *
+ * `isAdmin` (default false): se nao admin, skip silencioso (RLS ja protege;
+ * mesmo recebendo o evento, nao dispara notificacao p/ nao-admin).
+ */
+export function subscribeMatchesForReminder(
+  groupId: string,
+  opts: {
+    onFireReminder: (amount: number, matchDateTimeIso?: string | null) => void;
+    isAdmin?: boolean;
+  },
+): RealtimeChannel {
+  const prevStatusByMatch = new Map<string, string | undefined>();
+
+  const onChange = (
+    payload: RealtimePostgresChangesPayload<{
+      id: string;
+      status?: string;
+      goalkeeper_expense?: number;
+      date_time?: string;
+    }>,
+  ) => {
+    if (opts.isAdmin === false) return;
+    const typed = payload as unknown as MatchStatusPayload;
+    if (typed.eventType === 'DELETE') return;
+
+    const next = typed.new;
+    if (!next?.id || typeof next.status !== 'string') return;
+
+    const prev = prevStatusByMatch.get(next.id);
+    if (shouldFireGoalkeeperReminder(prev ?? null, next.status)) {
+      const amount = Number(next.goalkeeper_expense ?? 40);
+      opts.onFireReminder(amount, next.date_time ?? null);
+    }
+    prevStatusByMatch.set(next.id, next.status);
+  };
+
+  return supabase
+    .channel(`matches:reminder:${groupId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'matches',
         filter: `group_id=eq.${groupId}`,
       },
       onChange,

@@ -84,11 +84,18 @@ export default function PerfilScreen() {
                 onPress={() => router.push('/(tabs)/admin/payments')}
                 className="border-pitch-200 rounded-xl border bg-white p-3"
               >
-                <Text className="text-field-dark text-sm font-semibold">
-                  Pagamentos (admin)
-                </Text>
+                <Text className="text-field-dark text-sm font-semibold">Pagamentos (admin)</Text>
                 <Text className="text-pitch-600 mt-0.5 text-xs">
                   Aprovar pagamentos marcados (dupla confirmação)
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => router.push('/(tabs)/admin/expenses')}
+                className="border-pitch-200 rounded-xl border bg-white p-3"
+              >
+                <Text className="text-field-dark text-sm font-semibold">Despesas (admin)</Text>
+                <Text className="text-pitch-600 mt-0.5 text-xs">
+                  Goleiros / campo / outras - confirmar saídas do caixa
                 </Text>
               </Pressable>
             </View>

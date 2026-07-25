@@ -3,7 +3,15 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
-import { subscribePayments, subscribePresences, disposeChannel } from '@/lib/realtime';
+import {
+  subscribeExpenses,
+  subscribeMatchesForReminder,
+  subscribePayments,
+  subscribePresences,
+  disposeChannel,
+} from '@/lib/realtime';
+import { fireGoalkeeperReminderNow } from '@/lib/expenseReminder';
+import { supabase } from '@/lib/supabase';
 
 /**
  * Layout das abas (Tab Bar) - 4 abas PT-BR.
@@ -57,10 +65,46 @@ export default function TabsLayout() {
   useEffect(() => {
     let presenceChannel: RealtimeChannel | undefined;
     let paymentChannel: RealtimeChannel | undefined;
+    let expenseChannel: RealtimeChannel | undefined;
+    let matchReminderChannel: RealtimeChannel | undefined;
+
+    // Resolve is_admin (async); TEMP busca apenas o role corrente p/ gate do reminder.
+    // (perfil.tsx e admin/payments.tsx mantem logica equivalente; aqui so serve
+    // p/ nao-agendar notificacao em device de nao-admin.)
+    let isAdmin = false;
+    void (async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data } = await supabase
+          .from('profiles')
+          .select('is_admin')
+          .eq('id', user.id)
+          .maybeSingle();
+        const flag = Array.isArray(data)
+          ? false
+          : Boolean((data as { is_admin?: boolean } | null)?.is_admin);
+        isAdmin = flag;
+      } catch {
+        isAdmin = false;
+      }
+    })();
 
     try {
       presenceChannel = subscribePresences(PLACEHOLDER_MATCH_ID);
       paymentChannel = subscribePayments(PLACEHOLDER_GROUP_ID);
+      // T4.3: Expenses Realtime para atualizar SALDO do Caixa instantaneamente.
+      expenseChannel = subscribeExpenses(PLACEHOLDER_GROUP_ID);
+      // T4.3: Reminder LOCAL pos-jogo no device admin (admin detecta status->finished).
+      matchReminderChannel = subscribeMatchesForReminder(PLACEHOLDER_GROUP_ID, {
+        onFireReminder: (amount, matchIso) => {
+          // isAdmin e resolvido lazy no closure; se ainda nao confirmado true,
+          // fireGoalkeeperReminderNow faz o gate defensivo via chamada direta.
+          if (isAdmin) void fireGoalkeeperReminderNow(amount, matchIso);
+        },
+      });
     } catch (err) {
       // Realtime nao deve impedir a navegacao entre abas.
       console.warn('[realtime] Falha ao abrir subscriptions:', err);
@@ -69,6 +113,8 @@ export default function TabsLayout() {
     return () => {
       void disposeChannel(presenceChannel);
       void disposeChannel(paymentChannel);
+      void disposeChannel(expenseChannel);
+      void disposeChannel(matchReminderChannel);
     };
   }, []);
 

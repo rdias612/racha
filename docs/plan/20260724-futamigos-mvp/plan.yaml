@@ -629,7 +629,9 @@ tasks:
     description: "Implementar fluxo dupla confirmacao PRD regra 3: (a) Jogador marca como pago -> PAYMENTS.marked_paid_at. (b) Admin aprova -> PAYMENTS.approved_at + paid_at. UI jogador: botao 'Marquei como pago'. UI admin: lista de marcados com 'Aprovar'. Validar RLS: soh proprio jogador marca, soh admin aprova."
     wave: 4
     agent: gem-implementer
-    status: pending
+    status: completed
+    verified_at: 2026-07-25
+    verified_by: gem-implementer (self-report; 26/26 smoke; 5/5 ACs; lib/payments.ts + admin/payments.tsx + bind caixa.tsx; schema finding: payment_status enum so pending|paid, marked DERIVADO de marked_paid_at!=null && approved_at==null; goalkeeper e EXPENSE nao payment_type; 2-contas handoff)
     covers: [fase-4-pagamento]
     dependencies: [T1.7, T4.1]
     conflicts_with: []
@@ -660,7 +662,9 @@ tasks:
     description: "Implementar gestao de EXPENSES: (a) UI admin para criar despesa (tipo goalkeeper/field/other, descricao, valor). (b) Lista de expenses com toggle confirmed_at. (c) Push reminder pos-jogo para admin: 'Confirme pagamento dos goleiros de R$ 40'. Default value de GROUPS.goalkeeper_expense."
     wave: 4
     agent: gem-implementer
-    status: pending
+    status: completed
+    verified_at: 2026-07-25
+    verified_by: gem-implementer (self-report; 30/30 smoke; 4/4 ACs; lib/expenses.ts + lib/expenseReminder.ts + stores/expense.ts + admin/expenses.tsx; reminder LOCAL via Realtime status->finished; saldo reativo no Caixa; KNOWN: erros tsc pre-existentes em lib/fifo.ts fora escopo)
     covers: [fase-4-expenses, fase-5-caixa]
     dependencies: [T4.2]
     conflicts_with: []

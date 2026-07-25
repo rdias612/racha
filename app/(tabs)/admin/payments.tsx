@@ -15,14 +15,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Pressable,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
@@ -162,9 +155,7 @@ export default function AdminPaymentsScreen() {
         </Card>
 
         <View className="mt-2 flex-1">
-          <Text className="text-pitch-900 mb-2 text-base font-semibold">
-            Aguardando aprovacao
-          </Text>
+          <Text className="text-pitch-900 mb-2 text-base font-semibold">Aguardando aprovacao</Text>
           {loading ? (
             <ActivityIndicator />
           ) : marked.length === 0 ? (

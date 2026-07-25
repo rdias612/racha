@@ -34,9 +34,16 @@ import {
   listPaymentsWithProfiles,
   markAsPaid,
 } from '@/lib/payments';
+import {
+  computeSaldo,
+  formatBRL as formatExpenseBRL,
+  friendlyExpenseError,
+  listExpenses,
+} from '@/lib/expenses';
 import { usePaymentStore } from '@/stores/payment';
+import { useExpenseStore } from '@/stores/expense';
 import { useAuth } from '@/hooks/useAuth';
-import type { PaymentRow as PaymentRowDb, ProfileRow } from '@/types/database.types';
+import type { ExpenseRow, PaymentRow as PaymentRowDb, ProfileRow } from '@/types/database.types';
 
 // ---- Tipos internos -------------------------------------------------------
 
@@ -92,9 +99,7 @@ const MONTH_NAMES = [
 
 /** Chave AAAA-MM atual (BRT) para o resumo destacado no topo. */
 function currentMonthKey(): string {
-  return new Date()
-    .toLocaleString('en-CA', { timeZone: 'America/Sao_Paulo' })
-    .slice(0, 7);
+  return new Date().toLocaleString('en-CA', { timeZone: 'America/Sao_Paulo' }).slice(0, 7);
 }
 
 /** Label PT-BR curto a partir de AAAA-MM: "Julho/2026". */
@@ -255,6 +260,10 @@ export default function CaixaScreen() {
   const markPaidStore = usePaymentStore((s) => s.markPaid);
   const approveStoreInner = usePaymentStore((s) => s.approve);
 
+  // T4.3: Saldo do Caixa = SUM(payments approved) - SUM(expenses confirmed).
+  const expenses = useExpenseStore((s) => s.expenses);
+  const setExpenses = useExpenseStore((s) => s.setExpenses);
+
   const [filter, setFilter] = useState<FilterKey>('all');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -275,11 +284,31 @@ export default function CaixaScreen() {
     }
   }, [setPayments]);
 
+  // T4.3: tambem hidrata EXPENSES (Realtime mantem sincronizado).
+  const refreshExpenses = useCallback(async () => {
+    try {
+      const list = await listExpenses();
+      setExpenses(list);
+    } catch (e) {
+      // Saldo fica zerado; nao derruba a tela de cobrancas se expenses falhar.
+      setError(friendlyExpenseError({ message: e instanceof Error ? e.message : String(e) }));
+    }
+  }, [setExpenses]);
+
   useEffect(() => {
     refresh().catch(() => {
       /* swallowed: refresh ja seta error state */
     });
-  }, [refresh]);
+    refreshExpenses().catch(() => {
+      /* swallowed */
+    });
+  }, [refresh, refreshExpenses]);
+
+  // T4.3: Saldo consolidado. Deriva de payments (approved_at != null) e
+  // expenses (confirmed_at != null). Negativo quando despesa > receita.
+  const saldo = useMemo(() => {
+    return computeSaldo(payments as { amount: number; approved_at: string | null }[], expenses);
+  }, [payments, expenses]);
 
   // is_admin do profile (gate UI onApprove; DB RLS T1.7 e fonte de verdade).
   const [isAdmin, setIsAdmin] = useState(false);
@@ -437,6 +466,23 @@ export default function CaixaScreen() {
               <Text className="text-pitch-900 text-sm font-bold">{BRL.format(totalPending)}</Text>
             </View>
           </View>
+        </View>
+
+        {/* T4.3: SALDO do Caixa = SUM(approved payments) - SUM(confirmed expenses) */}
+        <View
+          className="border-pitch-200 gap-2 rounded-xl border bg-white p-4"
+          style={{ elevation: 2 } as never}
+          accessibilityLabel="Saldo atual do caixa"
+        >
+          <Text className="text-pitch-600 text-sm font-semibold uppercase tracking-wide">
+            Saldo do caixa
+          </Text>
+          <Text className={`text-2xl font-bold ${saldo >= 0 ? 'text-pitch-900' : 'text-danger'}`}>
+            {formatExpenseBRL(saldo)}
+          </Text>
+          <Text className="text-pitch-500 text-xs">
+            Receitas aprovadas menos despesas confirmadas.
+          </Text>
         </View>
 
         {loading ? <ActivityIndicator /> : null}
