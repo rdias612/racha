@@ -54,13 +54,7 @@ module.exports = {
       fontFamily: {
         // PT-BR friendly: fallback system (Roboto no Android).
         // Sem webfonts no MVP - carregamento extra e YAGNI.
-        sans: [
-          'System',
-          'Roboto',
-          'Helvetica Neue',
-          'Arial',
-          'sans-serif',
-        ],
+        sans: ['System', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
       },
       // Spacing: escala default Tailwind (nao over-engineerar).
       // Touch target >=44pt garantido via classes px-5 py-3 no Button.

@@ -66,7 +66,7 @@ export const Button = forwardRef<ComponentRef<typeof Pressable>, ButtonProps>(fu
       accessibilityRole="button"
       accessibilityState={{ disabled: isDisabled, busy: loading }}
       accessibilityLabel={title}
-      className={`px-5 py-3 rounded-xl items-center justify-center min-h-[44px] flex-row gap-2 ${classes.container} ${
+      className={`min-h-[44px] flex-row items-center justify-center gap-2 rounded-xl px-5 py-3 ${classes.container} ${
         isDisabled ? 'opacity-50' : ''
       }`}
       {...rest}

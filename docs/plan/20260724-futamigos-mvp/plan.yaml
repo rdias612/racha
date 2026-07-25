@@ -227,7 +227,9 @@ tasks:
     description: "Implementar RLS junto com o schema (nunca feature tardia - M1). Row Level Security em todas as 8 tabelas conforme PRD regra 6 + transparencia. Policies: PROFILES (usuario ve proprio + todos do seu group_id; admin ve tudo do group). MATCHES (todos do group veem). MATCH_PRESENCES (usuario insere proprio; admin update todos). PAYMENTS (todos do group veem todos pagamentos; jogador marca soh seus; admin aprova todos). EXPENSES (soh admin mutate; todos do group leem). DEVICE_TOKENS (soh proprio). MATCH_PARTICIPANTS (todos do group leem; admin mutate). Helpers SQL is_admin() e is_group_member(group_id)."
     wave: 1
     agent: gem-implementer
-    status: pending
+    status: completed
+    verified_at: 2026-07-24
+    verified_by: gem-reviewer (verified_ok - 8 tabelas RLS, helpers SECURITY DEFINER STABLE anti-recursao, zero using(true), idempotente)
     covers: [fase-0-rls]
     dependencies: [T1.3a, T1.3b]
     conflicts_with: []
@@ -260,7 +262,7 @@ tasks:
     description: "Configurar Supabase JS client (`lib/supabase.ts`) com env vars do .env.example (EXPO_PUBLIC_*), provider Google OAuth (Expo Auth Session + Google Sign-In ou web flow), criar hook `useAuth()`. Criar tela de login PT-BR apenas com botao 'Entrar com Google' (Apple Sign-In dropado do MVP - vide resolved_decisions). Exibir prompt de notificacao logo apos login bem-sucedido (Android 13+). Apos permissao concedida, executar getExpoPushTokenAsync() e INSERT INTO DEVICE_TOKENS (user_id, expo_push_token) - sem isso T5.2 dispatch falha (blocker B6)."
     wave: 1
     agent: gem-implementer
-    status: pending
+    status: completed
     covers: [fase-0-oauth, fase-1-auth, fase-1-devicetoken]
     dependencies: [T1.1, T1.3a, T1.5]
     conflicts_with: []
@@ -313,7 +315,9 @@ tasks:
     description: "Duas frentes paralelas: (a) Configurar design system base (cores, tipografia, espacamentos) com NativeWind v4 + Tailwind config PT-BR friendly (nao usa framework i18n no MVP). (b) Migration SQL com trigger `on insert auth.users` que insere em PROFILES (`on conflict do nothing`), pegando full_name/avatar_url dos metadados OAuth. Defaults EXPLICITOS obrigatorio (M2): user_type='avulso', group_id=<UUID seed GROUPS em T1.3b>, is_admin=false, avatar_url=NULL. Esta task e' gate para auth T1.4."
     wave: 1
     agent: gem-designer
-    status: pending
+    status: completed
+    verified_at: 2026-07-24
+    verified_by: gem-reviewer (verified_ok apos 4 issues LOW - 1 runtime fix resolvido: placeholders caixa/sorteio/perfil.tsx criados; 3 polish restantes em backlog: Button className filtrar Boolean, secondary variant usar theme.colors, dark mode tokens .root.dark)
     covers: [fase-0-trigger, fase-1-theme]
     dependencies: [T1.3b]
     conflicts_with: []

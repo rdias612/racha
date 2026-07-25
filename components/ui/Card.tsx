@@ -27,7 +27,7 @@ export const Card = forwardRef<View, CardProps>(function Card(
   return (
     <View
       ref={ref}
-      className={`bg-white rounded-xl p-4 gap-3 border border-pitch-200 ${className}`}
+      className={`border-pitch-200 gap-3 rounded-xl border bg-white p-4 ${className}`}
       style={[{ elevation: 2 }, rest.style]}
       {...rest}
     >
