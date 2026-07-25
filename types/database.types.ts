@@ -230,7 +230,17 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      // T6.1: sorteio aleatorio puro de times (SECURITY DEFINER).
+      draw_teams: {
+        Args: { p_match_id: string };
+        Returns: {
+          player_id: string;
+          team_group: number;
+          is_goalkeeper: boolean;
+        }[];
+      };
+    };
     Enums: {
       user_type: UserType;
       match_status: MatchStatus;

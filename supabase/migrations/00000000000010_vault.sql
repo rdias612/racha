@@ -48,12 +48,13 @@ $$;
 -- IMPORTANTE: o valor abaixo e PLACEHOLDER. Nunca commitamos o token real.
 -- Para PRODUCAO/DEV remoto:
 --   (a) Apos `supabase db push`, va em Dashboard > Database > Secrets
---       (ou SQL Editor) e rode:
+--       (ou SQL Editor) e rode (metodo canonico, validado via docs Supabase):
 --         UPDATE vault.secrets
 --         SET secret = '<TOKEN_REAL_EXPO>'
 --         WHERE name = 'expo_access_token';
---   (b) Ou via psql puro:
---         SELECT vault.update_secret_name_or_value('expo_access_token', '<TOKEN>');
+--   (b) Ou recrie o secretName via psql (alternativa discutida em secrets-vault.md):
+--         DELETE FROM vault.secrets WHERE name='expo_access_token';
+--         SELECT vault.create_secret('<TOKEN_REAL_EXPO>', 'expo_access_token', 'Bearer Expo Push API');
 --   (c) Local dev: `supabase db reset` re-aplica placeholder; re-sete o real.
 --
 -- Idempotencia: se o nome ja existe (re-run, ou ja populado via dashboard),

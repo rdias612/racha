@@ -48,10 +48,10 @@ export default function PerfilScreen() {
   }, []);
 
   return (
-    <View className="bg-pitch-50 flex-1">
+    <View className="flex-1 bg-pitch-50">
       <View className="gap-2 p-4">
-        <Text className="text-pitch-900 text-lg font-semibold">Perfil</Text>
-        <Text className="text-pitch-600 text-sm">Em breve.</Text>
+        <Text className="text-lg font-semibold text-pitch-900">Perfil</Text>
+        <Text className="text-sm text-pitch-600">Em breve.</Text>
 
         {loading ? (
           <ActivityIndicator />
@@ -60,42 +60,53 @@ export default function PerfilScreen() {
             <View className="mt-4 gap-2">
               <Pressable
                 onPress={() => router.push('/(tabs)/admin/matches')}
-                className="border-pitch-200 rounded-xl border bg-white p-3"
+                className="rounded-xl border border-pitch-200 bg-white p-3"
               >
-                <Text className="text-field-dark text-sm font-semibold">
+                <Text className="text-sm font-semibold text-field-dark">
                   Gerenciar partidas (admin)
                 </Text>
-                <Text className="text-pitch-600 mt-0.5 text-xs">
+                <Text className="mt-0.5 text-xs text-pitch-600">
                   Criar / editar / cancelar partidas
                 </Text>
               </Pressable>
               <Pressable
                 onPress={() => router.push('/(tabs)/admin/pending')}
-                className="border-pitch-200 rounded-xl border bg-white p-3"
+                className="rounded-xl border border-pitch-200 bg-white p-3"
               >
-                <Text className="text-field-dark text-sm font-semibold">
+                <Text className="text-sm font-semibold text-field-dark">
                   Gerenciar pendentes (admin)
                 </Text>
-                <Text className="text-pitch-600 mt-0.5 text-xs">
+                <Text className="mt-0.5 text-xs text-pitch-600">
                   Promover / rejeitar avulsos (FIFO)
                 </Text>
               </Pressable>
               <Pressable
                 onPress={() => router.push('/(tabs)/admin/payments')}
-                className="border-pitch-200 rounded-xl border bg-white p-3"
+                className="rounded-xl border border-pitch-200 bg-white p-3"
               >
-                <Text className="text-field-dark text-sm font-semibold">Pagamentos (admin)</Text>
-                <Text className="text-pitch-600 mt-0.5 text-xs">
+                <Text className="text-sm font-semibold text-field-dark">Pagamentos (admin)</Text>
+                <Text className="mt-0.5 text-xs text-pitch-600">
                   Aprovar pagamentos marcados (dupla confirmação)
                 </Text>
               </Pressable>
               <Pressable
                 onPress={() => router.push('/(tabs)/admin/expenses')}
-                className="border-pitch-200 rounded-xl border bg-white p-3"
+                className="rounded-xl border border-pitch-200 bg-white p-3"
               >
-                <Text className="text-field-dark text-sm font-semibold">Despesas (admin)</Text>
-                <Text className="text-pitch-600 mt-0.5 text-xs">
+                <Text className="text-sm font-semibold text-field-dark">Despesas (admin)</Text>
+                <Text className="mt-0.5 text-xs text-pitch-600">
                   Goleiros / campo / outras - confirmar saídas do caixa
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => router.push('/(tabs)/admin/goleiros')}
+                className="rounded-xl border border-pitch-200 bg-white p-3"
+              >
+                <Text className="text-sm font-semibold text-field-dark">
+                  Goleiros pagos (admin)
+                </Text>
+                <Text className="mt-0.5 text-xs text-pitch-600">
+                  Cadastrar goleiros sem login OAuth (sorteio fixo T6.1)
                 </Text>
               </Pressable>
             </View>

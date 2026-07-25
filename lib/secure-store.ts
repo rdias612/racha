@@ -11,6 +11,7 @@ import * as SecureStore from 'expo-secure-store';
 import type { Session } from '@supabase/supabase-js';
 
 export const SESSION_KEY = 'supabase-session';
+export const ONBOARD_KEY = 'onboarded';
 
 export async function saveSession(session: Session): Promise<void> {
   await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(session));
@@ -30,4 +31,24 @@ export async function loadSession(): Promise<Session | null> {
 
 export async function clearSession(): Promise<void> {
   await SecureStore.deleteItemAsync(SESSION_KEY);
+}
+
+/**
+ * Onboarding (T7.2):
+ * - Marca no SecureStore que o usuario concluiu o onboarding inicial.
+ * - Nao persiste no DB (YAGNI): flag resetavel apenas por uninstall.
+ * - Offline-first: lido no boot do app (_layout.tsx).
+ */
+export async function markOnboarded(): Promise<void> {
+  await SecureStore.setItemAsync(ONBOARD_KEY, '1');
+}
+
+/**
+ * Verifica se o usuario ja concluiu o onboarding.
+ * - true  -> pular /onboarding, ir direto /(tabs).
+ * - false -> redirecionar para /onboarding antes das tabs.
+ */
+export async function isOnboarded(): Promise<boolean> {
+  const raw = await SecureStore.getItemAsync(ONBOARD_KEY);
+  return raw === '1';
 }

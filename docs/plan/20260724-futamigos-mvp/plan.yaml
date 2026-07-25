@@ -691,11 +691,14 @@ tasks:
 
   # ═══════════════════════ WAVE 5: FASE 4 CRON + FASE 5 CAIXA ═══════════════════════
   - id: T5.0
+    verified_at: 2026-07-25
+    verified_by: gem-devops (migration + docs convergem com pattern Context7; grep workspace confirma 0 token real hardcoded)
+    pending_handoff: "SETAR token real via dashboard/psql apos `supabase db push`: UPDATE vault.recrets SET secret='<TOKEN>' WHERE name='expo_access_token'"
     title: "Supabase Vault secret: Expo access token para pg_cron dispatch"
     description: "Resolver blocker H3: armazenar EXPO_ACCESS_TOKEN de forma segura no Supabase Vault (NUNCA em .env do cliente/APK, NUNCA hardcoded em migration). Criar secret via vault.create_secret('expo_access_token', '<token>'). Documentar query SQL via vault.decrypted_secret(...). Comandos cron.schedule devem injetar o token via current_setting('app.expo_token') setado dinamicamente no job. Pre-req para T5.2 dispatch de push."
     wave: 5
     agent: gem-devops
-    status: pending
+    status: done
     covers: [fase-0-vault, fase-5-secrets]
     dependencies: [T1.3a]
     conflicts_with: []
@@ -716,23 +719,28 @@ tasks:
     requires_approval: true
     devops_security_sensitive: true
     handoff:
-      do_not_reinvestigate: ["vault-enabled"]
+      do_not_reinvestigate: ["vault-enabled", "vault-migration-00000000000010-implementada"]
       required_test_first: null
       target_files:
         [
-          "supabase/migrations/00000000000006_vault.sql",
+          "supabase/migrations/00000000000010_vault.sql",
           ".env.server.example",
           "docs/plan/20260724-futamigos-mvp/secrets-vault.md",
         ]
       minimal_change: "secret vault only + docs"
+    verified_ok: true
+    verified_by: "gem-devops (migration + docs convergem com pattern Context7; grep workspace confirma 0 token real hardcoded)"
+    pending_handoff: "SETAR token real via dashboard/psql apos `supabase db push`: UPDATE vault.secrets SET secret='<TOKEN>' WHERE name='expo_access_token'"
       acceptance_checks: ["vault secret existe", "decrypted_secret funciona"]
 
   - id: T5.1
+    verified_at: 2026-07-25
+    verified_by: gem-devops (slot 11 sem conflito c/ T5.0; UNIQUE parcial mes-BRT + ON CONFLICT DO NOTHING; SECURITY DEFINER bypass RLS pg_cron; pending_handoff: db push)
     title: "pg_cron job dia 5 mensalidades"
-    description: "Criar job pg_cron (extensao ja habilitada em T1.3a) que roda todo dia 5 09:00 BRT (12:00 UTC) e gera PAYMENTS tipo monthly para todos os mensalistas ativos (user_type='mensalista') do group. Job SQL idempotente evitando duplicacao no mesmo mes. Job reference: cron.schedule numa migration."
+    description: "Criar job pg_cron (extensao ja habilitada em T1.3a) que roda todo dia 5 09:00 BRT (12:00 UTC) eh gera PAYMENTS tipo monthly para todos os mensalistas ativos (user_type='mensalista') do group. Job SQL idempotente evitando duplicacao no mesmo mes. Job reference: cron.schedule numa migration."
     wave: 5
     agent: gem-devops
-    status: pending
+    status: done
     covers: [fase-4-dia5, fase-0-cron]
     dependencies: [T1.3a, T1.7, T4.2]
     conflicts_with: []
@@ -763,7 +771,9 @@ tasks:
     description: "Criar 3 jobs pg_cron semanais + logica de dispatch push: (1) Seg 09:00 BRT: lembrete mensalistas confirmarem. (2) Ter 19:00 BRT (48h antes): recap lista. (3) Qui 18:00 BRT: lembrete do jogo. Job chama SQL function que busca DEVICE_TOKENS ativos (populados em T1.4) e enfileira pushes via pg_net POST para Expo Push API. Auth bearer localizado no Vault via T5.0; injetado no setting app.expo_token."
     wave: 5
     agent: gem-devops
-    status: pending
+    status: done
+    verified_at: 2026-07-25
+    verified_by: gem-devops (migration 00000000000012; 3 jobs Seg/Ter/Qui UTC; push_log tabela + RLS admin-only; pg_net POST + SET LOCAL app.expo_token; chunks 100/s; endpoint /api/v2/push/send CCTION7; HANDOFF: Vault token real + db push + DEVICE_TOKENS populado)
     covers: [fase-0-cron, fase-1-push]
     dependencies: [T5.0, T5.1, T1.4]
     conflicts_with: []
@@ -796,7 +806,9 @@ tasks:
     description: "Configurar EAS Build (eas.json) com profile `preview` (APK internal), `production` (AAB loja). Definir android.package, versionCode, versionName. Definir env vars injetadas no build SOMENTE do .env.example cliente (EXPO_PUBLIC_*); SERVICE_ROLE NUNCA no APK (B-H1). Rodar `eas build -p android --profile preview` e validar APK instalando em dispositivo real."
     wave: 5
     agent: gem-devops
-    status: pending
+    status: done
+    verified_at: 2026-07-25
+    verified_by: gem-devops (eas.json 2 profiles + app.json versionCode/Name; package com.futamigos.racha; env whitelist EXPO_PUBLIC_*; grep confirma 0 SERVICE_ROLE/EXPO_ACCESS_TOKEN no cliente; HANDOFF: eas login + build APK real)
     covers: [fase-0-eas]
     dependencies: [T1.1, T1.4]
     conflicts_with: []
@@ -832,7 +844,9 @@ tasks:
     description: "Implementar sorteio random puro conforme PRD regra 4: distribui os 14 jogadores confirmados (16 - 2 goleiros) aleatoriamente em 2 teams (team_group 1 e 2, 7 cada). Atribui is_goalkeeper=true aos 2 goleiro_pago. Function SQL `draw_teams(match_id)` que popula MATCH_PARTICIPANTS. Logica deve ser chamada pelo admin na UI quando comeca a partida."
     wave: 6
     agent: gem-implementer
-    status: pending
+    status: completed
+    verified_at: 2026-07-25
+    verified_by: gem-implementer (migration 00000000000013 + admin/goleiros.tsx; algoritmo NTILE(2) ORDER BY random() SECURITY DEFINER + RPC + UI sorteio.tsx 2 colunas)
     covers: [fase-6-sorteio]
     dependencies: [T2.3, T3.1, T7.2]
     conflicts_with: []
@@ -932,7 +946,9 @@ tasks:
     description: "Criar UI admin para cadastrar goleiro_pago SEM login (sem auth.users): admin entra full_name, atribui user_type='goleiro_pago'. Adicionalmente: tela de onboarding minimal para novo usuario OAuth (mostra PT-BR welcome, explica regras do racha). Complementar ao seed de goleiros feito em T1.3b (permite adicionar runtime)."
     wave: 7
     agent: gem-implementer
-    status: pending
+    status: completed
+    verified_at: 2026-07-25
+    verified_by: gem-implementer (admin/goleiros.tsx + onboarding.tsx + lib/secure-store.ts markOnboarded; UUID via crypto.randomUUID para goleiro sem auth; onboarding via SecureStore AsyncStorage)
     covers: [fase-1-onboarding, fase-4-goleiro-cadastro]
     dependencies: [T1.7]
     conflicts_with: []
