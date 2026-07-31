@@ -231,6 +231,14 @@ export interface Database {
     };
     Views: Record<string, never>;
     Functions: {
+      promote_next_casual: {
+        Args: { p_match_id: string };
+        Returns: string | null;
+      };
+      reject_pending_presence: {
+        Args: { p_presence_id: string };
+        Returns: string | null;
+      };
       // T6.1: sorteio aleatorio puro de times (SECURITY DEFINER).
       draw_teams: {
         Args: { p_match_id: string };

@@ -356,6 +356,18 @@ comment on policy device_tokens_update_policy on public.device_tokens is
 comment on policy device_tokens_delete_policy on public.device_tokens is
   'Usuario remove proprio token OU admin limpa tokens obsoletos.';
 
+grant usage on schema public to authenticated;
+grant select, insert, update, delete on
+  public.groups,
+  public.profiles,
+  public.matches,
+  public.match_presences,
+  public.match_participants,
+  public.payments,
+  public.expenses,
+  public.device_tokens
+to authenticated;
+
 -- =====================================================================
 -- FIM da migration T1.7
 -- Resumo:

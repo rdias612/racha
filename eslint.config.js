@@ -11,6 +11,7 @@ module.exports = tseslint.config(
       'web-build/**',
       '.expo/**',
       '.expo-shared/**',
+      'supabase/.temp/**',
       'node_modules/**',
       'expo-env.d.ts',
     ],

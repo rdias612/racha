@@ -132,7 +132,8 @@ begin
 
   select match_id into v_match_id
   from public.match_presences
-  where id = p_presence_id;
+  where id = p_presence_id
+    and status = 'pending_approval';
 
   if v_match_id is null then
     raise exception 'Presence nao encontrada.'
@@ -151,6 +152,9 @@ begin
   return v_promoted;
 end;
 $$;
+
+grant execute on function public.promote_next_casual(uuid) to authenticated;
+grant execute on function public.reject_pending_presence(uuid) to authenticated;
 
 comment on function public.reject_pending_presence(uuid) is
   'T3.1: Admin rejeita presence pendente (declined) e dispara promocao FIFO (se houver). Retorna user_id promovido ou NULL.';

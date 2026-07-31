@@ -695,7 +695,7 @@ tasks:
     verified_by: gem-devops (migration + docs convergem com pattern Context7; grep workspace confirma 0 token real hardcoded)
     pending_handoff: "SETAR token real via dashboard/psql apos `supabase db push`: UPDATE vault.recrets SET secret='<TOKEN>' WHERE name='expo_access_token'"
     title: "Supabase Vault secret: Expo access token para pg_cron dispatch"
-    description: "Resolver blocker H3: armazenar EXPO_ACCESS_TOKEN de forma segura no Supabase Vault (NUNCA em .env do cliente/APK, NUNCA hardcoded em migration). Criar secret via vault.create_secret('expo_access_token', '<token>'). Documentar query SQL via vault.decrypted_secret(...). Comandos cron.schedule devem injetar o token via current_setting('app.expo_token') setado dinamicamente no job. Pre-req para T5.2 dispatch de push."
+    description: "Resolver blocker H3: armazenar EXPO_ACCESS_TOKEN de forma segura no Supabase Vault (NUNCA em .env do cliente/APK, NUNCA hardcoded em migration). Criar secret via vault.create_secret('expo_access_token', '<token>'). Documentar leitura via vault.decrypted_secrets. Comandos cron.schedule devem injetar o token via current_setting('app.expo_token') setado dinamicamente no job. Pre-req para T5.2 dispatch de push."
     wave: 5
     agent: gem-devops
     status: done
@@ -709,9 +709,9 @@ tasks:
     acceptance_criteria:
       - "Supabase Vault habilitado (verificar em dashboard/extensions)."
       - "Secret 'expo_access_token' criado via vault.create_secret(...)."
-      - "Query de teste `SELECT vault.decrypted_secret('expo_access_token')` retorna o token."
+      - "Query de teste em `vault.decrypted_secrets` retorna o token."
       - "Documentacao em .env.server.example: EXPO_ACCESS_TOKEN (somente dev/migrations), nunca no APK."
-      - "Padrao documentado para cron.schedule usar `SET LOCAL app.expo_token = (SELECT vault.decrypted_secret('expo_access_token'))` dentro do job."
+      - "Padrao documentado para cron.schedule ler `vault.decrypted_secrets` e usar `set_config('app.expo_token', ..., true)` dentro do job."
     success_criteria:
       - "secret vault existente e recuperavel."
       - "Nenhum token Expo hardcoded em arquivos versionados."
@@ -785,7 +785,7 @@ tasks:
       - "3 jobs cron.schedule criados (Seg/Ter/Qui nos horarios BRT convertidos para UTC)."
       - "Function SQL get_active_push_tokens(group_id) retorna tokens de DEVICE_TOKENS."
       - "Dispatch via pg_net POST para Expo Push API com auth bearer do Vault (T5.0)."
-      - "Token injetado via `SET LOCAL app.expo_token = (SELECT vault.decrypted_secret('expo_access_token'))`."
+      - "Token lido de `vault.decrypted_secrets` e injetado transacionalmente em `app.expo_token`."
       - "Logs de push enviados em tabela push_log (audit)."
       - "Erros de entrega (429/400) logados."
     success_criteria:

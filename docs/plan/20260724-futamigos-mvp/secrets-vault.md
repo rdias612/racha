@@ -2,7 +2,7 @@
 
 Resolve **blocker H3** e **B-H1**: armazena `EXPO_ACCESS_TOKEN` fora do APK e
 fora de migrations versionadas. Token e lido em runtime por jobs `pg_cron` via
-`vault.decrypted_secret(...)` e injetado em `current_setting('app.expo_token')`.
+`vault.decrypted_secrets` e injetado em `current_setting('app.expo_token')`.
 
 ## Modelo de ameaca
 
@@ -24,7 +24,7 @@ fora de migrations versionadas. Token e lido em runtime por jobs `pg_cron` via
                   dashboard/CLI                  |  (setado por user)  |
                  +----------------->             +---------------------+
                                                              ^
-                                                             | decrypted_secret()
+                                                             | vault.decrypted_secrets
                                                              |
 +-------------------+   SET LOCAL app.expo_token=val       |
 |  pg_cron job T5.2 |  ----------------------------------->| (leitura service_role)
@@ -64,7 +64,9 @@ apos `supabase db push`. Token obtido em
 
 ```sql
 -- Deve retornar o bearer real apos o passo 2.
-select vault.decrypted_secret('expo_access_token');
+select decrypted_secret
+  from vault.decrypted_secrets
+ where name = 'expo_access_token';
 
 -- Antes do passo 2, retorna 'PLACEHOLDER_SET_VIA_DASHBOARD'.
 ```
@@ -75,9 +77,12 @@ Qualquer job que faca dispatch Expo Push deve abrir com:
 
 ```sql
 -- Injeta token na transacao corrente (nao persiste em pg_settings).
-set local app.expo_token = (
-  select vault.decrypted_secret('expo_access_token')
-);
+select decrypted_secret
+  into v_expo_token
+  from vault.decrypted_secrets
+ where name = 'expo_access_token'
+ limit 1;
+perform set_config('app.expo_token', coalesce(v_expo_token, ''), true);
 
 -- Exemplo: POST para Expo Push API via pg_net.
 select net.http_post(
@@ -116,7 +121,7 @@ from unnest(array['ExponentPushToken[xxx]']) as t(token);
 ## Acceptance checks
 
 - [x] Migration `00000000000010_vault.sql` aplicavel (`supabase db reset`).
-- [x] `SELECT vault.decrypted_secret('expo_access_token')` retorna valor.
+- [x] `SELECT decrypted_secret FROM vault.decrypted_secrets ...` retorna valor.
 - [x] `anon`/`authenticated` recebem `permission denied` ao consultar Vault.
 - [x] Pattern `SET LOCAL app.expo_token` documentado (consumido por T5.2).
 - [x] Nenhum token Expo hardcoded em arquivos versionados.
@@ -125,7 +130,7 @@ from unnest(array['ExponentPushToken[xxx]']) as t(token);
 
 - [ ] Rodar `supabase db push` (aplica migration em projeto remoto).
 - [ ] `UPDATE vault.secrets SET secret='<TOKEN>' WHERE name='expo_access_token'`.
-- [ ] Confirmar `SELECT vault.decrypted_secret('expo_access_token')` retorna
+- [ ] Confirmar leitura de `decrypted_secret` em `vault.decrypted_secrets` retorna
       token real.
 - [ ] Registrar rotacao de token a cada 90 dias (derivar novo access token em
       expo.dev e re-rodar UPDATE). Dono: T5.2 dispatch.

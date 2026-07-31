@@ -217,12 +217,17 @@ declare
   v_time_brt   text;
   v_confirmed  integer;
   v_batch_idx  integer := 0;
+  v_batch_count integer := 0;
   v_total      integer := 0;
+  v_expo_token text;
 begin
   -- (1) Injetar token do Vault (somente nesta transacao).
-  set local app.expo_token = (
-    select vault.decrypted_secret('expo_access_token')
-  );
+  select decrypted_secret
+    into v_expo_token
+    from vault.decrypted_secrets
+   where name = 'expo_access_token'
+   limit 1;
+  perform set_config('app.expo_token', coalesce(v_expo_token, ''), true);
 
   -- (2) Se token ausente/empty -> aborta silencioso.
   -- current_setting(missing_ok=true) -> NULL se ausente sem throw.
@@ -294,8 +299,12 @@ begin
     from public.get_active_push_tokens(null) t;
 
   -- (5) Loop em batches de 100 via offset (rate limit Expo 600/s + margem).
+  select ceil(count(*)::numeric / 100.0)::integer
+    into v_batch_count
+    from _push_targets;
+
   <<batch_loop>>
-  for v_batch_idx in 1..ceil((select count(*)::numeric / 100.0) from _push_targets)::integer loop
+  for v_batch_idx in 1..v_batch_count loop
     -- (6) POST para Expo Push API v2 (endpoint canonico).
     select net.http_post(
       url     := 'https://exp.host/api/v2/push/send',
@@ -385,8 +394,6 @@ select cron.schedule(
   '0 21 * * 4',
   $$ select public.dispatch_push('match_reminder', null); $$
 );
-
-comment on schema cron is 'Scheduler p/ jobs BRT (mensalidades dia 5 T5.1, pushes Seg/Ter/Qui T5.2).';
 
 -- =====================================================================
 -- FIM da migration T5.2

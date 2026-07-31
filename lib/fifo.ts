@@ -118,7 +118,7 @@ export async function promoteNextCasual(matchId: string): Promise<string | null>
   const supabase = await getSupabase();
   const { data, error } = await supabase.rpc('promote_next_casual', {
     p_match_id: matchId,
-  });
+  } as never);
   if (error) throw new Error(friendlyFifoError(error));
   return (data as string | null) ?? null;
 }
@@ -155,7 +155,7 @@ export async function rejectPending(presenceId: string): Promise<string | null> 
   const supabase = await getSupabase();
   const { data, error } = await supabase.rpc('reject_pending_presence', {
     p_presence_id: presenceId,
-  });
+  } as never);
   if (error) throw new Error(friendlyFifoError(error));
   return (data as string | null) ?? null;
 }

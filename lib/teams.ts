@@ -192,7 +192,7 @@ export async function drawTeams(matchId: string): Promise<DrawTeamsRpcRow[]> {
   const supabase = await getSupabase();
   const { data, error } = await supabase.rpc('draw_teams', {
     p_match_id: matchId,
-  });
+  } as never);
   if (error) throw new Error(friendlyError(error));
   return (data ?? []) as unknown as DrawTeamsRpcRow[];
 }

@@ -77,9 +77,6 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
-comment on trigger on_auth_user_created on auth.users is
-  'T1.5: Garante 1 linha em PROFILES para cada auth.user novo (login Google).';
-
 -- =====================================================================
 -- FIM da migration T1.5
 --

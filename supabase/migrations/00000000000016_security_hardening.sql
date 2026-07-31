@@ -123,3 +123,44 @@ comment on policy profiles_update_policy on public.profiles is
   'Self-service limitado pelo trigger a full_name/avatar_url; admin pode atualizar campos administrativos.';
 comment on policy payments_update_policy on public.payments is
   'Self-service limitado pelo trigger a marked_paid_at; admin pode aprovar sem alterar identidade/valor/tipo.';
+
+create or replace function public.enforce_presence_update_security()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  if new.id is distinct from old.id
+     or new.user_id is distinct from old.user_id
+     or new.match_id is distinct from old.match_id
+     or new.created_at is distinct from old.created_at then
+    if auth.uid() is not null and not public.is_admin() then
+      raise exception 'users may not move or reassign a presence';
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists match_presences_security_hardening on public.match_presences;
+create trigger match_presences_security_hardening
+before update on public.match_presences
+for each row execute function public.enforce_presence_update_security();
+
+drop policy if exists match_presences_update_policy on public.match_presences;
+create policy match_presences_update_policy on public.match_presences
+  for update
+  using (user_id = auth.uid() or public.is_admin())
+  with check (
+    (user_id = auth.uid() or public.is_admin())
+    and (
+      public.is_admin()
+      or exists (
+        select 1
+        from public.matches m
+        where m.id = match_id
+          and public.is_group_member(m.group_id)
+      )
+    )
+  );

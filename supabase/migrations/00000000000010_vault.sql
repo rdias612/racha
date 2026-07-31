@@ -7,7 +7,7 @@
 --   Resolver blocker H3: armazenar EXPO_ACCESS_TOKEN de forma segura fora
 --   do APK e fora de migrations versionadas. O Supabase Vault guarda o
 --   secret server-side; jobs pg_cron (T5.2) injetam o token via
---   `SET LOCAL app.expo_token = (SELECT vault.decrypted_secret(...))`.
+--   `vault.decrypted_secrets` e usado para injetar o token em `app.expo_token`.
 --
 -- MODELO DE AMEACA (B-H1 / B-H3):
 --   * APK e disassemblavel -> NUNCA empacotar SERVICE_ROLE ou EXPO_ACCESS_TOKEN.
@@ -20,7 +20,7 @@
 --      com valor real setado via dashboard/CLI).
 --   2. Garantir permissoes: roles `postgres`/`service_role` leem o secret;
 --      `anon`/`authenticated` NAO leem (RLS do Vault + GRANT restritivo).
---   3. Helper SQL documentado: `vault.decrypted_secret('expo_access_token')`.
+--   3. View oficial: `vault.decrypted_secrets`.
 --
 -- DEPENDENCIAS: T1.3a (extensao `vault` ja criada em 00000000000001_schema.sql).
 -- IDEMPOTENCIA: DO block checa existence por `name` antes de criar.
@@ -93,14 +93,9 @@ $$;
 -- key e jamais devem tocar o Vault.
 revoke all on schema vault from public, anon, authenticated;
 revoke all on all tables in schema vault from public, anon, authenticated;
-revoke all on all functions in schema vault from public, anon, authenticated;
-
 -- service_role precisa ler decrypted_secret (bypass RLS, porem explicitamos).
 grant usage on schema vault to service_role;
 grant select on vault.decrypted_secrets to service_role;
-
-comment on schema vault is 'T5.0: Vault guarda expo_access_token. Acesso NEGADO a anon/authenticated; somente service_role/postgres.';
-comment on column vault.decrypted_secrets.secret is 'T5.0: NUNCA expor via API anon/authenticated. Leitura soh via cron/dispatch (T5.2).';
 
 -- ---------------------------------------------------------------------
 -- 3. Padrao de uso em jobs pg_cron (T5.2) - DOCUMENTACAO INLINE
@@ -108,7 +103,8 @@ comment on column vault.decrypted_secrets.secret is 'T5.0: NUNCA expor via API a
 -- job SQL de dispatch deve abrir com:
 --
 --   SET LOCAL app.expo_token = (
---     SELECT vault.decrypted_secret('expo_access_token')
+--     SELECT decrypted_secret FROM vault.decrypted_secrets
+--      WHERE name = 'expo_access_token'
 --   );
 --
 -- Depois usar current_setting('app.expo_token') no header Authorization
@@ -129,7 +125,8 @@ comment on column vault.decrypted_secrets.secret is 'T5.0: NUNCA expor via API a
 --     (a menos que RAISE NOTICE imprima - evite logar current_setting).
 --
 -- Query de validacao (rodar manualmente):
---   SELECT vault.decrypted_secret('expo_access_token');
+--   SELECT decrypted_secret FROM vault.decrypted_secrets
+--    WHERE name = 'expo_access_token';
 --   -> deve retornar o bearer real (depois do handoff no dashboard).
 
 -- =====================================================================

@@ -20,9 +20,6 @@
 create extension if not exists "pg_cron" with schema cron;
 create extension if not exists "pg_net";
 
-comment on schema cron is 'Scheduler para jobs BRT (mensalidades dia 5, pushes Seg/Ter/Qui).';
-comment on schema vault is 'Secret store para Expo access token (T5.0).';
-
 -- ---------------------------------------------------------------------
 -- 1. ENUMS (criar ANTES das tabelas que os referenciam)
 -- ---------------------------------------------------------------------

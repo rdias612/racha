@@ -61,6 +61,8 @@ as $$
 declare
   v_match_exists boolean;
   v_group_id     uuid;
+  v_goalkeeper_count integer;
+  v_field_count integer;
 begin
   -- Gate de permissao (defense in depth; policies ja filtram admin).
   if not public.is_admin() then
@@ -76,6 +78,20 @@ begin
   if not v_match_exists then
     raise exception 'Partida nao encontrada.'
       using errcode = 'P0002';
+  end if;
+
+  select count(*) filter (where p.user_type = 'goleiro_pago'),
+         count(*) filter (where p.user_type <> 'goleiro_pago')
+    into v_goalkeeper_count, v_field_count
+    from public.match_presences mp
+    join public.profiles p on p.id = mp.user_id
+   where mp.match_id = p_match_id
+     and mp.status = 'confirmed';
+
+  if v_goalkeeper_count <> 2 or v_field_count <> 14 then
+    raise exception 'Sorteio exige 2 goleiros e 14 jogadores confirmados (encontrados: % goleiros, % jogadores).',
+      v_goalkeeper_count, v_field_count
+      using errcode = '22023';
   end if;
 
   -- Lock para impedir 2 admins sorteando simultaneamente o mesmo match.
@@ -130,8 +146,8 @@ begin
     match_id, player_id, team_group, is_goalkeeper
   )
   select
-    p_match_id, user_id, team_group, is_goalkeeper
-  from unified;
+    p_match_id, u.user_id, u.team_group, u.is_goalkeeper
+  from unified u;
 
   -- Congela a partida (status='active') apos sortear.
   update public.matches

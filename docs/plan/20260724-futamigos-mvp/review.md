@@ -1,14 +1,25 @@
 # T8.1 - Review final backend
 
-Data: 2026-07-25
+Data: 2026-07-31
 Escopo: migrations locais, seed, configuracao do cliente/EAS e plano T8.1.
 Fonte de verdade: `implementation_plan.md` e `supabase/migrations/*.sql`.
 
 ## Resultado
 
-Status: **needs_revision** (hardening aplicado; revalidacao SQL local pendente)
+Status: **needs_revision** (runtime local validado; pendencias remotas/APK ainda abertas)
 
-Foram encontrados 3 findings criticos, 4 altos e 4 medios. Os findings criticos impedem o gate T8.2 ate a correcao e novo teste com anon/authenticated.
+Os 3 findings criticos e HIGH-01/HIGH-03 foram corrigidos e validados no Postgres local. Permanecem 2 findings altos e 3 medios, listados abaixo.
+
+## Validacao runtime local (2026-07-31)
+
+- `npx supabase start` e `npx supabase db reset --local --yes`: **passaram**.
+- API local: `http://127.0.0.1:54321`; Postgres: `127.0.0.1:54322`; Studio: `http://127.0.0.1:54325`.
+- 9 tabelas publicas com RLS, 5 jobs `cron.job`, Vault com secret placeholder: **passou**.
+- `anon`/`authenticated` sem `EXECUTE` nas RPCs de push: **passou**.
+- RLS/hardening: auto-promocao de perfil, adulteracao de pagamento e RSVP cross-group bloqueados: **passou**.
+- Sorteio incompleto bloqueado; roster valido produz 16 participantes, 2 goleiros e 8 por time: **passou**.
+- Trigger `auth.users -> profiles` com defaults explicitos: **passou**.
+- `npm run tsc`: **passou**; `npm run lint`: **0 erros, 8 warnings**; smoke tests: **203 pass, 0 fail**.
 
 ## Cobertura
 
@@ -87,6 +98,8 @@ As duas funcoes `SECURITY DEFINER` definidas em `00000000000012_push_jobs.sql`
 
 ### HIGH-01 - Update de RSVP permite mover registro para outro grupo
 
+**Status:** corrigido na migration incremental `00000000000016_security_hardening.sql` e validado localmente.
+
 **Evidencia:** insert valida `is_group_member` do match, mas update verifica somente `user_id` ou admin: [RLS](../../../../supabase/migrations/00000000000007_rls.sql#L183-L196).
 
 **Impacto:** o usuario pode alterar `match_id` para partida de outro grupo e mudar status/horarios fora das regras de cutoff, afetando fila e capacidade.
@@ -99,9 +112,11 @@ As duas funcoes `SECURITY DEFINER` definidas em `00000000000012_push_jobs.sql`
 
 **Impacto:** `supabase db reset` ou `db push` falha em ambiente sem Vault previamente habilitado; o token real e o estado remoto continuam handoff nao verificado. Os jobs de push nao sao demonstrados como executaveis.
 
-**Mitigacao:** habilitar Vault no projeto remoto/local antes de aplicar, documentar o pre-requisito como blocker operacional e validar `vault.decrypted_secret` sem registrar o token.
+**Mitigacao:** habilitar Vault no projeto remoto/local antes de aplicar, documentar o pre-requisito como blocker operacional e validar `vault.decrypted_secrets` sem registrar o token.
 
 ### HIGH-03 - `draw_teams` nao garante o contrato 2 goleiros + 14 jogadores
+
+**Status:** corrigido na migration `00000000000013_draw.sql` e validado localmente.
 
 **Evidencia:** a funcao limita goleiros a 2 e usa todos os demais confirmados em `NTILE(2)`, sem exigir contagens 2 e 14 [draw](../../../../supabase/migrations/00000000000013_draw.sql#L75-L127). O plano exige exatamente 2 e 14 [plan](../../../../docs/plan/20260724-futamigos-mvp/plan.yaml#L936-L945).
 
@@ -169,8 +184,9 @@ As duas funcoes `SECURITY DEFINER` definidas em `00000000000012_push_jobs.sql`
 ## Validacao da correcao
 
 - Migration criada: `supabase/migrations/00000000000016_security_hardening.sql`.
-- Check tentado: `npx supabase db reset --local --yes`.
-- Limitacao: falhou antes de aplicar SQL porque Docker Desktop nao estava disponivel (`dockerDesktopLinuxEngine` ausente).
+- Check: `npx supabase db reset --local --yes` passou com Docker Desktop.
+- Checks SQL executados contra `supabase_db_futamigos-mvp`: RLS, grants, Vault, cron, trigger, FIFO, draw e hardening.
+- O app foi apontado para a API local via `.env` ignorado pelo Git.
 
 ## Report JSON
 
@@ -180,17 +196,18 @@ As duas funcoes `SECURITY DEFINER` definidas em `00000000000012_push_jobs.sql`
   "verified_ok": false,
   "findings": {
     "critical": 0,
-    "high": 4,
-    "medium": 4,
+    "high": 2,
+    "medium": 3,
     "low": 0
   },
   "target_file": "docs/plan/20260724-futamigos-mvp/review.md",
   "blockers_for_T8_2": [
-    "Revalidar RLS privilege escalation e payment tampering com anon/authenticated",
-    "PUBLIC EXECUTE on SECURITY DEFINER push/token RPCs",
-    "Vault and cron remote state unverified",
+    "Validar Vault e cron no projeto remoto com token Expo real",
+    "Corrigir telemetria de respostas 400/429 do Expo Push",
+    "Corrigir filtragem contextual dos jobs push",
+    "Atualizar paridade ERD incluindo push_log e o modelo profiles sem FK auth.users",
     "No APK artifact scan",
-    "TypeScript check currently exits 1"
+    "Executar E2E em APK Android real"
   ]
 }
 ```
