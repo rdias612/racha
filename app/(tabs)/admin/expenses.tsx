@@ -45,27 +45,10 @@ import {
 } from '@/lib/expenses';
 import type { ExpenseType } from '@/types/database.types';
 import { useExpenseStore } from '@/stores/expense';
+import { formatBRTShort } from '@/lib/timezone';
 
 function alertInfo(title: string, msg: string) {
   Alert.alert(title, msg, [{ text: 'OK', style: 'cancel' }]);
-}
-
-function formatBRTshort(iso: string | null): string {
-  if (!iso) return '-';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  try {
-    return d.toLocaleString('pt-BR', {
-      timeZone: 'America/Sao_Paulo',
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return d.toISOString().replace('T', ' ').slice(0, 16);
-  }
 }
 
 const TYPE_OPTIONS: { key: ExpenseType; label: string }[] = [
@@ -229,29 +212,29 @@ export default function AdminExpensesScreen() {
     const status = deriveExpenseStatus(item);
     const isBusy = busyId === item.id;
     const matchLabel = item.match?.date_time
-      ? `Partida ${formatBRTshort(item.match.date_time)}`
+      ? `Partida ${formatBRTShort(item.match.date_time)}`
       : 'Sem partida vinculada';
     return (
       <Card>
         <View className="flex-row items-start justify-between gap-3">
           <View className="flex-1">
             <View className="flex-row items-center gap-2">
-              <Text className="text-pitch-900 text-base font-semibold">
+              <Text className="text-base font-semibold text-pitch-900">
                 {expenseTypeLabel(item.type)}
               </Text>
-              <Text className="text-pitch-500 text-[10px] uppercase">{matchLabel}</Text>
+              <Text className="text-[10px] uppercase text-pitch-500">{matchLabel}</Text>
             </View>
             {item.description ? (
-              <Text className="text-pitch-600 mt-0.5 text-sm">{item.description}</Text>
+              <Text className="mt-0.5 text-sm text-pitch-600">{item.description}</Text>
             ) : null}
-            <Text className="text-pitch-500 mt-1 text-xs">
-              Criada em {formatBRTshort(item.created_at)}
+            <Text className="mt-1 text-xs text-pitch-500">
+              Criada em {formatBRTShort(item.created_at)}
               {item.confirmed_at
-                ? ` - Confirmada em ${formatBRTshort(item.confirmed_at)}`
+                ? ` - Confirmada em ${formatBRTShort(item.confirmed_at)}`
                 : ' - Pendente'}
             </Text>
           </View>
-          <Text className="text-pitch-900 text-base font-bold">
+          <Text className="text-base font-bold text-pitch-900">
             {formatBRL(Number(item.amount))}
           </Text>
         </View>
@@ -266,12 +249,12 @@ export default function AdminExpensesScreen() {
               trackColor={{ false: '#cbd5e1', true: '#22c55e' }}
               thumbColor="#ffffff"
             />
-            <Text className="text-pitch-700 text-sm font-semibold">
+            <Text className="text-sm font-semibold text-pitch-700">
               {status === 'confirmed' ? 'Confirmada' : 'Confirmar'}
             </Text>
           </View>
           <Pressable onPress={() => handleDelete(item)} disabled={isBusy}>
-            <Text className="text-danger text-sm">Remover</Text>
+            <Text className="text-sm text-danger">Remover</Text>
           </Pressable>
         </View>
       </Card>
@@ -279,33 +262,33 @@ export default function AdminExpensesScreen() {
   };
 
   return (
-    <SafeAreaView className="bg-pitch-50 flex-1">
+    <SafeAreaView className="flex-1 bg-pitch-50">
       <ScrollView contentContainerClassName="gap-4 p-4">
         <View className="flex-row items-center justify-between">
-          <Text className="text-pitch-900 text-xl font-bold">Despesas (admin)</Text>
+          <Text className="text-xl font-bold text-pitch-900">Despesas (admin)</Text>
           <Pressable onPress={() => router.replace('/(tabs)/perfil')}>
-            <Text className="text-field-dark text-sm">Voltar</Text>
+            <Text className="text-sm text-field-dark">Voltar</Text>
           </Pressable>
         </View>
 
         <Card>
-          <Text className="text-pitch-900 text-sm font-semibold">Como funciona</Text>
-          <Text className="text-pitch-600 mt-1 text-xs">
+          <Text className="text-sm font-semibold text-pitch-900">Como funciona</Text>
+          <Text className="mt-1 text-xs text-pitch-600">
             Registre saidas do caixa (goleiros, aluguel do campo ou outras). Marque como confirmada
             apos efetuar o pagamento - o saldo do Caixa atualiza em tempo real.
           </Text>
         </Card>
 
         <Card>
-          <Text className="text-pitch-900 text-sm font-semibold">Resumo</Text>
+          <Text className="text-sm font-semibold text-pitch-900">Resumo</Text>
           <View className="mt-2 flex-row gap-3">
-            <View className="bg-warning/10 flex-1 gap-1 rounded-lg p-2.5">
-              <Text className="text-warning text-[10px] font-semibold uppercase">Pendente</Text>
-              <Text className="text-pitch-900 text-sm font-bold">{formatBRL(totals.pending)}</Text>
+            <View className="flex-1 gap-1 rounded-lg bg-warning/10 p-2.5">
+              <Text className="text-[10px] font-semibold uppercase text-warning">Pendente</Text>
+              <Text className="text-sm font-bold text-pitch-900">{formatBRL(totals.pending)}</Text>
             </View>
-            <View className="bg-danger/10 flex-1 gap-1 rounded-lg p-2.5">
-              <Text className="text-danger text-[10px] font-semibold uppercase">Confirmada</Text>
-              <Text className="text-pitch-900 text-sm font-bold">
+            <View className="flex-1 gap-1 rounded-lg bg-danger/10 p-2.5">
+              <Text className="text-[10px] font-semibold uppercase text-danger">Confirmada</Text>
+              <Text className="text-sm font-bold text-pitch-900">
                 {formatBRL(totals.confirmed)}
               </Text>
             </View>
@@ -313,9 +296,9 @@ export default function AdminExpensesScreen() {
         </Card>
 
         <Card>
-          <Text className="text-pitch-900 text-sm font-semibold">Nova despesa</Text>
+          <Text className="text-sm font-semibold text-pitch-900">Nova despesa</Text>
 
-          <Text className="text-pitch-600 mt-2 text-xs">Tipo</Text>
+          <Text className="mt-2 text-xs text-pitch-600">Tipo</Text>
           <View className="mt-1 flex-row gap-2">
             {TYPE_OPTIONS.map((opt) => {
               const active = type === opt.key;
@@ -339,7 +322,7 @@ export default function AdminExpensesScreen() {
             })}
           </View>
 
-          <Text className="text-pitch-600 mt-3 text-xs">
+          <Text className="mt-3 text-xs text-pitch-600">
             Valor (em R$){' '}
             {type === 'goalkeeper' ? `- padrao de goleiros ${formatBRL(defaultGoalkeeper)}` : ''}
           </Text>
@@ -349,17 +332,17 @@ export default function AdminExpensesScreen() {
             keyboardType="numeric"
             placeholder="40"
             accessibilityLabel="Valor da despesa"
-            className="border-pitch-300 text-pitch-900 mt-1 rounded-lg border bg-white px-3 py-2"
+            className="mt-1 rounded-lg border border-pitch-300 bg-white px-3 py-2 text-pitch-900"
             returnKeyType="next"
           />
 
-          <Text className="text-pitch-600 mt-3 text-xs">Descricao (opcional)</Text>
+          <Text className="mt-3 text-xs text-pitch-600">Descricao (opcional)</Text>
           <TextInput
             value={description}
             onChangeText={setDescription}
             placeholder="Ex: Goleiros partida 24/07"
             accessibilityLabel="Descricao da despesa"
-            className="border-pitch-300 text-pitch-900 mt-1 rounded-lg border bg-white px-3 py-2"
+            className="mt-1 rounded-lg border border-pitch-300 bg-white px-3 py-2 text-pitch-900"
             returnKeyType="done"
           />
 
@@ -369,7 +352,7 @@ export default function AdminExpensesScreen() {
         </Card>
 
         <View>
-          <Text className="text-pitch-900 mb-2 text-base font-semibold">Historico</Text>
+          <Text className="mb-2 text-base font-semibold text-pitch-900">Historico</Text>
           {loading ? (
             <ActivityIndicator />
           ) : list.length === 0 ? (
@@ -387,7 +370,7 @@ export default function AdminExpensesScreen() {
 
         {error ? (
           <Card>
-            <Text className="text-danger text-sm">{error}</Text>
+            <Text className="text-sm text-danger">{error}</Text>
           </Card>
         ) : null}
       </ScrollView>

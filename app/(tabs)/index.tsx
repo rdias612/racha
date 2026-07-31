@@ -20,8 +20,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { PresenceList, type PresenceItem } from '@/components/PresenceList';
 import { ShareButton } from '@/components/ShareButton';
 import { usePresenceStore } from '@/stores/presence';
-import { useProfileStore } from '@/stores/profile';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { FIXED_MATCH_ID } from '@/lib/matches';
 import type { ProfileRow, RsvpStatus, UserType } from '@/types/database.types';
 
 // ---- Constantes de dominio -------------------------------------------------
@@ -33,7 +34,6 @@ const CONFIRMED_CAPACITY = 16;
  * Match corrente (MVP = 1 grupo fixo). T2.0 garante FK valida.
  * Placeholder enquanto T2.0 nao plugar match corrente do store.
  */
-const CURRENT_MATCH_ID = '00000000-0000-0000-0000-000000000002';
 const CURRENT_MATCH_DATE_TIME = '2026-07-24T22:00:00.000Z'; // quinta 19:00 BRT
 
 // ---- Helper: fallback PT-BR de perfil -------------------------------------
@@ -83,19 +83,18 @@ export default function HomeScreen() {
   const { user } = useAuth();
   const currentUserId = user?.id;
   // Gate admin (T3.2): botao Compartilhar so aparece para admin.
-  const currentProfile = useProfileStore((s) => s.currentProfile);
-  const isAdmin = Boolean(currentProfile?.is_admin);
+  const isAdmin = useIsAdmin(user?.id);
 
   // Boot T2.3: carrega presencas do match corrente (mock substituido por store).
   useEffect(() => {
-    void fetchPresences(CURRENT_MATCH_ID);
+    void fetchPresences(FIXED_MATCH_ID);
   }, [fetchPresences]);
 
   // Handlers RSVP - toast PT-BR via Alert.alert (sem nova dep; ver constraints).
   const handleConfirm = (user_id: string, user_type: UserType) => () => {
     void (async () => {
       const ok = await confirmPresence({
-        match_id: CURRENT_MATCH_ID,
+        match_id: FIXED_MATCH_ID,
         user_id,
         user_type,
         match: { date_time: CURRENT_MATCH_DATE_TIME },
@@ -111,7 +110,7 @@ export default function HomeScreen() {
   const handleLeave = (user_id: string, user_type: UserType) => () => {
     void (async () => {
       const ok = await declinePresence({
-        match_id: CURRENT_MATCH_ID,
+        match_id: FIXED_MATCH_ID,
         user_id,
         user_type,
       });
@@ -151,11 +150,11 @@ export default function HomeScreen() {
   }, [presences, currentUserId]);
 
   return (
-    <SafeAreaView className="bg-pitch-50 flex-1" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-pitch-50" edges={['top']}>
       <ScrollView contentContainerClassName="gap-6 px-4 pb-8 pt-4">
         <View>
-          <Text className="text-pitch-900 text-2xl font-bold">Presenca</Text>
-          <Text className="text-pitch-500 mt-1 text-sm">Quinta-feira - Pelada do mes</Text>
+          <Text className="text-2xl font-bold text-pitch-900">Presenca</Text>
+          <Text className="mt-1 text-sm text-pitch-500">Quinta-feira - Pelada do mes</Text>
         </View>
 
         {/* T3.2: Botao Compartilhar - gate admin. */}
@@ -170,13 +169,13 @@ export default function HomeScreen() {
 
         {/* Erro reativo PT-BR (nao bloqueia listas). */}
         {error ? (
-          <View className="border-danger/30 bg-danger/5 rounded-lg border px-3 py-2">
-            <Text className="text-danger text-sm">{error}</Text>
+          <View className="rounded-lg border border-danger/30 bg-danger/5 px-3 py-2">
+            <Text className="text-sm text-danger">{error}</Text>
           </View>
         ) : null}
 
         {loading && presences.length === 0 ? (
-          <Text className="text-pitch-400 px-1 py-4 text-center text-sm italic">
+          <Text className="px-1 py-4 text-center text-sm italic text-pitch-400">
             Carregando presencas...
           </Text>
         ) : null}

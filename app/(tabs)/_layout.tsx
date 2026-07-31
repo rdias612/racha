@@ -12,6 +12,7 @@ import {
 } from '@/lib/realtime';
 import { fireGoalkeeperReminderNow } from '@/lib/expenseReminder';
 import { supabase } from '@/lib/supabase';
+import { FIXED_GROUP_ID, FIXED_MATCH_ID } from '@/lib/matches';
 
 /**
  * Layout das abas (Tab Bar) - 4 abas PT-BR.
@@ -58,9 +59,6 @@ const TABS: readonly TabConfig[] = [
 
 // Placeholders do MVP (1 grupo fixo). T2.0 + T2.3 substituirao por IDs das
 // stores quando o match corrente estiver disponivel via T2.0 + hook.
-const PLACEHOLDER_GROUP_ID = '00000000-0000-0000-0000-000000000001';
-const PLACEHOLDER_MATCH_ID = '00000000-0000-0000-0000-000000000002';
-
 export default function TabsLayout() {
   useEffect(() => {
     let presenceChannel: RealtimeChannel | undefined;
@@ -93,12 +91,12 @@ export default function TabsLayout() {
     })();
 
     try {
-      presenceChannel = subscribePresences(PLACEHOLDER_MATCH_ID);
-      paymentChannel = subscribePayments(PLACEHOLDER_GROUP_ID);
+      presenceChannel = subscribePresences(FIXED_MATCH_ID);
+      paymentChannel = subscribePayments(FIXED_GROUP_ID);
       // T4.3: Expenses Realtime para atualizar SALDO do Caixa instantaneamente.
-      expenseChannel = subscribeExpenses(PLACEHOLDER_GROUP_ID);
+      expenseChannel = subscribeExpenses(FIXED_GROUP_ID);
       // T4.3: Reminder LOCAL pos-jogo no device admin (admin detecta status->finished).
-      matchReminderChannel = subscribeMatchesForReminder(PLACEHOLDER_GROUP_ID, {
+      matchReminderChannel = subscribeMatchesForReminder(FIXED_GROUP_ID, {
         onFireReminder: (amount, matchIso) => {
           // isAdmin e resolvido lazy no closure; se ainda nao confirmado true,
           // fireGoalkeeperReminderNow faz o gate defensivo via chamada direta.

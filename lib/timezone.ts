@@ -91,6 +91,11 @@ export function formatBRT(iso: string | null | undefined, pattern = 'dd/MM/yyyy 
   }
 }
 
+/** Formata um ISO UTC para a exibicao curta usada nas telas admin. */
+export function formatBRTShort(iso: string | null | undefined): string {
+  return formatBRT(iso) || iso || '-';
+}
+
 /**
  * Calcula o cutoff BRT para a partida dada: terça-feira 19:00 SP que
  * antecede a partida de quinta. Usado em T2.3 para validar re-confirmação
@@ -140,22 +145,3 @@ function parseISOStrict(iso: string): Date | null {
     return null;
   }
 }
-
-// Sanity check em runtime dev-only: as funções abaixo provam que helpers
-// respeitam invariantes de arredondamento. Mantidas em bundle apenas como
-// documentação viva (tree-shaken em production por nao ser importada).
-export const __TIMEZONE_INVARIANTS__ = {
-  /** 19:00 BRT deve mapear para 22:00 UTC do mesmo dia (offset fixo -3). */
-  sampleSameDayUtc: (): boolean => {
-    const utc = toUTC(new Date('2026-07-24T19:00:00')); // interpretado como BRT
-    return utc === '2026-07-24T22:00:00.000Z';
-  },
-  /** toBRT(toUTC(x)) preserva o instante. */
-  roundTripStable: (): boolean => {
-    const original = '2026-07-24T22:00:00.000Z';
-    const brt = toBRT(original);
-    if (!brt) return false;
-    const back = toUTC(brt);
-    return back === original;
-  },
-} as const;

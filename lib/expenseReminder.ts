@@ -19,10 +19,7 @@
 
 import * as Notifications from 'expo-notifications';
 
-import { formatReminderBody, formatReminderTitle, shouldFireGoalkeeperReminder } from './expenses';
-
-// Re-export p/ callers runtime convenientes (nao traz Notifications p/ escopo de testes puros).
-export { formatReminderBody, formatReminderTitle, shouldFireGoalkeeperReminder };
+import { formatReminderBody, formatReminderTitle } from './expenses';
 
 /**
  * Agenda notificacao LOCAL imediata para o admin (device corrente).

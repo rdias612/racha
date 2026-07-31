@@ -15,6 +15,9 @@ import type { Database, MatchRow, MatchStatus } from '@/types/database.types';
 /** UUID fixo do seed GROUPS (T1.3b). */
 export const FIXED_GROUP_ID = '00000000-0000-0000-0000-000000000001';
 
+/** UUID fixo da partida seed usada pelo MVP. */
+export const FIXED_MATCH_ID = '00000000-0000-0000-0000-000000000002';
+
 export type { MatchRow, MatchStatus };
 
 type MatchesTable = Database['public']['Tables']['matches'];

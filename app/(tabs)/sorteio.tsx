@@ -23,12 +23,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
 import { Button, Card } from '@/components/ui';
-import { useProfileStore } from '@/stores/profile';
+import { useAuth } from '@/hooks/useAuth';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { fetchTeamsByMatch, drawTeams, friendlyError, type DrawnTeams } from '@/lib/teams';
+import { FIXED_MATCH_ID } from '@/lib/matches';
 import type { ProfileRow } from '@/types/database.types';
-
-/** Match corrente (MVP = 1 grupo fixo). Mesmo UUID de app/(tabs)/index.tsx. */
-const CURRENT_MATCH_ID = '00000000-0000-0000-0000-000000000002';
 
 type TeamMember = ProfileRow & { is_goalkeeper: boolean };
 
@@ -88,8 +87,8 @@ function TeamColumn({
 }
 
 export default function SorteioScreen() {
-  const currentProfile = useProfileStore((s) => s.currentProfile);
-  const isAdmin = Boolean(currentProfile?.is_admin);
+  const { user } = useAuth();
+  const isAdmin = useIsAdmin(user?.id);
 
   const [teams, setTeams] = useState<DrawnTeams | null>(null);
   const [loading, setLoading] = useState(true);
@@ -100,7 +99,7 @@ export default function SorteioScreen() {
     setLoading(true);
     setError(null);
     try {
-      const result = await fetchTeamsByMatch(CURRENT_MATCH_ID);
+      const result = await fetchTeamsByMatch(FIXED_MATCH_ID);
       setTeams(result);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -128,7 +127,7 @@ export default function SorteioScreen() {
             setDrawing(true);
             setError(null);
             try {
-              await drawTeams(CURRENT_MATCH_ID);
+              await drawTeams(FIXED_MATCH_ID);
               await refresh();
             } catch (e) {
               const msg = e instanceof Error ? e.message : friendlyError(null);

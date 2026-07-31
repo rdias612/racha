@@ -2,7 +2,7 @@
 # Docs: https://supabase.com/docs/reference/cli/config
 # Nao contem secrets. Use `supabase login` + `supabase link --project-ref <ref>` remotamente.
 
-project_id = "futamigos-mvp"
+project_id = "jtavmrlllyctkuxefhpc"
 
 [api]
 enabled = true

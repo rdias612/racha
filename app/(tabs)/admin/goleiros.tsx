@@ -39,28 +39,10 @@ import {
   validateFullName,
   type GoleiroRow,
 } from '@/lib/goleiros';
+import { formatBRTShort } from '@/lib/timezone';
 
 function alertInfo(title: string, msg: string) {
   Alert.alert(title, msg, [{ text: 'OK', style: 'cancel' }]);
-}
-
-/** Formata ISO UTC -> "dd/MM/yyyy HH:mm" America/Sao_Paulo. */
-function formatBRTshort(iso: string | null): string {
-  if (!iso) return '-';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  try {
-    return d.toLocaleString('pt-BR', {
-      timeZone: 'America/Sao_Paulo',
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return d.toISOString().replace('T', ' ').slice(0, 16);
-  }
 }
 
 /** Formata E.164 +5511999999999 -> "(11) 99999-9999" legivel. */
@@ -232,7 +214,7 @@ export default function AdminGoleirosScreen() {
                       WhatsApp: {formatPhoneDisplay(g.phone_whatsapp)}
                     </Text>
                     <Text className="mt-0.5 text-xs text-pitch-500">
-                      Desde {formatBRTshort(g.created_at)}
+                      Desde {formatBRTShort(g.created_at)}
                     </Text>
                   </View>
                 </View>

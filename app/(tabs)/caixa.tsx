@@ -13,7 +13,6 @@
  * Bind T4.2:
  *   - Fonte primaria: usePaymentStore (hidratada no mount; Realtime ja assina
  *     PAYMENTS em _layout.tsx).
- *   - Fallback (store vazio em dev sem backend): MOCK_PAYMENTS T4.1.
  *   - Handler onMark: pendente do PROPRIO usuario -> markAsPaid().
  *     UI gate canUserMark; DB RLS T1.7 e fonte de verdade.
  *   - Handler onApprove: marcado + admin -> approvePayment().
@@ -43,7 +42,8 @@ import {
 import { usePaymentStore } from '@/stores/payment';
 import { useExpenseStore } from '@/stores/expense';
 import { useAuth } from '@/hooks/useAuth';
-import type { ExpenseRow, PaymentRow as PaymentRowDb, ProfileRow } from '@/types/database.types';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
+import type { PaymentRow as PaymentRowDb } from '@/types/database.types';
 
 // ---- Tipos internos -------------------------------------------------------
 
@@ -57,21 +57,10 @@ interface CaixaPayment {
   /** Chave de agrupamento por mes (AAAA-MM). */
   monthKey: string;
   /** Linha enriquecida do DB para nome (denormalizado). */
-  raw?: PaymentRowDb & { profile?: Pick<ProfileRow, 'full_name'> | null };
-}
-
-interface MockPayment {
-  id: string;
-  fullName: string;
-  type: PaymentRowType;
-  amount: number;
-  status: PaymentRowStatus;
-  monthKey: string;
+  raw?: PaymentRowDb & { profile?: { full_name: string } | null };
 }
 
 // ---- Constantes PT-BR -----------------------------------------------------
-
-const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
 type FilterKey = 'all' | 'pending' | 'marked' | 'paid';
 
@@ -126,120 +115,6 @@ function mapTypeToUi(dbType: string | null | undefined): PaymentRowType {
   return 'monthly';
 }
 
-// ---- Mock data (snapshot realista do racha campo) -------------------------
-//
-// Snapshot de cobrancas. Mescla mensalistas, avulsos e goleiro pago.
-// Apenas nomes ficticios; nenhum dado privado.
-const MOCK_PAYMENTS: MockPayment[] = [
-  // --- Julho/2026 (mes corrente) ---
-  {
-    id: 'p-001',
-    fullName: 'Joao Silva',
-    type: 'monthly',
-    amount: 100,
-    status: 'paid',
-    monthKey: '2026-07',
-  },
-  {
-    id: 'p-002',
-    fullName: 'Maria Coracao',
-    type: 'monthly',
-    amount: 100,
-    status: 'paid',
-    monthKey: '2026-07',
-  },
-  {
-    id: 'p-003',
-    fullName: 'Pedro Alves',
-    type: 'monthly',
-    amount: 100,
-    status: 'marked',
-    monthKey: '2026-07',
-  },
-  {
-    id: 'p-004',
-    fullName: 'Carlos Tanaka',
-    type: 'monthly',
-    amount: 100,
-    status: 'pending',
-    monthKey: '2026-07',
-  },
-  {
-    id: 'p-005',
-    fullName: 'Ana Beatriz',
-    type: 'casual',
-    amount: 20,
-    status: 'paid',
-    monthKey: '2026-07',
-  },
-  {
-    id: 'p-006',
-    fullName: 'Bruno Avulso',
-    type: 'casual',
-    amount: 20,
-    status: 'marked',
-    monthKey: '2026-07',
-  },
-  {
-    id: 'p-007',
-    fullName: 'Diego Avulso',
-    type: 'casual',
-    amount: 20,
-    status: 'pending',
-    monthKey: '2026-07',
-  },
-  {
-    id: 'p-008',
-    fullName: 'Goleiro Lino',
-    type: 'goalkeeper',
-    amount: 40,
-    status: 'paid',
-    monthKey: '2026-07',
-  },
-
-  // --- Junho/2026 (historico) ---
-  {
-    id: 'p-009',
-    fullName: 'Joao Silva',
-    type: 'monthly',
-    amount: 100,
-    status: 'paid',
-    monthKey: '2026-06',
-  },
-  {
-    id: 'p-010',
-    fullName: 'Maria Coracao',
-    type: 'monthly',
-    amount: 100,
-    status: 'paid',
-    monthKey: '2026-06',
-  },
-  {
-    id: 'p-011',
-    fullName: 'Pedro Alves',
-    type: 'monthly',
-    amount: 100,
-    status: 'paid',
-    monthKey: '2026-06',
-  },
-  {
-    id: 'p-012',
-    fullName: 'Carlos Tanaka',
-    type: 'monthly',
-    amount: 100,
-    status: 'paid',
-    monthKey: '2026-06',
-  },
-  {
-    id: 'p-013',
-    fullName: 'Ana Beatriz',
-    type: 'casual',
-    amount: 20,
-    status: 'paid',
-    monthKey: '2026-06',
-  },
-];
-
 // ---- Helpers --------------------------------------------------------------
 
 function sumByStatus(rows: CaixaPayment[], status: PaymentRowStatus): number {
@@ -270,7 +145,6 @@ export default function CaixaScreen() {
   const [busyId, setBusyId] = useState<string | null>(null);
 
   // Hidrata store uma vez (Realtime depois mantem sincronizado).
-  // Falha silenciosa em dev sem backend -> cai no fallback mock.
   const refresh = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -310,43 +184,13 @@ export default function CaixaScreen() {
     return computeSaldo(payments as { amount: number; approved_at: string | null }[], expenses);
   }, [payments, expenses]);
 
-  // is_admin do profile (gate UI onApprove; DB RLS T1.7 e fonte de verdade).
-  const [isAdmin, setIsAdmin] = useState(false);
-  useEffect(() => {
-    if (!user?.id) {
-      setIsAdmin(false);
-      return;
-    }
-    let mounted = true;
-    (async () => {
-      try {
-        const { supabase } = await import('@/lib/supabase');
-        const { data, error: err } = await supabase
-          .from('profiles')
-          .select('is_admin')
-          .eq('id', user.id)
-          .maybeSingle();
-        if (err) return;
-        const flag = Array.isArray(data)
-          ? false
-          : Boolean((data as Pick<ProfileRow, 'is_admin'> | null)?.is_admin);
-        if (mounted) setIsAdmin(flag);
-      } catch {
-        if (mounted) setIsAdmin(false);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, [user?.id]);
+  // Gate UI; RLS permanece como autoridade de permissao.
+  const isAdmin = useIsAdmin(user?.id);
 
-  // Mapeia store -> linhas Caixa. Fallback mock se store vazio.
+  // Mapeia store -> linhas Caixa.
   const rows: CaixaPayment[] = useMemo(() => {
-    if (payments.length === 0) {
-      return MOCK_PAYMENTS.map((p) => ({ ...p, user_id: null }));
-    }
     return payments.map((p) => {
-      const enriched = p as PaymentRowDb & { profile?: Pick<ProfileRow, 'full_name'> | null };
+      const enriched = p as PaymentRowDb & { profile?: { full_name: string } | null };
       return {
         id: p.id,
         user_id: p.user_id,
@@ -428,68 +272,71 @@ export default function CaixaScreen() {
   );
 
   return (
-    <SafeAreaView edges={['top']} className="bg-pitch-50 flex-1">
+    <SafeAreaView edges={['top']} className="flex-1 bg-pitch-50">
       <ScrollView
         contentContainerClassName="gap-6 px-4 pb-8 pt-4"
         accessibilityLabel="Painel financeiro do racha"
       >
         {/* Cabecalho */}
         <View>
-          <Text className="text-pitch-900 text-2xl font-bold">Caixa</Text>
-          <Text className="text-pitch-600 text-sm">Acompanhe as cobrancas do racha.</Text>
+          <Text className="text-2xl font-bold text-pitch-900">Caixa</Text>
+          <Text className="text-sm text-pitch-600">Acompanhe as cobrancas do racha.</Text>
         </View>
 
         {/* Resumo do mes corrente */}
         <View
-          className="border-pitch-200 gap-3 rounded-xl border bg-white p-4"
+          className="gap-3 rounded-xl border border-pitch-200 bg-white p-4"
           style={{ elevation: 2 } as never}
         >
           <View className="flex-row items-baseline justify-between">
-            <Text className="text-pitch-600 text-sm font-semibold uppercase tracking-wide">
+            <Text className="text-sm font-semibold uppercase tracking-wide text-pitch-600">
               {monthLabel(currentKey)}
             </Text>
-            <Text className="text-pitch-900 text-sm font-semibold">
-              Total {BRL.format(totalMonth)}
+            <Text className="text-sm font-semibold text-pitch-900">
+              Total {formatExpenseBRL(totalMonth)}
             </Text>
           </View>
           <View className="flex-row gap-3">
-            <View className="bg-success/10 flex-1 gap-1 rounded-lg p-2.5">
-              <Text className="text-success text-[10px] font-semibold uppercase">Pago</Text>
-              <Text className="text-pitch-900 text-sm font-bold">{BRL.format(totalPaid)}</Text>
+            <View className="flex-1 gap-1 rounded-lg bg-success/10 p-2.5">
+              <Text className="text-[10px] font-semibold uppercase text-success">Pago</Text>
+              <Text className="text-sm font-bold text-pitch-900">
+                {formatExpenseBRL(totalPaid)}
+              </Text>
             </View>
-            <View className="bg-warning/10 flex-1 gap-1 rounded-lg p-2.5">
-              <Text className="text-warning text-[10px] font-semibold uppercase">Marcado</Text>
-              <Text className="text-pitch-900 text-sm font-bold">{BRL.format(totalMarked)}</Text>
+            <View className="flex-1 gap-1 rounded-lg bg-warning/10 p-2.5">
+              <Text className="text-[10px] font-semibold uppercase text-warning">Marcado</Text>
+              <Text className="text-sm font-bold text-pitch-900">
+                {formatExpenseBRL(totalMarked)}
+              </Text>
             </View>
-            <View className="bg-pitch-200 flex-1 gap-1 rounded-lg p-2.5">
-              <Text className="text-pitch-600 text-[10px] font-semibold uppercase">Pendente</Text>
-              <Text className="text-pitch-900 text-sm font-bold">{BRL.format(totalPending)}</Text>
+            <View className="flex-1 gap-1 rounded-lg bg-pitch-200 p-2.5">
+              <Text className="text-[10px] font-semibold uppercase text-pitch-600">Pendente</Text>
+              <Text className="text-sm font-bold text-pitch-900">
+                {formatExpenseBRL(totalPending)}
+              </Text>
             </View>
           </View>
         </View>
 
         {/* T4.3: SALDO do Caixa = SUM(approved payments) - SUM(confirmed expenses) */}
         <View
-          className="border-pitch-200 gap-2 rounded-xl border bg-white p-4"
+          className="gap-2 rounded-xl border border-pitch-200 bg-white p-4"
           style={{ elevation: 2 } as never}
           accessibilityLabel="Saldo atual do caixa"
         >
-          <Text className="text-pitch-600 text-sm font-semibold uppercase tracking-wide">
+          <Text className="text-sm font-semibold uppercase tracking-wide text-pitch-600">
             Saldo do caixa
           </Text>
           <Text className={`text-2xl font-bold ${saldo >= 0 ? 'text-pitch-900' : 'text-danger'}`}>
             {formatExpenseBRL(saldo)}
           </Text>
-          <Text className="text-pitch-500 text-xs">
+          <Text className="text-xs text-pitch-500">
             Receitas aprovadas menos despesas confirmadas.
           </Text>
         </View>
 
         {loading ? <ActivityIndicator /> : null}
-        {error ? <Text className="text-danger px-1 text-xs">{error}</Text> : null}
-
-        {loading ? <ActivityIndicator /> : null}
-        {error ? <Text className="text-danger px-1 text-xs">{error}</Text> : null}
+        {error ? <Text className="px-1 text-xs text-danger">{error}</Text> : null}
 
         {/* Filtros (AC2) */}
         <View accessibilityRole="tablist" className="flex-row gap-2">
@@ -518,7 +365,7 @@ export default function CaixaScreen() {
 
         {/* Lista agrupada por mes (AC1) */}
         {groups.length === 0 ? (
-          <Text className="text-pitch-400 py-8 text-center text-sm italic">
+          <Text className="py-8 text-center text-sm italic text-pitch-400">
             Nenhuma cobranca para esse filtro.
           </Text>
         ) : (
@@ -529,11 +376,11 @@ export default function CaixaScreen() {
                   accessibilityRole="header"
                   className="flex-row items-baseline justify-between px-1"
                 >
-                  <Text className="text-pitch-600 text-sm font-semibold uppercase tracking-wide">
+                  <Text className="text-sm font-semibold uppercase tracking-wide text-pitch-600">
                     {monthLabel(monthKey)}
                   </Text>
-                  <Text className="text-success text-xs font-medium">
-                    Pago {BRL.format(sumPaid(rows))}
+                  <Text className="text-xs font-medium text-success">
+                    Pago {formatExpenseBRL(sumPaid(rows))}
                   </Text>
                 </View>
                 <View className="gap-2">

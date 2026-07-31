@@ -40,7 +40,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { Button, Card } from '@/components/ui';
 import { PlayerStatRow } from '@/components/PlayerStatRow';
-import { useProfileStore } from '@/stores/profile';
+import { useAuth } from '@/hooks/useAuth';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useMatchStore } from '@/stores/match';
 import {
   applyStatDelta,
@@ -234,8 +235,8 @@ export default function SumulaScreen() {
   const params = useLocalSearchParams<{ match_id: string }>();
   const matchId = Array.isArray(params.match_id) ? params.match_id[0] : params.match_id;
 
-  const currentProfile = useProfileStore((s) => s.currentProfile);
-  const isAdmin = Boolean(currentProfile?.is_admin);
+  const { user } = useAuth();
+  const isAdmin = useIsAdmin(user?.id);
 
   const match = useMatchStore((s) => s.match);
   const teamScores = useMatchStore((s) => s.teamScores);

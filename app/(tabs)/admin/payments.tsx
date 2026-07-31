@@ -20,6 +20,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
 import { Button, Card } from '@/components/ui';
+import { formatBRL } from '@/lib/expenses';
+import { formatBRTShort } from '@/lib/timezone';
 import {
   approvePayment,
   friendlyPaymentError,
@@ -35,7 +37,6 @@ import { usePaymentStore } from '@/stores/payment';
 function isMarkedAwaitingApproval(p: PaymentWithProfile): boolean {
   return p.marked_paid_at != null && p.approved_at == null;
 }
-
 function alertInfo(title: string, msg: string) {
   Alert.alert(title, msg, [{ text: 'OK', style: 'cancel' }]);
 }
@@ -115,13 +116,13 @@ export default function AdminPaymentsScreen() {
       <Card>
         <View className="flex-row items-start justify-between gap-3">
           <View className="flex-1">
-            <Text className="text-pitch-900 text-base font-semibold">{name}</Text>
-            <Text className="text-pitch-600 mt-0.5 text-xs uppercase">{typeLabel}</Text>
-            <Text className="text-warning mt-1 text-xs">
-              Marcado em {formatBRTshort(item.marked_paid_at)}
+            <Text className="text-base font-semibold text-pitch-900">{name}</Text>
+            <Text className="mt-0.5 text-xs uppercase text-pitch-600">{typeLabel}</Text>
+            <Text className="mt-1 text-xs text-warning">
+              Marcado em {formatBRTShort(item.marked_paid_at)}
             </Text>
           </View>
-          <Text className="text-pitch-900 text-base font-bold">{formatBRL(item.amount)}</Text>
+          <Text className="text-base font-bold text-pitch-900">{formatBRL(item.amount)}</Text>
         </View>
         <View className="mt-2">
           <Button
@@ -136,18 +137,18 @@ export default function AdminPaymentsScreen() {
   };
 
   return (
-    <SafeAreaView className="bg-pitch-50 flex-1">
+    <SafeAreaView className="flex-1 bg-pitch-50">
       <View className="flex-1 p-4">
         <View className="flex-row items-center justify-between">
-          <Text className="text-pitch-900 text-xl font-bold">Pagamentos (admin)</Text>
+          <Text className="text-xl font-bold text-pitch-900">Pagamentos (admin)</Text>
           <Pressable onPress={() => router.replace('/(tabs)/perfil')}>
-            <Text className="text-field-dark text-sm">Voltar</Text>
+            <Text className="text-sm text-field-dark">Voltar</Text>
           </Pressable>
         </View>
 
         <Card>
-          <Text className="text-pitch-900 text-sm font-semibold">Como funciona</Text>
-          <Text className="text-pitch-600 mt-1 text-xs">
+          <Text className="text-sm font-semibold text-pitch-900">Como funciona</Text>
+          <Text className="mt-1 text-xs text-pitch-600">
             Jogadores marcam como pago (1a confirmacao). Os marcados aparecem aqui para o admin
             aprovar (2a confirmacao), setando status final = pago. Realtime atualiza a lista
             instantaneamente.
@@ -155,7 +156,7 @@ export default function AdminPaymentsScreen() {
         </Card>
 
         <View className="mt-2 flex-1">
-          <Text className="text-pitch-900 mb-2 text-base font-semibold">Aguardando aprovacao</Text>
+          <Text className="mb-2 text-base font-semibold text-pitch-900">Aguardando aprovacao</Text>
           {loading ? (
             <ActivityIndicator />
           ) : marked.length === 0 ? (
@@ -174,36 +175,10 @@ export default function AdminPaymentsScreen() {
 
         {error ? (
           <Card>
-            <Text className="text-danger text-sm">{error}</Text>
+            <Text className="text-sm text-danger">{error}</Text>
           </Card>
         ) : null}
       </View>
     </SafeAreaView>
   );
-}
-
-// ---- Helpers PT-BR (locais) ------------------------------------------------
-
-const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-function formatBRL(amount: number): string {
-  return brl.format(amount);
-}
-
-/** Formata ISO UTC -> "dd/MM/yyyy HH:mm" BRT (fallback p/ ambientes sem Intl completo). */
-function formatBRTshort(iso: string | null): string {
-  if (!iso) return '-';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  try {
-    return d.toLocaleString('pt-BR', {
-      timeZone: 'America/Sao_Paulo',
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return d.toISOString().replace('T', ' ').slice(0, 16);
-  }
 }

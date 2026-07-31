@@ -15,7 +15,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { StatBadge } from '@/components/StatBadge';
 import { Button, Card } from '@/components/ui';
 import { supabase } from '@/lib/supabase';
-import { useProfileStore } from '@/stores/profile';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 import type { ProfileRow } from '@/types/database.types';
 
 type PlayerStats = {
@@ -41,12 +41,11 @@ const USER_TYPE_LABELS: Record<ProfileRow['user_type'], string> = {
 export default function PerfilScreen() {
   const router = useRouter();
   const { user, signOut } = useAuth();
-  const currentProfile = useProfileStore((s) => s.currentProfile);
+  const isAdmin = useIsAdmin(user?.id);
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<ProfileRow | null>(currentProfile);
+  const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [stats, setStats] = useState<PlayerStats>(EMPTY_STATS);
   const [signingOut, setSigningOut] = useState(false);
-  const isAdmin = Boolean(profile?.is_admin);
 
   useEffect(() => {
     let mounted = true;
@@ -78,7 +77,7 @@ export default function PerfilScreen() {
         }
       } catch {
         if (mounted) {
-          setProfile(currentProfile);
+          setProfile(null);
           setStats(EMPTY_STATS);
         }
       } finally {
@@ -88,7 +87,7 @@ export default function PerfilScreen() {
     return () => {
       mounted = false;
     };
-  }, [currentProfile, user]);
+  }, [user]);
 
   const handleSignOut = async () => {
     setSigningOut(true);

@@ -1,279 +1,687 @@
-/**
- * types/database.types.ts
- * Tipos TypeScript do schema Supabase (mirror de 00000000000001_schema.sql).
- *
- * Formatado para compatibilidade com `@supabase/supabase-js` v2
- * (`Database['public']['Tables']['<name>']['Row' | 'Insert' | 'Update']`).
- *
- * Processo oficial: `npm run db:types` apos `supabase link` gera esses tipos
- * automaticamente. Este arquivo hand-written e baseline ate o Supabase CLI
- * estar linkado ao projeto remoto (ver docs/supabase-setup.md). Ao rodar
- * `db:types` pela primeira vez, ele sobrescrevera este conteudo mantendo a
- * mesma estrutura (idempotente).
- *
- * Constraints:
- *   - Enums como union literals (mais ergonomicos que `typeof Enum[keyof]`).
- *   - Timestamps como `string` (ISO 8601 UTC via timestamptz).
- *   - JSONB via `Json` recursiva (compativel com supabase-js v2).
- *   - Updates `Partial<...>` exceto o PK (id).
- */
+﻿export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
-// ----- JSONB ---------------------------------------------------------------
-
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
-
-// ----- ENUMS (mirror dos CREATE TYPE em 00000000000001_schema.sql) --------
-
-export type UserType = 'mensalista' | 'avulso' | 'goleiro_pago';
-export type MatchStatus = 'scheduled' | 'active' | 'finished' | 'cancelled';
-export type RsvpStatus = 'confirmed' | 'waiting_list' | 'declined' | 'pending_approval';
-export type PaymentType = 'monthly' | 'casual';
-export type PaymentStatus = 'pending' | 'paid';
-export type ExpenseType = 'goalkeeper' | 'field' | 'other';
-
-// ----- TABLE: groups -------------------------------------------------------
-
-export interface GroupRow {
-  id: string;
-  name: string;
-  day_of_week: number;
-  monthly_fee: number;
-  default_casual_fee: number;
-  goalkeeper_expense: number;
-  monthly_capacity: number;
-  timezone: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export type GroupInsert = Omit<GroupRow, 'id' | 'created_at' | 'updated_at'> &
-  Partial<Pick<GroupRow, 'id' | 'created_at' | 'updated_at'>>;
-export type GroupUpdate = Partial<Omit<GroupRow, 'id'>>;
-
-// ----- TABLE: profiles -----------------------------------------------------
-
-export interface ProfileRow {
-  id: string;
-  group_id: string | null;
-  full_name: string;
-  phone_whatsapp: string | null;
-  user_type: UserType;
-  is_admin: boolean;
-  avatar_url: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export type ProfileInsert = Omit<ProfileRow, 'id' | 'created_at' | 'updated_at'> &
-  Partial<Pick<ProfileRow, 'id' | 'created_at' | 'updated_at'>>;
-export type ProfileUpdate = Partial<Omit<ProfileRow, 'id'>>;
-
-// ----- TABLE: matches ------------------------------------------------------
-
-export interface MatchRow {
-  id: string;
-  group_id: string;
-  date_time: string;
-  day_of_week: number;
-  team_scores: Json;
-  goalkeeper_expense: number;
-  status: MatchStatus;
-  created_at: string;
-  updated_at: string;
-}
-
-export type MatchInsert = Omit<MatchRow, 'id' | 'created_at' | 'updated_at'> &
-  Partial<Pick<MatchRow, 'id' | 'created_at' | 'updated_at'>>;
-export type MatchUpdate = Partial<Omit<MatchRow, 'id'>>;
-
-// ----- TABLE: match_presences ----------------------------------------------
-
-export interface MatchPresenceRow {
-  id: string;
-  match_id: string;
-  user_id: string;
-  status: RsvpStatus;
-  confirmed_at: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export type MatchPresenceInsert = Omit<MatchPresenceRow, 'id' | 'created_at' | 'updated_at'> &
-  Partial<Pick<MatchPresenceRow, 'id' | 'created_at' | 'updated_at'>>;
-export type MatchPresenceUpdate = Partial<Omit<MatchPresenceRow, 'id'>>;
-
-// ----- TABLE: match_participants -------------------------------------------
-
-export interface MatchParticipantRow {
-  id: string;
-  match_id: string;
-  player_id: string;
-  team_group: number;
-  is_goalkeeper: boolean;
-  goals_scored: number;
-  goals_assisted: number;
-  own_goals: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export type MatchParticipantInsert = Omit<MatchParticipantRow, 'id' | 'created_at' | 'updated_at'> &
-  Partial<Pick<MatchParticipantRow, 'id' | 'created_at' | 'updated_at'>>;
-export type MatchParticipantUpdate = Partial<Omit<MatchParticipantRow, 'id'>>;
-
-// ----- TABLE: payments -----------------------------------------------------
-
-export interface PaymentRow {
-  id: string;
-  user_id: string;
-  match_id: string | null;
-  group_id: string;
-  type: PaymentType;
-  title: string;
-  amount: number;
-  status: PaymentStatus;
-  marked_paid_at: string | null;
-  approved_at: string | null;
-  paid_at: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export type PaymentInsert = Omit<PaymentRow, 'id' | 'created_at' | 'updated_at'> &
-  Partial<Pick<PaymentRow, 'id' | 'created_at' | 'updated_at'>>;
-export type PaymentUpdate = Partial<Omit<PaymentRow, 'id'>>;
-
-// ----- TABLE: expenses -----------------------------------------------------
-
-export interface ExpenseRow {
-  id: string;
-  group_id: string;
-  match_id: string | null;
-  type: ExpenseType;
-  description: string | null;
-  amount: number;
-  paid_at: string | null;
-  confirmed_at: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export type ExpenseInsert = Omit<ExpenseRow, 'id' | 'created_at' | 'updated_at'> &
-  Partial<Pick<ExpenseRow, 'id' | 'created_at' | 'updated_at'>>;
-export type ExpenseUpdate = Partial<Omit<ExpenseRow, 'id'>>;
-
-// ----- TABLE: device_tokens ------------------------------------------------
-
-export interface DeviceTokenRow {
-  id: string;
-  user_id: string;
-  expo_push_token: string;
-  created_at: string;
-}
-
-export type DeviceTokenInsert = Omit<DeviceTokenRow, 'id' | 'created_at'> &
-  Partial<Pick<DeviceTokenRow, 'id' | 'created_at'>>;
-export type DeviceTokenUpdate = Partial<Omit<DeviceTokenRow, 'id'>>;
-
-// ----- Database (formato supabase-js v2) -----------------------------------
-
-export interface Database {
+export type Database = {
   public: {
     Tables: {
+      device_tokens: {
+        Row: {
+          created_at: string;
+          expo_push_token: string;
+          id: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          expo_push_token: string;
+          id?: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          expo_push_token?: string;
+          id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'device_tokens_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      expenses: {
+        Row: {
+          amount: number;
+          confirmed_at: string | null;
+          created_at: string;
+          description: string | null;
+          group_id: string;
+          id: string;
+          match_id: string | null;
+          paid_at: string | null;
+          type: Database['public']['Enums']['expense_type'];
+          updated_at: string;
+        };
+        Insert: {
+          amount: number;
+          confirmed_at?: string | null;
+          created_at?: string;
+          description?: string | null;
+          group_id: string;
+          id?: string;
+          match_id?: string | null;
+          paid_at?: string | null;
+          type: Database['public']['Enums']['expense_type'];
+          updated_at?: string;
+        };
+        Update: {
+          amount?: number;
+          confirmed_at?: string | null;
+          created_at?: string;
+          description?: string | null;
+          group_id?: string;
+          id?: string;
+          match_id?: string | null;
+          paid_at?: string | null;
+          type?: Database['public']['Enums']['expense_type'];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'expenses_group_id_fkey';
+            columns: ['group_id'];
+            isOneToOne: false;
+            referencedRelation: 'groups';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'expenses_match_id_fkey';
+            columns: ['match_id'];
+            isOneToOne: false;
+            referencedRelation: 'matches';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       groups: {
-        Row: GroupRow;
-        Insert: GroupInsert;
-        Update: GroupUpdate;
-        Relationships: [];
-      };
-      profiles: {
-        Row: ProfileRow;
-        Insert: ProfileInsert;
-        Update: ProfileUpdate;
-        Relationships: [];
-      };
-      matches: {
-        Row: MatchRow;
-        Insert: MatchInsert;
-        Update: MatchUpdate;
-        Relationships: [];
-      };
-      match_presences: {
-        Row: MatchPresenceRow;
-        Insert: MatchPresenceInsert;
-        Update: MatchPresenceUpdate;
+        Row: {
+          created_at: string;
+          day_of_week: number;
+          default_casual_fee: number;
+          goalkeeper_expense: number;
+          id: string;
+          monthly_capacity: number;
+          monthly_fee: number;
+          name: string;
+          timezone: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          day_of_week?: number;
+          default_casual_fee?: number;
+          goalkeeper_expense?: number;
+          id?: string;
+          monthly_capacity?: number;
+          monthly_fee?: number;
+          name: string;
+          timezone?: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          day_of_week?: number;
+          default_casual_fee?: number;
+          goalkeeper_expense?: number;
+          id?: string;
+          monthly_capacity?: number;
+          monthly_fee?: number;
+          name?: string;
+          timezone?: string;
+          updated_at?: string;
+        };
         Relationships: [];
       };
       match_participants: {
-        Row: MatchParticipantRow;
-        Insert: MatchParticipantInsert;
-        Update: MatchParticipantUpdate;
-        Relationships: [];
+        Row: {
+          created_at: string;
+          goals_assisted: number;
+          goals_scored: number;
+          id: string;
+          is_goalkeeper: boolean;
+          match_id: string;
+          own_goals: number;
+          player_id: string;
+          team_group: number;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          goals_assisted?: number;
+          goals_scored?: number;
+          id?: string;
+          is_goalkeeper?: boolean;
+          match_id: string;
+          own_goals?: number;
+          player_id: string;
+          team_group: number;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          goals_assisted?: number;
+          goals_scored?: number;
+          id?: string;
+          is_goalkeeper?: boolean;
+          match_id?: string;
+          own_goals?: number;
+          player_id?: string;
+          team_group?: number;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'match_participants_match_id_fkey';
+            columns: ['match_id'];
+            isOneToOne: false;
+            referencedRelation: 'matches';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'match_participants_player_id_fkey';
+            columns: ['player_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      match_presences: {
+        Row: {
+          confirmed_at: string | null;
+          created_at: string;
+          id: string;
+          match_id: string;
+          status: Database['public']['Enums']['rsvp_status'];
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          confirmed_at?: string | null;
+          created_at?: string;
+          id?: string;
+          match_id: string;
+          status: Database['public']['Enums']['rsvp_status'];
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          confirmed_at?: string | null;
+          created_at?: string;
+          id?: string;
+          match_id?: string;
+          status?: Database['public']['Enums']['rsvp_status'];
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'match_presences_match_id_fkey';
+            columns: ['match_id'];
+            isOneToOne: false;
+            referencedRelation: 'matches';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'match_presences_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      matches: {
+        Row: {
+          created_at: string;
+          date_time: string;
+          day_of_week: number;
+          goalkeeper_expense: number;
+          group_id: string;
+          id: string;
+          status: Database['public']['Enums']['match_status'];
+          team_scores: Json;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          date_time: string;
+          day_of_week?: number;
+          goalkeeper_expense?: number;
+          group_id: string;
+          id?: string;
+          status?: Database['public']['Enums']['match_status'];
+          team_scores?: Json;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          date_time?: string;
+          day_of_week?: number;
+          goalkeeper_expense?: number;
+          group_id?: string;
+          id?: string;
+          status?: Database['public']['Enums']['match_status'];
+          team_scores?: Json;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'matches_group_id_fkey';
+            columns: ['group_id'];
+            isOneToOne: false;
+            referencedRelation: 'groups';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       payments: {
-        Row: PaymentRow;
-        Insert: PaymentInsert;
-        Update: PaymentUpdate;
-        Relationships: [];
+        Row: {
+          amount: number;
+          approved_at: string | null;
+          created_at: string;
+          group_id: string;
+          id: string;
+          marked_paid_at: string | null;
+          match_id: string | null;
+          paid_at: string | null;
+          status: Database['public']['Enums']['payment_status'];
+          title: string;
+          type: Database['public']['Enums']['payment_type'];
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          amount: number;
+          approved_at?: string | null;
+          created_at?: string;
+          group_id: string;
+          id?: string;
+          marked_paid_at?: string | null;
+          match_id?: string | null;
+          paid_at?: string | null;
+          status?: Database['public']['Enums']['payment_status'];
+          title: string;
+          type: Database['public']['Enums']['payment_type'];
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          amount?: number;
+          approved_at?: string | null;
+          created_at?: string;
+          group_id?: string;
+          id?: string;
+          marked_paid_at?: string | null;
+          match_id?: string | null;
+          paid_at?: string | null;
+          status?: Database['public']['Enums']['payment_status'];
+          title?: string;
+          type?: Database['public']['Enums']['payment_type'];
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'payments_group_id_fkey';
+            columns: ['group_id'];
+            isOneToOne: false;
+            referencedRelation: 'groups';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'payments_match_id_fkey';
+            columns: ['match_id'];
+            isOneToOne: false;
+            referencedRelation: 'matches';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'payments_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
       };
-      expenses: {
-        Row: ExpenseRow;
-        Insert: ExpenseInsert;
-        Update: ExpenseUpdate;
-        Relationships: [];
+      profiles: {
+        Row: {
+          avatar_url: string | null;
+          created_at: string;
+          full_name: string;
+          group_id: string | null;
+          id: string;
+          is_admin: boolean;
+          phone_whatsapp: string | null;
+          updated_at: string;
+          user_type: Database['public']['Enums']['user_type'];
+        };
+        Insert: {
+          avatar_url?: string | null;
+          created_at?: string;
+          full_name: string;
+          group_id?: string | null;
+          id: string;
+          is_admin?: boolean;
+          phone_whatsapp?: string | null;
+          updated_at?: string;
+          user_type?: Database['public']['Enums']['user_type'];
+        };
+        Update: {
+          avatar_url?: string | null;
+          created_at?: string;
+          full_name?: string;
+          group_id?: string | null;
+          id?: string;
+          is_admin?: boolean;
+          phone_whatsapp?: string | null;
+          updated_at?: string;
+          user_type?: Database['public']['Enums']['user_type'];
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'profiles_group_id_fkey';
+            columns: ['group_id'];
+            isOneToOne: false;
+            referencedRelation: 'groups';
+            referencedColumns: ['id'];
+          },
+        ];
       };
-      device_tokens: {
-        Row: DeviceTokenRow;
-        Insert: DeviceTokenInsert;
-        Update: DeviceTokenUpdate;
-        Relationships: [];
+      push_log: {
+        Row: {
+          body: string | null;
+          expo_token: string;
+          http_status: number | null;
+          id: string;
+          kind: string;
+          match_id: string | null;
+          payload: Json | null;
+          request_id: number | null;
+          response_body: Json | null;
+          sent_at: string;
+          title: string | null;
+          user_id: string | null;
+        };
+        Insert: {
+          body?: string | null;
+          expo_token: string;
+          http_status?: number | null;
+          id?: string;
+          kind: string;
+          match_id?: string | null;
+          payload?: Json | null;
+          request_id?: number | null;
+          response_body?: Json | null;
+          sent_at?: string;
+          title?: string | null;
+          user_id?: string | null;
+        };
+        Update: {
+          body?: string | null;
+          expo_token?: string;
+          http_status?: number | null;
+          id?: string;
+          kind?: string;
+          match_id?: string | null;
+          payload?: Json | null;
+          request_id?: number | null;
+          response_body?: Json | null;
+          sent_at?: string;
+          title?: string | null;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'push_log_match_id_fkey';
+            columns: ['match_id'];
+            isOneToOne: false;
+            referencedRelation: 'matches';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'push_log_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
       };
     };
-    Views: Record<string, never>;
+    Views: {
+      [_ in never]: never;
+    };
     Functions: {
-      promote_next_casual: {
-        Args: { p_match_id: string };
-        Returns: string | null;
+      add_walk_in_participant: {
+        Args: { match_id: string; player_id: string; team_group: number };
+        Returns: {
+          created_at: string;
+          goals_assisted: number;
+          goals_scored: number;
+          id: string;
+          is_goalkeeper: boolean;
+          match_id: string;
+          own_goals: number;
+          player_id: string;
+          team_group: number;
+          updated_at: string;
+        }[];
+        SetofOptions: {
+          from: '*';
+          to: 'match_participants';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
-      reject_pending_presence: {
-        Args: { p_presence_id: string };
-        Returns: string | null;
+      create_next_weekly_match: {
+        Args: { p_group_id?: string };
+        Returns: undefined;
       };
-      // T6.1: sorteio aleatorio puro de times (SECURITY DEFINER).
+      dispatch_push: {
+        Args: { p_kind: string; p_match_id?: string };
+        Returns: undefined;
+      };
       draw_teams: {
         Args: { p_match_id: string };
         Returns: {
+          is_goalkeeper: boolean;
           player_id: string;
           team_group: number;
-          is_goalkeeper: boolean;
         }[];
       };
-      add_walk_in_participant: {
-        Args: { match_id: string; player_id: string; team_group: number };
-        Returns: MatchParticipantRow[];
+      generate_monthly_payments: {
+        Args: { p_group_id?: string };
+        Returns: {
+          group_name: string;
+          inserted_count: number;
+          month_brt: string;
+          skipped_count: number;
+        }[];
+      };
+      get_active_push_tokens: {
+        Args: { p_group_id?: string };
+        Returns: {
+          expo_push_token: string;
+          user_id: string;
+          user_name: string;
+        }[];
+      };
+      is_admin: { Args: never; Returns: boolean };
+      is_group_member: { Args: { check_group_id: string }; Returns: boolean };
+      promote_next_casual: { Args: { p_match_id: string }; Returns: string };
+      reject_pending_presence: {
+        Args: { p_presence_id: string };
+        Returns: string;
       };
     };
     Enums: {
-      user_type: UserType;
-      match_status: MatchStatus;
-      rsvp_status: RsvpStatus;
-      payment_type: PaymentType;
-      payment_status: PaymentStatus;
-      expense_type: ExpenseType;
+      expense_type: 'goalkeeper' | 'field' | 'other';
+      match_status: 'scheduled' | 'active' | 'finished' | 'cancelled';
+      payment_status: 'pending' | 'paid';
+      payment_type: 'monthly' | 'casual';
+      rsvp_status: 'confirmed' | 'waiting_list' | 'declined' | 'pending_approval';
+      user_type: 'mensalista' | 'avulso' | 'goleiro_pago';
+    };
+    CompositeTypes: {
+      [_ in never]: never;
     };
   };
+};
+
+type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>;
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>];
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
 }
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
+      Row: infer R;
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    ? (DefaultSchema['Tables'] & DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R;
+      }
+      ? R
+      : never
+    : never;
 
-// ----- Aliases (uso comum em stores/components) ----------------------------
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+      Insert: infer I;
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I;
+      }
+      ? I
+      : never
+    : never;
 
-/** Alias para o nome de tabela. Centralizado para evitar erros de digitacao. */
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+      Update: infer U;
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U;
+      }
+      ? U
+      : never
+    : never;
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    keyof DefaultSchema['Enums'] | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
+    : never) = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
+    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
+    : never;
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    keyof DefaultSchema['CompositeTypes'] | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    : never) = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
+    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
+    : never;
+
+export const Constants = {
+  public: {
+    Enums: {
+      expense_type: ['goalkeeper', 'field', 'other'],
+      match_status: ['scheduled', 'active', 'finished', 'cancelled'],
+      payment_status: ['pending', 'paid'],
+      payment_type: ['monthly', 'casual'],
+      rsvp_status: ['confirmed', 'waiting_list', 'declined', 'pending_approval'],
+      user_type: ['mensalista', 'avulso', 'goleiro_pago'],
+    },
+  },
+} as const;
+
+// Aliases legados usados pelo app. O schema acima continua sendo a fonte
+// gerada pelo Supabase; estes nomes preservam os contratos locais existentes.
+export type UserType = Database['public']['Enums']['user_type'];
+export type MatchStatus = Database['public']['Enums']['match_status'];
+export type RsvpStatus = Database['public']['Enums']['rsvp_status'];
+export type PaymentType = Database['public']['Enums']['payment_type'];
+export type PaymentStatus = Database['public']['Enums']['payment_status'];
+export type ExpenseType = Database['public']['Enums']['expense_type'];
+
+export type GroupRow = Database['public']['Tables']['groups']['Row'];
+export type GroupInsert = Database['public']['Tables']['groups']['Insert'];
+export type GroupUpdate = Database['public']['Tables']['groups']['Update'];
+export type ProfileRow = Database['public']['Tables']['profiles']['Row'];
+export type ProfileInsert = Database['public']['Tables']['profiles']['Insert'];
+export type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
+export type MatchRow = Database['public']['Tables']['matches']['Row'];
+export type MatchInsert = Database['public']['Tables']['matches']['Insert'];
+export type MatchUpdate = Database['public']['Tables']['matches']['Update'];
+export type MatchPresenceRow = Database['public']['Tables']['match_presences']['Row'];
+export type MatchPresenceInsert = Database['public']['Tables']['match_presences']['Insert'];
+export type MatchPresenceUpdate = Database['public']['Tables']['match_presences']['Update'];
+export type MatchParticipantRow = Database['public']['Tables']['match_participants']['Row'];
+export type MatchParticipantInsert = Database['public']['Tables']['match_participants']['Insert'];
+export type MatchParticipantUpdate = Database['public']['Tables']['match_participants']['Update'];
+export type PaymentRow = Database['public']['Tables']['payments']['Row'];
+export type PaymentInsert = Database['public']['Tables']['payments']['Insert'];
+export type PaymentUpdate = Database['public']['Tables']['payments']['Update'];
+export type ExpenseRow = Database['public']['Tables']['expenses']['Row'];
+export type ExpenseInsert = Database['public']['Tables']['expenses']['Insert'];
+export type ExpenseUpdate = Database['public']['Tables']['expenses']['Update'];
+export type DeviceTokenRow = Database['public']['Tables']['device_tokens']['Row'];
+export type DeviceTokenInsert = Database['public']['Tables']['device_tokens']['Insert'];
+export type DeviceTokenUpdate = Database['public']['Tables']['device_tokens']['Update'];
+
 export type TableName = keyof Database['public']['Tables'];
-
-/** Tipo do registro completo de uma tabela. */
 export type Row<T extends TableName> = Database['public']['Tables'][T]['Row'];
-
-/** Tipo do payload de insercao. */
 export type Insert<T extends TableName> = Database['public']['Tables'][T]['Insert'];
-
-/** Tipo do payload de atualizacao. */
 export type Update<T extends TableName> = Database['public']['Tables'][T]['Update'];

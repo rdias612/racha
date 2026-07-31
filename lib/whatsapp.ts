@@ -161,21 +161,6 @@ export function buildWhatsAppDeepLink(text: string): string {
 
 export type ShareTemplateKind = 'monday' | 'alert48h' | 'promotion';
 
-/** Resolve texto PT-BR pelo tipo de template. */
-export function resolveTemplateText(
-  kind: ShareTemplateKind,
-  ctx: MondayTextContext | Alert48hContext | PromotionContext,
-): string {
-  switch (kind) {
-    case 'monday':
-      return buildMondayText(ctx as MondayTextContext);
-    case 'alert48h':
-      return buildAlert48hText(ctx as Alert48hContext);
-    case 'promotion':
-      return buildPromotionText(ctx as PromotionContext);
-  }
-}
-
 /**
  * Tenta cadeia completa de envio:
  *   1. Deep Link WhatsApp nativo (se instalado).

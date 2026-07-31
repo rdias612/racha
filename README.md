@@ -68,6 +68,7 @@ Veja [`docs/supabase-setup.md`](docs/supabase-setup.md) para login, link e fluxo
 | `npm run ios`     | `expo start --ios`     | Abre no simulador iOS (pos-MVP)          |
 | `npm run lint`    | `eslint .`             | Linter (flat config + typescript-eslint) |
 | `npm run tsc`     | `tsc --noEmit`         | Type-check TypeScript strict             |
+| `npm test`        | `tsx tests/run-all.ts` | Executa os nove smoke tests              |
 
 ## Estrutura
 
