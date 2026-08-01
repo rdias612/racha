@@ -9,7 +9,7 @@
 --     com service_role (ver package.json > script `seed:auth`).
 --
 -- Convensao:
---   - UUID estavel hardcoded (facilmente copiavel para FK em dev).
+--   - ID numerico estavel hardcoded (facilmente copiavel para FK em dev).
 --   - Idempotente via ON CONFLICT (id) DO UPDATE.
 --   - PT-BR nos comentarios.
 -- =====================================================================
@@ -24,7 +24,7 @@ insert into public.groups (
   monthly_capacity,
   timezone
 ) values (
-  '00000000-0000-0000-0000-000000000001'::uuid,
+  1,
   'Racha Quintas',
   4,
   60.00,

@@ -4,7 +4,7 @@
  *
  * Princípios:
  *   - Timestamps em UTC no DB; conversão BRT só aqui (UI).
- *   - group_id fixo do seed T1.3b (0000...-0001).
+ *   - group_id fixo do seed T1.3b (1).
  *   - Sem novas deps: parser PT-BR manual (admin-only, low traffic).
  *   - Sem UI: funções puras + queries tipadas Supabase.
  */
@@ -12,8 +12,8 @@
 import { supabase } from '@/lib/supabase';
 import type { Database, MatchRow, MatchStatus } from '@/types/database.types';
 
-/** UUID fixo do seed GROUPS (T1.3b). */
-export const FIXED_GROUP_ID = '00000000-0000-0000-0000-000000000001';
+/** ID numerico fixo do seed GROUPS (T1.3b). */
+export const FIXED_GROUP_ID = 1;
 
 /** UUID fixo da partida seed usada pelo MVP. */
 export const FIXED_MATCH_ID = '00000000-0000-0000-0000-000000000002';

@@ -21,23 +21,34 @@ export interface UseAuthResult {
 }
 
 type LoginRpcRow = AuthProfile;
+type LoginRpcData = LoginRpcRow | LoginRpcRow[] | null;
+
+let sharedProfile: AuthProfile | null = null;
+const profileListeners = new Set<(profile: AuthProfile | null) => void>();
+
+function publishProfile(profile: AuthProfile | null): void {
+  sharedProfile = profile;
+  profileListeners.forEach((listener) => listener(profile));
+}
 
 export function useAuth(): UseAuthResult {
-  const [profile, setProfile] = useState<AuthProfile | null>(null);
+  const [profile, setProfile] = useState<AuthProfile | null>(sharedProfile);
   const [loading, setLoading] = useState(true);
   const [signingIn, setSigningIn] = useState(false);
 
   // Restaura sessão local ao abrir o app.
   useEffect(() => {
+    profileListeners.add(setProfile);
     let mounted = true;
     (async () => {
       const restored = await loadProfile();
       if (!mounted) return;
-      setProfile(restored);
+      publishProfile(restored);
       setLoading(false);
     })();
     return () => {
       mounted = false;
+      profileListeners.delete(setProfile);
     };
   }, []);
 
@@ -53,7 +64,8 @@ export function useAuth(): UseAuthResult {
         });
 
         if (error) throw error;
-        const row = (data as unknown as LoginRpcRow[] | null)?.[0];
+        const loginData = data as unknown as LoginRpcData;
+        const row = Array.isArray(loginData) ? loginData[0] : loginData;
         if (!row) throw new Error('Usuario ou senha invalidos.');
 
         const next: AuthProfile = {
@@ -64,7 +76,7 @@ export function useAuth(): UseAuthResult {
           group_id: row.group_id,
         };
         await saveProfile(next);
-        setProfile(next);
+        publishProfile(next);
         void registerForPushNotifications();
       } finally {
         setSigningIn(false);
@@ -75,7 +87,7 @@ export function useAuth(): UseAuthResult {
 
   const signOut = useCallback(async () => {
     await clearProfile();
-    setProfile(null);
+    publishProfile(null);
   }, []);
 
   return {

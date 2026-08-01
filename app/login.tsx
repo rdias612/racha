@@ -30,10 +30,13 @@ export default function LoginScreen() {
       await signIn(username, password);
       // useAuth atualiza o profile; o RootLayout (useSegments) redireciona sozinho.
     } catch (err) {
-      Alert.alert(
-        'Falha no login',
-        err instanceof Error ? err.message : 'Tente novamente em instantes.',
-      );
+      const message =
+        err instanceof Error
+          ? err.message
+          : typeof err === 'object' && err !== null && 'message' in err
+            ? String(err.message)
+            : 'Tente novamente em instantes.';
+      Alert.alert('Falha no login', message);
     } finally {
       setLoading(false);
     }
