@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 
 import { useAuth } from '@/hooks/useAuth';
 import { isOnboarded } from '@/lib/secure-store';
-import './global.css';
+import '../global.css';
 
 /**
  * Root layout do app FutAmigos (T1.4: gating de autenticacao; T7.2: onboarding).
