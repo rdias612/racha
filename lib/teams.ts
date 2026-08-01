@@ -222,7 +222,7 @@ export async function fetchTeamsByMatch(matchId: string): Promise<DrawnTeams> {
       profile:profiles!match_participants_player_id_fkey (
         id,
         group_id,
-        full_name,
+        username,
         phone_whatsapp,
         user_type,
         is_admin,

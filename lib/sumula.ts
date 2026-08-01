@@ -49,7 +49,7 @@ export type PlayerStatField = 'goals_scored' | 'goals_assisted' | 'own_goals';
 
 /** Snapshot de um participante enriquecido para a UI sumula. */
 export interface SumulaParticipant extends MatchParticipantRow {
-  full_name: string;
+  username: string;
   user_type: 'mensalista' | 'avulso' | 'goleiro_pago';
 }
 
@@ -235,7 +235,7 @@ export async function fetchMatchSumula(matchId: string): Promise<{
         created_at,
         updated_at,
         profile:profiles!match_participants_player_id_fkey (
-          full_name,
+          username,
           user_type
         )
         `,
@@ -253,7 +253,7 @@ export async function fetchMatchSumula(matchId: string): Promise<{
 
   const rawParticipants = (participantsResp.data ?? []) as unknown as Array<
     MatchParticipantRow & {
-      profile: { full_name: string; user_type: SumulaParticipant['user_type'] } | null;
+      profile: { username: string; user_type: SumulaParticipant['user_type'] } | null;
     }
   >;
 
@@ -268,7 +268,7 @@ export async function fetchMatchSumula(matchId: string): Promise<{
     own_goals: r.own_goals,
     created_at: r.created_at,
     updated_at: r.updated_at,
-    full_name: r.profile?.full_name ?? 'Jogador',
+    username: r.profile?.username ?? 'Jogador',
     user_type: r.profile?.user_type ?? 'avulso',
   }));
 

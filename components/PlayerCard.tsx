@@ -27,7 +27,7 @@ import type { RsvpStatus, UserType } from '@/types/database.types';
 // ---- Props ----------------------------------------------------------------
 
 export interface PlayerCardProps {
-  /** Nome exibido (profiles.full_name). */
+  /** Nome exibido (profiles.username). */
   fullName: string;
   /** Tipo de usuario (enum do DB). Define badge secundario. */
   userType: UserType;
@@ -101,17 +101,17 @@ export const PlayerCard = forwardRef<ComponentRef<typeof View>, PlayerCardProps>
         accessibilityLabel={`${STATUS_LABEL[status]}: ${fullName}, ${userTypeBadge.label}`}
       >
         <View
-          className="bg-field-light h-10 w-10 items-center justify-center rounded-full"
+          className="h-10 w-10 items-center justify-center rounded-full bg-field-light"
           accessibilityElementsHidden
         >
-          <Text className="text-field-dark text-base font-bold">{getInitial(fullName)}</Text>
+          <Text className="text-base font-bold text-field-dark">{getInitial(fullName)}</Text>
         </View>
 
         <View className="flex-1 gap-1">
-          <Text className="text-pitch-900 text-base font-medium" numberOfLines={1}>
+          <Text className="text-base font-medium text-pitch-900" numberOfLines={1}>
             {fullName}
             {isQueue && typeof queuePosition === 'number' ? (
-              <Text className="text-pitch-500 ml-1 text-xs">#{queuePosition}</Text>
+              <Text className="ml-1 text-xs text-pitch-500">#{queuePosition}</Text>
             ) : null}
           </Text>
           <View className="flex-row items-center gap-1.5">
@@ -126,7 +126,7 @@ export const PlayerCard = forwardRef<ComponentRef<typeof View>, PlayerCardProps>
             onPress={onConfirm}
             accessibilityRole="button"
             accessibilityLabel={`Confirmar ${fullName}`}
-            className="bg-field active:bg-field-dark min-h-[44px] items-center justify-center rounded-lg px-4 py-2"
+            className="min-h-[44px] items-center justify-center rounded-lg bg-field px-4 py-2 active:bg-field-dark"
           >
             <Text className="text-sm font-semibold text-white">Confirmar</Text>
           </Pressable>
@@ -137,9 +137,9 @@ export const PlayerCard = forwardRef<ComponentRef<typeof View>, PlayerCardProps>
             onPress={onLeave}
             accessibilityRole="button"
             accessibilityLabel={`Desistir ${fullName}`}
-            className="bg-pitch-100 active:bg-pitch-200 min-h-[44px] items-center justify-center rounded-lg px-4 py-2"
+            className="min-h-[44px] items-center justify-center rounded-lg bg-pitch-100 px-4 py-2 active:bg-pitch-200"
           >
-            <Text className="text-pitch-700 text-sm font-medium">Desistir</Text>
+            <Text className="text-sm font-medium text-pitch-700">Desistir</Text>
           </Pressable>
         ) : null}
       </View>

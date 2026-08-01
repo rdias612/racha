@@ -81,7 +81,7 @@ export default function AdminPaymentsScreen() {
     (item: PaymentWithProfile) => {
       Alert.alert(
         'Aprovar pagamento',
-        `Confirmar pagamento de ${item.profile?.full_name ?? 'jogador'} (${formatBRL(item.amount)})?`,
+        `Confirmar pagamento de ${item.profile?.username ?? 'jogador'} (${formatBRL(item.amount)})?`,
         [
           { text: 'Cancelar', style: 'cancel' },
           {
@@ -108,7 +108,7 @@ export default function AdminPaymentsScreen() {
   );
 
   const renderItem = ({ item }: { item: PaymentWithProfile }) => {
-    const name = item.profile?.full_name ?? 'Jogador';
+    const name = item.profile?.username ?? 'Jogador';
     const typeLabel =
       item.type === 'monthly' ? 'Mensalidade' : item.type === 'casual' ? 'Avulsa' : item.type;
     const isBusy = busyId === item.id;

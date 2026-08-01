@@ -39,10 +39,10 @@ export type PaymentUiStatus = 'pending' | 'marked' | 'paid';
 
 /**
  * Resultado enriquecido p/ UI Caixa/Admin: payment + profile do jogador.
- * Denormaliza full_name para o PaymentRow não precisar dele.
+ * Denormaliza username para o PaymentRow não precisar dele.
  */
 export interface PaymentWithProfile extends PaymentRow {
-  profile: Pick<ProfileRow, 'full_name' | 'user_type' | 'avatar_url'>;
+  profile: Pick<ProfileRow, 'username' | 'user_type' | 'avatar_url'>;
 }
 
 /** Erro com codigo Postgres (Supabase PostgrestError / similar). */
@@ -121,7 +121,7 @@ async function getSupabase() {
 }
 
 /**
- * Lista PAYMENTS do grupo fixo enriquecidos com profile (full_name,
+ * Lista PAYMENTS do grupo fixo enriquecidos com profile (username,
  * user_type, avatar_url). Ordena por created_at DESC (mais recente primeiro);
  * UI agrupa por mes apos este fetch.
  *
@@ -133,7 +133,7 @@ export async function listPaymentsWithProfiles(): Promise<PaymentWithProfile[]> 
   const { FIXED_GROUP_ID } = await import('@/lib/matches');
   const { data, error } = await supabase
     .from('payments')
-    .select('*, profile:profiles(full_name, user_type, avatar_url)')
+    .select('*, profile:profiles(username, user_type, avatar_url)')
     .eq('group_id', FIXED_GROUP_ID)
     .order('created_at', { ascending: false });
   if (error) throw new Error(friendlyPaymentError(error));

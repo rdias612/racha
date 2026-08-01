@@ -41,7 +41,7 @@ interface DbLikeError {
 
 /** Resultado enriquecido p/ UI admin: presence + profile do jogador. */
 export interface PendingWithProfile extends MatchPresenceRow {
-  profile: Pick<ProfileRow, 'full_name' | 'user_type' | 'avatar_url'>;
+  profile: Pick<ProfileRow, 'username' | 'user_type' | 'avatar_url'>;
 }
 
 /**
@@ -94,7 +94,7 @@ export async function listPendingApprovals(): Promise<PendingWithProfile[]> {
 
   const { data, error } = await supabase
     .from('match_presences')
-    .select('*, profile:profiles(full_name, user_type, avatar_url)')
+    .select('*, profile:profiles(username, user_type, avatar_url)')
     .eq('match_id', matchId)
     .eq('status', 'pending_approval')
     .order('created_at', { ascending: true });

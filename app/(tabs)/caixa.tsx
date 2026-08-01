@@ -57,7 +57,7 @@ interface CaixaPayment {
   /** Chave de agrupamento por mes (AAAA-MM). */
   monthKey: string;
   /** Linha enriquecida do DB para nome (denormalizado). */
-  raw?: PaymentRowDb & { profile?: { full_name: string } | null };
+  raw?: PaymentRowDb & { profile?: { username: string } | null };
 }
 
 // ---- Constantes PT-BR -----------------------------------------------------
@@ -129,7 +129,7 @@ function sumPaid(rows: CaixaPayment[]): number {
 // ---- Tela -----------------------------------------------------------------
 
 export default function CaixaScreen() {
-  const { user } = useAuth();
+  const { profile } = useAuth();
   const payments = usePaymentStore((s) => s.payments);
   const setPayments = usePaymentStore((s) => s.setPayments);
   const markPaidStore = usePaymentStore((s) => s.markPaid);
@@ -185,16 +185,16 @@ export default function CaixaScreen() {
   }, [payments, expenses]);
 
   // Gate UI; RLS permanece como autoridade de permissao.
-  const isAdmin = useIsAdmin(user?.id);
+  const isAdmin = useIsAdmin(profile?.id);
 
   // Mapeia store -> linhas Caixa.
   const rows: CaixaPayment[] = useMemo(() => {
     return payments.map((p) => {
-      const enriched = p as PaymentRowDb & { profile?: { full_name: string } | null };
+      const enriched = p as PaymentRowDb & { profile?: { username: string } | null };
       return {
         id: p.id,
         user_id: p.user_id,
-        fullName: enriched.profile?.full_name ?? 'Jogador',
+        fullName: enriched.profile?.username ?? 'Jogador',
         type: mapTypeToUi(p.type),
         amount: Number(p.amount),
         status: deriveStatus({
@@ -387,7 +387,7 @@ export default function CaixaScreen() {
                   {rows.map((p) => {
                     const showMark =
                       p.status === 'pending' &&
-                      canUserMark({ user_id: p.user_id as string }, user?.id);
+                      canUserMark({ user_id: p.user_id as string }, profile?.id);
                     const showApprove = p.status === 'marked' && canUserApprove(isAdmin);
                     const isBusy = busyId === p.id;
                     return (

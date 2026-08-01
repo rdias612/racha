@@ -8,23 +8,22 @@ import { isOnboarded } from '@/lib/secure-store';
 import '../global.css';
 
 /**
- * Root layout do app FutAmigos (T1.4: gating de autenticacao; T7.2: onboarding).
- * - Boot: useAuth() le SecureStore('supabase-session').
- * - Sem session -> /login. Com session -> /(tabs) ou /onboarding.
- * - Onboarding (T7.2): session valida mas isOnboarded() === false -> /onboarding.
+ * Root layout do app FutAmigos (gating de autenticacao; T7.2: onboarding).
+ * - Boot: useAuth() le o profile ativo no SecureStore('active-profile').
+ * - Sem profile -> /login. Com profile -> /(tabs) ou /onboarding.
+ * - Onboarding (T7.2): profile valido mas isOnboarded() === false -> /onboarding.
  *   Flag persistida em SecureStore (resetavel apenas por uninstall).
- * - onAuthStateChange (interno ao useAuth) cobre refresh e signOut.
  */
 export default function RootLayout() {
-  const { session, loading } = useAuth();
+  const { profile, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
   const [onboarded, setOnboarded] = useState<boolean | null>(null);
 
-  // Le flag onboarding quando session muda (T7.2).
+  // Le flag onboarding quando o profile muda (T7.2).
   useEffect(() => {
-    if (!session) {
+    if (!profile) {
       setOnboarded(null);
       return;
     }
@@ -40,30 +39,30 @@ export default function RootLayout() {
     return () => {
       mounted = false;
     };
-  }, [session]);
+  }, [profile]);
 
   useEffect(() => {
     if (loading) return;
     const inAuthGroup = segments[0] === 'login';
     const inOnboarding = segments[0] === 'onboarding';
 
-    if (!session && !inAuthGroup) {
+    if (!profile && !inAuthGroup) {
       router.replace('/login');
-    } else if (session && inAuthGroup) {
+    } else if (profile && inAuthGroup) {
       // Login concluido: checa onboarding antes das tabs.
       if (onboarded === false) {
         router.replace('/onboarding');
       } else {
         router.replace('/(tabs)');
       }
-    } else if (session && !inOnboarding && onboarded === false) {
-      // Session valida mas onboarding pendente (qualquer rota exceto /onboarding).
+    } else if (profile && !inOnboarding && onboarded === false) {
+      // Profile valido mas onboarding pendente (qualquer rota exceto /onboarding).
       router.replace('/onboarding');
-    } else if (session && inOnboarding && onboarded === true) {
+    } else if (profile && inOnboarding && onboarded === true) {
       // Ja onboardou mas caiu em /onboarding -> manda para tabs.
       router.replace('/(tabs)');
     }
-  }, [session, loading, segments, router, onboarded]);
+  }, [profile, loading, segments, router, onboarded]);
 
   if (loading) {
     return (

@@ -162,7 +162,7 @@ function WalkInModal({
     onConfirm({
       playerId,
       teamGroup,
-      displayName: picked.full_name,
+      displayName: picked.username,
     });
   };
 
@@ -193,7 +193,7 @@ function WalkInModal({
                       playerId === c.id ? 'border-field bg-field/10' : 'border-pitch-200 bg-white'
                     }`}
                   >
-                    <Text className="flex-1 text-sm font-medium text-pitch-900">{c.full_name}</Text>
+                    <Text className="flex-1 text-sm font-medium text-pitch-900">{c.username}</Text>
                     <Text className="text-[10px] font-semibold uppercase text-pitch-500">
                       {c.user_type}
                     </Text>
@@ -235,8 +235,8 @@ export default function SumulaScreen() {
   const params = useLocalSearchParams<{ match_id: string }>();
   const matchId = Array.isArray(params.match_id) ? params.match_id[0] : params.match_id;
 
-  const { user } = useAuth();
-  const isAdmin = useIsAdmin(user?.id);
+  const { profile } = useAuth();
+  const isAdmin = useIsAdmin(profile?.id);
 
   const match = useMatchStore((s) => s.match);
   const teamScores = useMatchStore((s) => s.teamScores);
@@ -367,7 +367,7 @@ export default function SumulaScreen() {
         .from('profiles')
         .select('*')
         .eq('group_id', match.group_id)
-        .order('full_name', { ascending: true });
+        .order('username', { ascending: true });
       if (pErr) throw new Error(friendlyError(pErr as { code?: string }));
       const all = (data ?? []) as unknown as ProfileRow[];
       // Exclui quem ja esta na sumula.
@@ -394,7 +394,7 @@ export default function SumulaScreen() {
         });
         const enriched: SumulaParticipant = {
           ...inserted,
-          full_name: result.displayName,
+          username: result.displayName,
           // user_type ja inferido do DB via JOIN; p/ imediato uso placeholder.
           user_type: 'avulso',
         };
@@ -513,7 +513,7 @@ export default function SumulaScreen() {
             team1.map((p) => (
               <PlayerStatRow
                 key={p.id}
-                fullName={p.full_name}
+                fullName={p.username}
                 teamGroup={1}
                 isGoalkeeper={p.is_goalkeeper}
                 goalsScored={p.goals_scored}
@@ -533,7 +533,7 @@ export default function SumulaScreen() {
             team2.map((p) => (
               <PlayerStatRow
                 key={p.id}
-                fullName={p.full_name}
+                fullName={p.username}
                 teamGroup={2}
                 isGoalkeeper={p.is_goalkeeper}
                 goalsScored={p.goals_scored}

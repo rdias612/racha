@@ -2,6 +2,7 @@ import { spawnSync } from 'node:child_process';
 import { resolve } from 'node:path';
 
 const smokeTests = [
+  'auth-local.smoke.ts',
   'expenses.smoke.ts',
   'fifo.smoke.ts',
   'goleiros.smoke.ts',

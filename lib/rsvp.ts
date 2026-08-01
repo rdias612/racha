@@ -39,7 +39,7 @@ import type { MatchPresenceRow, ProfileRow, RsvpStatus, UserType } from '@/types
  * montar PresenceItem sem JOIN manual.
  */
 export interface PresenceWithProfile extends MatchPresenceRow {
-  profile: Pick<ProfileRow, 'full_name' | 'user_type' | 'avatar_url'>;
+  profile: Pick<ProfileRow, 'username' | 'user_type' | 'avatar_url'>;
 }
 
 /** Erro com codigo Postgres (Supabase PostgrestError / similar). */
@@ -113,7 +113,7 @@ async function getSupabase() {
 }
 
 /**
- * Busca presencas do match enriquecidas com profile (full_name, user_type).
+ * Busca presencas do match enriquecidas com profile (username, user_type).
  * Ordena por status (waiting_list primeiro por ordem alfabetica) e created_at
  * ASC dentro de cada status para FIFO estavel. Usado pelo seletor da tela.
  */
@@ -121,7 +121,7 @@ export async function fetchPresencesForMatch(matchId: string): Promise<PresenceW
   const supabase = await getSupabase();
   const { data, error } = await supabase
     .from('match_presences')
-    .select('*, profile:profiles(full_name, user_type, avatar_url)')
+    .select('*, profile:profiles(username, user_type, avatar_url)')
     .eq('match_id', matchId)
     .order('created_at', { ascending: true });
   if (error) throw new Error(friendlyError(error));

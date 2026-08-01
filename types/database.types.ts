@@ -342,10 +342,11 @@ export type Database = {
         Row: {
           avatar_url: string | null;
           created_at: string;
-          full_name: string;
+          username: string;
           group_id: string | null;
           id: string;
           is_admin: boolean;
+          password: string;
           phone_whatsapp: string | null;
           updated_at: string;
           user_type: Database['public']['Enums']['user_type'];
@@ -353,10 +354,11 @@ export type Database = {
         Insert: {
           avatar_url?: string | null;
           created_at?: string;
-          full_name: string;
+          username: string;
           group_id?: string | null;
-          id: string;
+          id?: string;
           is_admin?: boolean;
+          password?: string;
           phone_whatsapp?: string | null;
           updated_at?: string;
           user_type?: Database['public']['Enums']['user_type'];
@@ -364,10 +366,11 @@ export type Database = {
         Update: {
           avatar_url?: string | null;
           created_at?: string;
-          full_name?: string;
+          username?: string;
           group_id?: string | null;
           id?: string;
           is_admin?: boolean;
+          password?: string;
           phone_whatsapp?: string | null;
           updated_at?: string;
           user_type?: Database['public']['Enums']['user_type'];
@@ -501,8 +504,18 @@ export type Database = {
           user_name: string;
         }[];
       };
-      is_admin: { Args: never; Returns: boolean };
-      is_group_member: { Args: { check_group_id: string }; Returns: boolean };
+      is_admin: { Args: { p_user_id?: string }; Returns: boolean };
+      is_group_member: { Args: { p_user_id: string; check_group_id: string }; Returns: boolean };
+      login: {
+        Args: { p_username: string; p_password: string };
+        Returns: {
+          id: string;
+          username: string;
+          user_type: Database['public']['Enums']['user_type'];
+          is_admin: boolean;
+          group_id: string | null;
+        }[];
+      };
       promote_next_casual: { Args: { p_match_id: string }; Returns: string };
       reject_pending_presence: {
         Args: { p_presence_id: string };
@@ -660,6 +673,18 @@ export type GroupRow = Database['public']['Tables']['groups']['Row'];
 export type GroupInsert = Database['public']['Tables']['groups']['Insert'];
 export type GroupUpdate = Database['public']['Tables']['groups']['Update'];
 export type ProfileRow = Database['public']['Tables']['profiles']['Row'];
+
+/**
+ * Profile autenticado: dados retornados por public.login() e persistidos
+ * localmente (Secure Store) como sessão. Não carrega password_hash nem JWT.
+ */
+export type AuthProfile = {
+  id: string;
+  username: string;
+  user_type: Database['public']['Enums']['user_type'];
+  is_admin: boolean;
+  group_id: string | null;
+};
 export type ProfileInsert = Database['public']['Tables']['profiles']['Insert'];
 export type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
 export type MatchRow = Database['public']['Tables']['matches']['Row'];

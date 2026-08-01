@@ -36,14 +36,14 @@ interface DbLikeError {
 
 /** Input de UI para createGoalkeeper (nome obrigatorio; phone opcional). */
 export type GoleiroInsert = {
-  full_name: string;
+  username: string;
   phone_whatsapp?: string;
 };
 
 /** Linha simplificada retornada pelas actions IO (apenas o necessario p/ UI). */
 export interface GoleiroRow {
   id: string;
-  full_name: string;
+  username: string;
   phone_whatsapp: string | null;
   created_at: string;
 }
@@ -79,6 +79,14 @@ export function validateFullName(name: string | null | undefined): string | null
   const clean = /^[A-Za-z\u00C0-\u017F\s'-]+$/u.test(trimmed);
   if (!clean) {
     return 'Nome contem caracteres invalidos.';
+  }
+  return null;
+}
+
+/** Valida username de profile, inclusive para goleiros sem login. */
+export function validateUsername(username: string | null | undefined): string | null {
+  if (username == null || !/^[a-z0-9][a-z0-9._-]{1,31}$/.test(username.trim().toLowerCase())) {
+    return 'Username invalido. Use 2 a 32 caracteres: letras, numeros, ponto, hifen ou underscore.';
   }
   return null;
 }
@@ -169,12 +177,12 @@ async function getSupabase() {
  */
 export async function createGoalkeeper(input: GoleiroInsert): Promise<{
   id: string;
-  full_name: string;
+  username: string;
 }> {
   const supabase = await getSupabase();
   const { FIXED_GROUP_ID } = await import('@/lib/matches');
 
-  const fullName = input.full_name.trim();
+  const username = input.username.trim().toLowerCase();
   const phone = input.phone_whatsapp?.trim() ? input.phone_whatsapp.trim() : null;
 
   const id =
@@ -187,7 +195,7 @@ export async function createGoalkeeper(input: GoleiroInsert): Promise<{
   const payload = {
     id,
     group_id: FIXED_GROUP_ID,
-    full_name: fullName,
+    username,
     phone_whatsapp: phone,
     user_type: 'goleiro_pago' as const,
     is_admin: false,
@@ -196,10 +204,10 @@ export async function createGoalkeeper(input: GoleiroInsert): Promise<{
   const { data, error } = await supabase
     .from('profiles')
     .insert(payload as never)
-    .select('id, full_name')
+    .select('id, username')
     .single();
   if (error) throw new Error(friendlyGoleiroError(error));
-  return data as { id: string; full_name: string };
+  return data as { id: string; username: string };
 }
 
 /**
@@ -212,7 +220,7 @@ export async function listGoalkeepers(): Promise<GoleiroRow[]> {
   const supabase = await getSupabase();
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, full_name, phone_whatsapp, created_at')
+    .select('id, username, phone_whatsapp, created_at')
     .eq('user_type', 'goleiro_pago')
     .order('created_at', { ascending: true });
   if (error) throw new Error(friendlyGoleiroError(error));

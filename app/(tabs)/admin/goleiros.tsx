@@ -3,7 +3,7 @@
  * Task: T7.2 - UI admin para cadastrar goleiros pagos (sem auth).
  *
  * Funcionalidades (PT-BR):
- *   - Form criar goleiro: full_name (obrigatorio), phone_whatsapp (opcional).
+ *   - Form criar goleiro: username (obrigatorio), phone_whatsapp (opcional).
  *     Phone sanitizado para E.164 antes do INSERT.
  *   - Lista de goleiros pagos com nome, telefone formatado e created_at BRT.
  *   - Estado vazio amigavel.
@@ -36,7 +36,7 @@ import {
   friendlyGoleiroError,
   listGoalkeepers,
   sanitizePhone,
-  validateFullName,
+  validateUsername,
   type GoleiroRow,
 } from '@/lib/goleiros';
 import { formatBRTShort } from '@/lib/timezone';
@@ -68,7 +68,7 @@ export default function AdminGoleirosScreen() {
   const [creating, setCreating] = useState(false);
 
   // Form state
-  const [fullName, setFullName] = useState<string>('');
+  const [username, setUsername] = useState<string>('');
   const [phoneRaw, setPhoneRaw] = useState<string>('');
 
   const refresh = useCallback(async () => {
@@ -93,7 +93,7 @@ export default function AdminGoleirosScreen() {
   const handleCreate = useCallback(async () => {
     setError(null);
 
-    const nameErr = validateFullName(fullName);
+    const nameErr = validateUsername(username);
     if (nameErr) {
       setError(nameErr);
       return;
@@ -112,19 +112,19 @@ export default function AdminGoleirosScreen() {
     setCreating(true);
     try {
       const created = await createGoalkeeper({
-        full_name: fullName,
+        username,
         phone_whatsapp: phone,
       });
       await refresh();
-      setFullName('');
+      setUsername('');
       setPhoneRaw('');
-      alertInfo('Goleiro cadastrado', `${created.full_name} adicionado.`);
+      alertInfo('Goleiro cadastrado', `${created.username} adicionado.`);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
       setCreating(false);
     }
-  }, [fullName, phoneRaw, refresh]);
+  }, [username, phoneRaw, refresh]);
 
   return (
     <SafeAreaView className="flex-1 bg-pitch-50">
@@ -149,16 +149,14 @@ export default function AdminGoleirosScreen() {
           <Text className="text-sm font-semibold text-pitch-900">Novo goleiro</Text>
 
           <View className="mt-2 gap-1">
-            <Text className="text-xs font-semibold text-pitch-700">
-              Nome completo (obrigatorio)
-            </Text>
+            <Text className="text-xs font-semibold text-pitch-700">Username (obrigatorio)</Text>
             <TextInput
-              value={fullName}
-              onChangeText={setFullName}
-              placeholder="Ex: João Silva"
+              value={username}
+              onChangeText={setUsername}
+              placeholder="Ex: goleiro1"
               placeholderTextColor="#94a3b8"
               className="rounded-xl border border-pitch-300 bg-white px-3 py-2 text-pitch-900"
-              autoCapitalize="words"
+              autoCapitalize="none"
               autoCorrect={false}
             />
           </View>
@@ -206,7 +204,7 @@ export default function AdminGoleirosScreen() {
               <Card key={g.id}>
                 <View className="flex-row items-start justify-between gap-3">
                   <View className="flex-1">
-                    <Text className="text-base font-semibold text-pitch-900">{g.full_name}</Text>
+                    <Text className="text-base font-semibold text-pitch-900">{g.username}</Text>
                     <Text className="mt-0.5 text-xs font-semibold text-goalkeeper">
                       Goleiro pago
                     </Text>

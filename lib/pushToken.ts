@@ -15,6 +15,7 @@
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 
+import { loadProfile } from './secure-store';
 import { supabase } from './supabase';
 
 const PROJECT_ID = Constants.expoConfig?.extra?.eas?.projectId as string | undefined;
@@ -54,17 +55,15 @@ export async function registerForPushNotifications(): Promise<boolean> {
       return false;
     }
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
+    const profile = await loadProfile();
+    if (!profile) {
       console.warn('[push] Usuario ausente; nao eh possivel persistir token.');
       return false;
     }
 
     const { error } = await supabase
       .from('device_tokens')
-      .upsert({ user_id: user.id, expo_push_token: token } as any, {
+      .upsert({ user_id: profile.id, expo_push_token: token } as any, {
         onConflict: 'expo_push_token',
       });
 

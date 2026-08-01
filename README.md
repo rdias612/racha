@@ -7,7 +7,7 @@ MVP do app de pelada "Racha Quintas": gestao de presenca (FIFO), caixa unificado
 - **Mobile**: Expo SDK 52+ / React Native 0.76+ / TypeScript strict / Expo Router v3 (file-based) / NativeWind v4 (Tailwind)
 - **Estado**: Zustand
 - **Backend**: Supabase (Postgres 15 + Auth + Realtime + pg_cron + pg_net + Vault)
-- **Auth**: Google OAuth apenas (Apple Sign-In pos-MVP)
+- **Auth**: username + senha local; cada jogador tem uma identidade Auth propria
 - **Push**: Expo Notifications
 - **Build**: EAS Build (APK preview + AAB production)
 
@@ -21,7 +21,7 @@ npm install
 
 ### Variaveis de ambiente (DEV)
 
-Copie os arquivos `.example` e preencha com valores do seu projeto Supabase + Google Cloud:
+Copie os arquivos `.example` e preencha com valores do seu projeto Supabase:
 
 ```powershell
 Copy-Item .env.example         .env          # EXPO_PUBLIC_* (cliente/APK)
@@ -30,6 +30,30 @@ Copy-Item supabase/.env.example supabase/.env
 ```
 
 Consulte [`docs/supabase-setup.md`](docs/supabase-setup.md) para instrucoes detalhadas (incluindo onde obter cada chave) e **por que `service_role` nunca entra no APK**.
+
+### Auth local
+
+A autenticação é 100% via tabela `profiles` (username + senha, texto puro), sem
+`auth.users`/Supabase Auth por jogador. A migration `plain_auth` cria:
+
+- coluna `profiles.password`;
+- RPC `public.login(p_username, p_password)`;
+- um admin técnico `dico` (senha inicial `futamigos` — troque depois).
+
+Fluxo:
+
+1. Aplique as migrations (`supabase db push` ou MCP).
+2. Defina a senha inicial dos novos jogadores (provision-user):
+
+```powershell
+supabase functions deploy provision-user
+supabase secrets set LOCAL_AUTH_DEFAULT_PASSWORD="<senha-inicial>"
+```
+
+3. O admin cria jogadores pela tela **Jogadores (admin)**. Quem cada um cria recebe a senha default; pode trocar depois emPerfil > Alterar senha.
+4. No login, o jogador digita username + senha; o app chama `public.login` e persiste o profile localmente (Secure Store).
+
+> RLS está desativado (opção A: app só para amigos). Quem tiver a `anon key` consegue ler/gravar tudo — assumido aceitável para o contexto.
 
 ### Supabase CLI - prerequisito
 

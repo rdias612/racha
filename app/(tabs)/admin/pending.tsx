@@ -69,7 +69,7 @@ export default function AdminPendingScreen() {
     (item: PendingWithProfile) => {
       Alert.alert(
         'Promover avulso',
-        `Confirmar ${item.profile?.full_name ?? 'jogador'} na partida?`,
+        `Confirmar ${item.profile?.username ?? 'jogador'} na partida?`,
         [
           { text: 'Cancelar', style: 'cancel' },
           {
@@ -97,7 +97,7 @@ export default function AdminPendingScreen() {
     (item: PendingWithProfile) => {
       Alert.alert(
         'Rejeitar avulso',
-        `Rejeitar ${item.profile?.full_name ?? 'jogador'}? O proximo da fila (waiting_list) sera promovido automaticamente.`,
+        `Rejeitar ${item.profile?.username ?? 'jogador'}? O proximo da fila (waiting_list) sera promovido automaticamente.`,
         [
           { text: 'Cancelar', style: 'cancel' },
           {
@@ -129,15 +129,15 @@ export default function AdminPendingScreen() {
   );
 
   const renderItem = ({ item }: { item: PendingWithProfile }) => {
-    const name = item.profile?.full_name ?? 'Jogador';
+    const name = item.profile?.username ?? 'Jogador';
     const userType = item.profile?.user_type ?? 'avulso';
     const isBusy = busyId === item.id;
     return (
       <Card>
         <View className="flex-row items-start justify-between gap-3">
           <View className="flex-1">
-            <Text className="text-pitch-900 text-base font-semibold">{name}</Text>
-            <Text className="text-pitch-600 mt-0.5 text-xs uppercase">{userType}</Text>
+            <Text className="text-base font-semibold text-pitch-900">{name}</Text>
+            <Text className="mt-0.5 text-xs uppercase text-pitch-600">{userType}</Text>
           </View>
         </View>
         <View className="mt-2 flex-row flex-wrap gap-2">
@@ -159,25 +159,25 @@ export default function AdminPendingScreen() {
   };
 
   return (
-    <SafeAreaView className="bg-pitch-50 flex-1">
+    <SafeAreaView className="flex-1 bg-pitch-50">
       <View className="flex-1 p-4">
         <View className="flex-row items-center justify-between">
-          <Text className="text-pitch-900 text-xl font-bold">Pendentes (admin)</Text>
+          <Text className="text-xl font-bold text-pitch-900">Pendentes (admin)</Text>
           <Pressable onPress={() => router.replace('/(tabs)/perfil')}>
-            <Text className="text-field-dark text-sm">Voltar</Text>
+            <Text className="text-sm text-field-dark">Voltar</Text>
           </Pressable>
         </View>
 
         <Card>
-          <Text className="text-pitch-900 text-sm font-semibold">Como funciona</Text>
-          <Text className="text-pitch-600 mt-1 text-xs">
+          <Text className="text-sm font-semibold text-pitch-900">Como funciona</Text>
+          <Text className="mt-1 text-xs text-pitch-600">
             Avulsos em waiting_list sobem por FIFO (mais antigo primeiro). Ao rejeitar um pendente,
             o proximo da fila e promovido automaticamente.
           </Text>
         </Card>
 
         <View className="mt-2 flex-1">
-          <Text className="text-pitch-900 mb-2 text-base font-semibold">Jogadores pendentes</Text>
+          <Text className="mb-2 text-base font-semibold text-pitch-900">Jogadores pendentes</Text>
           {loading ? (
             <ActivityIndicator />
           ) : sortedPending.length === 0 ? (
@@ -196,7 +196,7 @@ export default function AdminPendingScreen() {
 
         {error ? (
           <Card>
-            <Text className="text-danger text-sm">{error}</Text>
+            <Text className="text-sm text-danger">{error}</Text>
           </Card>
         ) : null}
       </View>

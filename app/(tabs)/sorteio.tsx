@@ -72,7 +72,7 @@ function TeamColumn({
             >
               <View className="flex-row items-center justify-between">
                 <Text className="flex-1 text-sm font-semibold text-pitch-900" numberOfLines={1}>
-                  {m.full_name}
+                  {m.username}
                 </Text>
                 {m.is_goalkeeper ? (
                   <Text className="text-[10px] font-bold uppercase text-goalkeeper">GK</Text>
@@ -87,8 +87,8 @@ function TeamColumn({
 }
 
 export default function SorteioScreen() {
-  const { user } = useAuth();
-  const isAdmin = useIsAdmin(user?.id);
+  const { profile } = useAuth();
+  const isAdmin = useIsAdmin(profile?.id);
 
   const [teams, setTeams] = useState<DrawnTeams | null>(null);
   const [loading, setLoading] = useState(true);

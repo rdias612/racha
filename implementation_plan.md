@@ -1,5 +1,9 @@
 # PRD: App de Futebol entre Amigos (FutAmigos)
 
+Atualizacao de implementacao (2026-08-01): o app usa **autenticacao local via tabela `profiles`** — login por username + senha (texto puro) validado pelo RPC `public.login`, sem `auth.users` por jogador e sem Supabase Auth. Sessao persistida localmente no Secure Store. RLS desativado (opção A, app de amigos). O admin técnico `dico` é provisionado pela migration `plain_auth` (senha inicial `futamigos`, trocar depois).
+
+O restante deste documento preserva o contexto original do MVP.
+
 Aplicativo mobile **cross-platform (iOS + Android)** construído com **React Native + Expo**, com backend **Supabase** (PostgreSQL + Auth + Realtime). Otimizado para a pelada das quintas-feiras às **19:00 (America/Sao_Paulo)**.
 
 **Escopo do MVP**: app Android (APK via Expo EAS Build). iOS native só após o MVP (custo Apple Developer US$ 99/ano protelado).

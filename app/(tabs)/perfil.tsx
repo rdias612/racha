@@ -8,7 +8,16 @@
  */
 
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, Pressable, ScrollView, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { useAuth } from '@/hooks/useAuth';
@@ -40,25 +49,28 @@ const USER_TYPE_LABELS: Record<ProfileRow['user_type'], string> = {
 
 export default function PerfilScreen() {
   const router = useRouter();
-  const { user, signOut } = useAuth();
-  const isAdmin = useIsAdmin(user?.id);
+  const { profile: activeProfile, signOut } = useAuth();
+  const isAdmin = useIsAdmin(activeProfile?.id);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [stats, setStats] = useState<PlayerStats>(EMPTY_STATS);
   const [signingOut, setSigningOut] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [passwordConfirmation, setPasswordConfirmation] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        if (!user) return;
+        if (!activeProfile) return;
         const [{ data: profileData, error: profileError }, { data: participantData, error }] =
           await Promise.all([
-            supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
+            supabase.from('profiles').select('*').eq('id', activeProfile.id).maybeSingle(),
             supabase
               .from('match_participants')
               .select('goals_scored, goals_assisted, own_goals')
-              .eq('player_id', user.id),
+              .eq('player_id', activeProfile.id),
           ]);
         if (profileError || error) return;
 
@@ -87,7 +99,7 @@ export default function PerfilScreen() {
     return () => {
       mounted = false;
     };
-  }, [user]);
+  }, [activeProfile]);
 
   const handleSignOut = async () => {
     setSigningOut(true);
@@ -98,7 +110,35 @@ export default function PerfilScreen() {
     }
   };
 
-  const initials = profile?.full_name
+  const handleChangePassword = async () => {
+    if (newPassword.length < 6) {
+      Alert.alert('Senha invalida', 'Use pelo menos 6 caracteres.');
+      return;
+    }
+    if (newPassword !== passwordConfirmation) {
+      Alert.alert('Senhas diferentes', 'A confirmacao precisa ser igual a nova senha.');
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      if (!activeProfile) throw new Error('Sessão expirada. Faça login novamente.');
+      const { error } = await supabase
+        .from('profiles')
+        .update({ password: newPassword })
+        .eq('id', activeProfile.id);
+      if (error) throw error;
+      setNewPassword('');
+      setPasswordConfirmation('');
+      Alert.alert('Senha alterada', 'Sua nova senha ja esta ativa.');
+    } catch (error) {
+      Alert.alert('Falha ao alterar senha', error instanceof Error ? error.message : String(error));
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
+  const initials = profile?.username
     ?.split(' ')
     .map((part) => part[0])
     .join('')
@@ -119,7 +159,7 @@ export default function PerfilScreen() {
                 <Image
                   source={{ uri: profile.avatar_url }}
                   className="h-16 w-16 rounded-full bg-pitch-100"
-                  accessibilityLabel={`Avatar de ${profile.full_name}`}
+                  accessibilityLabel={`Avatar de ${profile.username}`}
                 />
               ) : (
                 <View className="h-16 w-16 items-center justify-center rounded-full bg-field-light">
@@ -128,7 +168,7 @@ export default function PerfilScreen() {
               )}
               <View className="flex-1 gap-1">
                 <Text className="text-lg font-bold text-pitch-900">
-                  {profile?.full_name || user?.email || 'Jogador'}
+                  {profile?.username || 'Jogador'}
                 </Text>
                 {profile ? (
                   <View className="self-start rounded-md bg-field/10 px-2 py-1">
@@ -150,10 +190,46 @@ export default function PerfilScreen() {
             </View>
           </Card>
 
+          <Card>
+            <Text className="text-base font-bold text-pitch-900">Alterar senha</Text>
+            <TextInput
+              value={newPassword}
+              onChangeText={setNewPassword}
+              secureTextEntry
+              placeholder="Nova senha"
+              placeholderTextColor="#64748b"
+              className="mt-3 rounded-xl border border-pitch-200 bg-white px-4 py-3 text-pitch-900"
+            />
+            <TextInput
+              value={passwordConfirmation}
+              onChangeText={setPasswordConfirmation}
+              secureTextEntry
+              placeholder="Confirme a nova senha"
+              placeholderTextColor="#64748b"
+              className="mt-2 rounded-xl border border-pitch-200 bg-white px-4 py-3 text-pitch-900"
+            />
+            <View className="mt-3">
+              <Button
+                title="Salvar nova senha"
+                onPress={handleChangePassword}
+                loading={changingPassword}
+              />
+            </View>
+          </Card>
+
           <Button title="Sair" onPress={handleSignOut} variant="danger" loading={signingOut} />
 
           {isAdmin ? (
             <View className="gap-2">
+              <Pressable
+                onPress={() => router.push('/(tabs)/admin/users')}
+                className="min-h-[44px] justify-center rounded-xl border border-pitch-200 bg-white p-3"
+              >
+                <Text className="text-sm font-semibold text-field-dark">Jogadores (admin)</Text>
+                <Text className="mt-0.5 text-xs text-pitch-600">
+                  Ver, adicionar e resetar senha de jogadores
+                </Text>
+              </Pressable>
               <Pressable
                 onPress={() => router.push('/(tabs)/admin/matches')}
                 className="min-h-[44px] justify-center rounded-xl border border-pitch-200 bg-white p-3"

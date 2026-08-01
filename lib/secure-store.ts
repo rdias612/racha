@@ -1,36 +1,38 @@
 /**
  * lib/secure-store.ts
- * Task: T1.4 - Wrapper seguro para persistencia da session Supabase.
+ * Persistência segura (Keychain/Keystore via expo-secure-store) do profile
+ * autenticado localmente (login via `profiles`, sem Supabase Auth).
  *
- * expo-secure-store: valores em Keychain/Keystore (nao AsyncStorage plain).
- * Limite de valor do SecureStore ~ 2KB: session JSON cabe. Se estourar no
- * futuro, partir para SQLite encriptado (YAGNI p/ MVP).
+ * Limite do SecureStore ~2KB; AuthProfile (id/username/flags) cabe folgado.
  */
 
 import * as SecureStore from 'expo-secure-store';
-import type { Session } from '@supabase/supabase-js';
 
-export const SESSION_KEY = 'supabase-session';
+import type { AuthProfile } from '@/types/database.types';
+
+export const PROFILE_KEY = 'active-profile';
 export const ONBOARD_KEY = 'onboarded';
 
-export async function saveSession(session: Session): Promise<void> {
-  await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(session));
+/** Salva o profile autenticado como sessão local. */
+export async function saveProfile(profile: AuthProfile): Promise<void> {
+  await SecureStore.setItemAsync(PROFILE_KEY, JSON.stringify(profile));
 }
 
-export async function loadSession(): Promise<Session | null> {
-  const raw = await SecureStore.getItemAsync(SESSION_KEY);
+/** Lê o profile ativo, ou null se não houver (ou payload corrompido). */
+export async function loadProfile(): Promise<AuthProfile | null> {
+  const raw = await SecureStore.getItemAsync(PROFILE_KEY);
   if (!raw) return null;
   try {
-    return JSON.parse(raw) as Session;
+    return JSON.parse(raw) as AuthProfile;
   } catch {
-    // Payload corrompido -> limpa e segue anonimo.
-    await SecureStore.deleteItemAsync(SESSION_KEY);
+    await SecureStore.deleteItemAsync(PROFILE_KEY);
     return null;
   }
 }
 
-export async function clearSession(): Promise<void> {
-  await SecureStore.deleteItemAsync(SESSION_KEY);
+/** Limpa a sessão local (logout). */
+export async function clearProfile(): Promise<void> {
+  await SecureStore.deleteItemAsync(PROFILE_KEY);
 }
 
 /**

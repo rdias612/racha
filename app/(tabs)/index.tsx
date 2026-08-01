@@ -40,10 +40,10 @@ const CURRENT_MATCH_DATE_TIME = '2026-07-24T22:00:00.000Z'; // quinta 19:00 BRT
 //
 // Quando o JOIN opcional com profiles ainda nao carregou (cenario edge),
 // usamos placeholders PT-BR. Regra de ouro: nunca exibir nome tecnico.
-type ProfileProjection = Pick<ProfileRow, 'full_name' | 'user_type' | 'avatar_url'>;
+type ProfileProjection = Pick<ProfileRow, 'username' | 'user_type' | 'avatar_url'>;
 
 const placeholderProfile: ProfileProjection = {
-  full_name: 'Jogador',
+  username: 'Jogador',
   user_type: 'avulso',
   avatar_url: null,
 };
@@ -62,7 +62,7 @@ function toPresenceItem(
 ): PresenceItem {
   const profile = (row as { profile?: ProfileProjection }).profile ?? placeholderProfile;
   return {
-    fullName: profile.full_name,
+    fullName: profile.username,
     userType: profile.user_type as UserType,
     status: row.status as RsvpStatus,
     queuePosition,
@@ -80,10 +80,10 @@ export default function HomeScreen() {
   const fetchPresences = usePresenceStore((s) => s.fetchPresences);
   const confirmPresence = usePresenceStore((s) => s.confirmPresence);
   const declinePresence = usePresenceStore((s) => s.declinePresence);
-  const { user } = useAuth();
-  const currentUserId = user?.id;
+  const { profile: activeProfile } = useAuth();
+  const currentUserId = activeProfile?.id;
   // Gate admin (T3.2): botao Compartilhar so aparece para admin.
-  const isAdmin = useIsAdmin(user?.id);
+  const isAdmin = useIsAdmin(activeProfile?.id);
 
   // Boot T2.3: carrega presencas do match corrente (mock substituido por store).
   useEffect(() => {

@@ -31,7 +31,7 @@ import type { PlayerStatField } from '@/lib/sumula';
 // ---- Props ----------------------------------------------------------------
 
 export interface PlayerStatRowProps {
-  /** Nome exibido (profiles.full_name via JOIN). */
+  /** Nome exibido (profiles.username via JOIN). */
   fullName: string;
   /** Numero do time (1, 2, ...). Define cor de borda. */
   teamGroup: number;

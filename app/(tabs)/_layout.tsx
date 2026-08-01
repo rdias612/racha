@@ -13,6 +13,7 @@ import {
 import { fireGoalkeeperReminderNow } from '@/lib/expenseReminder';
 import { supabase } from '@/lib/supabase';
 import { FIXED_GROUP_ID, FIXED_MATCH_ID } from '@/lib/matches';
+import { loadProfile } from '@/lib/secure-store';
 
 /**
  * Layout das abas (Tab Bar) - 4 abas PT-BR.
@@ -72,19 +73,8 @@ export default function TabsLayout() {
     let isAdmin = false;
     void (async () => {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) return;
-        const { data } = await supabase
-          .from('profiles')
-          .select('is_admin')
-          .eq('id', user.id)
-          .maybeSingle();
-        const flag = Array.isArray(data)
-          ? false
-          : Boolean((data as { is_admin?: boolean } | null)?.is_admin);
-        isAdmin = flag;
+        const profile = await loadProfile();
+        isAdmin = Boolean(profile?.is_admin);
       } catch {
         isAdmin = false;
       }
