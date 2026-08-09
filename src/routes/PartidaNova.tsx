@@ -20,6 +20,7 @@ const POSICAO_LABEL: Record<PosicaoId, string> = {
   lateral: "LAT",
   meia: "MEI",
   atacante: "ATA",
+  random: "RND",
 };
 
 export function PartidaNova() {

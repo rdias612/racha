@@ -17,6 +17,7 @@ export const POSICOES = {
   lateral: "Lateral",
   meia: "Meia",
   atacante: "Atacante",
+  random: "Random",
 } as const;
 
 export type PosicaoId = keyof typeof POSICOES;
