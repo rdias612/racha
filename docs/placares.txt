@@ -1,38 +1,38 @@
 31/06/26
 
-PRETO
-Vitor
-Ed
-Hees
-Marcelinho
-Natal 2
+time PRETO
+vitor
+ed
+hees
+marcelinho
+natal 2
 Hugo
 Gualberto
 
-BRANCO
-Tadeu
-Dico
-JP 3
-André 1
-Guilherme
-Danilo 2
-Fil 4
+time BRANCO
+tadeu
+dico
+jp 3
+andret 1
+guilherme
+danilo 2
+fil 4
 
 
 23/06/26
 PRETO
-Natal 1
-Cadin 2
-Gualb 1
-Dudu 1
-Dico
-Thiagao 2
+natal 1
+cadinho 2
+gualberto 1
+dudu 1
+dDico
+thiagao 2
 
 BRANCO
-Dands 1
-Hugo
-Bill 1
-Vitor 1
+danilo 1
+hugo
+bill 1
+vitor 1
 Ed 1
 JP
 
@@ -42,44 +42,44 @@ JP
 
 Preto
 
-* Fil 2
-* ⁠Cadinho 1
-* Dico
-* Hugo 1
-* ⁠Jp
-* Vitor 
-* Thiagão
+fil 2
+cadinho 1
+dico
+hugo 1
+⁠jp
+vitor 
+thiagão
 
 Branco
-Gualb 2
-Danilo 1
-Natal 1
-Bill 1
-Tadeu 2
-Ed 1
+gualberto 2
+danilo 1
+natal 1
+bill 1
+tadeu 2
+ed 1
 
 
 09/06/26
 
 BRANCO
-Tadeu 1
-Thiagao 
-Ed 1
-Jp 
-Hugo 
-Danilo 
-Fil
-Andre 1
-Dico 1
+tadeu 1
+thiagao 
+ed 1
+jp 
+hugo 
+danilo 
+fil
+andret 1
+dico 1
 
 PRETO
-Vitor 2
-Dico 2
-Hees
-Marcelinho
-Andre
-Gualb
-Dudu 2
+vitor 2
+dico 2
+hees
+marcelinho
+andret
+gualberto
+dudu 2
 
 02/07/26
 PRETO
