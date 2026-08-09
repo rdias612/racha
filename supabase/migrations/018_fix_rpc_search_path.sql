@@ -1,9 +1,5 @@
--- 017_fix_rpc_crypt.sql
--- Corrige 3 RPCs que usavam crypt()/gen_salt() sem qualificar o schema.
--- Como as funções são SECURITY DEFINER com search_path = public, as funções
--- do pgcrypto não eram resolvidas em runtime ("function gen_salt(unknown)
--- does not exist"). Fix: qualificar como public.crypt / public.gen_salt
--- (no Supabase, pgcrypto instala no schema public).
+-- 018_fix_plaintext_passwords.sql
+-- Ajusta as RPCs para armazenarem e compararem senhas em texto puro.
 --
 -- Também corrige fazer_login para qualificar jogadores.username/is_ativo
 -- (coluna ambígua vs. a coluna username do RETURNS TABLE).

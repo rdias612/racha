@@ -24,14 +24,16 @@
 > **Sem RLS, sem triggers, sem policies.** Segurança só no app, baseada em `is_admin`.
 
 ### `jogadores`
+
 - `id` bigint PK (sequence)
 - `username` text unique
-- `senha_hash` text  ← bcrypt do que o jogador definiu (default `"123"`)
+- `senha_hash` text ← senha exata definida pelo jogador (default `"123"`)
 - `nome` text, `posicao` (`gk|def|mid|fwd`)
 - `is_admin` bool, `is_ativo` bool, `created_at` timestamptz
 - **Sem avatar.** Exibição é sempre o nome como texto.
 
 ### `partidas`
+
 - `id` bigint PK (sequence)
 - `data_jogo` timestamptz (a quinta)
 - `status` (`draft|published|closed`)
@@ -41,6 +43,7 @@
 - `draft`: admin montando. `published`: votação aberta + conta no ranking + editável. `closed`: travada.
 
 ### `partidas_participantes` (16 linhas/partida — 8 por time)
+
 - `partida_id` bigint → partidas
 - `jogador_id` bigint → jogadores
 - `time` (`a|b`)
@@ -50,6 +53,7 @@
 - PK composta (partida_id, jogador_id)
 
 ### `votes` (acesso normal — confiança no client)
+
 - `id` bigint PK (sequence)
 - `partida_id` bigint → partidas
 - `voter_id` bigint → jogadores
@@ -60,21 +64,24 @@
 - Anonimato é propriedade da UX (a UI só expõe próprios votos + médias), não do servidor.
 
 ### Constante no site (não no DB)
+
 ```ts
 export const TIMES = {
-  a: { id: 'a', nome: 'Time Preto',  cor: '#111827' },
-  b: { id: 'b', nome: 'Time Branco', cor: '#f9fafb' },
-} as const
+  a: { id: "a", nome: "Time Preto", cor: "#111827" },
+  b: { id: "b", nome: "Time Branco", cor: "#f9fafb" },
+} as const;
 ```
 
-### Funções RPC (PostgreSQL, bcrypt via `pgcrypto`)
-- **`fazer_login(p_username text, p_senha text)`** → valida `senha_hash` e retorna `jogadores` (sem `senha_hash`) ou NULL.
-- **`criar_jogador(p_username, p_nome, p_posicao, p_is_admin)`** → insere jogador com `senha_hash = crypt('123', gen_salt('bf'))` (default `"123"`). Admin-only (oculto na UI para não-admin).
-- **`trocar_senha(p_jogador_id, p_senha_atual, p_senha_nova)`** → valida a senha atual e atualiza o hash. `p_jogador_id` vem do client (sem sessão server-side). **Risco aceito:** um jogador técnico pode invocar com ID alheio + senha default `"123"` e assumir conta de terceiros (postura de segurança relaxada, coerente com a regra 6).
+### Funções RPC (PostgreSQL, senha em texto puro)
+
+- **`fazer_login(p_username text, p_senha text)`** → compara a senha exata e retorna `jogadores` (sem `senha_hash`) ou NULL.
+- **`criar_jogador(p_username, p_nome, p_posicao, p_is_admin)`** → insere jogador com `senha_hash = '123'` (default `"123"`). Admin-only (oculto na UI para não-admin).
+- **`trocar_senha(p_jogador_id, p_senha_atual, p_senha_nova)`** → valida a senha atual e atualiza o texto salvo. `p_jogador_id` vem do client (sem sessão server-side). **Risco aceito:** um jogador técnico pode invocar com ID alheio + senha default `"123"` e assumir conta de terceiros (postura de segurança relaxada, coerente com a regra 6).
 - **`criar_partida(p_data_jogo, p_criado_por, p_participantes jsonb)`** → **transacional** (`BEGIN/EXCEPTION`): insere em `partidas` + as 16 linhas em `partidas_participantes` atomicamente. Retorna o `id` da partida. O payload `p_participantes` é um array de `{jogador_id, time, posicao, gols, assistencias}`.
 - **`registrar_votos(p_partida_id, p_voter_id, p_votos jsonb)`** → **transacional + UPSERT**: para cada voto no array `{target_id, rating}`, faz `INSERT ... ON CONFLICT (partida_id, voter_id, target_id) DO UPDATE SET rating = EXCLUDED.rating`. Valida, antes de gravar, que `status='published'` e `voting_closes_at > now()` (bloqueio server-side duplo, independente do pg_cron). Permite editar votos dentro da janela de 24h.
 
 ### Views derivadas (read-only)
+
 - **`partida_placar`**: placar (soma de gols por time `a`/`b`) e vencedor.
 - **`partida_notas`**: `partida_id, target_id, avg_rating, vote_count, nome` + coluna **`is_craque bool`** resolvida via `RANK() OVER (PARTITION BY partida_id ORDER BY avg_rating DESC, vote_count DESC, nome ASC) = 1` (desempate: mais votos → alfabético). **Sem `voter_id`** — única fonte de notas/craque na UI.
 - **`ranking`**: por jogador — `pontos, vitorias, partidas, gols, assistencias`, ordenado por `(pontos desc, vitorias desc, partidas desc, gols desc, assistencias desc, nome asc)`. Inclui `published`+`closed`.

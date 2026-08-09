@@ -1,8 +1,7 @@
 -- 001_create_jogadores.sql
 -- Cria a tabela `jogadores`, base do esquema do Racha.
 -- PK/FKs sao bigint (sequence) - ZERO UUID (Regra do PLANO.md, secao 2).
--- Senhas sao guardadas como hash bcrypt em `senha_hash` (gerado via pgcrypto
--- nas RPCs de criar_jogador / trocar_senha). Senha default de todo jogador
+-- Senhas sao guardadas em texto puro em `senha_hash`. Senha default de todo jogador
 -- recem-criado e "123" ate ser trocada na tela de Perfil.
 -- Sem RLS, sem triggers, sem policies (seguranca so no app).
 
@@ -17,9 +16,7 @@ CREATE TABLE jogadores (
   created_at  timestamptz NOT NULL DEFAULT now()
 );
 -- 002_enable_pgcrypto.sql
--- Habilita a extensao pgcrypto, necessaria para as funcoes crypt() e
--- gen_salt('bf') usadas no hash bcrypt de senhas (RPCs de login, criar_jogador
--- e trocar_senha). Idempotente.
+-- Mantido para compatibilidade com bancos existentes. Nao e usado pelas senhas.
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 -- 003_rpc_fazer_login.sql
@@ -287,7 +284,7 @@ GROUP BY pp.jogador_id;
 -- 011_rpc_criar_jogador.sql
 -- RPC `criar_jogador(p_username, p_nome, p_posicao, p_is_admin) RETURNS bigint`:
 --   Insere em `jogadores` com:
---     senha_hash = crypt('123', gen_salt('bf'))   <- senha default fixa
+--     senha_hash = '123'   <- senha default fixa
 --     is_ativo   = true
 --   Retorna o `id` do novo jogador.
 --
@@ -327,9 +324,9 @@ GRANT EXECUTE ON FUNCTION criar_jogador(text, text, text, boolean) TO anon, auth
 -- RPC `trocar_senha(p_jogador_id bigint, p_senha_atual text, p_senha_nova text)
 --      RETURNS boolean`:
 --   1. Busca o jogador por id. Se nao existir, retorna false.
---   2. Valida a senha atual: crypt(p_senha_atual, senha_hash) = senha_hash.
+--   2. Valida a senha atual comparando o texto informado com senha_hash.
 --      Se invalida, retorna false (nao atualiza nada).
---   3. Atualiza senha_hash = crypt(p_senha_nova, gen_salt('bf')). Retorna true.
+--   3. Atualiza senha_hash = p_senha_nova. Retorna true.
 --
 -- !!! DECISAO DE RISCO ACEITA (NAO MITIGAR) !!!
 -- p_jogador_id vem do client (o sistema nao tem sessao server-side). Combinado
