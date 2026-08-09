@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useNavigate, Navigate } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate, Navigate, Link } from 'react-router-dom'
 import { useSessao } from '../context/SessaoContext'
 import { useTema } from '../lib/tema'
 
@@ -31,6 +31,14 @@ export function Layout() {
           racha-gragoata-cbo
         </h1>
         <div className="flex items-center gap-2">
+          {jogador.is_admin && (
+            <Link
+              to="/jogador/novo"
+              className="text-xs px-2 py-1 rounded border border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300"
+            >
+              + Jogador
+            </Link>
+          )}
           <button
             onClick={alternar}
             className="text-xs px-2 py-1 rounded border border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300"
