@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useNavigate, Navigate, Link } from 'react-router-dom'
 import { useSessao } from '../context/SessaoContext'
 import { useTema } from '../lib/tema'
+import { BannerLembrete } from '../components/BannerLembrete'
 
 function itemClasse({ isActive }: { isActive: boolean }) {
   return `flex flex-col items-center justify-center flex-1 py-2 text-xs ${
@@ -53,6 +54,8 @@ export function Layout() {
           </button>
         </div>
       </header>
+
+      <BannerLembrete />
 
       <main className="flex-1 overflow-y-auto">
         <Outlet />
