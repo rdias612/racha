@@ -1,61 +1,61 @@
-import { useState, type FormEvent } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
-import { useAdmin } from '../hooks/useAdmin'
-import { POSICOES, type PosicaoId } from '../lib/times'
+import { useState, type FormEvent } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
+import { supabase } from "../lib/supabase";
+import { useAdmin } from "../hooks/useAdmin";
+import { POSICOES, type PosicaoId } from "../lib/times";
 
 export function NovoJogador() {
-  const isAdmin = useAdmin()
-  const navigate = useNavigate()
+  const isAdmin = useAdmin();
+  const navigate = useNavigate();
 
-  const [username, setUsername] = useState('')
-  const [nome, setNome] = useState('')
-  const [posicao, setPosicao] = useState<PosicaoId>('mid')
-  const [isAdminNovo, setIsAdminNovo] = useState(false)
-  const [criando, setCriando] = useState(false)
-  const [erro, setErro] = useState<string | null>(null)
-  const [ok, setOk] = useState<string | null>(null)
+  const [username, setUsername] = useState("");
+  const [nome, setNome] = useState("");
+  const [posicao, setPosicao] = useState<PosicaoId>("meia");
+  const [isAdminNovo, setIsAdminNovo] = useState(false);
+  const [criando, setCriando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const [ok, setOk] = useState<string | null>(null);
 
-  if (!isAdmin) return <Navigate to="/" replace />
+  if (!isAdmin) return <Navigate to="/" replace />;
 
   async function criar(e: FormEvent) {
-    e.preventDefault()
-    setErro(null)
-    setOk(null)
+    e.preventDefault();
+    setErro(null);
+    setOk(null);
 
     if (!username.trim() || !nome.trim()) {
-      setErro('Preencha usuário e nome.')
-      return
+      setErro("Preencha usuário e nome.");
+      return;
     }
 
-    setCriando(true)
-    const { data, error } = await supabase.rpc('criar_jogador', {
+    setCriando(true);
+    const { data, error } = await supabase.rpc("criar_jogador", {
       p_username: username.trim(),
       p_nome: nome.trim(),
       p_posicao: posicao,
       p_is_admin: isAdminNovo,
-    })
-    setCriando(false)
+    });
+    setCriando(false);
 
     if (error) {
       // username duplicado => erro de constraint
-      if (error.code === '23505') {
-        setErro(`Já existe um jogador com o usuário "${username.trim()}".`)
+      if (error.code === "23505") {
+        setErro(`Já existe um jogador com o usuário "${username.trim()}".`);
       } else {
-        setErro('Erro: ' + error.message)
+        setErro("Erro: " + error.message);
       }
-      return
+      return;
     }
     if (data === null) {
-      setErro('Não foi possível criar o jogador.')
-      return
+      setErro("Não foi possível criar o jogador.");
+      return;
     }
 
-    setOk(`${nome.trim()} criado! Senha padrão: 123`)
-    setUsername('')
-    setNome('')
-    setPosicao('mid')
-    setIsAdminNovo(false)
+    setOk(`${nome.trim()} criado! Senha padrão: 123`);
+    setUsername("");
+    setNome("");
+    setPosicao("meia");
+    setIsAdminNovo(false);
   }
 
   return (
@@ -72,8 +72,8 @@ export function NovoJogador() {
           Novo jogador
         </h2>
         <p className="text-xs text-neutral-500 dark:text-neutral-400">
-          O jogador entra com senha padrão <code className="font-mono">123</code> e
-          pode trocar no perfil depois.
+          O jogador entra com senha padrão{" "}
+          <code className="font-mono">123</code> e pode trocar no perfil depois.
         </p>
       </div>
 
@@ -133,17 +133,21 @@ export function NovoJogador() {
           É admin (pode criar/editar partidas)
         </label>
 
-        {erro && <p className="text-sm text-red-600 dark:text-red-400">{erro}</p>}
-        {ok && <p className="text-sm text-green-600 dark:text-green-400">{ok}</p>}
+        {erro && (
+          <p className="text-sm text-red-600 dark:text-red-400">{erro}</p>
+        )}
+        {ok && (
+          <p className="text-sm text-green-600 dark:text-green-400">{ok}</p>
+        )}
 
         <button
           type="submit"
           disabled={criando}
           className="w-full rounded-lg bg-[var(--cor-destaque)] px-4 py-2.5 font-medium text-white disabled:opacity-50"
         >
-          {criando ? 'Criando…' : 'Criar jogador'}
+          {criando ? "Criando…" : "Criar jogador"}
         </button>
       </form>
     </div>
-  )
+  );
 }

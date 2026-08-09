@@ -1,21 +1,22 @@
-export type TimeId = 'a' | 'b'
+export type TimeId = "a" | "b";
 
 export interface TimeInfo {
-  id: TimeId
-  nome: string
-  cor: string
+  id: TimeId;
+  nome: string;
+  cor: string;
 }
 
 export const TIMES = {
-  a: { id: 'a', nome: 'Time Preto', cor: '#111827' },
-  b: { id: 'b', nome: 'Time Branco', cor: '#f9fafb' },
-} as const satisfies Record<TimeId, TimeInfo>
+  a: { id: "a", nome: "Time Preto", cor: "#111827" },
+  b: { id: "b", nome: "Time Branco", cor: "#f9fafb" },
+} as const satisfies Record<TimeId, TimeInfo>;
 
 export const POSICOES = {
-  gk: 'Goleiro',
-  def: 'Zagueiro',
-  mid: 'Meio',
-  fwd: 'Atacante',
-} as const
+  goleiro: "Goleiro",
+  zagueiro: "Zagueiro",
+  lateral: "Lateral",
+  meia: "Meia",
+  atacante: "Atacante",
+} as const;
 
-export type PosicaoId = keyof typeof POSICOES
+export type PosicaoId = keyof typeof POSICOES;

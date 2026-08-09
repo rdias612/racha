@@ -11,7 +11,7 @@ CREATE TABLE jogadores (
   username    text        NOT NULL UNIQUE,
   senha_hash  text        NOT NULL,
   nome        text        NOT NULL,
-  posicao     text        NOT NULL CHECK (posicao IN ('gk','def','mid','fwd')),
+  posicao     text        NOT NULL CHECK (posicao IN ('goleiro','zagueiro','lateral','meia','atacante')),
   is_admin    boolean     NOT NULL DEFAULT false,
   is_ativo    boolean     NOT NULL DEFAULT true,
   created_at  timestamptz NOT NULL DEFAULT now()
@@ -113,7 +113,7 @@ CREATE TABLE partidas_participantes (
   partida_id    bigint  NOT NULL REFERENCES partidas(id) ON DELETE CASCADE,
   jogador_id    bigint  NOT NULL REFERENCES jogadores(id),
   time          char(1) NOT NULL CHECK (time IN ('a','b')),
-  posicao       text    NOT NULL CHECK (posicao IN ('gk','def','mid','fwd')),
+  posicao       text    NOT NULL CHECK (posicao IN ('goleiro','zagueiro','lateral','meia','atacante')),
   gols          integer NOT NULL DEFAULT 0 CHECK (gols >= 0),
   assistencias  integer NOT NULL DEFAULT 0 CHECK (assistencias >= 0),
   PRIMARY KEY (partida_id, jogador_id)

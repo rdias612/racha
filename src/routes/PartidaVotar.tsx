@@ -1,141 +1,153 @@
-import { useEffect, useState } from 'react'
-import { Navigate, useNavigate, useParams } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
-import { useJogadorLogado } from '../hooks/useJogadorLogado'
-import { carregarPartida, carregarParticipantes, type Partida } from '../lib/partidas'
+import { useEffect, useState } from "react";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { supabase } from "../lib/supabase";
+import { useJogadorLogado } from "../hooks/useJogadorLogado";
+import {
+  carregarPartida,
+  carregarParticipantes,
+  type Partida,
+} from "../lib/partidas";
+import type { PosicaoId } from "../lib/times";
 
 interface Alvo {
-  jogador_id: number
-  nome: string
-  posicao: 'gk' | 'def' | 'mid' | 'fwd'
+  jogador_id: number;
+  nome: string;
+  posicao: PosicaoId;
 }
 
 export function PartidaVotar() {
-  const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
-  const jogador = useJogadorLogado()
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const jogador = useJogadorLogado();
 
-  const [partida, setPartida] = useState<Partida | null>(null)
-  const [alvos, setAlvos] = useState<Alvo[]>([])
-  const [notas, setNotas] = useState<Record<number, number>>({})
-  const [votosOriginais, setVotosOriginais] = useState<Set<number>>(new Set())
-  const [carregando, setCarregando] = useState(true)
-  const [erro, setErro] = useState<string | null>(null)
-  const [salvando, setSalvando] = useState(false)
-  const [feedback, setFeedback] = useState<string | null>(null)
+  const [partida, setPartida] = useState<Partida | null>(null);
+  const [alvos, setAlvos] = useState<Alvo[]>([]);
+  const [notas, setNotas] = useState<Record<number, number>>({});
+  const [votosOriginais, setVotosOriginais] = useState<Set<number>>(new Set());
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState<string | null>(null);
+  const [salvando, setSalvando] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
   useEffect(() => {
     async function carregar() {
-      if (!id || !jogador) return
+      if (!id || !jogador) return;
       try {
-        const p = await carregarPartida(Number(id))
+        const p = await carregarPartida(Number(id));
         if (!p) {
-          setErro('Partida não encontrada.')
-          setCarregando(false)
-          return
+          setErro("Partida não encontrada.");
+          setCarregando(false);
+          return;
         }
-        setPartida(p)
+        setPartida(p);
 
         // valida janela
         const aberta =
-          p.status === 'published' &&
+          p.status === "published" &&
           p.voting_closes_at &&
-          new Date(p.voting_closes_at) > new Date()
+          new Date(p.voting_closes_at) > new Date();
         if (!aberta) {
-          setErro('A votação para esta partida não está aberta.')
-          setCarregando(false)
-          return
+          setErro("A votação para esta partida não está aberta.");
+          setCarregando(false);
+          return;
         }
 
-        const participantes = await carregarParticipantes(p.id)
+        const participantes = await carregarParticipantes(p.id);
         // esconde o próprio votante (não vota em si)
         const alvosFiltrados = participantes
           .filter((part) => part.jogador_id !== jogador.id)
           .map((part) => ({
             jogador_id: part.jogador_id,
-            nome: part.nome ?? '?',
+            nome: part.nome ?? "?",
             posicao: part.posicao,
-          }))
-        setAlvos(alvosFiltrados)
+          }));
+        setAlvos(alvosFiltrados);
 
         // pré-carrega votos já dados (pra permitir edição)
         const { data: meusVotos } = await supabase
-          .from('votes')
-          .select('target_id, rating')
-          .eq('partida_id', p.id)
-          .eq('voter_id', jogador.id)
+          .from("votes")
+          .select("target_id, rating")
+          .eq("partida_id", p.id)
+          .eq("voter_id", jogador.id);
 
-        const notasIniciais: Record<number, number> = {}
-        const originais = new Set<number>()
+        const notasIniciais: Record<number, number> = {};
+        const originais = new Set<number>();
         for (const v of meusVotos ?? []) {
-          notasIniciais[v.target_id] = v.rating
-          originais.add(v.target_id)
+          notasIniciais[v.target_id] = v.rating;
+          originais.add(v.target_id);
         }
-        setNotas(notasIniciais)
-        setVotosOriginais(originais)
+        setNotas(notasIniciais);
+        setVotosOriginais(originais);
       } catch (e: any) {
-        setErro(e.message ?? String(e))
+        setErro(e.message ?? String(e));
       } finally {
-        setCarregando(false)
+        setCarregando(false);
       }
     }
-    carregar()
+    carregar();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, jogador?.id])
+  }, [id, jogador?.id]);
 
-  if (!jogador) return <Navigate to="/login" replace />
+  if (!jogador) return <Navigate to="/login" replace />;
   if (carregando)
-    return <div className="p-4 text-sm text-neutral-500">Carregando votação…</div>
-  if (erro) return <div className="p-4 text-sm text-red-600">{erro}</div>
-  if (!partida) return null
+    return (
+      <div className="p-4 text-sm text-neutral-500">Carregando votação…</div>
+    );
+  if (erro) return <div className="p-4 text-sm text-red-600">{erro}</div>;
+  if (!partida) return null;
 
   function setNota(targetId: number, rating: number) {
-    setFeedback(null)
-    setNotas((prev) => ({ ...prev, [targetId]: rating }))
+    setFeedback(null);
+    setNotas((prev) => ({ ...prev, [targetId]: rating }));
   }
 
-  const todosAvaliados = alvos.every((a) => notas[a.jogador_id] !== undefined)
-  const editando = votosOriginais.size > 0
+  const todosAvaliados = alvos.every((a) => notas[a.jogador_id] !== undefined);
+  const editando = votosOriginais.size > 0;
 
   async function enviar() {
-    if (!jogador || !partida || !todosAvaliados) return
-    setSalvando(true)
-    setErro(null)
-    setFeedback(null)
+    if (!jogador || !partida || !todosAvaliados) return;
+    setSalvando(true);
+    setErro(null);
+    setFeedback(null);
 
     const payload = alvos.map((a) => ({
       target_id: a.jogador_id,
       rating: notas[a.jogador_id],
-    }))
+    }));
 
-    const { data, error } = await supabase.rpc('registrar_votos', {
+    const { data, error } = await supabase.rpc("registrar_votos", {
       p_partida_id: partida.id,
       p_voter_id: jogador.id,
       p_votos: payload,
-    })
+    });
 
-    setSalvando(false)
+    setSalvando(false);
 
     if (error) {
-      setErro('Erro ao registrar votos: ' + error.message)
-      return
+      setErro("Erro ao registrar votos: " + error.message);
+      return;
     }
     if (data === false) {
       setErro(
-        'Não foi possível registrar (a votação pode ter fechado ou há voto inválido).',
-      )
-      return
+        "Não foi possível registrar (a votação pode ter fechado ou há voto inválido).",
+      );
+      return;
     }
 
-    setFeedback(editando ? 'Votos atualizados!' : 'Votos registrados!')
-    setTimeout(() => navigate(`/partida/${partida.id}`, { replace: true }), 900)
+    setFeedback(editando ? "Votos atualizados!" : "Votos registrados!");
+    setTimeout(
+      () => navigate(`/partida/${partida.id}`, { replace: true }),
+      900,
+    );
   }
 
   const tempoRestante = partida.voting_closes_at
     ? Math.max(0, new Date(partida.voting_closes_at).getTime() - Date.now())
-    : 0
-  const horasRestantes = Math.floor(tempoRestante / (1000 * 60 * 60))
-  const minutosRestantes = Math.floor((tempoRestante % (1000 * 60 * 60)) / (1000 * 60))
+    : 0;
+  const horasRestantes = Math.floor(tempoRestante / (1000 * 60 * 60));
+  const minutosRestantes = Math.floor(
+    (tempoRestante % (1000 * 60 * 60)) / (1000 * 60),
+  );
 
   return (
     <div className="p-4 pb-24 max-w-2xl mx-auto space-y-4">
@@ -148,7 +160,7 @@ export function PartidaVotar() {
 
       <div>
         <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-          {editando ? 'Editar votos' : 'Votação'} — partida #{partida.id}
+          {editando ? "Editar votos" : "Votação"} — partida #{partida.id}
         </h2>
         <p className="text-xs text-[var(--cor-destaque)]">
           ⏳ Fecha em {horasRestantes}h {minutosRestantes}min
@@ -161,8 +173,8 @@ export function PartidaVotar() {
 
       <div className="space-y-2">
         {alvos.map((a) => {
-          const nota = notas[a.jogador_id]
-          const definida = nota !== undefined
+          const nota = notas[a.jogador_id];
+          const definida = nota !== undefined;
           return (
             <div
               key={a.jogador_id}
@@ -172,7 +184,7 @@ export function PartidaVotar() {
                 <div>
                   <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
                     {a.nome}
-                  </span>{' '}
+                  </span>{" "}
                   <span className="text-[10px] uppercase text-neutral-400">
                     {a.posicao}
                   </span>
@@ -180,11 +192,11 @@ export function PartidaVotar() {
                 <span
                   className={`text-sm font-bold ${
                     definida
-                      ? 'text-[var(--cor-destaque)]'
-                      : 'text-neutral-300 dark:text-neutral-600'
+                      ? "text-[var(--cor-destaque)]"
+                      : "text-neutral-300 dark:text-neutral-600"
                   }`}
                 >
-                  {definida ? nota : '—'}
+                  {definida ? nota : "—"}
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -195,7 +207,9 @@ export function PartidaVotar() {
                   max={10}
                   step={1}
                   value={nota ?? 5}
-                  onChange={(e) => setNota(a.jogador_id, parseInt(e.target.value))}
+                  onChange={(e) =>
+                    setNota(a.jogador_id, parseInt(e.target.value))
+                  }
                   className="flex-1 accent-[var(--cor-destaque)]"
                 />
                 <span className="text-[10px] text-neutral-400">10</span>
@@ -212,7 +226,7 @@ export function PartidaVotar() {
                 </div>
               </div>
             </div>
-          )
+          );
         })}
       </div>
 
@@ -228,14 +242,14 @@ export function PartidaVotar() {
           className="w-full rounded-lg bg-[var(--cor-destaque)] px-4 py-3 font-medium text-white disabled:opacity-40"
         >
           {salvando
-            ? 'Enviando…'
+            ? "Enviando…"
             : editando
-              ? 'Atualizar votos'
+              ? "Atualizar votos"
               : todosAvaliados
-                ? 'Enviar votos'
+                ? "Enviar votos"
                 : `Avalie todos (${alvos.length - Object.keys(notas).length} restantes)`}
         </button>
       </div>
     </div>
-  )
+  );
 }

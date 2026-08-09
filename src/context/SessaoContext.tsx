@@ -1,10 +1,11 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
+import type { PosicaoId } from '../lib/times'
 
 export interface JogadorLogado {
   id: number
   username: string
   nome: string
-  posicao: 'gk' | 'def' | 'mid' | 'fwd'
+  posicao: PosicaoId
   is_admin: boolean
   is_ativo: boolean
 }

@@ -1,10 +1,11 @@
 import { supabase } from './supabase'
+import type { PosicaoId } from './times'
 
 export interface JogadorLista {
   id: number
   username: string
   nome: string
-  posicao: 'gk' | 'def' | 'mid' | 'fwd'
+  posicao: PosicaoId
   is_admin: boolean
   is_ativo: boolean
 }
