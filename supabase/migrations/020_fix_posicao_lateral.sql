@@ -1,4 +1,8 @@
--- Padroniza os valores persistidos das posições.
+ALTER TABLE jogadores
+  DROP CONSTRAINT jogadores_posicao_check;
+
+ALTER TABLE partidas_participantes
+  DROP CONSTRAINT partidas_participantes_posicao_check;
 
 UPDATE jogadores
 SET posicao = CASE posicao
@@ -21,11 +25,9 @@ SET posicao = CASE posicao
 END;
 
 ALTER TABLE jogadores
-  DROP CONSTRAINT jogadores_posicao_check,
   ADD CONSTRAINT jogadores_posicao_check
     CHECK (posicao in ('goleiro','zagueiro','lateral','meia','atacante'));
 
 ALTER TABLE partidas_participantes
-  DROP CONSTRAINT partidas_participantes_posicao_check,
   ADD CONSTRAINT partidas_participantes_posicao_check
     CHECK (posicao in ('goleiro','zagueiro','lateral','meia','atacante'));
