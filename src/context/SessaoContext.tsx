@@ -1,0 +1,58 @@
+import { createContext, useContext, useState, type ReactNode } from 'react'
+
+export interface JogadorLogado {
+  id: number
+  username: string
+  nome: string
+  posicao: 'gk' | 'def' | 'mid' | 'fwd'
+  is_admin: boolean
+  is_ativo: boolean
+}
+
+interface SessaoContextValue {
+  jogador: JogadorLogado | null
+  setJogador: (jogador: JogadorLogado | null) => void
+  logout: () => void
+}
+
+const STORAGE_KEY = 'racha_sessao'
+
+const SessaoContext = createContext<SessaoContextValue | undefined>(undefined)
+
+function lerDoStorage(): JogadorLogado | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    return raw ? (JSON.parse(raw) as JogadorLogado) : null
+  } catch {
+    return null
+  }
+}
+
+export function SessaoProvider({ children }: { children: ReactNode }) {
+  const [jogador, setJogadorState] = useState<JogadorLogado | null>(lerDoStorage)
+
+  const setJogador = (novoJogador: JogadorLogado | null) => {
+    if (novoJogador) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(novoJogador))
+    } else {
+      localStorage.removeItem(STORAGE_KEY)
+    }
+    setJogadorState(novoJogador)
+  }
+
+  const logout = () => setJogador(null)
+
+  return (
+    <SessaoContext.Provider value={{ jogador, setJogador, logout }}>
+      {children}
+    </SessaoContext.Provider>
+  )
+}
+
+export function useSessao() {
+  const ctx = useContext(SessaoContext)
+  if (!ctx) {
+    throw new Error('useSessao deve ser usado dentro de <SessaoProvider>')
+  }
+  return ctx
+}

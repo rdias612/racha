@@ -1,0 +1,592 @@
+31/06/26
+
+time PRETO
+vitor
+ed
+hees
+marcelinho
+natal 2
+Hugo
+Gualberto
+
+time BRANCO
+tadeu
+dico
+jp 3
+andret 1
+guilherme
+danilo 2
+fil 4
+
+
+23/06/26
+PRETO
+natal 1
+cadinho 2
+gualberto 1
+dudu 1
+dDico
+thiagao 2
+
+BRANCO
+danilo 1
+hugo
+bill 1
+vitor 1
+Ed 1
+JP
+
+
+
+16/06/26
+
+Preto
+
+fil 2
+cadinho 1
+dico
+hugo 1
+⁠jp
+vitor 
+thiagão
+
+Branco
+gualberto 2
+danilo 1
+natal 1
+bill 1
+tadeu 2
+ed 1
+
+
+09/06/26
+
+BRANCO
+tadeu 1
+thiagao 
+ed 1
+jp 
+hugo 
+danilo 
+fil
+andret 1
+dico 1
+
+PRETO
+vitor 2
+dico 2
+hees
+marcelinho
+andret
+gualberto
+dudu 2
+
+02/07/26
+PRETO
+Tadeu 1
+Thiago
+ED
+NAtal 1
+Danilo
+JP
+Fil
+Dudu 1
+
+BRANCO
+Vitor
+Dico 1
+Dudu
+André 2
+Caio 1
+Marcelinho
+Gualb 1
+
+25/06/26
+
+BRANCO
+Tadeu 1
+Hees 1
+Dico
+Gualb
+André 2
+Hugo 2
+Cadin 4
+
+PRETO
+Vitor
+Gian
+JP
+Natal 1
+Marcelinho
+Danilo
+Fil 3
+Tadeu (-1)
+
+
+18/06/26
+PRETO
+Geilson
+Tadeu
+Dico 1
+Thiago
+Hugo 3
+Gustavo
+Danilo 3
+Vitor R 1
+Ed 1
+
+BRANCO
+Rodrigo
+Vitor
+Ed 1
+Hees 3
+Natal
+Cadin 2
+Gualb 2
+Fil 3
+
+
+11/06/26
+PRETO
+Tadeu 2
+Gian
+Hees 1
+Hugo
+André 2
+Marcelinho
+Fil 3
+
+BRANCO
+Vitor
+Ed
+Dico
+Natal 3
+Dands 2
+Gualb 1
+Victor R 3
+Marcelinho 1
+
+04/06/26 -- nao teve esse dia
+
+28/05/26
+
+Branco
+Vitor
+Dico 1
+Gian 1
+Gualberto
+Natal 1
+Hugo 2
+Danilo 1
+
+Preto
+Lucas
+Gustavo 1
+Ed
+André 1
+Giovanni 5
+Luís
+Fil
+
+21/05/26
+
+BRANCO
+Hugo
+Danilo 2
+Vitor 1
+Gabriel 2
+Gualb 1
+Dico
+Ed 2
+
+PRETO
+Natal 3
+André 4
+Gustavo 2
+Tadeu 1
+Fil 3
+JP 1
+Hees
+
+14/05/26
+
+Branco
+Natal 1
+André 1
+Vitor
+Gualberto 1
+JP 1
+Dico  2
+Rodrigo 
+
+Preto
+Hugo
+Cadinho 1
+Gustavo 2
+Tadeu
+Thiagao
+Ed
+Thiago
+
+7/05/26
+
+Preto
+Hugo 1
+Luizinho 5
+Gualberto 1
+Marcelinho
+Victor Guimaraes
+Ed
+
+Branco
+Natal 3
+André
+Jp 
+Hees
+Gian 
+Navas 2
+
+30/04/26
+
+Preto
+Tadeu
+Ed
+Hees 1
+Natal 2
+Coala
+Gualb
+Fil 2
+
+Branco
+Vitor
+Gian 1
+Dico 1
+André 1
+Danilo 1
+Cafuba
+Victor
+
+23/04/26
+
+PRETO
+Tadeu 1
+Dico
+Thiago
+Natal 2
+Gualb 1
+Fil 1
+JP 1
+
+BRANCO
+JP
+Joao Felipe
+Rod
+Danilo 1
+Marcelinho
+Victor R
+Navas 1
+
+16/04/26
+
+Branco
+Tadeu 1
+Danilo 1
+Cadinho
+Fil
+Victor R
+JP
+Ed
+
+Preto
+Gualb
+Natal 1
+André
+Bill
+Vitor 1
+Thiagão
+Dico 2
+
+09/04/26
+
+PRETO
+Bill 1
+Thiagao
+Tadeu 1
+Danilo 2
+Natal 1
+Gualberto
+Vitor R
+
+
+BRANCO
+Vitor
+Ed
+Dico 1
+JP
+Hugo
+André
+Fil 3
+
+02/04/26
+
+Preto
+Vitor 
+Gian 1
+Tadeu 2
+Gualb 1
+Natal
+JP
+Navas 2
+
+Branco
+Marcelinho 1
+Dico 1
+Ed
+Danilo 1
+Hugo 3
+Fil 2
+Victor R
+
+26/03/26
+
+PRETO
+Thiago
+VItor 1
+Tadeu 1
+Ed
+Danilo 1
+Gualb 2
+André 1
+Fil 2
+
+bRANCO
+Thacio
+Bill
+Ed
+Dico
+Hugo 1
+Natal 4
+Jp
+Victor
+
+19/03/26
+
+Branco
+Bill
+Tadeu 1
+Ed 2
+Danilo 7
+Hugo 1
+Marcelinho
+Victor R 1
+
+Preto
+JP
+Dico 1
+Vitor Guimaraes
+Gualberto 2
+Gustavo 2
+Guilherme
+Fil 3
+
+12/03/26
+
+PRETO
+André
+Ed
+Dico 1
+Gualb
+Danilo 3
+Natal 1
+Victor R 1
+
+BRANCO
+Vitor 2
+Wilner
+Luiz Guilherme 1
+Hugo 1
+Marcelinho
+Jp
+Fil 2
+
+05/03/26
+
+BRANCO
+Vitor
+Ed
+Tadeu
+JP 1
+Natal 1
+Gualb
+Fil 3
+
+PRETO
+Bill
+Gian
+Dico
+Danilo 4
+Gustavo
+Hugo
+Victor 2
+
+26/02/26
+
+Preto
+Bill 1
+Joel
+Vitor G
+Fil 3
+Danilo 
+Natal 
+Vitor R 1
+
+Branco
+Jp
+Gian 1
+Ed
+Hugo 1
+Marcelinho
+Gustavo 1
+Gualb 1
+
+19/02/26
+
+PRETO
+André T
+Victor Guimarães
+Thiagao
+Cadinho 1
+Guto 1
+JP
+Gustavo 2
+
+BRANCO
+Vitor
+Dico
+Ed
+Natal 3
+Danilo 2
+Marcelinho
+Fil 2
+
+12/02/26
+
+PRETO
+Bill
+Marcelinho 1
+Gian
+Poeys 1
+Danilo
+Hugo 2
+Fil 2
+
+BRANCO 
+Ramon
+Dico
+Vitor G
+Dude
+Gustavo
+Guto 1
+Gualb 1
+
+
+05/02/26
+
+Preto
+Vitor 1
+Fil 2
+Ed
+Guto
+Tadeu 1
+Danilo 1
+Cadinho 1
+
+Branco
+Bill
+Dico
+Thiagao
+JP
+Natal 1
+Hugo 2
+Gualb 2
+
+29/01/26
+
+Branco
+Fil 2
+Dico 1
+JP
+Hugo 2
+Danilo 1
+Gualb 1
+Azeita
+
+Preto
+Vitor 1
+Ed
+Gian 1
+Andre Tromp
+Natal 1
+Gustavo 1
+Victor R 1
+
+22/01/26
+
+Preto
+Bill
+Dico
+JP 2
+Fil 3
+Hugo
+Danilo 1
+Gustavo 2
+
+Branco
+Vitor
+Ed
+Tadeu
+Natal
+Gualb
+Augusto 1
+Azeita 2
+
+15/01/26
+
+Preto
+Fil
+Ed
+JP
+Hugo 1
+Jorge 1
+Gualb
+Victor
+
+Branco
+André 1
+Dico 2
+Tadeu
+Natal
+Gustavo 3
+Marcelinho
+Azeita
+
+08/01/26
+
+Branco
+Fil 2
+Dico
+Ed
+Guto 1
+Natal 1
+Gualb
+Azeita
+
+Preto
+Vitor
+Tadeu 1
+Thiagão 1
+Hugo 1
+Gustavo
+Marcelinho
+Danilo 1
+Dico 1
