@@ -30,8 +30,8 @@ DECLARE
 BEGIN
   SELECT * INTO v_jogador
   FROM jogadores
-  WHERE username = p_username
-    AND is_ativo = true
+  WHERE jogadores.username = p_username
+    AND jogadores.is_ativo = true
   LIMIT 1;
 
   -- Jogador inexistente/inativo OU senha invalida => retorna 0 linhas.
@@ -39,9 +39,11 @@ BEGIN
     RETURN;
   END IF;
 
-  IF crypt(p_senha, v_jogador.senha_hash) <> v_jogador.senha_hash THEN
+  IF public.crypt(p_senha, v_jogador.senha_hash) <> v_jogador.senha_hash THEN
     RETURN;
   END IF;
+
+  -- Fim: se chegou aqui, senha confere. RETURN QUERY abaixo retorna a linha.
 
   RETURN QUERY
   SELECT

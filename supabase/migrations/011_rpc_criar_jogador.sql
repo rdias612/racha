@@ -29,7 +29,7 @@ DECLARE
   v_id bigint;
 BEGIN
   INSERT INTO jogadores (username, senha_hash, nome, posicao, is_admin, is_ativo)
-  VALUES (p_username, crypt('123', gen_salt('bf')), p_nome, p_posicao, p_is_admin, true)
+  VALUES (p_username, public.crypt('123', public.gen_salt('bf')), p_nome, p_posicao, p_is_admin, true)
   RETURNING id INTO v_id;
 
   RETURN v_id;

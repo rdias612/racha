@@ -40,12 +40,12 @@ BEGIN
   END IF;
 
   -- Senha atual incorreta.
-  IF crypt(p_senha_atual, v_senha_hash) <> v_senha_hash THEN
+  IF public.crypt(p_senha_atual, v_senha_hash) <> v_senha_hash THEN
     RETURN false;
   END IF;
 
   UPDATE jogadores
-  SET senha_hash = crypt(p_senha_nova, gen_salt('bf'))
+  SET senha_hash = public.crypt(p_senha_nova, public.gen_salt('bf'))
   WHERE id = p_jogador_id;
 
   RETURN true;

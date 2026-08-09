@@ -5,6 +5,8 @@ import { Login } from './routes/Login'
 import { Jogos } from './routes/Jogos'
 import { Ranking } from './routes/Ranking'
 import { Perfil } from './routes/Perfil'
+import { PartidaNova } from './routes/PartidaNova'
+import { PartidaDetalhe } from './routes/PartidaDetalhe'
 
 export function App() {
   return (
@@ -15,6 +17,8 @@ export function App() {
           <Route path="/" element={<Jogos />} />
           <Route path="/ranking" element={<Ranking />} />
           <Route path="/perfil" element={<Perfil />} />
+          <Route path="/partida/nova" element={<PartidaNova />} />
+          <Route path="/partida/:id" element={<PartidaDetalhe />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
