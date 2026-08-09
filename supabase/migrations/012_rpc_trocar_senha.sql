@@ -2,9 +2,9 @@
 -- RPC `trocar_senha(p_jogador_id bigint, p_senha_atual text, p_senha_nova text)
 --      RETURNS boolean`:
 --   1. Busca o jogador por id. Se nao existir, retorna false.
---   2. Valida a senha atual: crypt(p_senha_atual, senha_hash) = senha_hash.
+--   2. Valida a senha atual comparando o texto informado com senha_hash.
 --      Se invalida, retorna false (nao atualiza nada).
---   3. Atualiza senha_hash = crypt(p_senha_nova, gen_salt('bf')). Retorna true.
+--   3. Atualiza senha_hash = p_senha_nova. Retorna true.
 --
 -- !!! DECISAO DE RISCO ACEITA (NAO MITIGAR) !!!
 -- p_jogador_id vem do client (o sistema nao tem sessao server-side). Combinado
@@ -40,12 +40,12 @@ BEGIN
   END IF;
 
   -- Senha atual incorreta.
-  IF public.crypt(p_senha_atual, v_senha_hash) <> v_senha_hash THEN
+  IF p_senha_atual <> v_senha_hash THEN
     RETURN false;
   END IF;
 
   UPDATE jogadores
-  SET senha_hash = public.crypt(p_senha_nova, public.gen_salt('bf'))
+  SET senha_hash = p_senha_nova
   WHERE id = p_jogador_id;
 
   RETURN true;

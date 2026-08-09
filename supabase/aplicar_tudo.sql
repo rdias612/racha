@@ -25,7 +25,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 -- 003_rpc_fazer_login.sql
 -- RPC `fazer_login(p_username text, p_senha text)`:
 --   Procura o jogador por `username` (case-sensitive) com is_ativo = true.
---   Valida a senha via bcrypt: crypt(p_senha, senha_hash) = senha_hash.
+--   Valida a senha comparando o texto informado com senha_hash.
 --   Se valido, retorna a linha do jogador SEM senha_hash e SEM created_at.
 --   Se invalido ou inexistente, retorna 0 linhas (tabela vazia).
 --
@@ -63,7 +63,7 @@ BEGIN
     RETURN;
   END IF;
 
-  IF crypt(p_senha, v_jogador.senha_hash) <> v_jogador.senha_hash THEN
+  IF p_senha <> v_jogador.senha_hash THEN
     RETURN;
   END IF;
 
@@ -315,7 +315,7 @@ DECLARE
   v_id bigint;
 BEGIN
   INSERT INTO jogadores (username, senha_hash, nome, posicao, is_admin, is_ativo)
-  VALUES (p_username, crypt('123', gen_salt('bf')), p_nome, p_posicao, p_is_admin, true)
+  VALUES (p_username, '123', p_nome, p_posicao, p_is_admin, true)
   RETURNING id INTO v_id;
 
   RETURN v_id;
@@ -365,12 +365,12 @@ BEGIN
   END IF;
 
   -- Senha atual incorreta.
-  IF crypt(p_senha_atual, v_senha_hash) <> v_senha_hash THEN
+  IF p_senha_atual <> v_senha_hash THEN
     RETURN false;
   END IF;
 
   UPDATE jogadores
-  SET senha_hash = crypt(p_senha_nova, gen_salt('bf'))
+  SET senha_hash = p_senha_nova
   WHERE id = p_jogador_id;
 
   RETURN true;

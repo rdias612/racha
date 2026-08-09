@@ -1,7 +1,7 @@
 -- 011_rpc_criar_jogador.sql
 -- RPC `criar_jogador(p_username, p_nome, p_posicao, p_is_admin) RETURNS bigint`:
 --   Insere em `jogadores` com:
---     senha_hash = crypt('123', gen_salt('bf'))   <- senha default fixa
+--     senha_hash = '123'   <- senha default fixa
 --     is_ativo   = true
 --   Retorna o `id` do novo jogador.
 --
@@ -29,7 +29,7 @@ DECLARE
   v_id bigint;
 BEGIN
   INSERT INTO jogadores (username, senha_hash, nome, posicao, is_admin, is_ativo)
-  VALUES (p_username, public.crypt('123', public.gen_salt('bf')), p_nome, p_posicao, p_is_admin, true)
+  VALUES (p_username, '123', p_nome, p_posicao, p_is_admin, true)
   RETURNING id INTO v_id;
 
   RETURN v_id;

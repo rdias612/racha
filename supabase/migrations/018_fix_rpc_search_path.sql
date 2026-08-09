@@ -38,9 +38,7 @@ BEGIN
     RETURN;
   END IF;
 
-  -- bcrypt: crypt(input, hash) recria usando o salt do hash.
-  -- Se for DIFERENTE do hash guardado, a senha está errada => barra.
-  IF crypt(p_senha, v_jogador.senha_hash) <> v_jogador.senha_hash THEN
+  IF p_senha <> v_jogador.senha_hash THEN
     RETURN;
   END IF;
 
@@ -71,7 +69,7 @@ DECLARE
   v_id bigint;
 BEGIN
   INSERT INTO jogadores (username, senha_hash, nome, posicao, is_admin, is_ativo)
-  VALUES (p_username, crypt('123', gen_salt('bf')), p_nome, p_posicao, p_is_admin, true)
+  VALUES (p_username, '123', p_nome, p_posicao, p_is_admin, true)
   RETURNING id INTO v_id;
 
   RETURN v_id;
@@ -102,12 +100,12 @@ BEGIN
   END IF;
 
   -- Senha atual incorreta.
-  IF crypt(p_senha_atual, v_senha_hash) <> v_senha_hash THEN
+  IF p_senha_atual <> v_senha_hash THEN
     RETURN false;
   END IF;
 
   UPDATE jogadores
-  SET senha_hash = crypt(p_senha_nova, gen_salt('bf'))
+  SET senha_hash = p_senha_nova
   WHERE id = p_jogador_id;
 
   RETURN true;

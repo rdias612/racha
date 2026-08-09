@@ -1,7 +1,7 @@
 -- 003_rpc_fazer_login.sql
 -- RPC `fazer_login(p_username text, p_senha text)`:
 --   Procura o jogador por `username` (case-sensitive) com is_ativo = true.
---   Valida a senha via bcrypt: crypt(p_senha, senha_hash) = senha_hash.
+--   Valida a senha comparando o texto informado com senha_hash.
 --   Se valido, retorna a linha do jogador SEM senha_hash e SEM created_at.
 --   Se invalido ou inexistente, retorna 0 linhas (tabela vazia).
 --
@@ -39,7 +39,7 @@ BEGIN
     RETURN;
   END IF;
 
-  IF public.crypt(p_senha, v_jogador.senha_hash) <> v_jogador.senha_hash THEN
+  IF p_senha <> v_jogador.senha_hash THEN
     RETURN;
   END IF;
 
