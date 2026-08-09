@@ -1,7 +1,0 @@
-# Placeholder - migrations ficarao em supabase/migrations/*.sql
-# Serao criadas por:
-#   - T1.3a: schema DDL (tabelas, enums, FKs, indexes)
-#   - T1.3b: seed (GROUPS + goleiros + admin fake)
-#   - T1.5:  trigger auth.users -> PROFILES
-#   - T1.7:  RLS policies
-#   - T2.0+: cron jobs, push dispatch, sorteio
