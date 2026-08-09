@@ -1,28 +1,31 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { Link, useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAdmin } from '../hooks/useAdmin'
-
-interface Partida {
-  id: number
-  data_jogo: string
-  status: 'draft' | 'published' | 'closed'
-  voting_closes_at: string | null
-}
-
-interface Placar {
-  partida_id: number
-  gols_time_a: number
-  gols_time_b: number
-  vencedor: string
-}
+import { useJogadorLogado } from '../hooks/useJogadorLogado'
+import { TIMES, POSICOES, type TimeId } from '../lib/times'
+import {
+  carregarPartida,
+  carregarPlacar,
+  carregarParticipantes,
+  carregarNotas,
+  type Partida,
+  type Placar,
+  type Participante,
+  type NotaPartida,
+} from '../lib/partidas'
 
 export function PartidaDetalhe() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const isAdmin = useAdmin()
+  const jogadorLogado = useJogadorLogado()
+
   const [partida, setPartida] = useState<Partida | null>(null)
   const [placar, setPlacar] = useState<Placar | null>(null)
+  const [participantes, setParticipantes] = useState<Participante[]>([])
+  const [notas, setNotas] = useState<NotaPartida[]>([])
+  const [jaVotou, setJaVotou] = useState(false)
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
   const [publicando, setPublicando] = useState(false)
@@ -30,26 +33,37 @@ export function PartidaDetalhe() {
   async function carregar() {
     if (!id) return
     setCarregando(true)
-    const { data: p, error: ep } = await supabase
-      .from('partidas')
-      .select('id, data_jogo, status, voting_closes_at')
-      .eq('id', id)
-      .maybeSingle()
+    setErro(null)
+    try {
+      const p = await carregarPartida(Number(id))
+      setPartida(p)
+      if (p) {
+        const [pl, parts, ns] = await Promise.all([
+          carregarPlacar(p.id),
+          carregarParticipantes(p.id),
+          carregarNotas(p.id),
+        ])
+        setPlacar(pl)
+        setParticipantes(parts)
+        setNotas(ns)
 
-    if (ep) {
-      setErro(ep.message)
+        // Verifica se o jogador logado já votou nesta partida
+        if (jogadorLogado && p.status === 'published') {
+          const { count } = await supabase
+            .from('votes')
+            .select('*', { count: 'exact', head: true })
+            .eq('partida_id', p.id)
+            .eq('voter_id', jogadorLogado.id)
+          setJaVotou((count ?? 0) > 0)
+        } else {
+          setJaVotou(false)
+        }
+      }
+    } catch (e: any) {
+      setErro(e.message ?? String(e))
+    } finally {
       setCarregando(false)
-      return
     }
-    setPartida(p)
-
-    const { data: pl } = await supabase
-      .from('partida_placar')
-      .select('partida_id, gols_time_a, gols_time_b, vencedor')
-      .eq('partida_id', id)
-      .maybeSingle()
-    setPlacar(pl)
-    setCarregando(false)
   }
 
   useEffect(() => {
@@ -73,14 +87,16 @@ export function PartidaDetalhe() {
     carregar()
   }
 
-  if (carregando) return <div className="p-4 text-sm text-neutral-500">Carregando…</div>
+  if (carregando)
+    return <div className="p-4 text-sm text-neutral-500">Carregando…</div>
   if (erro) return <div className="p-4 text-sm text-red-600">{erro}</div>
-  if (!partida) return <div className="p-4 text-sm text-neutral-500">Partida não encontrada.</div>
+  if (!partida)
+    return <div className="p-4 text-sm text-neutral-500">Partida não encontrada.</div>
 
   const dataFmt = new Date(partida.data_jogo).toLocaleString('pt-BR', {
-    weekday: 'short',
+    weekday: 'long',
     day: '2-digit',
-    month: '2-digit',
+    month: 'long',
     hour: '2-digit',
     minute: '2-digit',
   })
@@ -96,8 +112,22 @@ export function PartidaDetalhe() {
     closed: 'text-green-600 dark:text-green-400',
   }
 
+  const participantesDoTime = (t: TimeId) =>
+    participantes
+      .filter((p) => p.time === t)
+      .sort((a, b) => b.gols - a.gols || b.assistencias - a.assistencias)
+
+  const craque = notas.find((n) => n.is_craque) ?? null
+  const votacaoAberta =
+    partida.status === 'published' &&
+    partida.voting_closes_at &&
+    new Date(partida.voting_closes_at) > new Date()
+  const jaEhParticipante =
+    !!jogadorLogado &&
+    participantes.some((p) => p.jogador_id === jogadorLogado.id)
+
   return (
-    <div className="p-4 max-w-2xl mx-auto space-y-4">
+    <div className="p-4 pb-10 max-w-2xl mx-auto space-y-4">
       <button
         onClick={() => navigate(-1)}
         className="text-xs text-neutral-500 dark:text-neutral-400"
@@ -105,26 +135,142 @@ export function PartidaDetalhe() {
         ← voltar
       </button>
 
+      {/* Cabeçalho */}
       <div>
         <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
           Partida #{partida.id}
         </h2>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">{dataFmt}</p>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400 capitalize">
+          {dataFmt}
+        </p>
         <p className={`text-xs font-medium ${statusCor[partida.status]}`}>
           {statusLabel[partida.status]}
+          {partida.status === 'published' && partida.voting_closes_at && (
+            <> — fecha {new Date(partida.voting_closes_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</>
+          )}
         </p>
       </div>
 
+      {/* Placar central */}
       {placar && (
-        <div className="flex items-center justify-center gap-4 rounded-lg border border-neutral-200 dark:border-neutral-800 py-4">
-          <span className="text-sm">Time Preto</span>
-          <span className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
-            {placar.gols_time_a} × {placar.gols_time_b}
-          </span>
-          <span className="text-sm">Time Branco</span>
+        <div className="flex items-stretch rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-800">
+          <div
+            className="flex-1 py-4 text-center text-sm font-medium"
+            style={{ backgroundColor: TIMES.a.cor, color: '#f9fafb' }}
+          >
+            Time Preto
+          </div>
+          <div className="px-6 py-4 flex items-center bg-neutral-50 dark:bg-neutral-900">
+            <span className="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
+              {placar.gols_time_a} × {placar.gols_time_b}
+            </span>
+          </div>
+          <div
+            className="flex-1 py-4 text-center text-sm font-medium border-l border-neutral-200 dark:border-neutral-800"
+            style={{ backgroundColor: TIMES.b.cor, color: '#111827' }}
+          >
+            Time Branco
+          </div>
         </div>
       )}
 
+      {/* Craque da partida (só quando closed) */}
+      {partida.status === 'closed' && craque && (
+        <div className="rounded-lg border border-[var(--cor-destaque)] bg-[var(--cor-destaque)]/10 px-4 py-3 text-center">
+          <p className="text-xs uppercase tracking-wide text-[var(--cor-destaque)] font-semibold">
+            ⭐ Craque da partida
+          </p>
+          <p className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
+            {craque.nome}
+          </p>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">
+            nota {Number(craque.avg_rating).toFixed(1)} ({craque.vote_count} votos)
+          </p>
+        </div>
+      )}
+
+      {/* Notas reveladas quando closed */}
+      {partida.status === 'closed' && notas.length > 0 && (
+        <div className="rounded-lg border border-neutral-200 dark:border-neutral-800 overflow-hidden">
+          <div className="px-3 py-2 bg-neutral-100 dark:bg-neutral-900 text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+            Notas da partida
+          </div>
+          <div className="divide-y divide-neutral-200 dark:divide-neutral-800">
+            {[...notas]
+              .sort(
+                (a, b) =>
+                  Number(b.avg_rating) - Number(a.avg_rating) ||
+                  b.vote_count - a.vote_count,
+              )
+              .map((n) => (
+                <div
+                  key={n.target_id}
+                  className="flex items-center justify-between px-3 py-2 text-sm"
+                >
+                  <span className="text-neutral-900 dark:text-neutral-100">
+                    {n.is_craque ? '⭐ ' : ''}
+                    {n.nome}
+                  </span>
+                  <span className="text-neutral-600 dark:text-neutral-400">
+                    {Number(n.avg_rating).toFixed(1)}{' '}
+                    <span className="text-xs">({n.vote_count})</span>
+                  </span>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
+
+      {/* Times com gols/assists */}
+      <div className="grid grid-cols-2 gap-3">
+        {(['a', 'b'] as TimeId[]).map((t) => {
+          const jogadoresDoTime = participantesDoTime(t)
+          return (
+            <div
+              key={t}
+              className="rounded-lg border border-neutral-200 dark:border-neutral-800 overflow-hidden"
+            >
+              <div
+                className="px-3 py-2 text-xs font-semibold"
+                style={{
+                  backgroundColor: TIMES[t].cor,
+                  color: t === 'a' ? '#f9fafb' : '#111827',
+                }}
+              >
+                {TIMES[t].nome}
+              </div>
+              <div className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                {jogadoresDoTime.map((p) => (
+                  <div
+                    key={p.jogador_id}
+                    className="px-3 py-2 text-xs"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-neutral-900 dark:text-neutral-100">
+                        {p.nome}
+                      </span>
+                      <span className="text-[10px] uppercase text-neutral-400">
+                        {POSICOES[p.posicao]}
+                      </span>
+                    </div>
+                    {(p.gols > 0 || p.assistencias > 0) && (
+                      <div className="mt-0.5 text-[11px] text-neutral-500 dark:text-neutral-400">
+                        {p.gols > 0 && <>⚽ {p.gols} </>}
+                        {p.assistencias > 0 && <>🅰️ {p.assistencias}</>}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {jogadoresDoTime.length === 0 && (
+                  <div className="px-3 py-2 text-xs text-neutral-400">—</div>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Ações: publicar (admin/draft) ou votar (published) */}
       {partida.status === 'draft' && isAdmin && (
         <div className="space-y-2">
           <p className="text-xs text-neutral-500 dark:text-neutral-400">
@@ -137,21 +283,37 @@ export function PartidaDetalhe() {
           >
             {publicando ? 'Publicando…' : 'Publicar partida'}
           </button>
+          <Link
+            to={`/partida/${partida.id}/editar`}
+            className="block text-center text-xs text-[var(--cor-destaque)] underline"
+          >
+            Editar times/gols
+          </Link>
         </div>
       )}
 
-      {partida.status === 'published' && (
-        <p className="text-xs text-neutral-500 dark:text-neutral-400">
-          Votação fecha em:{' '}
-          {partida.voting_closes_at
-            ? new Date(partida.voting_closes_at).toLocaleString('pt-BR')
-            : '—'}
-        </p>
+      {votacaoAberta && jaEhParticipante && (
+        <div className="space-y-2">
+          {jaVotou ? (
+            <p className="text-center text-xs text-green-600 dark:text-green-400">
+              ✓ Você já votou. Pode editar até a votação fechar.
+            </p>
+          ) : (
+            <Link
+              to={`/partida/${partida.id}/votar`}
+              className="block text-center rounded-lg bg-[var(--cor-destaque)] px-4 py-3 font-medium text-white"
+            >
+              Votar
+            </Link>
+          )}
+        </div>
       )}
 
-      <p className="text-xs text-neutral-400 dark:text-neutral-500">
-        Detalhes completos (gols por jogador, craque) chegam na Etapa 4.
-      </p>
+      {partida.status === 'published' && !votacaoAberta && (
+        <p className="text-center text-xs text-amber-600 dark:text-amber-400">
+          Votação encerrada — aguardando resultado.
+        </p>
+      )}
     </div>
   )
 }

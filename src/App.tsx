@@ -7,6 +7,8 @@ import { Ranking } from './routes/Ranking'
 import { Perfil } from './routes/Perfil'
 import { PartidaNova } from './routes/PartidaNova'
 import { PartidaDetalhe } from './routes/PartidaDetalhe'
+import { PartidaEditar } from './routes/PartidaEditar'
+import { PartidaVotar } from './routes/PartidaVotar'
 
 export function App() {
   return (
@@ -19,6 +21,8 @@ export function App() {
           <Route path="/perfil" element={<Perfil />} />
           <Route path="/partida/nova" element={<PartidaNova />} />
           <Route path="/partida/:id" element={<PartidaDetalhe />} />
+          <Route path="/partida/:id/editar" element={<PartidaEditar />} />
+          <Route path="/partida/:id/votar" element={<PartidaVotar />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
