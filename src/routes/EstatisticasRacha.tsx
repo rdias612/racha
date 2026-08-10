@@ -132,7 +132,10 @@ function ListaDuplas({ pares, inicio }: { pares: ParRacha[]; inicio: number }) {
             <span className="font-semibold text-(--cor-destaque)">{par.pontos} pts</span>
           </div>
           <div className="mt-1 flex items-center justify-between gap-2 text-xs text-neutral-500 dark:text-neutral-400">
-            <span>{par.partidas}J · {par.vitorias}V {par.empates}E {par.derrotas}D</span>
+            <span>
+              {par.partidas}J · {par.vitorias}V · {par.empates}E ·{" "}
+              {par.derrotas}D
+            </span>
             <span>{par.percentual === null ? "—" : `${Math.round(par.percentual * 100)}%`}</span>
           </div>
         </li>

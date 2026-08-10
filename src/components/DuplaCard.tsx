@@ -17,24 +17,25 @@ export function DuplaCard({ titulo, par }: DuplaCardProps) {
         </p>
       ) : (
         <>
-          <p className="mt-2 text-base font-bold text-neutral-900 dark:text-neutral-100">
-            {par.jogador_a_nome} + {par.jogador_b_nome}
-          </p>
-          <p className="mt-0.5 text-2xl font-bold text-(--cor-destaque)">
-            {par.pontos}{" "}
-            <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
-              pts
+          <div className="mt-1.5 flex items-center justify-between gap-2">
+            <span className="text-sm font-bold text-neutral-900 dark:text-neutral-100">
+              {par.jogador_a_nome} + {par.jogador_b_nome}
             </span>
-          </p>
-          <p className="mt-0.5 text-sm font-medium text-(--cor-destaque)">
-            {par.percentual === null
-              ? "—"
-              : `${Math.round(par.percentual * 100)}%`}
-          </p>
-          <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
-            {par.partidas} partidas · {par.vitorias}V {par.empates}E{" "}
-            {par.derrotas}D
-          </p>
+            <span className="shrink-0 text-base font-bold text-(--cor-destaque)">
+              {par.pontos} pts
+            </span>
+          </div>
+          <div className="mt-1 flex items-center justify-between gap-2 text-xs text-neutral-500 dark:text-neutral-400">
+            <span>
+              {par.partidas}J · {par.vitorias}V · {par.empates}E ·{" "}
+              {par.derrotas}D
+            </span>
+            <span className="font-medium text-(--cor-destaque)">
+              {par.percentual === null
+                ? "—"
+                : `${Math.round(par.percentual * 100)}%`}
+            </span>
+          </div>
         </>
       )}
     </div>
