@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useSessao } from '../context/SessaoContext'
 import { POSICOES } from '../lib/times'
 import { Carregando, MensagemEstado } from '../components/Estado'
+import { BotaoInstalar } from '../components/BotaoInstalar'
 
 interface Stats {
   jogador_id: number
@@ -107,6 +108,9 @@ export function Perfil() {
           )}
         </p>
       </section>
+
+      {/* Instalar como app (PWA) */}
+      <BotaoInstalar />
 
       {/* Stats */}
       <section>
