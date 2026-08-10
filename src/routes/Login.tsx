@@ -1,41 +1,52 @@
-import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
-import { useSessao } from '../context/SessaoContext'
-import { MensagemEstado } from '../components/Estado'
+import { useEffect, useState, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../lib/supabase";
+import { useSessao } from "../context/SessaoContext";
+import { MensagemEstado } from "../components/Estado";
+import { listarUsernames } from "../lib/jogadores";
 
 export function Login() {
-  const navigate = useNavigate()
-  const { setJogador } = useSessao()
-  const [username, setUsername] = useState('')
-  const [senha, setSenha] = useState('')
-  const [erro, setErro] = useState<string | null>(null)
-  const [carregando, setCarregando] = useState(false)
+  const navigate = useNavigate();
+  const { setJogador } = useSessao();
+  const [username, setUsername] = useState("");
+  const [senha, setSenha] = useState("");
+  const [usernames, setUsernames] = useState<string[]>([]);
+  const [carregandoUsernames, setCarregandoUsernames] = useState(true);
+  const [erroUsernames, setErroUsernames] = useState<string | null>(null);
+  const [erro, setErro] = useState<string | null>(null);
+  const [carregando, setCarregando] = useState(false);
+
+  useEffect(() => {
+    listarUsernames()
+      .then(setUsernames)
+      .catch(() => setErroUsernames("Não foi possível carregar os usuários."))
+      .finally(() => setCarregandoUsernames(false));
+  }, []);
 
   async function submeter(e: FormEvent) {
-    e.preventDefault()
-    setErro(null)
-    setCarregando(true)
+    e.preventDefault();
+    setErro(null);
+    setCarregando(true);
 
-    const { data, error } = await supabase.rpc('fazer_login', {
+    const { data, error } = await supabase.rpc("fazer_login", {
       p_username: username,
       p_senha: senha,
-    })
+    });
 
-    setCarregando(false)
+    setCarregando(false);
 
     if (error) {
-      setErro('Erro ao conectar. Tente novamente.')
-      return
+      setErro("Erro ao conectar. Tente novamente.");
+      return;
     }
 
     if (!data || data.length === 0) {
-      setErro('Usuário ou senha inválidos.')
-      return
+      setErro("Usuário ou senha inválidos.");
+      return;
     }
 
-    setJogador(data[0])
-    navigate('/', { replace: true })
+    setJogador(data[0]);
+    navigate("/", { replace: true });
   }
 
   return (
@@ -56,15 +67,26 @@ export function Login() {
             >
               Usuário
             </label>
-            <input
+            <select
               id="username"
-              type="text"
               autoComplete="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-[var(--cor-destaque)]"
               required
-            />
+              disabled={carregandoUsernames || !!erroUsernames}
+            >
+              <option value="">
+                {carregandoUsernames
+                  ? "Carregando usuários..."
+                  : "Selecione seu usuário"}
+              </option>
+              {usernames.map((nome) => (
+                <option key={nome} value={nome}>
+                  {nome}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>
@@ -85,17 +107,21 @@ export function Login() {
             />
           </div>
 
-          {erro && <MensagemEstado>{erro}</MensagemEstado>}
+          {(erroUsernames || erro) && (
+            <MensagemEstado>{erroUsernames || erro}</MensagemEstado>
+          )}
 
           <button
             type="submit"
-            disabled={carregando}
+            disabled={
+              carregando || carregandoUsernames || !!erroUsernames || !username
+            }
             className="w-full rounded-lg bg-[var(--cor-destaque)] px-4 py-2 font-medium text-white disabled:opacity-50 hover:opacity-90 transition"
           >
-            {carregando ? 'Entrando...' : 'Entrar'}
+            {carregando ? "Entrando..." : "Entrar"}
           </button>
         </form>
       </div>
     </div>
-  )
+  );
 }
