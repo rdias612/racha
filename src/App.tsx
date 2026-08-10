@@ -4,6 +4,7 @@ import { Layout } from "./routes/Layout";
 import { Login } from "./routes/Login";
 import { Ranking } from "./routes/Ranking";
 import { Perfil } from "./routes/Perfil";
+import { Estatisticas } from "./routes/Estatisticas";
 import { Resumo } from "./routes/Resumo";
 import { Jogos } from "./routes/Jogos";
 import { PartidaNova } from "./routes/PartidaNova";
@@ -26,6 +27,7 @@ export function App() {
           />
           <Route path="/ranking/:metrica" element={<Ranking />} />
           <Route path="/perfil" element={<Perfil />} />
+          <Route path="/estatisticas" element={<Estatisticas />} />
           <Route path="/partida/nova" element={<PartidaNova />} />
           <Route path="/partida/:id" element={<PartidaDetalhe />} />
           <Route path="/partida/:id/editar" element={<PartidaEditar />} />

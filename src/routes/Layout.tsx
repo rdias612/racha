@@ -91,6 +91,10 @@ export function Layout() {
               Rankings
               <span aria-hidden="true">{rankingAberto ? "▴" : "▾"}</span>
             </button>
+            <NavLink to="/estatisticas" className={itemClasse}>
+              <span className="text-lg">📊</span>
+              Estatísticas
+            </NavLink>
             <NavLink
               to="/perfil"
               className={({ isActive }) =>
