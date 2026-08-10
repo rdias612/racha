@@ -35,7 +35,7 @@ BEGIN
     ('2026-07-02 20:00:00-03', 'b', 'vitor,dico:1,dudu:0:1,andret:2,caio:1,marcelinho,gualberto:1'),
     ('2026-06-25 20:00:00-03', 'a', 'vitor,gian,jp,natal:1,marcelinho,danilo,fil:3'),
     ('2026-06-25 20:00:00-03', 'b', 'tadeu:1:1,hees:1,dico,gualberto,andret:2,hugo:2,cadinho:4'),
-    ('2026-06-18 20:00:00-03', 'a', 'geilson,tadeu,dico:1,thiago,hugo:3,gustavo,danilo:3,vitor:1'),
+    ('2026-06-18 20:00:00-03', 'a', 'geilson,tadeu,dico:1,thiago,hugo:3,gustavo,danilo:3,victor:1'),
     ('2026-06-18 20:00:00-03', 'b', 'rodrigo,vitor,ed:1:1,hees:3,natal,cadinho:2,gualberto:2,fil:3'),
     ('2026-06-11 20:00:00-03', 'a', 'tadeu:2,gian,hees:1,hugo,andret:2,marcelinho:0:1,fil:3'),
     ('2026-06-11 20:00:00-03', 'b', 'vitor,ed,dico,natal:3,danilo:2,gualberto:1,victor:3'),
