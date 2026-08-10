@@ -89,7 +89,12 @@ export function Ranking() {
   }, [configuracao.campo]);
 
   if (carregando) return <Carregando>Carregando ranking</Carregando>;
-  if (erro) return <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">{erro}</MensagemEstado>;
+  if (erro)
+    return (
+      <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">
+        {erro}
+      </MensagemEstado>
+    );
 
   function valorOrdenacao(linha: LinhaRanking, coluna: ColunaOrdenacao) {
     if (coluna === "nome") return linha.nome;
@@ -160,7 +165,7 @@ export function Ranking() {
                       }
                       className={`px-2 py-2 font-medium ${
                         coluna.key === "nome"
-                          ? "min-w-48 text-left"
+                          ? "w-px whitespace-nowrap text-left sm:min-w-48"
                           : "text-right"
                       }`}
                     >
