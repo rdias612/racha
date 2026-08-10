@@ -72,6 +72,10 @@ export function Layout() {
           className="mt-3 border-t border-neutral-200 pt-2 dark:border-neutral-800"
         >
           <div className="flex gap-1 overflow-x-auto">
+            <NavLink to="/perfil" className={itemClasse}>
+              <span className="text-lg">👤</span>
+              Resumo
+            </NavLink>
             <NavLink to="/" end className={itemClasse}>
               <span className="text-lg">⚽</span>
               Jogos
@@ -87,10 +91,6 @@ export function Layout() {
               Rankings
               <span aria-hidden="true">{rankingAberto ? "▴" : "▾"}</span>
             </button>
-            <NavLink to="/perfil" className={itemClasse}>
-              <span className="text-lg">👤</span>
-              Perfil
-            </NavLink>
           </div>
 
           {rankingAberto && (
