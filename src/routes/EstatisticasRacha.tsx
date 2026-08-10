@@ -101,7 +101,7 @@ export function EstatisticasRacha() {
                 </p>
                 <ListaDuplas
                   pares={pares.slice(-5).reverse()}
-                  inicio={pares.length - 4}
+                  inicio={1}
                 />
               </div>
             )}
