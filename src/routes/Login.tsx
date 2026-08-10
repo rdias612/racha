@@ -53,7 +53,7 @@ export function Login() {
     <div className="min-h-full flex items-center justify-center p-3 sm:p-4 bg-neutral-50 dark:bg-neutral-950">
       <div className="w-full max-w-sm">
         <h1 className="text-2xl font-bold text-center text-neutral-900 dark:text-neutral-100 mb-1">
-          racha-gragoata-cbo
+          Racha Gragoata CBO
         </h1>
         <p className="text-center text-sm text-neutral-500 dark:text-neutral-400 mb-8">
           Entre com seu usuário e senha
