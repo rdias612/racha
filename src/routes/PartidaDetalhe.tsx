@@ -30,7 +30,6 @@ export function PartidaDetalhe() {
   const [jaVotou, setJaVotou] = useState(false)
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
-  const [publicando, setPublicando] = useState(false)
 
   async function carregar() {
     if (!id) return
@@ -73,30 +72,14 @@ export function PartidaDetalhe() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
-  async function publicar() {
-    if (!partida) return
-    setPublicando(true)
-    const votingClosesAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-    const { error } = await supabase
-      .from('partidas')
-      .update({ status: 'published', voting_closes_at: votingClosesAt })
-      .eq('id', partida.id)
-    setPublicando(false)
-    if (error) {
-      setErro(error.message)
-      return
-    }
-    carregar()
-  }
-
   if (carregando) return <Carregando>Carregando partida</Carregando>
   if (erro) return <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">{erro}</MensagemEstado>
   if (!partida)
     return <MensagemEstado tipo="info" className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">Partida não encontrada.</MensagemEstado>
 
   const statusLabel: Record<Partida['status'], string> = {
-    draft: 'Rascunho',
-    published: 'Votação aberta',
+    draft: 'Agendada',
+    published: 'Resultado publicado',
     closed: 'Encerrada',
   }
   const statusCor: Record<Partida['status'], string> = {
@@ -267,24 +250,28 @@ export function PartidaDetalhe() {
         })}
       </div>
 
-      {/* Ações: publicar (admin/draft) ou votar (published) */}
+      {/* Ações admin: Finalizar (draft) ou Editar (published) */}
       {partida.status === 'draft' && isAdmin && (
         <div className="space-y-2">
           <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            Ao publicar, a votação abre por 24h e a partida entra no ranking.
+            Lance o resultado para publicar o placar e abrir a votação por 24h.
           </p>
-          <button
-            onClick={publicar}
-            disabled={publicando}
-            className="w-full rounded-lg bg-[var(--cor-destaque)] px-4 py-3 font-medium text-white disabled:opacity-50"
-          >
-            {publicando ? 'Publicando…' : 'Publicar partida'}
-          </button>
           <Link
             to={`/partida/${partida.id}/editar`}
-            className="block text-center text-xs text-[var(--cor-destaque)] underline"
+            className="block text-center rounded-lg bg-[var(--cor-destaque)] px-4 py-3 font-medium text-white"
           >
-            Editar times/gols
+            Finalizar
+          </Link>
+        </div>
+      )}
+
+      {partida.status === 'published' && isAdmin && (
+        <div className="space-y-2">
+          <Link
+            to={`/partida/${partida.id}/editar`}
+            className="block text-center rounded-lg border border-neutral-300 dark:border-neutral-700 px-4 py-3 font-medium text-neutral-700 dark:text-neutral-300"
+          >
+            Editar resultado
           </Link>
         </div>
       )}
