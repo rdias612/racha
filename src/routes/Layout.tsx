@@ -149,20 +149,6 @@ export function Layout() {
               </NavLink>
             </div>
           )}
-
-          {estatisticasAberto && (
-            <div
-              id="submodulos-estatisticas"
-              className="mt-1 flex gap-1 overflow-x-auto border-l-2 border-l-(--cor-destaque) pl-1"
-            >
-              <NavLink to="/estatisticas/jogador" className={itemClasse}>
-                Jogador
-              </NavLink>
-              <NavLink to="/estatisticas/racha" className={itemClasse}>
-                Racha
-              </NavLink>
-            </div>
-          )}
         </nav>
       </header>
 
