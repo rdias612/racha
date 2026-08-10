@@ -4,7 +4,7 @@ import { useTema } from '../lib/tema'
 import { BannerLembrete } from '../components/BannerLembrete'
 
 function itemClasse({ isActive }: { isActive: boolean }) {
-  return `flex flex-col items-center justify-center flex-1 py-2 text-xs ${
+  return `flex items-center gap-2 rounded px-3 py-2 text-sm ${
     isActive
       ? 'text-[var(--cor-destaque)]'
       : 'text-neutral-500 dark:text-neutral-400'
@@ -57,24 +57,39 @@ export function Layout() {
 
       <BannerLembrete />
 
-      <main className="flex-1 overflow-y-auto">
-        <Outlet />
-      </main>
+      <div className="flex flex-1 min-h-0">
+        <aside className="w-52 shrink-0 border-r border-neutral-200 dark:border-neutral-800 p-3">
+          <nav className="flex flex-col gap-1">
+            <NavLink to="/" end className={itemClasse}>
+              <span className="text-lg">⚽</span>
+              Jogos
+            </NavLink>
+            <div className="pt-3 pb-1 px-3 text-xs font-semibold uppercase tracking-wide text-neutral-400 dark:text-neutral-500">
+              Ranking
+            </div>
+            <NavLink to="/ranking/gols" className={itemClasse}>
+              <span>⚽</span>
+              Gols
+            </NavLink>
+            <NavLink to="/ranking/assistencias" className={itemClasse}>
+              <span>🅰️</span>
+              Assistências
+            </NavLink>
+            <NavLink to="/ranking/gols-contra" className={itemClasse}>
+              <span>🔄</span>
+              Gols contra
+            </NavLink>
+            <NavLink to="/perfil" className={itemClasse}>
+              <span className="text-lg">👤</span>
+              Perfil
+            </NavLink>
+          </nav>
+        </aside>
 
-      <nav className="flex border-t border-neutral-200 dark:border-neutral-800">
-        <NavLink to="/" end className={itemClasse}>
-          <span className="text-lg">⚽</span>
-          Jogos
-        </NavLink>
-        <NavLink to="/ranking" className={itemClasse}>
-          <span className="text-lg">🏆</span>
-          Ranking
-        </NavLink>
-        <NavLink to="/perfil" className={itemClasse}>
-          <span className="text-lg">👤</span>
-          Perfil
-        </NavLink>
-      </nav>
+        <main className="min-w-0 flex-1 overflow-y-auto">
+          <Outlet />
+        </main>
+      </div>
     </div>
   )
 }

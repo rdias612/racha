@@ -1,5 +1,22 @@
 import { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+
+type Metrica = 'gols' | 'assistencias' | 'gols-contra'
+
+const metricas: Record<Metrica, { titulo: string; coluna: string; campo: keyof LinhaRanking }> = {
+  gols: { titulo: 'Ranking de gols', coluna: 'Gols', campo: 'gols' },
+  assistencias: {
+    titulo: 'Ranking de assistências',
+    coluna: 'Assistências',
+    campo: 'assistencias',
+  },
+  'gols-contra': {
+    titulo: 'Ranking de gols contra',
+    coluna: 'Gols contra',
+    campo: 'gols_contra',
+  },
+}
 
 interface LinhaRanking {
   jogador_id: number
@@ -15,6 +32,9 @@ interface LinhaRanking {
 }
 
 export function Ranking() {
+  const { metrica: parametro } = useParams<{ metrica: Metrica }>()
+  const metrica: Metrica = parametro && parametro in metricas ? parametro : 'gols'
+  const configuracao = metricas[metrica]
   const [linhas, setLinhas] = useState<LinhaRanking[]>([])
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
@@ -49,13 +69,18 @@ export function Ranking() {
     return <div className="p-4 text-sm text-neutral-500">Carregando ranking…</div>
   if (erro) return <div className="p-4 text-sm text-red-600">{erro}</div>
 
+  const linhasOrdenadas = [...linhas].sort((a, b) => {
+    const diferenca = Number(b[configuracao.campo]) - Number(a[configuracao.campo])
+    return diferenca || a.nome.localeCompare(b.nome)
+  })
+
   return (
     <div className="p-4 pb-20 max-w-2xl mx-auto">
       <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-3">
-        Ranking
+        {configuracao.titulo}
       </h2>
 
-      {linhas.length === 0 ? (
+      {linhasOrdenadas.length === 0 ? (
         <p className="text-sm text-neutral-500 dark:text-neutral-400">
           Nenhuma partida publicada ainda. O ranking aparece quando houver
           partidas.
@@ -67,16 +92,11 @@ export function Ranking() {
               <tr>
                 <th className="px-2 py-2 text-left font-medium w-8">#</th>
                 <th className="px-2 py-2 text-left font-medium">Nome</th>
-                <th className="px-2 py-2 text-right font-medium" title="Pontos">Pts</th>
-                <th className="px-2 py-2 text-right font-medium" title="Vitórias">V</th>
-                <th className="px-2 py-2 text-right font-medium" title="Partidas">J</th>
-                <th className="px-2 py-2 text-right font-medium" title="Gols">G</th>
-                <th className="px-2 py-2 text-right font-medium" title="Assistências">A</th>
-                  <th className="px-2 py-2 text-right font-medium" title="Gols contra">GC</th>
+                <th className="px-2 py-2 text-right font-medium">{configuracao.coluna}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
-              {linhas.map((l, i) => {
+              {linhasOrdenadas.map((l, i) => {
                 const primeiro = i === 0
                 return (
                   <tr
@@ -93,23 +113,8 @@ export function Ranking() {
                     <td className="px-2 py-2 font-medium text-neutral-900 dark:text-neutral-100">
                       {l.nome}
                     </td>
-                    <td className="px-2 py-2 text-right font-semibold text-[var(--cor-destaque)]">
-                      {l.pontos}
-                    </td>
                     <td className="px-2 py-2 text-right text-neutral-600 dark:text-neutral-400">
-                      {l.vitorias}
-                    </td>
-                    <td className="px-2 py-2 text-right text-neutral-600 dark:text-neutral-400">
-                      {l.partidas}
-                    </td>
-                    <td className="px-2 py-2 text-right text-neutral-600 dark:text-neutral-400">
-                      {l.gols}
-                    </td>
-                    <td className="px-2 py-2 text-right text-neutral-600 dark:text-neutral-400">
-                      {l.assistencias}
-                    </td>
-                    <td className="px-2 py-2 text-right text-neutral-600 dark:text-neutral-400">
-                      {l.gols_contra}
+                      {l[configuracao.campo]}
                     </td>
                   </tr>
                 )

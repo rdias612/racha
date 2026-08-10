@@ -18,7 +18,8 @@ export function App() {
         <Route path="/login" element={<Login />} />
         <Route element={<Layout />}>
           <Route path="/" element={<Jogos />} />
-          <Route path="/ranking" element={<Ranking />} />
+          <Route path="/ranking" element={<Navigate to="/ranking/gols" replace />} />
+          <Route path="/ranking/:metrica" element={<Ranking />} />
           <Route path="/perfil" element={<Perfil />} />
           <Route path="/partida/nova" element={<PartidaNova />} />
           <Route path="/partida/:id" element={<PartidaDetalhe />} />
