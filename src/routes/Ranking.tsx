@@ -201,32 +201,32 @@ export function Ranking() {
               </option>
             ))}
         </select>
-
-          <div className="mb-4">
-            <label
-              htmlFor="filtro-minimo-partidas"
-              className="flex items-center justify-between text-sm text-neutral-700 dark:text-neutral-300"
-            >
-              <span>Mínimo de partidas</span>
-              <strong>{minimoPartidas}</strong>
-            </label>
-            <input
-              id="filtro-minimo-partidas"
-              type="range"
-              min="1"
-              max={maximoPartidas}
-              value={minimoPartidas}
-              onChange={(e) => setMinimoPartidas(Number(e.target.value))}
-              className="w-full accent-(--cor-destaque)"
-            />
-          </div>
       </div>
-          {linhasFiltradas.length === 0 ? (
-      {linhasOrdenadas.length === 0 ? (
-              {linhas.length === 0
-                ? "Nenhuma partida publicada ainda. O ranking aparece quando houver partidas."
-                : "Nenhum jogador atende ao mínimo de partidas selecionado."}
-          partidas.
+
+      <div className="mb-4">
+        <label
+          htmlFor="filtro-minimo-partidas"
+          className="flex items-center justify-between text-sm text-neutral-700 dark:text-neutral-300"
+        >
+          <span>Mínimo de partidas</span>
+          <strong>{minimoPartidas}</strong>
+        </label>
+        <input
+          id="filtro-minimo-partidas"
+          type="range"
+          min="1"
+          max={maximoPartidas}
+          value={minimoPartidas}
+          onChange={(e) => setMinimoPartidas(Number(e.target.value))}
+          className="w-full accent-(--cor-destaque)"
+        />
+      </div>
+
+      {linhasFiltradas.length === 0 ? (
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+          {linhas.length === 0
+            ? "Nenhuma partida publicada ainda. O ranking aparece quando houver partidas."
+            : "Nenhum jogador atende ao mínimo de partidas selecionado."}
         </p>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-800">
