@@ -101,6 +101,9 @@ export function Ranking() {
                 <th className="px-2 py-2 text-right font-medium">
                   {configuracao.coluna}
                 </th>
+                <th className="px-2 py-2 text-right font-medium">% vitórias</th>
+                <th className="px-2 py-2 text-right font-medium">Partidas</th>
+                <th className="px-2 py-2 text-right font-medium">Vitórias</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
@@ -123,6 +126,17 @@ export function Ranking() {
                     </td>
                     <td className="px-2 py-2 text-right text-neutral-600 dark:text-neutral-400">
                       {l[configuracao.campo]}
+                    </td>
+                    <td className="px-2 py-2 text-right text-neutral-600 dark:text-neutral-400">
+                      {l.partidas > 0
+                        ? `${Math.round((l.vitorias / l.partidas) * 100)}%`
+                        : "0%"}
+                    </td>
+                    <td className="px-2 py-2 text-right text-neutral-600 dark:text-neutral-400">
+                      {l.partidas}
+                    </td>
+                    <td className="px-2 py-2 text-right text-neutral-600 dark:text-neutral-400">
+                      {l.vitorias}
                     </td>
                   </tr>
                 );
