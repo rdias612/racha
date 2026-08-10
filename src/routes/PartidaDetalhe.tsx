@@ -152,10 +152,11 @@ export function PartidaDetalhe() {
             className="flex-1 py-4 text-center text-sm font-medium"
             style={{ backgroundColor: TIMES.a.cor, color: '#f9fafb' }}
           >
-            Time Preto
+            <span className="sm:hidden">Preto</span>
+            <span className="hidden sm:inline">Time Preto</span>
           </div>
-          <div className="px-6 py-4 flex items-center bg-neutral-50 dark:bg-neutral-900">
-            <span className="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
+          <div className="px-4 sm:px-6 py-4 flex items-center bg-neutral-50 dark:bg-neutral-900">
+            <span className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-neutral-100">
               {placar.gols_time_a} × {placar.gols_time_b}
             </span>
           </div>
@@ -163,7 +164,8 @@ export function PartidaDetalhe() {
             className="flex-1 py-4 text-center text-sm font-medium border-l border-neutral-200 dark:border-neutral-800"
             style={{ backgroundColor: TIMES.b.cor, color: '#111827' }}
           >
-            Time Branco
+            <span className="sm:hidden">Branco</span>
+            <span className="hidden sm:inline">Time Branco</span>
           </div>
         </div>
       )}

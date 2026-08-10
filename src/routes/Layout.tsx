@@ -6,7 +6,7 @@ import {
   Link,
   useLocation,
 } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSessao } from "../context/SessaoContext";
 import { useTema } from "../lib/tema";
 import { BannerLembrete } from "../components/BannerLembrete";
@@ -29,6 +29,11 @@ export function Layout() {
   const estatisticasAtivo = pathname.startsWith("/estatisticas");
   const [estatisticasAberto, setEstatisticasAberto] =
     useState(estatisticasAtivo);
+
+  useEffect(() => {
+    setRankingAberto(false);
+    setEstatisticasAberto(false);
+  }, [pathname]);
 
   if (!jogador) {
     return <Navigate to="/login" replace />;

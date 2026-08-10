@@ -90,29 +90,23 @@ function ListaDuplas({ pares, inicio }: { pares: ParRacha[]; inicio: number }) {
       {pares.map((par, i) => (
         <li
           key={`${par.jogador_a_id}-${par.jogador_b_id}`}
-          className="flex items-center justify-between gap-2 px-3 py-2"
+          className="px-3 py-2"
         >
-          <span className="flex items-center gap-2 text-sm text-neutral-900 dark:text-neutral-100">
-            <span className="w-6 text-right text-xs text-neutral-500 dark:text-neutral-400">
-              {inicio + i}
+          <div className="flex items-center justify-between gap-2">
+            <span className="flex items-center gap-2 text-sm text-neutral-900 dark:text-neutral-100">
+              <span className="w-6 text-right text-xs text-neutral-500 dark:text-neutral-400">
+                {inicio + i}
+              </span>
+              <span className="font-medium">
+                {par.jogador_a_nome} + {par.jogador_b_nome}
+              </span>
             </span>
-            <span className="font-medium">
-              {par.jogador_a_nome} + {par.jogador_b_nome}
-            </span>
-          </span>
-          <span className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400">
-            <span>
-              {par.partidas}J · {par.vitorias}V {par.empates}E {par.derrotas}D
-            </span>
-            <span className="font-semibold text-(--cor-destaque)">
-              {par.pontos} pts
-            </span>
-            <span>
-              {par.percentual === null
-                ? "—"
-                : `${Math.round(par.percentual * 100)}%`}
-            </span>
-          </span>
+            <span className="font-semibold text-(--cor-destaque)">{par.pontos} pts</span>
+          </div>
+          <div className="mt-1 flex items-center justify-between gap-2 text-xs text-neutral-500 dark:text-neutral-400">
+            <span>{par.partidas}J · {par.vitorias}V {par.empates}E {par.derrotas}D</span>
+            <span>{par.percentual === null ? "—" : `${Math.round(par.percentual * 100)}%`}</span>
+          </div>
         </li>
       ))}
     </ol>
