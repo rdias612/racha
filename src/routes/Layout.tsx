@@ -26,6 +26,9 @@ export function Layout() {
   const { pathname } = useLocation();
   const rankingAtivo = pathname.startsWith("/ranking");
   const [rankingAberto, setRankingAberto] = useState(rankingAtivo);
+  const estatisticasAtivo = pathname.startsWith("/estatisticas");
+  const [estatisticasAberto, setEstatisticasAberto] =
+    useState(estatisticasAtivo);
 
   if (!jogador) {
     return <Navigate to="/login" replace />;
@@ -91,10 +94,17 @@ export function Layout() {
               Rankings
               <span aria-hidden="true">{rankingAberto ? "▴" : "▾"}</span>
             </button>
-            <NavLink to="/estatisticas" className={itemClasse}>
-              <span className="text-lg">📊</span>
+            <button
+              type="button"
+              aria-controls="submodulos-estatisticas"
+              aria-expanded={estatisticasAberto}
+              onClick={() => setEstatisticasAberto((aberto) => !aberto)}
+              className={itemClasse({ isActive: estatisticasAtivo })}
+            >
+              <span>📊</span>
               Estatísticas
-            </NavLink>
+              <span aria-hidden="true">{estatisticasAberto ? "▴" : "▾"}</span>
+            </button>
             <NavLink
               to="/perfil"
               className={({ isActive }) =>
@@ -122,6 +132,34 @@ export function Layout() {
               </NavLink>
               <NavLink to="/ranking/gols-contra" className={itemClasse}>
                 Gols contra
+              </NavLink>
+            </div>
+          )}
+
+          {estatisticasAberto && (
+            <div
+              id="submodulos-estatisticas"
+              className="mt-1 flex gap-1 overflow-x-auto border-l-2 border-l-(--cor-destaque) pl-1"
+            >
+              <NavLink to="/estatisticas/jogador" className={itemClasse}>
+                Jogador
+              </NavLink>
+              <NavLink to="/estatisticas/racha" className={itemClasse}>
+                Racha
+              </NavLink>
+            </div>
+          )}
+
+          {estatisticasAberto && (
+            <div
+              id="submodulos-estatisticas"
+              className="mt-1 flex gap-1 overflow-x-auto border-l-2 border-l-(--cor-destaque) pl-1"
+            >
+              <NavLink to="/estatisticas/jogador" className={itemClasse}>
+                Jogador
+              </NavLink>
+              <NavLink to="/estatisticas/racha" className={itemClasse}>
+                Racha
               </NavLink>
             </div>
           )}

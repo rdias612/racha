@@ -110,10 +110,7 @@ export function Ranking() {
     setDirecaoOrdenacao("desc");
   }, [configuracao.campo]);
 
-  const maximoPartidas = Math.max(
-    6,
-    ...linhas.map((linha) => linha.partidas),
-  );
+  const maximoPartidas = Math.max(6, ...linhas.map((linha) => linha.partidas));
 
   useEffect(() => {
     setMinimoPartidas((minimo) => Math.min(minimo, maximoPartidas));

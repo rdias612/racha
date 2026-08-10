@@ -5,6 +5,7 @@ import { Login } from "./routes/Login";
 import { Ranking } from "./routes/Ranking";
 import { Perfil } from "./routes/Perfil";
 import { Estatisticas } from "./routes/Estatisticas";
+import { EstatisticasRacha } from "./routes/EstatisticasRacha";
 import { Resumo } from "./routes/Resumo";
 import { Jogos } from "./routes/Jogos";
 import { PartidaNova } from "./routes/PartidaNova";
@@ -27,7 +28,12 @@ export function App() {
           />
           <Route path="/ranking/:metrica" element={<Ranking />} />
           <Route path="/perfil" element={<Perfil />} />
-          <Route path="/estatisticas" element={<Estatisticas />} />
+          <Route
+            path="/estatisticas"
+            element={<Navigate to="/estatisticas/jogador" replace />}
+          />
+          <Route path="/estatisticas/jogador" element={<Estatisticas />} />
+          <Route path="/estatisticas/racha" element={<EstatisticasRacha />} />
           <Route path="/partida/nova" element={<PartidaNova />} />
           <Route path="/partida/:id" element={<PartidaDetalhe />} />
           <Route path="/partida/:id/editar" element={<PartidaEditar />} />

@@ -1,4 +1,4 @@
--- 031_rpc_pares_racha.sql
+-- 032_rpc_pares_racha.sql
 -- RPC `pares_racha(p_min_partidas integer DEFAULT 5)`
 -- Ranking GLOBAL de duplas (2 jogadores que jogaram JUNTOS no mesmo time):
 --   - par nao-ordenado: (jogador_a_id, jogador_b_id) com a.id < b.id garante
