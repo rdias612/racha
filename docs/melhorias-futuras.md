@@ -20,11 +20,21 @@ Itens adiados nesta rodada. Os ajustes globais de acessibilidade, estados, espac
 
 ## 3. Fluxo de votacao
 
-- Exibir progresso, por exemplo `12 de 15 avaliados`.
-- Aumentar a area visual do slider e dos atalhos de nota.
-- Avaliar um jogador por vez com navegacao `Anterior` e `Proximo`.
-- Avisar antes de sair com avaliacoes incompletas.
-- Manter a acao de envio fixa e sempre acessivel.
+### Feito (2026-08-10)
+
+- Todos os jogadores listados de uma vez (manteve lista unica; descartou-se a navegacao `Anterior` e `Proximo`).
+- Input de nota trocado por dropdown custom 1-10 (`SeletorNota`) em Tailwind + `var(--cor-destaque)`, com a11y (combobox/listbox, teclado, fechar fora).
+- Removidos slider e atalhos `[0][5][10]`.
+- Acao de envio permanece fixa e acessivel (`fixed bottom-16`), com progresso no botao (`X restantes`).
+
+### Pendente
+
+- Exibir progresso, por exemplo `12 de 15 avaliados`, no cabecalho (hoje so no botao de envio).
+- Avisar antes de sair com avaliacoes incompletas (`useBlocker` / `beforeunload`).
+
+### Descartado
+
+- ~~Avaliar um jogador por vez com navegacao `Anterior` e `Proximo`.~~ — preferiu-se listar todos de uma vez.
 
 ## 4. Perfil
 

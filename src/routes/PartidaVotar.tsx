@@ -9,6 +9,7 @@ import {
 } from "../lib/partidas";
 import type { PosicaoId } from "../lib/times";
 import { Carregando, MensagemEstado } from "../components/Estado";
+import { SeletorNota } from "../components/SeletorNota";
 
 interface Alvo {
   jogador_id: number;
@@ -91,7 +92,12 @@ export function PartidaVotar() {
 
   if (!jogador) return <Navigate to="/login" replace />;
   if (carregando) return <Carregando>Carregando votação</Carregando>;
-  if (erro) return <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">{erro}</MensagemEstado>;
+  if (erro)
+    return (
+      <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">
+        {erro}
+      </MensagemEstado>
+    );
   if (!partida) return null;
 
   function setNota(targetId: number, rating: number) {
@@ -164,7 +170,7 @@ export function PartidaVotar() {
           ⏳ Fecha em {horasRestantes}h {minutosRestantes}min
         </p>
         <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-          Dê uma nota de 0 a 10 para cada jogador. O craque será definido pela
+          Dê uma nota de 1 a 10 para cada jogador. O craque será definido pela
           média. Votos anônimos.
         </p>
       </div>
@@ -197,41 +203,17 @@ export function PartidaVotar() {
                   {definida ? nota : "—"}
                 </span>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] text-neutral-400">0</span>
-                <input
-                  type="range"
-                  min={0}
-                  max={10}
-                  step={1}
-                  value={nota ?? 5}
-                  onChange={(e) =>
-                    setNota(a.jogador_id, parseInt(e.target.value))
-                  }
-                  className="flex-1 accent-[var(--cor-destaque)]"
-                />
-                <span className="text-[10px] text-neutral-400">10</span>
-                <div className="flex gap-1 ml-1">
-                  {[0, 5, 10].map((n) => (
-                    <button
-                      key={n}
-                      onClick={() => setNota(a.jogador_id, n)}
-                      className="text-[10px] px-1.5 py-0.5 rounded border border-neutral-300 dark:border-neutral-700 text-neutral-500"
-                    >
-                      {n}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <SeletorNota
+                value={nota}
+                onChange={(n) => setNota(a.jogador_id, n)}
+              />
             </div>
           );
         })}
       </div>
 
       {erro && <MensagemEstado>{erro}</MensagemEstado>}
-      {feedback && (
-        <MensagemEstado tipo="sucesso">{feedback}</MensagemEstado>
-      )}
+      {feedback && <MensagemEstado tipo="sucesso">{feedback}</MensagemEstado>}
 
       <div className="fixed bottom-16 left-0 right-0 p-3 bg-neutral-50/90 dark:bg-neutral-950/90 backdrop-blur border-t border-neutral-200 dark:border-neutral-800 max-w-2xl mx-auto">
         <button
