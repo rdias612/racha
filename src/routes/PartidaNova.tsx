@@ -5,6 +5,7 @@ import { listarJogadoresAtivos, type JogadorLista } from "../lib/jogadores";
 import { useAdmin } from "../hooks/useAdmin";
 import { useJogadorLogado } from "../hooks/useJogadorLogado";
 import { TIMES, POSICOES, type TimeId, type PosicaoId } from "../lib/times";
+import { Carregando, MensagemEstado } from "../components/Estado";
 
 interface ParticipanteForm {
   jogador: JogadorLista;
@@ -54,11 +55,8 @@ export function PartidaNova() {
   }, [participantes]);
 
   if (!isAdmin) return <Navigate to="/" replace />;
-  if (carregando)
-    return (
-      <div className="p-4 text-sm text-neutral-500">Carregando jogadores…</div>
-    );
-  if (erro) return <div className="p-4 text-sm text-red-600">Erro: {erro}</div>;
+  if (carregando) return <Carregando>Carregando jogadores</Carregando>;
+  if (erro) return <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">Erro: {erro}</MensagemEstado>;
 
   function toggleSelecao(id: number) {
     setFeedback(null);
@@ -140,7 +138,7 @@ export function PartidaNova() {
   }
 
   return (
-    <div className="p-4 pb-24 space-y-5 max-w-2xl mx-auto">
+    <div className="px-3 py-4 pb-24 sm:px-4 space-y-5 max-w-2xl mx-auto">
       <div>
         <button
           onClick={() => navigate(-1)}
@@ -334,9 +332,9 @@ export function PartidaNova() {
         </div>
       )}
 
-      {erro && <p className="text-sm text-red-600 dark:text-red-400">{erro}</p>}
+      {erro && <MensagemEstado>{erro}</MensagemEstado>}
       {feedback && (
-        <p className="text-sm text-green-600 dark:text-green-400">{feedback}</p>
+        <MensagemEstado tipo="sucesso">{feedback}</MensagemEstado>
       )}
 
       <div className="fixed bottom-16 left-0 right-0 p-3 bg-neutral-50/90 dark:bg-neutral-950/90 backdrop-blur border-t border-neutral-200 dark:border-neutral-800 max-w-2xl mx-auto">

@@ -3,6 +3,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useAdmin } from "../hooks/useAdmin";
 import { POSICOES, type PosicaoId } from "../lib/times";
+import { MensagemEstado } from "../components/Estado";
 
 export function NovoJogador() {
   const isAdmin = useAdmin();
@@ -59,7 +60,7 @@ export function NovoJogador() {
   }
 
   return (
-    <div className="p-4 pb-20 max-w-2xl mx-auto space-y-4">
+    <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-4">
       <button
         onClick={() => navigate(-1)}
         className="text-xs text-neutral-500 dark:text-neutral-400"
@@ -133,12 +134,8 @@ export function NovoJogador() {
           É admin (pode criar/editar partidas)
         </label>
 
-        {erro && (
-          <p className="text-sm text-red-600 dark:text-red-400">{erro}</p>
-        )}
-        {ok && (
-          <p className="text-sm text-green-600 dark:text-green-400">{ok}</p>
-        )}
+        {erro && <MensagemEstado>{erro}</MensagemEstado>}
+        {ok && <MensagemEstado tipo="sucesso">{ok}</MensagemEstado>}
 
         <button
           type="submit"

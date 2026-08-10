@@ -68,7 +68,7 @@ export function BannerLembrete() {
   if (pendentes.length === 0) return null
 
   return (
-    <div className="border-b border-[var(--cor-destaque)]/30 bg-[var(--cor-destaque)]/10 px-4 py-2 space-y-1">
+    <div className="border-b border-[var(--cor-destaque)]/30 bg-[var(--cor-destaque)]/10 px-3 py-2 sm:px-4 space-y-1">
       {pendentes.map((p) => {
         const restante = new Date(p.voting_closes_at).getTime() - agora
         return (

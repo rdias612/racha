@@ -14,6 +14,8 @@ import {
   type Participante,
   type NotaPartida,
 } from '../lib/partidas'
+import { Carregando, MensagemEstado } from '../components/Estado'
+import { formatarDataCompleta, formatarDataMobile, formatarFechamento } from '../lib/formatacao'
 
 export function PartidaDetalhe() {
   const { id } = useParams<{ id: string }>()
@@ -87,19 +89,10 @@ export function PartidaDetalhe() {
     carregar()
   }
 
-  if (carregando)
-    return <div className="p-4 text-sm text-neutral-500">Carregando…</div>
-  if (erro) return <div className="p-4 text-sm text-red-600">{erro}</div>
+  if (carregando) return <Carregando>Carregando partida</Carregando>
+  if (erro) return <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">{erro}</MensagemEstado>
   if (!partida)
-    return <div className="p-4 text-sm text-neutral-500">Partida não encontrada.</div>
-
-  const dataFmt = new Date(partida.data_jogo).toLocaleString('pt-BR', {
-    weekday: 'long',
-    day: '2-digit',
-    month: 'long',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+    return <MensagemEstado tipo="info" className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">Partida não encontrada.</MensagemEstado>
 
   const statusLabel: Record<Partida['status'], string> = {
     draft: 'Rascunho',
@@ -127,7 +120,7 @@ export function PartidaDetalhe() {
     participantes.some((p) => p.jogador_id === jogadorLogado.id)
 
   return (
-    <div className="p-4 pb-10 max-w-2xl mx-auto space-y-4">
+    <div className="px-3 py-4 pb-10 sm:px-4 max-w-2xl mx-auto space-y-4">
       <button
         onClick={() => navigate(-1)}
         className="text-xs text-neutral-500 dark:text-neutral-400"
@@ -141,12 +134,13 @@ export function PartidaDetalhe() {
           Partida #{partida.id}
         </h2>
         <p className="text-sm text-neutral-500 dark:text-neutral-400 capitalize">
-          {dataFmt}
+          <span className="sm:hidden">{formatarDataMobile(partida.data_jogo)}</span>
+          <span className="hidden sm:inline">{formatarDataCompleta(partida.data_jogo)}</span>
         </p>
         <p className={`text-xs font-medium ${statusCor[partida.status]}`}>
           {statusLabel[partida.status]}
           {partida.status === 'published' && partida.voting_closes_at && (
-            <> — fecha {new Date(partida.voting_closes_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</>
+            <> — fecha {formatarFechamento(partida.voting_closes_at)}</>
           )}
         </p>
       </div>

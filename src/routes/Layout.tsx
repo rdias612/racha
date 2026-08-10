@@ -38,7 +38,7 @@ export function Layout() {
 
   return (
     <div className="min-h-full flex flex-col bg-neutral-50 dark:bg-neutral-950">
-      <header className="shrink-0 border-b border-neutral-200 px-4 py-3 dark:border-neutral-800">
+      <header className="shrink-0 border-b border-neutral-200 px-3 py-3 sm:px-4 dark:border-neutral-800">
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
           <h1 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
             racha-gragoata-cbo

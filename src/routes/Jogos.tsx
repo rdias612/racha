@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAdmin } from '../hooks/useAdmin'
+import { Carregando, MensagemEstado } from '../components/Estado'
+import { formatarDataLista } from '../lib/formatacao'
 
 interface Partida {
   id: number
@@ -62,11 +64,11 @@ export function Jogos() {
     closed: 'text-green-600 dark:text-green-400',
   }
 
-  if (carregando) return <div className="p-4 text-sm text-neutral-500">Carregando…</div>
-  if (erro) return <div className="p-4 text-sm text-red-600">{erro}</div>
+  if (carregando) return <Carregando>Carregando jogos</Carregando>
+  if (erro) return <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">{erro}</MensagemEstado>
 
   return (
-    <div className="p-4 pb-20 max-w-2xl mx-auto space-y-3">
+    <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-3">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Jogos</h2>
         {isAdmin && (
@@ -97,11 +99,7 @@ export function Jogos() {
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-neutral-500 dark:text-neutral-400">
-                    {new Date(p.data_jogo).toLocaleDateString('pt-BR', {
-                      weekday: 'short',
-                      day: '2-digit',
-                      month: '2-digit',
-                    })}
+                    {formatarDataLista(p.data_jogo)}
                   </span>
                   <span className={`text-[10px] font-medium ${statusCor[p.status]}`}>
                     {statusLabel[p.status]}

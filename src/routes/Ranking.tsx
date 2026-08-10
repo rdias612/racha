@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import { Carregando, MensagemEstado } from "../components/Estado";
 
 type Metrica = "pontos" | "gols" | "assistencias" | "gols-contra";
 type CampoMetrica = "pontos" | "gols" | "assistencias" | "gols_contra";
@@ -87,11 +88,8 @@ export function Ranking() {
     setDirecaoOrdenacao("desc");
   }, [configuracao.campo]);
 
-  if (carregando)
-    return (
-      <div className="p-4 text-sm text-neutral-500">Carregando ranking…</div>
-    );
-  if (erro) return <div className="p-4 text-sm text-red-600">{erro}</div>;
+  if (carregando) return <Carregando>Carregando ranking</Carregando>;
+  if (erro) return <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">{erro}</MensagemEstado>;
 
   function valorOrdenacao(linha: LinhaRanking, coluna: ColunaOrdenacao) {
     if (coluna === "nome") return linha.nome;
@@ -131,7 +129,7 @@ export function Ranking() {
   });
 
   return (
-    <div className="p-4 pb-20 max-w-2xl mx-auto">
+    <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto">
       <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-3">
         {configuracao.titulo}
       </h2>

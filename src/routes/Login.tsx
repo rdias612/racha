@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useSessao } from '../context/SessaoContext'
+import { MensagemEstado } from '../components/Estado'
 
 export function Login() {
   const navigate = useNavigate()
@@ -38,7 +39,7 @@ export function Login() {
   }
 
   return (
-    <div className="min-h-full flex items-center justify-center p-4 bg-neutral-50 dark:bg-neutral-950">
+    <div className="min-h-full flex items-center justify-center p-3 sm:p-4 bg-neutral-50 dark:bg-neutral-950">
       <div className="w-full max-w-sm">
         <h1 className="text-2xl font-bold text-center text-neutral-900 dark:text-neutral-100 mb-1">
           racha-gragoata-cbo
@@ -84,9 +85,7 @@ export function Login() {
             />
           </div>
 
-          {erro && (
-            <p className="text-sm text-red-600 dark:text-red-400">{erro}</p>
-          )}
+          {erro && <MensagemEstado>{erro}</MensagemEstado>}
 
           <button
             type="submit"

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useSessao } from '../context/SessaoContext'
 import { POSICOES } from '../lib/times'
+import { Carregando, MensagemEstado } from '../components/Estado'
 
 interface Stats {
   jogador_id: number
@@ -87,7 +88,7 @@ export function Perfil() {
   }
 
   return (
-    <div className="p-4 pb-20 max-w-2xl mx-auto space-y-5">
+    <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-5">
       <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
         Perfil
       </h2>
@@ -113,7 +114,7 @@ export function Perfil() {
           Estatísticas
         </h3>
         {carregandoStats ? (
-          <p className="text-sm text-neutral-400">Carregando…</p>
+          <Carregando compacto>Carregando estatísticas</Carregando>
         ) : (
           <div className="grid grid-cols-5 gap-2">
             <StatBox label="Partidas" value={stats?.partidas ?? 0} />
@@ -159,10 +160,10 @@ export function Perfil() {
             required
           />
           {erroSenha && (
-            <p className="text-sm text-red-600 dark:text-red-400">{erroSenha}</p>
+            <MensagemEstado>{erroSenha}</MensagemEstado>
           )}
           {okSenha && (
-            <p className="text-sm text-green-600 dark:text-green-400">{okSenha}</p>
+            <MensagemEstado tipo="sucesso">{okSenha}</MensagemEstado>
           )}
           <button
             type="submit"

@@ -9,7 +9,7 @@ export function PartidaEditar() {
   if (!isAdmin) return <Navigate to="/" replace />
 
   return (
-    <div className="p-4 max-w-2xl mx-auto space-y-3">
+    <div className="px-3 py-4 sm:px-4 max-w-2xl mx-auto space-y-3">
       <Link
         to={`/partida/${id}`}
         className="text-xs text-neutral-500 dark:text-neutral-400"

@@ -8,6 +8,7 @@ import {
   type Partida,
 } from "../lib/partidas";
 import type { PosicaoId } from "../lib/times";
+import { Carregando, MensagemEstado } from "../components/Estado";
 
 interface Alvo {
   jogador_id: number;
@@ -89,11 +90,8 @@ export function PartidaVotar() {
   }, [id, jogador?.id]);
 
   if (!jogador) return <Navigate to="/login" replace />;
-  if (carregando)
-    return (
-      <div className="p-4 text-sm text-neutral-500">Carregando votação…</div>
-    );
-  if (erro) return <div className="p-4 text-sm text-red-600">{erro}</div>;
+  if (carregando) return <Carregando>Carregando votação</Carregando>;
+  if (erro) return <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">{erro}</MensagemEstado>;
   if (!partida) return null;
 
   function setNota(targetId: number, rating: number) {
@@ -150,7 +148,7 @@ export function PartidaVotar() {
   );
 
   return (
-    <div className="p-4 pb-24 max-w-2xl mx-auto space-y-4">
+    <div className="px-3 py-4 pb-24 sm:px-4 max-w-2xl mx-auto space-y-4">
       <button
         onClick={() => navigate(-1)}
         className="text-xs text-neutral-500 dark:text-neutral-400"
@@ -230,9 +228,9 @@ export function PartidaVotar() {
         })}
       </div>
 
-      {erro && <p className="text-sm text-red-600 dark:text-red-400">{erro}</p>}
+      {erro && <MensagemEstado>{erro}</MensagemEstado>}
       {feedback && (
-        <p className="text-sm text-green-600 dark:text-green-400">{feedback}</p>
+        <MensagemEstado tipo="sucesso">{feedback}</MensagemEstado>
       )}
 
       <div className="fixed bottom-16 left-0 right-0 p-3 bg-neutral-50/90 dark:bg-neutral-950/90 backdrop-blur border-t border-neutral-200 dark:border-neutral-800 max-w-2xl mx-auto">
