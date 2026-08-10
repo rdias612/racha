@@ -45,14 +45,15 @@ BEGIN
     FOR elem IN SELECT * FROM jsonb_array_elements(p_participantes)
     LOOP
       INSERT INTO partidas_participantes
-        (partida_id, jogador_id, time, posicao, gols, assistencias)
+        (partida_id, jogador_id, time, posicao, gols, assistencias, gols_contra)
       VALUES (
         v_partida_id,
         (elem->>'jogador_id')::bigint,
         (elem->>'time')::char(1),
         (elem->>'posicao')::text,
         COALESCE((elem->>'gols')::integer, 0),
-        COALESCE((elem->>'assistencias')::integer, 0)
+        COALESCE((elem->>'assistencias')::integer, 0),
+        COALESCE((elem->>'gols_contra')::integer, 0)
       );
     END LOOP;
 

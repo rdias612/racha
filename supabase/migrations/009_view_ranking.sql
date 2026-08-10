@@ -39,7 +39,8 @@ SELECT
                     AND pl.vencedor <> 'empate')            AS derrotas,
   COUNT(*)                                                  AS partidas,
   COALESCE(SUM(pp.gols), 0)                                 AS gols,
-  COALESCE(SUM(pp.assistencias), 0)                         AS assistencias
+  COALESCE(SUM(pp.assistencias), 0)                         AS assistencias,
+  COALESCE(SUM(pp.gols_contra), 0)                          AS gols_contra
 FROM partidas_participantes pp
 JOIN partidas      p  ON p.id  = pp.partida_id
 JOIN partida_placar pl ON pl.partida_id = pp.partida_id

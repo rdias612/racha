@@ -11,6 +11,7 @@ interface LinhaRanking {
   partidas: number
   gols: number
   assistencias: number
+  gols_contra: number
 }
 
 export function Ranking() {
@@ -25,7 +26,7 @@ export function Ranking() {
       const { data, error } = await supabase
         .from('ranking')
         .select(
-          'jogador_id, nome, pontos, vitorias, empates, derrotas, partidas, gols, assistencias',
+          'jogador_id, nome, pontos, vitorias, empates, derrotas, partidas, gols, assistencias, gols_contra',
         )
         .order('pontos', { ascending: false })
         .order('vitorias', { ascending: false })
@@ -71,6 +72,7 @@ export function Ranking() {
                 <th className="px-2 py-2 text-right font-medium" title="Partidas">J</th>
                 <th className="px-2 py-2 text-right font-medium" title="Gols">G</th>
                 <th className="px-2 py-2 text-right font-medium" title="Assistências">A</th>
+                  <th className="px-2 py-2 text-right font-medium" title="Gols contra">GC</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
@@ -106,6 +108,9 @@ export function Ranking() {
                     <td className="px-2 py-2 text-right text-neutral-600 dark:text-neutral-400">
                       {l.assistencias}
                     </td>
+                    <td className="px-2 py-2 text-right text-neutral-600 dark:text-neutral-400">
+                      {l.gols_contra}
+                    </td>
                   </tr>
                 )
               })}
@@ -116,7 +121,7 @@ export function Ranking() {
 
       <p className="mt-3 text-[11px] text-neutral-400 dark:text-neutral-500">
         Pts = pontos (3 vitória, 1 empate) · V = vitórias · J = jogos · G = gols ·
-        A = assistências.
+        A = assistências · GC = gols contra.
         <br />
         Desempate: pts → vitórias → jogos → gols → assistências → nome.
       </p>

@@ -9,6 +9,7 @@ interface Stats {
   partidas: number
   gols: number
   assistencias: number
+  gols_contra: number
   vitorias: number
 }
 
@@ -32,7 +33,7 @@ export function Perfil() {
       if (!jogador) return
       const { data, error } = await supabase
         .from('stats_jogador')
-        .select('jogador_id, partidas, gols, assistencias, vitorias')
+        .select('jogador_id, partidas, gols, assistencias, gols_contra, vitorias')
         .eq('jogador_id', jogador.id)
         .maybeSingle()
       if (!error) setStats(data)
@@ -114,11 +115,12 @@ export function Perfil() {
         {carregandoStats ? (
           <p className="text-sm text-neutral-400">Carregando…</p>
         ) : (
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-5 gap-2">
             <StatBox label="Partidas" value={stats?.partidas ?? 0} />
             <StatBox label="Vitórias" value={stats?.vitorias ?? 0} />
             <StatBox label="Gols" value={stats?.gols ?? 0} />
             <StatBox label="Assists" value={stats?.assistencias ?? 0} />
+            <StatBox label="Gols contra" value={stats?.gols_contra ?? 0} />
           </div>
         )}
       </section>

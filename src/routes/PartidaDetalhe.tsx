@@ -221,7 +221,7 @@ export function PartidaDetalhe() {
         </div>
       )}
 
-      {/* Times com gols/assists */}
+      {/* Times com gols/assists/gols contra */}
       <div className="grid grid-cols-2 gap-3">
         {(['a', 'b'] as TimeId[]).map((t) => {
           const jogadoresDoTime = participantesDoTime(t)
@@ -253,10 +253,11 @@ export function PartidaDetalhe() {
                         {POSICOES[p.posicao]}
                       </span>
                     </div>
-                    {(p.gols > 0 || p.assistencias > 0) && (
+                    {(p.gols > 0 || p.assistencias > 0 || p.gols_contra > 0) && (
                       <div className="mt-0.5 text-[11px] text-neutral-500 dark:text-neutral-400">
                         {p.gols > 0 && <>⚽ {p.gols} </>}
-                        {p.assistencias > 0 && <>🅰️ {p.assistencias}</>}
+                        {p.assistencias > 0 && <>🅰️ {p.assistencias} </>}
+                        {p.gols_contra > 0 && <>GC {p.gols_contra}</>}
                       </div>
                     )}
                   </div>

@@ -12,6 +12,7 @@ interface ParticipanteForm {
   posicao: PosicaoId;
   gols: number;
   assistencias: number;
+  gols_contra: number;
 }
 
 const POSICAO_LABEL: Record<PosicaoId, string> = {
@@ -80,6 +81,7 @@ export function PartidaNova() {
             posicao: jogador.posicao,
             gols: 0,
             assistencias: 0,
+            gols_contra: 0,
           },
         ]);
       }
@@ -113,6 +115,7 @@ export function PartidaNova() {
       posicao: p.posicao,
       gols: p.gols,
       assistencias: p.assistencias,
+      gols_contra: p.gols_contra,
     }));
 
     const { data, error } = await supabase.rpc("criar_partida", {
@@ -215,7 +218,7 @@ export function PartidaNova() {
         )}
       </div>
 
-      {/* Times + gols/assists */}
+      {/* Times + gols/assists/gols contra */}
       {participantes.length > 0 && (
         <div className="space-y-4">
           {(["a", "b"] as TimeId[]).map((t) => (
@@ -270,6 +273,23 @@ export function PartidaNova() {
                             onChange={(e) =>
                               atualizar(p.jogador.id, {
                                 gols: Math.max(
+                                  0,
+                                  parseInt(e.target.value) || 0,
+                                ),
+                              })
+                            }
+                            className="w-14 rounded border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1 text-neutral-900 dark:text-neutral-100"
+                          />
+                        </label>
+                        <label className="flex items-center gap-1">
+                          <span className="text-neutral-500">GC</span>
+                          <input
+                            type="number"
+                            min={0}
+                            value={p.gols_contra}
+                            onChange={(e) =>
+                              atualizar(p.jogador.id, {
+                                gols_contra: Math.max(
                                   0,
                                   parseInt(e.target.value) || 0,
                                 ),

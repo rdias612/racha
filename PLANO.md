@@ -19,7 +19,7 @@
 ## 2. Modelo de dados (Postgres / Supabase)
 
 > **Zero UUID.** PKs/FKs são `bigint` (sequence). Sem Supabase Auth por usuário.
-> **Gols e assistências são contadores por participante.** Placar = soma de gols por time; resultado = comparação de placares.
+> **Gols, assistências e gols contra são contadores por participante.** Gol contra soma no placar do time adversário; resultado compara os placares.
 > **Times fixos:** `a` = Preto, `b` = Branco.
 > **Sem RLS, sem triggers, sem policies.** Segurança só no app, baseada em `is_admin`.
 
@@ -50,6 +50,7 @@
 - `posicao` (`gk|def|mid|fwd`)
 - `gols` int default 0
 - `assistencias` int default 0
+- `gols_contra` int default 0
 - PK composta (partida_id, jogador_id)
 
 ### `votes` (acesso normal — confiança no client)

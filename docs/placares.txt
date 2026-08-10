@@ -1,6 +1,6 @@
-31/06/26
+30/07/26
 
-time PRETO
+PRETO
 vitor
 ed
 hees
@@ -19,13 +19,13 @@ danilo 2
 fil 4
 
 
-23/06/26
+23/07/26
 PRETO
 natal 1
 cadinho 2
 gualberto 1
 dudu 1
-dDico
+Dico
 thiagao 2
 
 BRANCO
@@ -36,9 +36,7 @@ vitor 1
 Ed 1
 JP
 
-
-
-16/06/26
+16/07/26
 
 Preto
 
@@ -59,7 +57,7 @@ tadeu 2
 ed 1
 
 
-09/06/26
+09/07/26
 
 BRANCO
 tadeu 1
@@ -69,8 +67,8 @@ jp
 hugo 
 danilo 
 fil
-andret 1
-dico 1
+andret -1
+dico -1
 
 PRETO
 vitor 2
@@ -90,7 +88,7 @@ NAtal 1
 Danilo
 JP
 Fil
-Dudu 1
+Dudu -1
 
 BRANCO
 Vitor
@@ -120,7 +118,7 @@ Natal 1
 Marcelinho
 Danilo
 Fil 3
-Tadeu (-1)
+Tadeu -1
 
 
 18/06/26
@@ -133,7 +131,7 @@ Hugo 3
 Gustavo
 Danilo 3
 Vitor R 1
-Ed 1
+Ed -1
 
 BRANCO
 Rodrigo
@@ -164,7 +162,7 @@ Natal 3
 Dands 2
 Gualb 1
 Victor R 3
-Marcelinho 1
+Marcelinho -1
 
 04/06/26 -- nao teve esse dia
 
@@ -275,7 +273,7 @@ Thiago
 Natal 2
 Gualb 1
 Fil 1
-JP 1
+JP -1
 
 BRANCO
 JP
@@ -362,7 +360,6 @@ Fil 2
 bRANCO
 Thacio
 Bill
-Ed
 Dico
 Hugo 1
 Natal 4
@@ -589,4 +586,4 @@ Hugo 1
 Gustavo
 Marcelinho
 Danilo 1
-Dico 1
+Dico -1

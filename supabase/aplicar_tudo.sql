@@ -113,6 +113,7 @@ CREATE TABLE partidas_participantes (
   posicao       text    NOT NULL CHECK (posicao IN ('goleiro','zagueiro','lateral','meia','atacante')),
   gols          integer NOT NULL DEFAULT 0 CHECK (gols >= 0),
   assistencias  integer NOT NULL DEFAULT 0 CHECK (assistencias >= 0),
+  gols_contra   integer NOT NULL DEFAULT 0 CHECK (gols_contra >= 0),
   PRIMARY KEY (partida_id, jogador_id)
 );
 
@@ -158,14 +159,28 @@ CREATE INDEX idx_votes_partida_target
 CREATE OR REPLACE VIEW partida_placar AS
 SELECT
   p.id                                                          AS partida_id,
-  COALESCE(SUM(CASE WHEN pp.time = 'a' THEN pp.gols END), 0)    AS gols_time_a,
-  COALESCE(SUM(CASE WHEN pp.time = 'b' THEN pp.gols END), 0)    AS gols_time_b,
+  COALESCE(SUM(CASE WHEN pp.time = 'a' THEN pp.gols ELSE 0 END), 0)
+    + COALESCE(SUM(CASE WHEN pp.time = 'b' THEN pp.gols_contra ELSE 0 END), 0)
+    AS gols_time_a,
+  COALESCE(SUM(CASE WHEN pp.time = 'b' THEN pp.gols ELSE 0 END), 0)
+    + COALESCE(SUM(CASE WHEN pp.time = 'a' THEN pp.gols_contra ELSE 0 END), 0)
+    AS gols_time_b,
   CASE
-    WHEN COALESCE(SUM(CASE WHEN pp.time = 'a' THEN pp.gols END), 0)
-       > COALESCE(SUM(CASE WHEN pp.time = 'b' THEN pp.gols END), 0)
+    WHEN (
+      COALESCE(SUM(CASE WHEN pp.time = 'a' THEN pp.gols ELSE 0 END), 0)
+      + COALESCE(SUM(CASE WHEN pp.time = 'b' THEN pp.gols_contra ELSE 0 END), 0)
+    ) > (
+      COALESCE(SUM(CASE WHEN pp.time = 'b' THEN pp.gols ELSE 0 END), 0)
+      + COALESCE(SUM(CASE WHEN pp.time = 'a' THEN pp.gols_contra ELSE 0 END), 0)
+    )
       THEN 'a'
-    WHEN COALESCE(SUM(CASE WHEN pp.time = 'a' THEN pp.gols END), 0)
-       < COALESCE(SUM(CASE WHEN pp.time = 'b' THEN pp.gols END), 0)
+    WHEN (
+      COALESCE(SUM(CASE WHEN pp.time = 'a' THEN pp.gols ELSE 0 END), 0)
+      + COALESCE(SUM(CASE WHEN pp.time = 'b' THEN pp.gols_contra ELSE 0 END), 0)
+    ) < (
+      COALESCE(SUM(CASE WHEN pp.time = 'b' THEN pp.gols ELSE 0 END), 0)
+      + COALESCE(SUM(CASE WHEN pp.time = 'a' THEN pp.gols_contra ELSE 0 END), 0)
+    )
       THEN 'b'
     ELSE 'empate'
   END                                                           AS vencedor
@@ -255,7 +270,8 @@ SELECT
                     AND pl.vencedor <> 'empate')            AS derrotas,
   COUNT(*)                                                  AS partidas,
   COALESCE(SUM(pp.gols), 0)                                 AS gols,
-  COALESCE(SUM(pp.assistencias), 0)                         AS assistencias
+  COALESCE(SUM(pp.assistencias), 0)                         AS assistencias,
+  COALESCE(SUM(pp.gols_contra), 0)                          AS gols_contra
 FROM partidas_participantes pp
 JOIN partidas      p  ON p.id  = pp.partida_id
 JOIN partida_placar pl ON pl.partida_id = pp.partida_id
@@ -275,7 +291,8 @@ SELECT
   COUNT(*)                                  AS partidas,
   COALESCE(SUM(pp.gols), 0)                 AS gols,
   COALESCE(SUM(pp.assistencias), 0)         AS assistencias,
-  COUNT(*) FILTER (WHERE pl.vencedor = pp.time) AS vitorias
+  COUNT(*) FILTER (WHERE pl.vencedor = pp.time) AS vitorias,
+  COALESCE(SUM(pp.gols_contra), 0)          AS gols_contra
 FROM partidas_participantes pp
 JOIN partidas       p  ON p.id  = pp.partida_id
 JOIN partida_placar pl ON pl.partida_id = pp.partida_id
@@ -422,14 +439,15 @@ BEGIN
     FOR elem IN SELECT * FROM jsonb_array_elements(p_participantes)
     LOOP
       INSERT INTO partidas_participantes
-        (partida_id, jogador_id, time, posicao, gols, assistencias)
+        (partida_id, jogador_id, time, posicao, gols, assistencias, gols_contra)
       VALUES (
         v_partida_id,
         (elem->>'jogador_id')::bigint,
         (elem->>'time')::char(1),
         (elem->>'posicao')::text,
         COALESCE((elem->>'gols')::integer, 0),
-        COALESCE((elem->>'assistencias')::integer, 0)
+        COALESCE((elem->>'assistencias')::integer, 0),
+        COALESCE((elem->>'gols_contra')::integer, 0)
       );
     END LOOP;
 

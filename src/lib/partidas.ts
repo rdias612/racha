@@ -25,6 +25,7 @@ export interface Participante {
   posicao: PosicaoId
   gols: number
   assistencias: number
+  gols_contra: number
   // join com jogadores:
   nome?: string
   username?: string
@@ -63,7 +64,7 @@ export async function carregarParticipantes(partidaId: number) {
   const { data, error } = await supabase
     .from('partidas_participantes')
     .select(
-      'partida_id, jogador_id, time, posicao, gols, assistencias, jogadores(nome, username)',
+      'partida_id, jogador_id, time, posicao, gols, assistencias, gols_contra, jogadores(nome, username)',
     )
     .eq('partida_id', partidaId)
   if (error) throw error
@@ -75,6 +76,7 @@ export async function carregarParticipantes(partidaId: number) {
     posicao: p.posicao,
     gols: p.gols,
     assistencias: p.assistencias,
+    gols_contra: p.gols_contra,
     nome: p.jogadores?.nome,
     username: p.jogadores?.username,
   })) as Participante[]

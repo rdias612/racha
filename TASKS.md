@@ -42,9 +42,9 @@ Tasks derivadas do `PLANO.md`. Divididas pelas 8 etapas do plano. Marque `- [x]`
 ## Etapa 2 — Schema completo
 
 - [ ] **2.1** Migration `004_create_partidas.sql`: tabela `partidas` (id bigint PK sequence, data_jogo timestamptz, status check draft/published/closed default 'draft', voting_closes_at timestamptz null, criado_por bigint → jogadores, created_at)
-- [ ] **2.2** Migration `005_create_partidas_participantes.sql`: tabela `partidas_participantes` (partida_id bigint → partidas, jogador_id bigint → jogadores, time check a/b, posicao check gk/def/mid/fwd, gols int default 0, assistencias int default 0, PK composta)
+- [ ] **2.2** Migration `005_create_partidas_participantes.sql`: tabela `partidas_participantes` (partida_id bigint → partidas, jogador_id bigint → jogadores, time check a/b, posicao check gk/def/mid/fwd, gols int default 0, assistencias int default 0, gols_contra int default 0, PK composta)
 - [ ] **2.3** Migration `006_create_votes.sql`: tabela `votes` (id bigint PK sequence, partida_id bigint, voter_id bigint → jogadores, target_id bigint → jogadores, rating int check 0..10, created_at, UNIQUE (partida_id, voter_id, target_id), CHECK voter_id <> target_id)
-- [ ] **2.4** Migration `007_view_partida_placar.sql`: view somando gols por time a/b e derivando vencedor
+- [ ] **2.4** Migration `007_view_partida_placar.sql`: view somando gols por time, gols contra no adversário e derivando vencedor
 - [ ] **2.5** Migration `008_view_partida_notas.sql`: view agregando `avg_rating` e `vote_count` por (partida_id, target_id), com coluna `nome` (join em jogadores) e **`is_craque bool`** resolvida via `RANK() OVER (PARTITION BY partida_id ORDER BY avg_rating DESC, vote_count DESC, nome ASC) = 1`. **Sem expor `voter_id`.**
 - [ ] **2.6** Migration `009_view_ranking.sql`: view com pontos 3/1/0, vitorias, partidas, gols, assistencias por jogador; ordenada por (pontos desc, vitorias desc, partidas desc, gols desc, assistencias desc, nome asc); inclui partidas published+closed
 - [ ] **2.7** Migration `010_view_stats_jogador.sql`: view por `jogador_id` com `partidas, gols, assistencias, vitorias` (vitória = pertencia ao time vencedor da partida — join com `partida_placar`). Fonte única para a tela de Perfil.
@@ -63,10 +63,10 @@ Tasks derivadas do `PLANO.md`. Divididas pelas 8 etapas do plano. Marque `- [x]`
 - [ ] **3.2** Seletor de 16 jogadores ativos (checkboxes ou pick multi), validar que exatamente 16
 - [ ] **3.3** Distribuição em times: 8 no Preto (a) e 8 no Branco (b), com edição manual da alocação
 - [ ] **3.4** Atribuição de `posicao` (gk/def/mid/fwd) por participante
-- [ ] **3.5** Lançamento de `gols` e `assistencias` (int) por participante
+- [ ] **3.5** Lançamento de `gols`, `assistencias` e `gols_contra` (int) por participante
 - [ ] **3.6** Botão "Salvar rascunho" → chama RPC `criar_partida` (transacional) com `criado_por` = id do admin logado, status inicial `draft`, e os 16 participantes no payload jsonb. Validar atomicidade (tudo ou nada).
 - [ ] **3.7** Botão "Publicar" → seta `status='published'` e `voting_closes_at = now()+24h`
-- [ ] **3.8** Implementar `src/routes/PartidaEditar.tsx`: carrega partida+participantes, permite editar times/gols/assists apenas se `status='published'`
+- [ ] **3.8** Implementar `src/routes/PartidaEditar.tsx`: carrega partida+participantes, permite editar times/gols/assists/gols contra apenas se `status='published'`
 - [ ] **3.9** Bloquear UI de criar/editar para não-admins (ocultar entradas de navegação + redirect na rota)
 - [ ] **3.10** Adicionar entradas de navegação para `Nova`/`Editar` só visíveis se `is_admin`
 

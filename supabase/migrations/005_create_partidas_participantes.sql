@@ -14,6 +14,7 @@ CREATE TABLE partidas_participantes (
   posicao       text    NOT NULL CHECK (posicao IN ('gk','def','mid','fwd')),
   gols          integer NOT NULL DEFAULT 0 CHECK (gols >= 0),
   assistencias  integer NOT NULL DEFAULT 0 CHECK (assistencias >= 0),
+  gols_contra   integer NOT NULL DEFAULT 0 CHECK (gols_contra >= 0),
   PRIMARY KEY (partida_id, jogador_id)
 );
 
