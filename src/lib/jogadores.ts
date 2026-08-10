@@ -17,7 +17,9 @@ export async function listarUsernames(): Promise<string[]> {
     .order("username");
 
   if (error) throw error;
-  return (data ?? []).map((jogador) => jogador.username);
+  return (data ?? [])
+    .map((jogador) => jogador.username)
+    .filter((username) => !/^random[1-6]$/.test(username));
 }
 
 export async function listarJogadoresAtivos(): Promise<JogadorLista[]> {
