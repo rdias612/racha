@@ -13,7 +13,17 @@ CREATE TABLE jogadores (
   posicao     text        NOT NULL CHECK (posicao IN ('goleiro','zagueiro','lateral','meia','atacante')),
   is_admin    boolean     NOT NULL DEFAULT false,
   is_ativo    boolean     NOT NULL DEFAULT true,
+  is_mensalista boolean   NOT NULL DEFAULT false,
   created_at  timestamptz NOT NULL DEFAULT now()
+);
+
+-- Marca os 12 mensalistas (vaga garantida quando participam).
+-- Equivalente a migration 034_marcar_mensalistas.sql.
+UPDATE public.jogadores
+SET is_mensalista = true
+WHERE username IN (
+  'dico', 'natal', 'hees', 'tadeu', 'thiagao', 'ed',
+  'jp', 'gualberto', 'danilo', 'fil', 'victor', 'hugo'
 );
 -- 002_enable_pgcrypto.sql
 -- Mantido para compatibilidade com bancos existentes. Nao e usado pelas senhas.
@@ -35,12 +45,13 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 CREATE OR REPLACE FUNCTION fazer_login(p_username text, p_senha text)
 RETURNS TABLE (
-  id        bigint,
-  username  text,
-  nome      text,
-  posicao   text,
-  is_admin  boolean,
-  is_ativo  boolean
+  id             bigint,
+  username       text,
+  nome           text,
+  posicao        text,
+  is_admin       boolean,
+  is_ativo       boolean,
+  is_mensalista  boolean
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -71,7 +82,8 @@ BEGIN
     v_jogador.nome,
     v_jogador.posicao,
     v_jogador.is_admin,
-    v_jogador.is_ativo;
+    v_jogador.is_ativo,
+    v_jogador.is_mensalista;
 END;
 $$;
 

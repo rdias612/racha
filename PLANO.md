@@ -29,7 +29,7 @@
 - `username` text unique
 - `senha_hash` text ← senha exata definida pelo jogador (default `"123"`)
 - `nome` text, `posicao` (`gk|def|mid|fwd`)
-- `is_admin` bool, `is_ativo` bool, `created_at` timestamptz
+- `is_admin` bool, `is_ativo` bool, `is_mensalista` bool, `created_at` timestamptz
 - **Sem avatar.** Exibição é sempre o nome como texto.
 
 ### `partidas`
