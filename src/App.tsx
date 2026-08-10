@@ -1,15 +1,15 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
-import { SessaoProvider } from './context/SessaoContext'
-import { Layout } from './routes/Layout'
-import { Login } from './routes/Login'
-import { Jogos } from './routes/Jogos'
-import { Ranking } from './routes/Ranking'
-import { Perfil } from './routes/Perfil'
-import { PartidaNova } from './routes/PartidaNova'
-import { PartidaDetalhe } from './routes/PartidaDetalhe'
-import { PartidaEditar } from './routes/PartidaEditar'
-import { PartidaVotar } from './routes/PartidaVotar'
-import { NovoJogador } from './routes/NovoJogador'
+import { Routes, Route, Navigate } from "react-router-dom";
+import { SessaoProvider } from "./context/SessaoContext";
+import { Layout } from "./routes/Layout";
+import { Login } from "./routes/Login";
+import { Jogos } from "./routes/Jogos";
+import { Ranking } from "./routes/Ranking";
+import { Perfil } from "./routes/Perfil";
+import { PartidaNova } from "./routes/PartidaNova";
+import { PartidaDetalhe } from "./routes/PartidaDetalhe";
+import { PartidaEditar } from "./routes/PartidaEditar";
+import { PartidaVotar } from "./routes/PartidaVotar";
+import { NovoJogador } from "./routes/NovoJogador";
 
 export function App() {
   return (
@@ -18,7 +18,10 @@ export function App() {
         <Route path="/login" element={<Login />} />
         <Route element={<Layout />}>
           <Route path="/" element={<Jogos />} />
-          <Route path="/ranking" element={<Navigate to="/ranking/gols" replace />} />
+          <Route
+            path="/ranking"
+            element={<Navigate to="/ranking/gols" replace />}
+          />
           <Route path="/ranking/:metrica" element={<Ranking />} />
           <Route path="/perfil" element={<Perfil />} />
           <Route path="/partida/nova" element={<PartidaNova />} />
@@ -30,5 +33,5 @@ export function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </SessaoProvider>
-  )
+  );
 }

@@ -1,78 +1,83 @@
-import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { supabase } from "../lib/supabase";
 
-type Metrica = 'gols' | 'assistencias' | 'gols-contra'
+type Metrica = "gols" | "assistencias" | "gols-contra";
 
-const metricas: Record<Metrica, { titulo: string; coluna: string; campo: keyof LinhaRanking }> = {
-  gols: { titulo: 'Ranking de gols', coluna: 'Gols', campo: 'gols' },
+const metricas: Record<
+  Metrica,
+  { titulo: string; coluna: string; campo: keyof LinhaRanking }
+> = {
+  gols: { titulo: "Ranking de gols", coluna: "Gols", campo: "gols" },
   assistencias: {
-    titulo: 'Ranking de assistências',
-    coluna: 'Assistências',
-    campo: 'assistencias',
+    titulo: "Ranking de assistências",
+    coluna: "Assistências",
+    campo: "assistencias",
   },
-  'gols-contra': {
-    titulo: 'Ranking de gols contra',
-    coluna: 'Gols contra',
-    campo: 'gols_contra',
+  "gols-contra": {
+    titulo: "Ranking de gols contra",
+    coluna: "Gols contra",
+    campo: "gols_contra",
   },
-}
+};
 
 interface LinhaRanking {
-  jogador_id: number
-  nome: string
-  pontos: number
-  vitorias: number
-  empates: number
-  derrotas: number
-  partidas: number
-  gols: number
-  assistencias: number
-  gols_contra: number
+  jogador_id: number;
+  nome: string;
+  pontos: number;
+  vitorias: number;
+  empates: number;
+  derrotas: number;
+  partidas: number;
+  gols: number;
+  assistencias: number;
+  gols_contra: number;
 }
 
 export function Ranking() {
-  const { metrica: parametro } = useParams<{ metrica: Metrica }>()
-  const metrica: Metrica = parametro && parametro in metricas ? parametro : 'gols'
-  const configuracao = metricas[metrica]
-  const [linhas, setLinhas] = useState<LinhaRanking[]>([])
-  const [carregando, setCarregando] = useState(true)
-  const [erro, setErro] = useState<string | null>(null)
+  const { metrica: parametro } = useParams<{ metrica: Metrica }>();
+  const metrica: Metrica =
+    parametro && parametro in metricas ? parametro : "gols";
+  const configuracao = metricas[metrica];
+  const [linhas, setLinhas] = useState<LinhaRanking[]>([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState<string | null>(null);
 
   useEffect(() => {
     async function carregar() {
-      // A ordenação de desempate (5 níveis) é feita aqui, pois views não
-      // garantem ordem: pontos, vitórias, partidas, gols, assists, nome.
       const { data, error } = await supabase
-        .from('ranking')
+        .from("ranking")
         .select(
-          'jogador_id, nome, pontos, vitorias, empates, derrotas, partidas, gols, assistencias, gols_contra',
+          "jogador_id, nome, pontos, vitorias, empates, derrotas, partidas, gols, assistencias, gols_contra",
         )
-        .order('pontos', { ascending: false })
-        .order('vitorias', { ascending: false })
-        .order('partidas', { ascending: false })
-        .order('gols', { ascending: false })
-        .order('assistencias', { ascending: false })
-        .order('nome', { ascending: true })
+        .order("pontos", { ascending: false })
+        .order("vitorias", { ascending: false })
+        .order("partidas", { ascending: false })
+        .order("gols", { ascending: false })
+        .order("assistencias", { ascending: false })
+        .order("nome", { ascending: true });
 
       if (error) {
-        setErro(error.message)
+        setErro(error.message);
       } else {
-        setLinhas(data ?? [])
+        setLinhas(data ?? []);
       }
-      setCarregando(false)
+      setCarregando(false);
     }
-    carregar()
-  }, [])
+    carregar();
+  }, []);
 
   if (carregando)
-    return <div className="p-4 text-sm text-neutral-500">Carregando ranking…</div>
-  if (erro) return <div className="p-4 text-sm text-red-600">{erro}</div>
+    return (
+      <div className="p-4 text-sm text-neutral-500">Carregando ranking…</div>
+    );
+  if (erro) return <div className="p-4 text-sm text-red-600">{erro}</div>;
 
   const linhasOrdenadas = [...linhas].sort((a, b) => {
-    const diferenca = Number(b[configuracao.campo]) - Number(a[configuracao.campo])
-    return diferenca || a.nome.localeCompare(b.nome)
-  })
+    const diferenca =
+      Number(b[configuracao.campo]) - Number(a[configuracao.campo]);
+    return diferenca || a.nome.localeCompare(b.nome);
+  });
 
   return (
     <div className="p-4 pb-20 max-w-2xl mx-auto">
@@ -92,23 +97,25 @@ export function Ranking() {
               <tr>
                 <th className="px-2 py-2 text-left font-medium w-8">#</th>
                 <th className="px-2 py-2 text-left font-medium">Nome</th>
-                <th className="px-2 py-2 text-right font-medium">{configuracao.coluna}</th>
+                <th className="px-2 py-2 text-right font-medium">
+                  {configuracao.coluna}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
               {linhasOrdenadas.map((l, i) => {
-                const primeiro = i === 0
+                const primeiro = i === 0;
                 return (
                   <tr
                     key={l.jogador_id}
                     className={
                       primeiro
-                        ? 'bg-[var(--cor-destaque)]/10'
-                        : 'bg-white dark:bg-neutral-950'
+                        ? "bg-(--cor-destaque)/10"
+                        : "bg-white dark:bg-neutral-950"
                     }
                   >
                     <td className="px-2 py-2 text-neutral-500 dark:text-neutral-400">
-                      {primeiro ? '🏆' : i + 1}
+                      {primeiro ? "🏆" : i + 1}
                     </td>
                     <td className="px-2 py-2 font-medium text-neutral-900 dark:text-neutral-100">
                       {l.nome}
@@ -117,7 +124,7 @@ export function Ranking() {
                       {l[configuracao.campo]}
                     </td>
                   </tr>
-                )
+                );
               })}
             </tbody>
           </table>
@@ -125,11 +132,9 @@ export function Ranking() {
       )}
 
       <p className="mt-3 text-[11px] text-neutral-400 dark:text-neutral-500">
-        Pts = pontos (3 vitória, 1 empate) · V = vitórias · J = jogos · G = gols ·
-        A = assistências · GC = gols contra.
-        <br />
-        Desempate: pts → vitórias → jogos → gols → assistências → nome.
+        Ordenação: {configuracao.coluna.toLowerCase()} do maior para o menor,
+        com desempate alfabético.
       </p>
     </div>
-  )
+  );
 }

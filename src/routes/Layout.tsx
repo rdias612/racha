@@ -1,28 +1,28 @@
-import { NavLink, Outlet, useNavigate, Navigate, Link } from 'react-router-dom'
-import { useSessao } from '../context/SessaoContext'
-import { useTema } from '../lib/tema'
-import { BannerLembrete } from '../components/BannerLembrete'
+import { NavLink, Outlet, useNavigate, Navigate, Link } from "react-router-dom";
+import { useSessao } from "../context/SessaoContext";
+import { useTema } from "../lib/tema";
+import { BannerLembrete } from "../components/BannerLembrete";
 
 function itemClasse({ isActive }: { isActive: boolean }) {
   return `flex items-center gap-2 rounded px-3 py-2 text-sm ${
     isActive
-      ? 'text-[var(--cor-destaque)]'
-      : 'text-neutral-500 dark:text-neutral-400'
-  }`
+      ? "text-[var(--cor-destaque)]"
+      : "text-neutral-500 dark:text-neutral-400"
+  }`;
 }
 
 export function Layout() {
-  const { jogador, logout } = useSessao()
-  const { tema, alternar } = useTema()
-  const navigate = useNavigate()
+  const { jogador, logout } = useSessao();
+  const { tema, alternar } = useTema();
+  const navigate = useNavigate();
 
   if (!jogador) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/login" replace />;
   }
 
   function fazerLogout() {
-    logout()
-    navigate('/login', { replace: true })
+    logout();
+    navigate("/login", { replace: true });
   }
 
   return (
@@ -44,7 +44,7 @@ export function Layout() {
             onClick={alternar}
             className="text-xs px-2 py-1 rounded border border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300"
           >
-            {tema === 'dark' ? '☀️' : '🌙'}
+            {tema === "dark" ? "☀️" : "🌙"}
           </button>
           <button
             onClick={fazerLogout}
@@ -91,5 +91,5 @@ export function Layout() {
         </main>
       </div>
     </div>
-  )
+  );
 }
