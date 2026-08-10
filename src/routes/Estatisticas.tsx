@@ -26,15 +26,51 @@ interface Parceria {
   percentual: number | null;
 }
 
+// Item do dropdown de jogadores
+interface JogadorOpcao {
+  id: number;
+  nome: string;
+  username: string;
+}
+
 export function Estatisticas() {
   const { jogador } = useSessao();
+  const [jogadores, setJogadores] = useState<JogadorOpcao[]>([]);
+  const [jogadorSelecionadoId, setJogadorSelecionadoId] = useState<
+    number | null
+  >(null);
   const [stats, setStats] = useState<Stats | null>(null);
   const [parcerias, setParcerias] = useState<Parceria[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
+  // Carrega lista de jogadores ativos uma vez, filtrando os "random".
   useEffect(() => {
     if (!jogador) return;
+    supabase
+      .from("jogadores")
+      .select("id, nome, username")
+      .eq("is_ativo", true)
+      .order("nome")
+      .then(({ data, error }) => {
+        if (error || !data) return;
+        const filtrados = data.filter(
+          (j) => !/^random[1-6]$/.test(j.username),
+        );
+        setJogadores(filtrados);
+        // default: o proprio jogador logado
+        if (jogadorSelecionadoId === null) {
+          setJogadorSelecionadoId(jogador.id);
+        }
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jogador?.id]);
+
+  // Busca as estatisticas do jogador selecionado.
+  useEffect(() => {
+    if (!jogadorSelecionadoId) return;
+    setCarregando(true);
+    setErro(null);
 
     // busca paralela: stats básicas + parcerias
     Promise.all([
@@ -43,10 +79,10 @@ export function Estatisticas() {
         .select(
           "jogador_id, partidas, gols, assistencias, gols_contra, vitorias",
         )
-        .eq("jogador_id", jogador.id)
+        .eq("jogador_id", jogadorSelecionadoId)
         .maybeSingle(),
       supabase.rpc("parcerias_jogador", {
-        p_jogador_id: jogador.id,
+        p_jogador_id: jogadorSelecionadoId,
         p_min_partidas: 5,
       }),
     ]).then(([resStats, resParc]) => {
@@ -64,7 +100,7 @@ export function Estatisticas() {
       setParcerias(resParc.data ?? []);
       setCarregando(false);
     });
-  }, [jogador?.id]);
+  }, [jogadorSelecionadoId]);
 
   if (!jogador) return null;
   if (carregando) return <Carregando>Carregando estatísticas</Carregando>;
@@ -84,11 +120,37 @@ export function Estatisticas() {
 
   const semParcerias = companheiros.length === 0 && adversarios.length === 0;
 
+  const nomeSelecionado =
+    jogadores.find((j) => j.id === jogadorSelecionadoId)?.nome ?? null;
+
   return (
     <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-5">
       <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-        Estatísticas
+        Estatísticas{nomeSelecionado ? ` · ${nomeSelecionado}` : ""}
       </h2>
+
+      {/* Dropdown de jogador */}
+      <div>
+        <label
+          htmlFor="select-jogador-stats"
+          className="block text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400 mb-1"
+        >
+          Ver estatísticas de
+        </label>
+        <select
+          id="select-jogador-stats"
+          value={jogadorSelecionadoId ?? ""}
+          onChange={(e) => setJogadorSelecionadoId(Number(e.target.value))}
+          className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
+        >
+          {jogadores.map((j) => (
+            <option key={j.id} value={j.id}>
+              {j.nome}
+              {j.id === jogador?.id ? " (eu)" : ""}
+            </option>
+          ))}
+        </select>
+      </div>
 
       {/* Estatísticas básicas (duplicado do Perfil) */}
       <section>
