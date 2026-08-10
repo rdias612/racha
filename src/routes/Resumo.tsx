@@ -21,6 +21,12 @@ interface ResumoAno {
   eficiente_vitorias: number | null;
   eficiente_partidas: number | null;
   eficiente_percentual: number | null;
+  sequencia_vitorias_jogador_id: number | null;
+  sequencia_vitorias_nome: string | null;
+  sequencia_vitorias: number | null;
+  seca_vitorias_jogador_id: number | null;
+  seca_vitorias_nome: string | null;
+  seca_vitorias: number | null;
 }
 
 interface DestaqueProps {
@@ -97,6 +103,16 @@ export function Resumo() {
       valor: `${Math.round((resumo.eficiente_percentual ?? 0) * 100)}% de vitórias`,
       detalhe: `${resumo.eficiente_vitorias ?? 0} vitórias em ${resumo.eficiente_partidas ?? 0} partidas`,
     },
+    {
+      titulo: "Maior sequência de vitórias",
+      nome: resumo.sequencia_vitorias_nome,
+      valor: `${resumo.sequencia_vitorias ?? 0} vitórias seguidas`,
+    },
+    {
+      titulo: "Maior seca de vitórias",
+      nome: resumo.seca_vitorias_nome,
+      valor: `${resumo.seca_vitorias ?? 0} partidas sem vencer`,
+    },
   ];
 
   return (
@@ -115,7 +131,7 @@ export function Resumo() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {destaques.map((destaque) => (
           <Destaque key={destaque.titulo} {...destaque} />
         ))}
