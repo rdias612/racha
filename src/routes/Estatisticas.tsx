@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { NavLink } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useSessao } from "../context/SessaoContext";
 import { Carregando, MensagemEstado } from "../components/Estado";
@@ -128,6 +129,33 @@ export function Estatisticas() {
       <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
         Estatísticas{nomeSelecionado ? ` · ${nomeSelecionado}` : ""}
       </h2>
+
+      <div className="flex gap-1 overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 p-1">
+        <NavLink
+          to="/estatisticas/jogador"
+          className={({ isActive }) =>
+            `flex-1 min-w-max rounded-md px-3 py-1.5 text-center text-xs font-medium whitespace-nowrap ${
+              isActive
+                ? "bg-(--cor-destaque) text-white"
+                : "text-neutral-600 dark:text-neutral-400"
+            }`
+          }
+        >
+          Jogador
+        </NavLink>
+        <NavLink
+          to="/estatisticas/racha"
+          className={({ isActive }) =>
+            `flex-1 min-w-max rounded-md px-3 py-1.5 text-center text-xs font-medium whitespace-nowrap ${
+              isActive
+                ? "bg-(--cor-destaque) text-white"
+                : "text-neutral-600 dark:text-neutral-400"
+            }`
+          }
+        >
+          Racha
+        </NavLink>
+      </div>
 
       {/* Dropdown de jogador */}
       <div>

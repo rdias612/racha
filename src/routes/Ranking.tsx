@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { NavLink, useParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { POSICOES, type PosicaoId } from "../lib/times";
 import { Carregando, MensagemEstado } from "../components/Estado";
@@ -144,16 +144,16 @@ export function Ranking() {
     setDirecaoOrdenacao(coluna === "nome" ? "asc" : "desc");
   }
 
-  const colunasOrdenacao: { key: ColunaOrdenacao; label: string }[] = [
-    { key: "nome", label: "Nome" },
-    { key: configuracao.campo, label: configuracao.coluna },
+  const colunasOrdenacao: { key: ColunaOrdenacao; label: string; abrev: string }[] = [
+    { key: "nome", label: "Nome", abrev: "Nome" },
+    { key: configuracao.campo, label: configuracao.coluna, abrev: configuracao.coluna },
     ...(metrica === "gols"
-      ? [{ key: "media_gols" as const, label: "Média/partida" }]
+      ? [{ key: "media_gols" as const, label: "Média/partida", abrev: "Média" }]
       : []),
-    { key: "percentual_vitorias", label: "% vitórias" },
-    { key: "partidas", label: "Partidas" },
-    { key: "vitorias", label: "Vitórias" },
-    { key: "derrotas", label: "Derrotas" },
+    { key: "percentual_vitorias", label: "% vitórias", abrev: "%vit" },
+    { key: "partidas", label: "Partidas", abrev: "P" },
+    { key: "vitorias", label: "Vitórias", abrev: "V" },
+    { key: "derrotas", label: "Derrotas", abrev: "D" },
   ];
 
   const linhasOrdenadas = [...linhas].sort((a, b) => {
@@ -176,6 +176,57 @@ export function Ranking() {
       <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-3">
         {configuracao.titulo}
       </h2>
+
+      <div className="mb-3 flex gap-1 overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 p-1">
+        <NavLink
+          to="/ranking/pontos"
+          className={({ isActive }) =>
+            `flex-1 min-w-max rounded-md px-3 py-1.5 text-center text-xs font-medium whitespace-nowrap ${
+              isActive
+                ? "bg-(--cor-destaque) text-white"
+                : "text-neutral-600 dark:text-neutral-400"
+            }`
+          }
+        >
+          Pontuação
+        </NavLink>
+        <NavLink
+          to="/ranking/gols"
+          className={({ isActive }) =>
+            `flex-1 min-w-max rounded-md px-3 py-1.5 text-center text-xs font-medium whitespace-nowrap ${
+              isActive
+                ? "bg-(--cor-destaque) text-white"
+                : "text-neutral-600 dark:text-neutral-400"
+            }`
+          }
+        >
+          Gols
+        </NavLink>
+        <NavLink
+          to="/ranking/assistencias"
+          className={({ isActive }) =>
+            `flex-1 min-w-max rounded-md px-3 py-1.5 text-center text-xs font-medium whitespace-nowrap ${
+              isActive
+                ? "bg-(--cor-destaque) text-white"
+                : "text-neutral-600 dark:text-neutral-400"
+            }`
+          }
+        >
+          Assistências
+        </NavLink>
+        <NavLink
+          to="/ranking/gols-contra"
+          className={({ isActive }) =>
+            `flex-1 min-w-max rounded-md px-3 py-1.5 text-center text-xs font-medium whitespace-nowrap ${
+              isActive
+                ? "bg-(--cor-destaque) text-white"
+                : "text-neutral-600 dark:text-neutral-400"
+            }`
+          }
+        >
+          Gols contra
+        </NavLink>
+      </div>
 
       <div className="mb-3">
         <label htmlFor="filtro-posicao" className="sr-only">
@@ -227,10 +278,10 @@ export function Ranking() {
         </p>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-800">
-          <table className="w-full min-w-[42rem] text-sm">
+          <table className="w-full min-w-[30rem] text-sm">
             <thead className="bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400">
               <tr>
-                <th className="px-2 py-2 text-left font-medium w-8">#</th>
+                <th className="px-1.5 py-1.5 text-left font-medium w-8">#</th>
                 {colunasOrdenacao.map((coluna) => {
                   const ativa = colunaOrdenacao === coluna.key;
                   const direcao = ativa ? direcaoOrdenacao : null;
@@ -244,7 +295,7 @@ export function Ranking() {
                             ? "descending"
                             : "none"
                       }
-                      className={`px-2 py-2 font-medium ${
+                      className={`px-1.5 py-1.5 font-medium ${
                         coluna.key === "nome"
                           ? "w-px whitespace-nowrap text-left sm:min-w-48"
                           : "text-right"
@@ -255,7 +306,12 @@ export function Ranking() {
                         onClick={() => selecionarOrdenacao(coluna.key)}
                         className="inline-flex items-center gap-1"
                       >
-                        {coluna.label}
+                        <span className="sm:hidden" aria-hidden="true">
+                          {coluna.abrev}
+                        </span>
+                        <span className="hidden sm:inline">
+                          {coluna.label}
+                        </span>
                         <span aria-hidden="true">
                           {direcao === "asc"
                             ? "↑"
@@ -281,13 +337,13 @@ export function Ranking() {
                         : "bg-white dark:bg-neutral-950"
                     }
                   >
-                    <td className="px-2 py-2 text-neutral-500 dark:text-neutral-400">
+                    <td className="px-1.5 py-1.5 text-neutral-500 dark:text-neutral-400">
                       {primeiro ? "🏆" : i + 1}
                     </td>
                     {colunasOrdenacao.map((coluna) => (
                       <td
                         key={coluna.key}
-                        className={`px-2 py-2 text-neutral-600 dark:text-neutral-400 ${
+                        className={`px-1.5 py-1.5 text-neutral-600 dark:text-neutral-400 ${
                           coluna.key === "nome"
                             ? "whitespace-nowrap"
                             : "text-right"

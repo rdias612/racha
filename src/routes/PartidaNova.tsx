@@ -239,27 +239,41 @@ export function PartidaNova() {
                   .filter((p) => p.time === t)
                   .map((p) => (
                     <div key={p.jogador.id} className="px-3 py-2 space-y-2">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-2">
                         <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
                           {p.jogador.nome}
                         </span>
-                        <select
-                          value={p.posicao}
-                          onChange={(e) =>
-                            atualizar(p.jogador.id, {
-                              posicao: e.target.value as PosicaoId,
-                            })
-                          }
-                          className="text-xs rounded border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1 text-neutral-900 dark:text-neutral-100"
-                        >
-                          {(Object.keys(POSICAO_LABEL) as PosicaoId[]).map(
-                            (pos) => (
-                              <option key={pos} value={pos}>
-                                {POSICAO_LABEL[pos]}
-                              </option>
-                            ),
-                          )}
-                        </select>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              atualizar(p.jogador.id, {
+                                time: p.time === "a" ? "b" : "a",
+                              })
+                            }
+                            aria-label="Trocar time"
+                            className="min-w-[2.75rem] min-h-[2.75rem] inline-flex items-center justify-center text-(--cor-destaque)"
+                          >
+                            ↻
+                          </button>
+                          <select
+                            value={p.posicao}
+                            onChange={(e) =>
+                              atualizar(p.jogador.id, {
+                                posicao: e.target.value as PosicaoId,
+                              })
+                            }
+                            className="text-xs rounded border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1 text-neutral-900 dark:text-neutral-100"
+                          >
+                            {(Object.keys(POSICAO_LABEL) as PosicaoId[]).map(
+                              (pos) => (
+                                <option key={pos} value={pos}>
+                                  {POSICAO_LABEL[pos]}
+                                </option>
+                              ),
+                            )}
+                          </select>
+                        </div>
                       </div>
                       <div className="flex gap-3 text-xs">
                         <label className="flex items-center gap-1">
@@ -276,7 +290,7 @@ export function PartidaNova() {
                                 ),
                               })
                             }
-                            className="w-14 rounded border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1 text-neutral-900 dark:text-neutral-100"
+                            className="w-16 rounded border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1 text-neutral-900 dark:text-neutral-100"
                           />
                         </label>
                         <label className="flex items-center gap-1">
@@ -293,7 +307,7 @@ export function PartidaNova() {
                                 ),
                               })
                             }
-                            className="w-14 rounded border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1 text-neutral-900 dark:text-neutral-100"
+                            className="w-16 rounded border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1 text-neutral-900 dark:text-neutral-100"
                           />
                         </label>
                         <label className="flex items-center gap-1">
@@ -310,19 +324,9 @@ export function PartidaNova() {
                                 ),
                               })
                             }
-                            className="w-14 rounded border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1 text-neutral-900 dark:text-neutral-100"
+                            className="w-16 rounded border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1 text-neutral-900 dark:text-neutral-100"
                           />
                         </label>
-                        <button
-                          onClick={() =>
-                            atualizar(p.jogador.id, {
-                              time: p.time === "a" ? "b" : "a",
-                            })
-                          }
-                          className="ml-auto text-[10px] text-[var(--cor-destaque)] underline"
-                        >
-                          trocar time
-                        </button>
                       </div>
                     </div>
                   ))}
@@ -337,7 +341,7 @@ export function PartidaNova() {
         <MensagemEstado tipo="sucesso">{feedback}</MensagemEstado>
       )}
 
-      <div className="fixed inset-x-0 bottom-0 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-neutral-50/90 dark:bg-neutral-950/90 backdrop-blur border-t border-neutral-200 dark:border-neutral-800">
+      <div className="fixed inset-x-0 bottom-16 z-40 p-3 pb-3 bg-neutral-50/90 dark:bg-neutral-950/90 backdrop-blur border-t border-neutral-200 dark:border-neutral-800">
         <div className="max-w-2xl mx-auto">
           <button
             onClick={salvarComoDraft}

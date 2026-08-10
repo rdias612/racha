@@ -215,7 +215,7 @@ export function PartidaVotar() {
       {erro && <MensagemEstado>{erro}</MensagemEstado>}
       {feedback && <MensagemEstado tipo="sucesso">{feedback}</MensagemEstado>}
 
-      <div className="fixed inset-x-0 bottom-0 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-neutral-50/90 dark:bg-neutral-950/90 backdrop-blur border-t border-neutral-200 dark:border-neutral-800">
+      <div className="fixed inset-x-0 bottom-16 z-40 p-3 pb-3 bg-neutral-50/90 dark:bg-neutral-950/90 backdrop-blur border-t border-neutral-200 dark:border-neutral-800">
         <div className="max-w-2xl mx-auto">
           <button
             onClick={enviar}
