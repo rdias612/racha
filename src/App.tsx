@@ -4,6 +4,8 @@ import { Layout } from "./routes/Layout";
 import { Login } from "./routes/Login";
 import { Ranking } from "./routes/Ranking";
 import { Perfil } from "./routes/Perfil";
+import { Resumo } from "./routes/Resumo";
+import { Jogos } from "./routes/Jogos";
 import { PartidaNova } from "./routes/PartidaNova";
 import { PartidaDetalhe } from "./routes/PartidaDetalhe";
 import { PartidaEditar } from "./routes/PartidaEditar";
@@ -16,7 +18,8 @@ export function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route element={<Layout />}>
-          <Route path="/" element={<Perfil />} />
+          <Route path="/" element={<Resumo />} />
+          <Route path="/jogos" element={<Jogos />} />
           <Route
             path="/ranking"
             element={<Navigate to="/ranking/pontos" replace />}

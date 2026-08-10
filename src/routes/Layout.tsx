@@ -72,11 +72,11 @@ export function Layout() {
           className="mt-3 border-t border-neutral-200 pt-2 dark:border-neutral-800"
         >
           <div className="flex gap-1 overflow-x-auto">
-            <NavLink to="/perfil" className={itemClasse}>
+            <NavLink to="/" end className={itemClasse}>
               <span className="text-lg">👤</span>
               Resumo
             </NavLink>
-            <NavLink to="/" end className={itemClasse}>
+            <NavLink to="/jogos" className={itemClasse}>
               <span className="text-lg">⚽</span>
               Jogos
             </NavLink>
@@ -91,12 +91,21 @@ export function Layout() {
               Rankings
               <span aria-hidden="true">{rankingAberto ? "▴" : "▾"}</span>
             </button>
+            <NavLink
+              to="/perfil"
+              className={({ isActive }) =>
+                `${itemClasse({ isActive })} ml-auto`
+              }
+            >
+              <span className="text-lg">👤</span>
+              Perfil
+            </NavLink>
           </div>
 
           {rankingAberto && (
             <div
               id="submodulos-ranking"
-              className="mt-1 flex gap-1 overflow-x-auto border-l-2 border-[var(--cor-destaque)] pl-1"
+              className="mt-1 flex gap-1 overflow-x-auto border-l-2 border-l-(--cor-destaque) pl-1"
             >
               <NavLink to="/ranking/pontos" className={itemClasse}>
                 Pontuação
