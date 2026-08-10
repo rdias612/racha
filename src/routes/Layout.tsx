@@ -67,6 +67,10 @@ export function Layout() {
             <div className="pt-3 pb-1 px-3 text-xs font-semibold uppercase tracking-wide text-neutral-400 dark:text-neutral-500">
               Ranking
             </div>
+            <NavLink to="/ranking/pontos" className={itemClasse}>
+              <span>🏆</span>
+              Pontuação
+            </NavLink>
             <NavLink to="/ranking/gols" className={itemClasse}>
               <span>⚽</span>
               Gols

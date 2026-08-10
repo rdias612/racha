@@ -20,7 +20,7 @@ export function App() {
           <Route path="/" element={<Jogos />} />
           <Route
             path="/ranking"
-            element={<Navigate to="/ranking/gols" replace />}
+            element={<Navigate to="/ranking/pontos" replace />}
           />
           <Route path="/ranking/:metrica" element={<Ranking />} />
           <Route path="/perfil" element={<Perfil />} />

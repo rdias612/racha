@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 
-type Metrica = "gols" | "assistencias" | "gols-contra";
+type Metrica = "pontos" | "gols" | "assistencias" | "gols-contra";
 
 const metricas: Record<
   Metrica,
   { titulo: string; coluna: string; campo: keyof LinhaRanking }
 > = {
+  pontos: { titulo: "Ranking de pontuação", coluna: "Pontos", campo: "pontos" },
   gols: { titulo: "Ranking de gols", coluna: "Gols", campo: "gols" },
   assistencias: {
     titulo: "Ranking de assistências",
@@ -37,7 +38,7 @@ interface LinhaRanking {
 export function Ranking() {
   const { metrica: parametro } = useParams<{ metrica: Metrica }>();
   const metrica: Metrica =
-    parametro && parametro in metricas ? parametro : "gols";
+    parametro && parametro in metricas ? parametro : "pontos";
   const configuracao = metricas[metrica];
   const [linhas, setLinhas] = useState<LinhaRanking[]>([]);
   const [carregando, setCarregando] = useState(true);
