@@ -69,6 +69,7 @@ export function Ranking() {
   const [posicaoFiltro, setPosicaoFiltro] = useState<PosicaoId | "todas">(
     "todas",
   );
+  const [minimoPartidas, setMinimoPartidas] = useState(6);
 
   useEffect(() => {
     setPosicaoFiltro("todas");
@@ -108,6 +109,15 @@ export function Ranking() {
     setColunaOrdenacao(configuracao.campo);
     setDirecaoOrdenacao("desc");
   }, [configuracao.campo]);
+
+  const maximoPartidas = Math.max(
+    6,
+    ...linhas.map((linha) => linha.partidas),
+  );
+
+  useEffect(() => {
+    setMinimoPartidas((minimo) => Math.min(minimo, maximoPartidas));
+  }, [maximoPartidas]);
 
   if (carregando) return <Carregando>Carregando ranking</Carregando>;
   if (erro)
@@ -160,6 +170,10 @@ export function Ranking() {
     return (Number(valorA) - Number(valorB)) * fator;
   });
 
+  const linhasFiltradas = linhasOrdenadas.filter(
+    (linha) => linha.partidas >= minimoPartidas,
+  );
+
   return (
     <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto">
       <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-3">
@@ -187,11 +201,31 @@ export function Ranking() {
               </option>
             ))}
         </select>
-      </div>
 
+          <div className="mb-4">
+            <label
+              htmlFor="filtro-minimo-partidas"
+              className="flex items-center justify-between text-sm text-neutral-700 dark:text-neutral-300"
+            >
+              <span>Mínimo de partidas</span>
+              <strong>{minimoPartidas}</strong>
+            </label>
+            <input
+              id="filtro-minimo-partidas"
+              type="range"
+              min="1"
+              max={maximoPartidas}
+              value={minimoPartidas}
+              onChange={(e) => setMinimoPartidas(Number(e.target.value))}
+              className="w-full accent-(--cor-destaque)"
+            />
+          </div>
+      </div>
+          {linhasFiltradas.length === 0 ? (
       {linhasOrdenadas.length === 0 ? (
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          Nenhuma partida publicada ainda. O ranking aparece quando houver
+              {linhas.length === 0
+                ? "Nenhuma partida publicada ainda. O ranking aparece quando houver partidas."
+                : "Nenhum jogador atende ao mínimo de partidas selecionado."}
           partidas.
         </p>
       ) : (
@@ -239,7 +273,7 @@ export function Ranking() {
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
-              {linhasOrdenadas.map((l, i) => {
+              {linhasFiltradas.map((l, i) => {
                 const primeiro = i === 0;
                 return (
                   <tr
