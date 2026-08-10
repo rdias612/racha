@@ -9,11 +9,17 @@ type CampoMetrica = "pontos" | "gols" | "assistencias" | "gols_contra";
 type ColunaOrdenacao =
   | "nome"
   | CampoMetrica
+  | "media_gols"
   | "percentual_vitorias"
   | "partidas"
   | "vitorias"
   | "derrotas";
 type DirecaoOrdenacao = "asc" | "desc";
+
+const numero2casas = new Intl.NumberFormat("pt-BR", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
 
 const metricas: Record<
   Metrica,
@@ -113,6 +119,9 @@ export function Ranking() {
 
   function valorOrdenacao(linha: LinhaRanking, coluna: ColunaOrdenacao) {
     if (coluna === "nome") return linha.nome;
+    if (coluna === "media_gols") {
+      return linha.partidas > 0 ? linha.gols / linha.partidas : 0;
+    }
     if (coluna === "percentual_vitorias") {
       return linha.partidas > 0 ? linha.vitorias / linha.partidas : 0;
     }
@@ -131,6 +140,9 @@ export function Ranking() {
   const colunasOrdenacao: { key: ColunaOrdenacao; label: string }[] = [
     { key: "nome", label: "Nome" },
     { key: configuracao.campo, label: configuracao.coluna },
+    ...(metrica === "gols"
+      ? [{ key: "media_gols" as const, label: "Média/partida" }]
+      : []),
     { key: "percentual_vitorias", label: "% vitórias" },
     { key: "partidas", label: "Partidas" },
     { key: "vitorias", label: "Vitórias" },
@@ -252,11 +264,15 @@ export function Ranking() {
                       >
                         {coluna.key === "nome"
                           ? l.nome
-                          : coluna.key === "percentual_vitorias"
-                            ? `${Math.round(
-                                Number(valorOrdenacao(l, coluna.key)) * 100,
-                              )}%`
-                            : l[coluna.key]}
+                          : coluna.key === "media_gols"
+                            ? numero2casas.format(
+                                Number(valorOrdenacao(l, coluna.key)),
+                              )
+                            : coluna.key === "percentual_vitorias"
+                              ? `${Math.round(
+                                  Number(valorOrdenacao(l, coluna.key)) * 100,
+                                )}%`
+                              : l[coluna.key as keyof LinhaRanking]}
                       </td>
                     ))}
                   </tr>
