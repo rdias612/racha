@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import { POSICOES, type PosicaoId } from "../lib/times";
 import { Carregando, MensagemEstado } from "../components/Estado";
 
 type Metrica = "pontos" | "gols" | "assistencias" | "gols-contra";
@@ -35,6 +36,7 @@ const metricas: Record<
 interface LinhaRanking {
   jogador_id: number;
   nome: string;
+  posicao: PosicaoId;
   pontos: number;
   vitorias: number;
   empates: number;
@@ -58,13 +60,20 @@ export function Ranking() {
   );
   const [direcaoOrdenacao, setDirecaoOrdenacao] =
     useState<DirecaoOrdenacao>("desc");
+  const [posicaoFiltro, setPosicaoFiltro] = useState<PosicaoId | "todas">(
+    "todas",
+  );
+
+  useEffect(() => {
+    setPosicaoFiltro("todas");
+  }, [metrica]);
 
   useEffect(() => {
     async function carregar() {
-      const { data, error } = await supabase
+      let query = supabase
         .from("ranking")
         .select(
-          "jogador_id, nome, pontos, vitorias, empates, derrotas, partidas, gols, assistencias, gols_contra",
+          "jogador_id, nome, posicao, pontos, vitorias, empates, derrotas, partidas, gols, assistencias, gols_contra",
         )
         .order("pontos", { ascending: false })
         .order("vitorias", { ascending: false })
@@ -72,6 +81,12 @@ export function Ranking() {
         .order("gols", { ascending: false })
         .order("assistencias", { ascending: false })
         .order("nome", { ascending: true });
+
+      if (posicaoFiltro !== "todas") {
+        query = query.eq("posicao", posicaoFiltro);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         setErro(error.message);
@@ -81,7 +96,7 @@ export function Ranking() {
       setCarregando(false);
     }
     carregar();
-  }, []);
+  }, [posicaoFiltro]);
 
   useEffect(() => {
     setColunaOrdenacao(configuracao.campo);
@@ -138,6 +153,29 @@ export function Ranking() {
       <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-3">
         {configuracao.titulo}
       </h2>
+
+      <div className="mb-3">
+        <label htmlFor="filtro-posicao" className="sr-only">
+          Filtrar por posição
+        </label>
+        <select
+          id="filtro-posicao"
+          value={posicaoFiltro}
+          onChange={(e) =>
+            setPosicaoFiltro(e.target.value as PosicaoId | "todas")
+          }
+          className="rounded-md border border-neutral-300 bg-white px-2 py-1 text-sm text-neutral-700 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200"
+        >
+          <option value="todas">Todas as posições</option>
+          {Object.entries(POSICOES)
+            .filter(([chave]) => chave !== "random")
+            .map(([chave, rotulo]) => (
+              <option key={chave} value={chave}>
+                {rotulo}
+              </option>
+            ))}
+        </select>
+      </div>
 
       {linhasOrdenadas.length === 0 ? (
         <p className="text-sm text-neutral-500 dark:text-neutral-400">
