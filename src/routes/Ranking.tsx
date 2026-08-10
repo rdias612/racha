@@ -92,18 +92,21 @@ export function Ranking() {
           partidas.
         </p>
       ) : (
-        <div className="overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-800">
+          <table className="w-full min-w-[42rem] text-sm">
             <thead className="bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400">
               <tr>
                 <th className="px-2 py-2 text-left font-medium w-8">#</th>
-                <th className="px-2 py-2 text-left font-medium">Nome</th>
+                <th className="min-w-48 px-2 py-2 text-left font-medium">
+                  Nome
+                </th>
                 <th className="px-2 py-2 text-right font-medium">
                   {configuracao.coluna}
                 </th>
                 <th className="px-2 py-2 text-right font-medium">% vitórias</th>
                 <th className="px-2 py-2 text-right font-medium">Partidas</th>
                 <th className="px-2 py-2 text-right font-medium">Vitórias</th>
+                <th className="px-2 py-2 text-right font-medium">Derrotas</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
@@ -121,7 +124,7 @@ export function Ranking() {
                     <td className="px-2 py-2 text-neutral-500 dark:text-neutral-400">
                       {primeiro ? "🏆" : i + 1}
                     </td>
-                    <td className="px-2 py-2 font-medium text-neutral-900 dark:text-neutral-100">
+                    <td className="whitespace-nowrap px-2 py-2 font-medium text-neutral-900 dark:text-neutral-100">
                       {l.nome}
                     </td>
                     <td className="px-2 py-2 text-right text-neutral-600 dark:text-neutral-400">
@@ -137,6 +140,9 @@ export function Ranking() {
                     </td>
                     <td className="px-2 py-2 text-right text-neutral-600 dark:text-neutral-400">
                       {l.vitorias}
+                    </td>
+                    <td className="px-2 py-2 text-right text-neutral-600 dark:text-neutral-400">
+                      {l.derrotas}
                     </td>
                   </tr>
                 );

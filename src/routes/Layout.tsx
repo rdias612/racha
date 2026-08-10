@@ -1,4 +1,12 @@
-import { NavLink, Outlet, useNavigate, Navigate, Link } from "react-router-dom";
+import {
+  NavLink,
+  Outlet,
+  useNavigate,
+  Navigate,
+  Link,
+  useLocation,
+} from "react-router-dom";
+import { useState } from "react";
 import { useSessao } from "../context/SessaoContext";
 import { useTema } from "../lib/tema";
 import { BannerLembrete } from "../components/BannerLembrete";
@@ -15,6 +23,9 @@ export function Layout() {
   const { jogador, logout } = useSessao();
   const { tema, alternar } = useTema();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const rankingAtivo = pathname.startsWith("/ranking");
+  const [rankingAberto, setRankingAberto] = useState(rankingAtivo);
 
   if (!jogador) {
     return <Navigate to="/login" replace />;
@@ -58,35 +69,49 @@ export function Layout() {
 
         <nav
           aria-label="Navegação principal"
-          className="mt-3 flex gap-1 overflow-x-auto border-t border-neutral-200 pt-2 dark:border-neutral-800"
+          className="mt-3 border-t border-neutral-200 pt-2 dark:border-neutral-800"
         >
-          <NavLink to="/" end className={itemClasse}>
-            <span className="text-lg">⚽</span>
-            Jogos
-          </NavLink>
-          <span className="flex shrink-0 items-center px-2 text-xs font-semibold uppercase tracking-wide text-neutral-400 dark:text-neutral-500">
-            Ranking
-          </span>
-          <NavLink to="/ranking/pontos" className={itemClasse}>
-            <span>🏆</span>
-            Pontuação
-          </NavLink>
-          <NavLink to="/ranking/gols" className={itemClasse}>
-            <span>⚽</span>
-            Gols
-          </NavLink>
-          <NavLink to="/ranking/assistencias" className={itemClasse}>
-            <span>🅰️</span>
-            Assistências
-          </NavLink>
-          <NavLink to="/ranking/gols-contra" className={itemClasse}>
-            <span>🔄</span>
-            Gols contra
-          </NavLink>
-          <NavLink to="/perfil" className={itemClasse}>
-            <span className="text-lg">👤</span>
-            Perfil
-          </NavLink>
+          <div className="flex gap-1 overflow-x-auto">
+            <NavLink to="/" end className={itemClasse}>
+              <span className="text-lg">⚽</span>
+              Jogos
+            </NavLink>
+            <button
+              type="button"
+              aria-controls="submodulos-ranking"
+              aria-expanded={rankingAberto}
+              onClick={() => setRankingAberto((aberto) => !aberto)}
+              className={itemClasse({ isActive: rankingAtivo })}
+            >
+              <span>🏆</span>
+              Rankings
+              <span aria-hidden="true">{rankingAberto ? "▴" : "▾"}</span>
+            </button>
+            <NavLink to="/perfil" className={itemClasse}>
+              <span className="text-lg">👤</span>
+              Perfil
+            </NavLink>
+          </div>
+
+          {rankingAberto && (
+            <div
+              id="submodulos-ranking"
+              className="mt-1 flex gap-1 overflow-x-auto border-l-2 border-[var(--cor-destaque)] pl-1"
+            >
+              <NavLink to="/ranking/pontos" className={itemClasse}>
+                Pontuação
+              </NavLink>
+              <NavLink to="/ranking/gols" className={itemClasse}>
+                Gols
+              </NavLink>
+              <NavLink to="/ranking/assistencias" className={itemClasse}>
+                Assistências
+              </NavLink>
+              <NavLink to="/ranking/gols-contra" className={itemClasse}>
+                Gols contra
+              </NavLink>
+            </div>
+          )}
         </nav>
       </header>
 
