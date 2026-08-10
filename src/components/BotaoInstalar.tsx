@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useInstalacaoPWA } from "../hooks/useInstalacaoPWA";
+import { useInstalacaoPWA } from "../lib/pwa";
 
 /**
  * Cartão de instalação do PWA.

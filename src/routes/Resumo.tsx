@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Carregando, MensagemEstado } from "../components/Estado";
+import { BotaoInstalar } from "../components/BotaoInstalar";
 import { supabase } from "../lib/supabase";
 
 interface ResumoAno {
@@ -130,6 +131,8 @@ export function Resumo() {
           {resumo.total_partidas} partidas
         </p>
       </div>
+
+      <BotaoInstalar />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {destaques.map((destaque) => (
