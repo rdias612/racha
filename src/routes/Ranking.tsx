@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink, useParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { POSICOES, type PosicaoId } from "../lib/times";
+import { useJogadorLogado } from "../hooks/useJogadorLogado";
 import { Carregando, MensagemEstado } from "../components/Estado";
 
 type Metrica = "pontos" | "gols" | "assistencias" | "gols-contra";
@@ -40,6 +41,18 @@ const metricas: Record<
   },
 };
 
+const rotuloMetricaCurta: Record<CampoMetrica, string> = {
+  pontos: "pts",
+  gols: "gols",
+  assistencias: "assist.",
+  gols_contra: "GC",
+};
+
+interface ColunaTabela {
+  key: ColunaOrdenacao;
+  label: string;
+}
+
 interface LinhaRanking {
   jogador_id: number;
   nome: string;
@@ -55,6 +68,7 @@ interface LinhaRanking {
 }
 
 export function Ranking() {
+  const jogadorLogado = useJogadorLogado();
   const { metrica: parametro } = useParams<{ metrica: Metrica }>();
   const metrica: Metrica =
     parametro && parametro in metricas ? parametro : "pontos";
@@ -145,17 +159,17 @@ export function Ranking() {
     setDirecaoOrdenacao(coluna === "nome" ? "asc" : "desc");
   }
 
-  const colunasOrdenacao: { key: ColunaOrdenacao; label: string; abrev: string }[] = [
-    { key: "nome", label: "Nome", abrev: "Nome" },
-    { key: configuracao.campo, label: configuracao.coluna, abrev: configuracao.coluna },
+  const colunasOrdenacao: ColunaTabela[] = [
+    { key: "nome", label: "Nome" },
+    { key: configuracao.campo, label: configuracao.coluna },
     ...(metrica === "gols"
-      ? [{ key: "media_gols" as const, label: "Média/partida", abrev: "Média" }]
+      ? [{ key: "media_gols" as const, label: "Média/partida" }]
       : []),
-    { key: "percentual_vitorias", label: "% vitórias", abrev: "%vit" },
-    { key: "partidas", label: "Partidas", abrev: "P" },
-    { key: "vitorias", label: "Vitórias", abrev: "V" },
-    { key: "empates", label: "Empates", abrev: "E" },
-    { key: "derrotas", label: "Derrotas", abrev: "D" },
+    { key: "percentual_vitorias", label: "% vitórias" },
+    { key: "partidas", label: "P" },
+    { key: "vitorias", label: "V" },
+    { key: "empates", label: "E" },
+    { key: "derrotas", label: "D" },
   ];
 
   const linhasOrdenadas = [...linhas].sort((a, b) => {
@@ -279,98 +293,201 @@ export function Ranking() {
             : "Nenhum jogador atende ao mínimo de partidas selecionado."}
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-800">
-          <table className="w-full min-w-[30rem] text-sm">
-            <thead className="bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400">
-              <tr>
-                <th className="px-1.5 py-1.5 text-left font-medium w-8">#</th>
-                {colunasOrdenacao.map((coluna) => {
-                  const ativa = colunaOrdenacao === coluna.key;
-                  const direcao = ativa ? direcaoOrdenacao : null;
-                  return (
-                    <th
-                      key={coluna.key}
-                      aria-sort={
-                        direcao === "asc"
-                          ? "ascending"
-                          : direcao === "desc"
-                            ? "descending"
-                            : "none"
-                      }
-                      className={`px-1.5 py-1.5 font-medium ${
-                        coluna.key === "nome"
-                          ? "w-px whitespace-nowrap text-left sm:min-w-48"
-                          : "text-right"
-                      }`}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => selecionarOrdenacao(coluna.key)}
-                        className="inline-flex items-center gap-1"
-                      >
-                        <span className="sm:hidden" aria-hidden="true">
-                          {coluna.abrev}
-                        </span>
-                        <span className="hidden sm:inline">
-                          {coluna.label}
-                        </span>
-                        <span aria-hidden="true">
-                          {direcao === "asc"
-                            ? "↑"
-                            : direcao === "desc"
-                              ? "↓"
-                              : "↕"}
-                        </span>
-                      </button>
-                    </th>
-                  );
-                })}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
-              {linhasFiltradas.map((l, i) => {
-                const primeiro = i === 0;
-                return (
-                  <tr
-                    key={l.jogador_id}
-                    className={
-                      primeiro
-                        ? "bg-(--cor-destaque)/10"
-                        : "bg-white dark:bg-neutral-950"
-                    }
-                  >
-                    <td className="px-1.5 py-1.5 text-neutral-500 dark:text-neutral-400">
-                      {primeiro ? "🏆" : i + 1}
-                    </td>
-                    {colunasOrdenacao.map((coluna) => (
-                      <td
-                        key={coluna.key}
-                        className={`px-1.5 py-1.5 text-neutral-600 dark:text-neutral-400 ${
-                          coluna.key === "nome"
-                            ? "whitespace-nowrap"
-                            : "text-right"
-                        }`}
-                      >
-                        {coluna.key === "nome"
-                          ? l.nome
-                          : coluna.key === "media_gols"
-                            ? numero2casas.format(
-                                Number(valorOrdenacao(l, coluna.key)),
-                              )
-                            : coluna.key === "percentual_vitorias"
-                              ? `${Math.round(
-                                  Number(valorOrdenacao(l, coluna.key)) * 100,
-                                )}%`
-                              : l[coluna.key as keyof LinhaRanking]}
-                      </td>
-                    ))}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <>
+          <TabelaRanking
+            linhas={linhasFiltradas}
+            colunasOrdenacao={colunasOrdenacao}
+            colunaOrdenacao={colunaOrdenacao}
+            direcaoOrdenacao={direcaoOrdenacao}
+            selecionarOrdenacao={selecionarOrdenacao}
+            valorOrdenacao={valorOrdenacao}
+            jogadorLogadoId={jogadorLogado?.id}
+          />
+          <CardRanking
+            linhas={linhasFiltradas}
+            configuracao={configuracao}
+            jogadorLogadoId={jogadorLogado?.id}
+          />
+        </>
       )}
+    </div>
+  );
+}
+
+function TabelaRanking({
+  linhas,
+  colunasOrdenacao,
+  colunaOrdenacao,
+  direcaoOrdenacao,
+  selecionarOrdenacao,
+  valorOrdenacao,
+  jogadorLogadoId,
+}: {
+  linhas: LinhaRanking[];
+  colunasOrdenacao: ColunaTabela[];
+  colunaOrdenacao: ColunaOrdenacao;
+  direcaoOrdenacao: DirecaoOrdenacao;
+  selecionarOrdenacao: (coluna: ColunaOrdenacao) => void;
+  valorOrdenacao: (linha: LinhaRanking, coluna: ColunaOrdenacao) => number | string;
+  jogadorLogadoId?: number;
+}) {
+  return (
+    <div className="hidden sm:block overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-800">
+      <table className="w-full min-w-120 text-sm">
+        <thead className="bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400">
+          <tr>
+            <th className="px-1.5 py-1.5 text-left font-medium w-8">#</th>
+            {colunasOrdenacao.map((coluna) => {
+              const ativa = colunaOrdenacao === coluna.key;
+              const direcao = ativa ? direcaoOrdenacao : null;
+              return (
+                <th
+                  key={coluna.key}
+                  aria-sort={
+                    direcao === "asc"
+                      ? "ascending"
+                      : direcao === "desc"
+                        ? "descending"
+                        : "none"
+                  }
+                  className={`px-1.5 py-1.5 font-medium ${
+                    coluna.key === "nome"
+                      ? "w-px whitespace-nowrap text-left sm:min-w-48"
+                      : "text-right"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => selecionarOrdenacao(coluna.key)}
+                    className="inline-flex items-center gap-1"
+                  >
+                    {coluna.label}
+                    <span aria-hidden="true">
+                      {direcao === "asc"
+                        ? "↑"
+                        : direcao === "desc"
+                          ? "↓"
+                          : "↕"}
+                    </span>
+                  </button>
+                </th>
+              );
+            })}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+          {linhas.map((l, i) => {
+            const primeiro = i === 0;
+            const ehLogado = l.jogador_id === jogadorLogadoId;
+            return (
+              <tr
+                key={l.jogador_id}
+                className={
+                  ehLogado
+                    ? "bg-(--cor-destaque)/10"
+                    : "bg-white dark:bg-neutral-950"
+                }
+              >
+                <td className="px-1.5 py-1.5 text-neutral-500 dark:text-neutral-400">
+                  {primeiro ? "🏆" : i + 1}
+                </td>
+                {colunasOrdenacao.map((coluna) => (
+                  <td
+                    key={coluna.key}
+                    className={`px-1.5 py-1.5 text-neutral-600 dark:text-neutral-400 ${
+                      coluna.key === "nome"
+                        ? "whitespace-nowrap"
+                        : "text-right"
+                    }`}
+                  >
+                    {coluna.key === "nome"
+                      ? l.nome
+                      : coluna.key === "media_gols"
+                        ? numero2casas.format(
+                            Number(valorOrdenacao(l, coluna.key)),
+                          )
+                        : coluna.key === "percentual_vitorias"
+                          ? `${Math.round(
+                              Number(valorOrdenacao(l, coluna.key)) * 100,
+                            )}%`
+                          : l[coluna.key as keyof LinhaRanking]}
+                  </td>
+                ))}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function CardRanking({
+  linhas,
+  configuracao,
+  jogadorLogadoId,
+}: {
+  linhas: LinhaRanking[];
+  configuracao: (typeof metricas)[Metrica];
+  jogadorLogadoId?: number;
+}) {
+  return (
+    <div className="block sm:hidden space-y-2">
+      {linhas.map((l, i) => {
+        const posicao = i + 1;
+        const ehLogado = l.jogador_id === jogadorLogadoId;
+        const inicial = l.nome.trim().charAt(0).toUpperCase() || "?";
+        const corCirculo =
+          posicao === 1
+            ? "bg-yellow-400 text-neutral-900"
+            : posicao === 2
+              ? "bg-neutral-400 text-neutral-900"
+              : posicao === 3
+                ? "bg-amber-700 text-white"
+                : "bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-200";
+        const valorPrincipal = Number(l[configuracao.campo]);
+        const rotuloPrincipal = rotuloMetricaCurta[configuracao.campo];
+        const percentualVitorias =
+          l.partidas > 0 ? Math.round((l.vitorias / l.partidas) * 100) : 0;
+        return (
+          <div
+            key={l.jogador_id}
+            className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 ${
+              ehLogado
+                ? "border-(--cor-destaque)/40 bg-(--cor-destaque)/10"
+                : "border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950"
+            }`}
+          >
+            <span
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold ${corCirculo}`}
+              aria-hidden="true"
+            >
+              {inicial}
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-baseline justify-between gap-2">
+                <p className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                  <span className="text-neutral-500 dark:text-neutral-400">
+                    {posicao}º
+                  </span>{" "}
+                  {l.nome}
+                </p>
+                <p className="shrink-0 text-base font-bold text-(--cor-destaque)">
+                  {valorPrincipal}{" "}
+                  <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                    {rotuloPrincipal}
+                  </span>
+                </p>
+              </div>
+              <p className="mt-0.5 truncate text-xs text-neutral-500 dark:text-neutral-400">
+                {POSICOES[l.posicao] ?? l.posicao} · P {l.partidas} · V{" "}
+                {l.vitorias} · E {l.empates} · D {l.derrotas} ·{" "}
+                {percentualVitorias}% vit
+              </p>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

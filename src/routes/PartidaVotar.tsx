@@ -253,12 +253,15 @@ export function PartidaVotar() {
       {erro && <MensagemEstado>{erro}</MensagemEstado>}
       {feedback && <MensagemEstado tipo="sucesso">{feedback}</MensagemEstado>}
 
-      <div className="fixed inset-x-0 bottom-16 z-40 p-3 pb-3 bg-neutral-50/90 dark:bg-neutral-950/90 backdrop-blur border-t border-neutral-200 dark:border-neutral-800">
+      <div
+        className="fixed inset-x-0 z-40 p-3 bg-neutral-50/90 dark:bg-neutral-950/90 backdrop-blur border-t border-neutral-200 dark:border-neutral-800"
+        style={{ bottom: "calc(4rem + env(safe-area-inset-bottom))" }}
+      >
         <div className="max-w-2xl mx-auto">
           <button
             onClick={enviar}
             disabled={!todosAvaliados || salvando}
-            className="w-full rounded-lg bg-[var(--cor-destaque)] px-4 py-3 font-medium text-white disabled:opacity-40"
+            className="w-full min-h-[44px] rounded-lg bg-[var(--cor-destaque)] px-4 py-3 font-medium text-white disabled:opacity-40"
           >
             {salvando
               ? "Enviando…"
