@@ -97,12 +97,24 @@ function pushDisponivel() {
 }
 
 function chaveVapid() {
-  const chave = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+  const chave = import.meta.env.VITE_VAPID_PUBLIC_KEY?.trim().replace(/^['"]|['"]$/g, "");
   if (!chave) throw new Error("Chave pública VAPID não configurada.");
-  const padding = "=".repeat((4 - (chave.length % 4)) % 4);
-  const base64 = (chave + padding).replace(/-/g, "+").replace(/_/g, "/");
-  const binary = window.atob(base64);
-  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  if (!/^[A-Za-z0-9_-]+$/.test(chave)) {
+    throw new Error("Chave pública VAPID inválida: use somente a chave Base64URL, sem o nome da variável.");
+  }
+
+  try {
+    const padding = "=".repeat((4 - (chave.length % 4)) % 4);
+    const base64 = (chave + padding).replace(/-/g, "+").replace(/_/g, "/");
+    const binary = window.atob(base64);
+    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+    if (bytes.length !== 65 || bytes[0] !== 4) {
+      throw new Error("tamanho ou formato do ponto P-256 inválido");
+    }
+    return bytes;
+  } catch {
+    throw new Error("Chave pública VAPID inválida. Gere uma chave pública Web Push nova e atualize a Vercel.");
+  }
 }
 
 async function subscriptionAtual() {

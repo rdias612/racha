@@ -7,7 +7,7 @@ import {
   carregarParticipantes,
   type Partida,
 } from "../lib/partidas";
-import type { PosicaoId } from "../lib/times";
+import { POSICOES, TIMES, type PosicaoId, type TimeId } from "../lib/times";
 import { Carregando, MensagemEstado } from "../components/Estado";
 import { SeletorNota } from "../components/SeletorNota";
 
@@ -15,6 +15,7 @@ interface Alvo {
   jogador_id: number;
   nome: string;
   posicao: PosicaoId;
+  time: TimeId;
 }
 
 export function PartidaVotar() {
@@ -62,6 +63,7 @@ export function PartidaVotar() {
             jogador_id: part.jogador_id,
             nome: part.nome ?? "?",
             posicao: part.posicao,
+            time: part.time,
           }));
         setAlvos(alvosFiltrados);
 
@@ -175,38 +177,53 @@ export function PartidaVotar() {
         </p>
       </div>
 
-      <div className="space-y-2">
-        {alvos.map((a) => {
-          const nota = notas[a.jogador_id];
-          const definida = nota !== undefined;
+      <div className="space-y-4">
+        {(["a", "b"] as TimeId[]).map((t) => {
+          const jogadoresDoTime = alvos
+            .filter((a) => a.time === t)
+            .sort((a, b) =>
+              a.nome.localeCompare(b.nome, "pt-BR", { sensitivity: "base" }),
+            );
+          if (jogadoresDoTime.length === 0) return null;
           return (
             <div
-              key={a.jogador_id}
-              className="rounded-lg border border-neutral-200 dark:border-neutral-800 px-3 py-2"
+              key={t}
+              className="overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800"
             >
-              <div className="flex items-center justify-between mb-1">
-                <div>
-                  <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                    {a.nome}
-                  </span>{" "}
-                  <span className="text-[10px] uppercase text-neutral-400">
-                    {a.posicao}
-                  </span>
-                </div>
-                <span
-                  className={`text-sm font-bold ${
-                    definida
-                      ? "text-[var(--cor-destaque)]"
-                      : "text-neutral-300 dark:text-neutral-600"
-                  }`}
-                >
-                  {definida ? nota : "—"}
-                </span>
+              <div
+                className="px-3 py-2 text-xs font-semibold"
+                style={{
+                  backgroundColor: TIMES[t].cor,
+                  color: t === "a" ? "#f9fafb" : "#111827",
+                }}
+              >
+                {TIMES[t].nome}
               </div>
-              <SeletorNota
-                value={nota}
-                onChange={(n) => setNota(a.jogador_id, n)}
-              />
+              <div className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                {jogadoresDoTime.map((a) => {
+                  const nota = notas[a.jogador_id];
+                  return (
+                    <div
+                      key={a.jogador_id}
+                      className="flex items-center justify-between gap-2 px-3 py-2"
+                    >
+                      <div className="min-w-0">
+                        <span className="block truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                          {a.nome}
+                        </span>
+                        <span className="text-[10px] uppercase tracking-wide text-neutral-400 dark:text-neutral-500">
+                          {POSICOES[a.posicao]}
+                        </span>
+                      </div>
+                      <SeletorNota
+                        variant="compact"
+                        value={nota}
+                        onChange={(n) => setNota(a.jogador_id, n)}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           );
         })}

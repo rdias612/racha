@@ -7,6 +7,13 @@ interface SeletorNotaProps {
   onChange: (nota: number) => void;
   disabled?: boolean;
   className?: string;
+  /**
+   * `full` (padrão): ocupa toda a largura disponível, ideal em coluna única.
+   * `compact`: gatilho estreito (w-24) para caber ao lado do nome do jogador
+   * numa linha; o popup do listbox recebe largura mínima e âncora à direita
+   * para não ultrapassar a viewport no celular.
+   */
+  variant?: "full" | "compact";
 }
 
 const NOTAS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -28,7 +35,9 @@ export function SeletorNota({
   onChange,
   disabled = false,
   className = "",
+  variant = "full",
 }: SeletorNotaProps) {
+  const compact = variant === "compact";
   const [aberto, setAberto] = useState(false);
   const [destaque, setDestaque] = useState<number>(value ?? 5);
   const idBase = useId();
@@ -128,7 +137,11 @@ export function SeletorNota({
         disabled={disabled}
         onClick={() => (aberto ? setAberto(false) : abrirSeFechado())}
         onKeyDown={onKeyDownTrigger}
-        className="flex min-h-[2.75rem] w-full items-center justify-between rounded-lg border border-neutral-300 bg-white px-3 text-left text-sm dark:border-neutral-700 dark:bg-neutral-900 disabled:opacity-40"
+        className={`flex items-center justify-between rounded-lg border border-neutral-300 bg-white text-left text-sm dark:border-neutral-700 dark:bg-neutral-900 disabled:opacity-40 ${
+          compact
+            ? "min-h-[2.5rem] w-24 px-2.5"
+            : "min-h-[2.75rem] w-full px-3"
+        }`}
       >
         <span
           className={
@@ -158,7 +171,11 @@ export function SeletorNota({
           tabIndex={-1}
           aria-label="Notas de 1 a 10"
           onKeyDown={onKeyDownLista}
-          className="absolute z-30 mt-1 max-h-64 w-full overflow-auto rounded-lg border border-neutral-200 bg-white p-1 shadow-lg dark:border-neutral-700 dark:bg-neutral-900"
+          className={`absolute z-30 mt-1 max-h-64 overflow-auto rounded-lg border border-neutral-200 bg-white p-1 shadow-lg dark:border-neutral-700 dark:bg-neutral-900 ${
+            compact
+              ? "right-0 min-w-[11rem] sm:left-0 sm:right-auto"
+              : "w-full"
+          }`}
         >
           {NOTAS.map((n) => {
             const selecionado = n === value;
