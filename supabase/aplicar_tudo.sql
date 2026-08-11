@@ -1198,3 +1198,97 @@ $$;
 
 GRANT EXECUTE ON FUNCTION descartar_votos(bigint, bigint) TO anon, authenticated;
 
+-- 042_rpc_parcerias_destaque_jogador.sql
+-- RPC `parcerias_destaque_jogador(p_jogador_id bigint, p_min_partidas integer DEFAULT 5)`
+-- Devolve ate 3 linhas com companheiros de time (mesmo time) que mais se
+-- associaram ao jogador logado em metricas de gols e notas:
+--   - 'mais_gols'   : companheiro com quem o jogador logado mais marcou gols.
+--   - 'melhor_nota' : maior AVG(partida_notas.avg_rating) do proprio usuario.
+--   - 'pior_nota'   : mesma metrica, menor valor.
+-- Apenas partidas com status IN ('published','closed'); HAVING >= p_min_partidas
+-- (default 5); exclui placeholders (posicao='random'). Gols = UP	only `gols`
+-- (sem gols_contra). Nota SEMPRE do proprio usuario (target_id = p_jogador_id).
+
+CREATE OR REPLACE FUNCTION parcerias_destaque_jogador(
+  p_jogador_id    bigint,
+  p_min_partidas  integer DEFAULT 5
+)
+RETURNS TABLE (
+  metrica           text,
+  outro_jogador_id  bigint,
+  nome              text,
+  partidas          bigint,
+  valor             numeric
+)
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  WITH jogador_partidas AS (
+    SELECT pp.partida_id, pp.time
+    FROM partidas_participantes pp
+    JOIN partidas p ON p.id = pp.partida_id
+    WHERE pp.jogador_id = p_jogador_id
+      AND p.status IN ('published','closed')
+  ),
+  usuario_gols AS (
+    SELECT partida_id, gols
+    FROM partidas_participantes
+    WHERE jogador_id = p_jogador_id
+  ),
+  usuario_notas AS (
+    SELECT partida_id, avg_rating
+    FROM partida_notas
+    WHERE target_id = p_jogador_id
+  ),
+  companheiros AS (
+    SELECT
+      outp.jogador_id,
+      j.nome,
+      COUNT(*)::bigint                                       AS partidas,
+      COALESCE(SUM(ug.gols), 0)::numeric                     AS gols_usuario,
+      AVG(un.avg_rating)::numeric                            AS nota_media_usuario
+    FROM jogador_partidas jp
+    JOIN partidas_participantes outp
+      ON outp.partida_id = jp.partida_id
+     AND outp.time       = jp.time
+     AND outp.jogador_id <> p_jogador_id
+    JOIN jogadores      j   ON j.id  = outp.jogador_id
+    LEFT JOIN usuario_gols  ug ON ug.partida_id = jp.partida_id
+    LEFT JOIN usuario_notas un ON un.partida_id = jp.partida_id
+    WHERE j.posicao <> 'random'
+    GROUP BY outp.jogador_id, j.nome
+    HAVING COUNT(*) >= p_min_partidas
+  )
+  (SELECT 'mais_gols'::text   AS metrica,
+          jogador_id          AS outro_jogador_id,
+          nome,
+          partidas,
+          gols_usuario        AS valor
+   FROM companheiros
+   ORDER BY gols_usuario DESC NULLS LAST, partidas DESC, nome ASC
+   LIMIT 1)
+  UNION ALL
+  (SELECT 'melhor_nota'::text AS metrica,
+          jogador_id          AS outro_jogador_id,
+          nome,
+          partidas,
+          nota_media_usuario  AS valor
+   FROM companheiros
+   WHERE nota_media_usuario IS NOT NULL
+   ORDER BY nota_media_usuario DESC NULLS LAST, partidas DESC, nome ASC
+   LIMIT 1)
+  UNION ALL
+  (SELECT 'pior_nota'::text   AS metrica,
+          jogador_id          AS outro_jogador_id,
+          nome,
+          partidas,
+          nota_media_usuario  AS valor
+   FROM companheiros
+   WHERE nota_media_usuario IS NOT NULL
+   ORDER BY nota_media_usuario ASC NULLS LAST, partidas DESC, nome ASC
+   LIMIT 1);
+$$;
+
+GRANT EXECUTE ON FUNCTION parcerias_destaque_jogador(bigint, integer) TO anon, authenticated;
+

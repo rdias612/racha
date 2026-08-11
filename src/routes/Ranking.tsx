@@ -13,6 +13,7 @@ type ColunaOrdenacao =
   | "percentual_vitorias"
   | "partidas"
   | "vitorias"
+  | "empates"
   | "derrotas";
 type DirecaoOrdenacao = "asc" | "desc";
 
@@ -153,6 +154,7 @@ export function Ranking() {
     { key: "percentual_vitorias", label: "% vitórias", abrev: "%vit" },
     { key: "partidas", label: "Partidas", abrev: "P" },
     { key: "vitorias", label: "Vitórias", abrev: "V" },
+    { key: "empates", label: "Empates", abrev: "E" },
     { key: "derrotas", label: "Derrotas", abrev: "D" },
   ];
 

@@ -18,22 +18,40 @@ const supabase = createClient(supabaseUrl, serviceRoleKey, {
   auth: { persistSession: false },
 });
 
-const reminders = [
-  { key: "6h", offsetMs: 6 * 60 * 60 * 1000, label: "6 horas" },
-  { key: "3h", offsetMs: 3 * 60 * 60 * 1000, label: "3 horas" },
-  { key: "1h", offsetMs: 60 * 60 * 1000, label: "1 hora" },
-  { key: "30m", offsetMs: 30 * 60 * 1000, label: "30 minutos" },
-] as const;
+// Janela total de votação (precisa bater com o set em `publish`).
+const VOTING_WINDOW_MS = 24 * 60 * 60 * 1000;
 
-const reminderWindowMs = 10 * 60 * 1000;
+// Tolerância para considerar o slot atual mesmo com atraso do cron.
+const SLOT_TOLERANCE_MS = 90 * 1000;
 
 type Candidate = {
   partida_id: number;
   jogador_id: number;
   voting_closes_at: string;
-  reminder_key: (typeof reminders)[number]["key"];
-  label: string;
+  reminder_key: string;
+  remaining_label: string;
 };
+
+// Calcula qual slot de 15 min (HH:MM UTC) corresponde ao minuto atual.
+// Retorna null se não estiver em um dos minutos 0/15/30/45.
+function slotAtual(now = new Date()): string | null {
+  const m = now.getUTCMinutes();
+  const slot = [0, 15, 30, 45].find((s) => Math.abs(m - s) <= 1);
+  if (slot === undefined) return null;
+  const hh = String(now.getUTCHours()).padStart(2, "0");
+  const mm = String(slot).padStart(2, "0");
+  return `${hh}:${mm}`;
+}
+
+// Descrição legível de quanto falta para fechar a votação.
+function rotuloTempoRestante(remainingMs: number): string {
+  const totalMin = Math.max(1, Math.round(remainingMs / (60 * 1000)));
+  const hours = Math.floor(totalMin / 60);
+  const mins = totalMin % 60;
+  if (hours >= 1 && mins > 0) return `${hours}h${String(mins).padStart(2, "0")}`;
+  if (hours >= 1) return `${hours}h`;
+  return `${mins}min`;
+}
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -50,14 +68,19 @@ function errorMessage(error: unknown) {
 
 async function findCandidates(): Promise<Candidate[]> {
   const now = Date.now();
+  const reminderKey = slotAtual();
+  // Fora dos minutos 0/15/30/45 não há o que fazer (chamada manual fora do cron).
+  if (!reminderKey) return [];
+
+  // Partidas publicadas cuja votação ainda está aberta (janela de 24h).
   const { data: partidas, error } = await supabase
     .from("partidas")
     .select("id, voting_closes_at")
     .eq("status", "published")
-    .gt("voting_closes_at", new Date(now).toISOString())
+    .gt("voting_closes_at", new Date(now - SLOT_TOLERANCE_MS).toISOString())
     .lte(
       "voting_closes_at",
-      new Date(now + 6 * 60 * 60 * 1000 + 60 * 1000).toISOString(),
+      new Date(now + VOTING_WINDOW_MS).toISOString(),
     );
 
   if (error) throw error;
@@ -65,10 +88,7 @@ async function findCandidates(): Promise<Candidate[]> {
   const candidates: Candidate[] = [];
   for (const partida of partidas ?? []) {
     const remaining = new Date(partida.voting_closes_at).getTime() - now;
-    const reminder = reminders.find(
-      (item) => remaining <= item.offsetMs && remaining > item.offsetMs - reminderWindowMs,
-    );
-    if (!reminder) continue;
+    if (remaining <= 0) continue; // votação acabou neste tick
 
     const { data: participants, error: participantsError } = await supabase
       .from("partidas_participantes")
@@ -93,15 +113,29 @@ async function findCandidates(): Promise<Candidate[]> {
       .in("voter_id", (activePlayers ?? []).map((player) => player.id));
     if (votesError) throw votesError;
 
+    // Só notifica quem (a) ainda não votou, (b) tem inscrição push ativa.
     const votedIds = new Set((votes ?? []).map((vote) => vote.voter_id));
-    for (const player of activePlayers ?? []) {
-      if (!votedIds.has(player.id)) {
+    const pendingPlayerIds = (activePlayers ?? [])
+      .filter((player) => !votedIds.has(player.id))
+      .map((player) => player.id);
+    if (pendingPlayerIds.length === 0) continue;
+
+    const { data: subscribed, error: subError } = await supabase
+      .from("push_subscriptions")
+      .select("jogador_id")
+      .in("jogador_id", pendingPlayerIds);
+    if (subError) throw subError;
+
+    const remainingLabel = rotuloTempoRestante(remaining);
+    const subscribedIds = new Set((subscribed ?? []).map((s) => s.jogador_id));
+    for (const playerId of pendingPlayerIds) {
+      if (subscribedIds.has(playerId)) {
         candidates.push({
           partida_id: partida.id,
-          jogador_id: player.id,
+          jogador_id: playerId,
           voting_closes_at: partida.voting_closes_at,
-          reminder_key: reminder.key,
-          label: reminder.label,
+          reminder_key: reminderKey,
+          remaining_label: remainingLabel,
         });
       }
     }
@@ -131,8 +165,8 @@ async function send(candidate: Candidate) {
   if (error) throw error;
 
   const payload = JSON.stringify({
-    title: "Votacao pendente",
-    body: `Ainda faltam ${candidate.label} para avaliar a partida #${candidate.partida_id}.`,
+    title: "Votação pendente",
+    body: `Faltam ${candidate.remaining_label} para avaliar a partida #${candidate.partida_id}.`,
     url: `/partida/${candidate.partida_id}/votar`,
   });
   let lastError: string | null = null;
@@ -175,7 +209,11 @@ Deno.serve(async (request) => {
         await send(candidate);
       }
     }
-    return json({ candidates: candidates.length, claimed });
+    return json({
+      slot: slotAtual(),
+      candidates: candidates.length,
+      claimed,
+    });
   } catch (error) {
     console.error(error);
     return json({ error: errorMessage(error) }, 500);

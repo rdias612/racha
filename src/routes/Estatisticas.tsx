@@ -27,6 +27,19 @@ interface Parceria {
   percentual: number | null;
 }
 
+// Destaques (RPC 042) - 3 metricas de companheiro de time:
+//   - mais_gols: Soma de gols do PROPRIO usuario nas partidas compartilhadas.
+//   - melhor_nota / pior_nota: AVG(partida_notas.avg_rating) do proprio usuario.
+type MetricaDestaque = "mais_gols" | "melhor_nota" | "pior_nota";
+
+interface ParceriaDestaque {
+  metrica: MetricaDestaque;
+  outro_jogador_id: number;
+  nome: string;
+  partidas: number;
+  valor: number | null;
+}
+
 // Item do dropdown de jogadores
 interface JogadorOpcao {
   id: number;
@@ -42,6 +55,11 @@ export function Estatisticas() {
   >(null);
   const [stats, setStats] = useState<Stats | null>(null);
   const [parcerias, setParcerias] = useState<Parceria[]>([]);
+  const [destaques, setDestaques] = useState<Record<MetricaDestaque, ParceriaDestaque | undefined>>({
+    mais_gols: undefined,
+    melhor_nota: undefined,
+    pior_nota: undefined,
+  });
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -86,7 +104,11 @@ export function Estatisticas() {
         p_jogador_id: jogadorSelecionadoId,
         p_min_partidas: 5,
       }),
-    ]).then(([resStats, resParc]) => {
+      supabase.rpc("parcerias_destaque_jogador", {
+        p_jogador_id: jogadorSelecionadoId,
+        p_min_partidas: 5,
+      }),
+    ]).then(([resStats, resParc, resDest]) => {
       if (resStats.error) {
         setErro(resStats.error.message);
         setCarregando(false);
@@ -97,8 +119,22 @@ export function Estatisticas() {
         setCarregando(false);
         return;
       }
+      if (resDest.error) {
+        setErro(resDest.error.message);
+        setCarregando(false);
+        return;
+      }
       setStats(resStats.data);
       setParcerias(resParc.data ?? []);
+      const mapa: Record<MetricaDestaque, ParceriaDestaque | undefined> = {
+        mais_gols: undefined,
+        melhor_nota: undefined,
+        pior_nota: undefined,
+      };
+      for (const d of (resDest.data ?? []) as ParceriaDestaque[]) {
+        mapa[d.metrica] = d;
+      }
+      setDestaques(mapa);
       setCarregando(false);
     });
   }, [jogadorSelecionadoId]);
@@ -228,9 +264,67 @@ export function Estatisticas() {
                 <ParceriaCard titulo="Pior % contra" parceria={piorAdv} />
               </div>
             </div>
+
+            <div>
+              <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                Gols &amp; notas por companheiro
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <ParceriaDestaqueCard
+                  titulo="Mais gols junto"
+                  metrica="mais_gols"
+                  destaque={destaques.mais_gols}
+                />
+                <ParceriaDestaqueCard
+                  titulo="Melhor média de nota"
+                  metrica="melhor_nota"
+                  destaque={destaques.melhor_nota}
+                />
+                <ParceriaDestaqueCard
+                  titulo="Pior média de nota"
+                  metrica="pior_nota"
+                  destaque={destaques.pior_nota}
+                />
+              </div>
+            </div>
           </div>
         )}
       </section>
+    </div>
+  );
+}
+
+interface ParceriaDestaqueCardProps {
+  titulo: string;
+  metrica: MetricaDestaque;
+  destaque?: ParceriaDestaque;
+}
+
+function ParceriaDestaqueCard({ titulo, metrica, destaque }: ParceriaDestaqueCardProps) {
+  return (
+    <div className="rounded-lg border border-neutral-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-950">
+      <h4 className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+        {titulo}
+      </h4>
+      {!destaque ? (
+        <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+          Sem dados suficientes (mín. 5 partidas)
+        </p>
+      ) : (
+        <>
+          <p className="mt-2 text-base font-bold text-neutral-900 dark:text-neutral-100">
+            {destaque.nome}
+          </p>
+          <p className="mt-0.5 text-sm font-medium text-(--cor-destaque)">
+            {metrica === "mais_gols"
+              ? `${destaque.valor ?? 0} gols`
+              : (destaque.valor ?? 0).toFixed(1)}
+          </p>
+          <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
+            {destaque.partidas} partidas compartilhadas
+          </p>
+        </>
+      )}
     </div>
   );
 }
