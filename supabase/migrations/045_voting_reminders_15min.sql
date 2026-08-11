@@ -1,4 +1,4 @@
--- 042_voting_reminders_15min.sql
+-- 045_voting_reminders_15min.sql
 -- Lembretes de votação a cada 15 min durante toda a janela de votação (24h).
 --
 -- ALTERAÇÕES vs 040/036:
