@@ -31,6 +31,21 @@ export function PartidaVotar() {
   const [erro, setErro] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [votosEnviados, setVotosEnviados] = useState(false);
+
+  const temModificacoes =
+    Object.keys(notas).length > 0 && !votosEnviados && !salvando;
+
+  useEffect(() => {
+    function handleBeforeUnload(e: BeforeUnloadEvent) {
+      if (temModificacoes) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    }
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [temModificacoes]);
 
   useEffect(() => {
     async function carregar() {
@@ -130,19 +145,6 @@ export function PartidaVotar() {
 
   const todosAvaliados = alvos.every((a) => notas[a.jogador_id] !== undefined);
   const editando = votosOriginais.size > 0;
-  const [votosEnviados, setVotosEnviados] = useState(false);
-  const temModificacoes = Object.keys(notas).length > 0 && !votosEnviados && !salvando;
-
-  useEffect(() => {
-    function handleBeforeUnload(e: BeforeUnloadEvent) {
-      if (temModificacoes) {
-        e.preventDefault();
-        e.returnValue = "";
-      }
-    }
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [temModificacoes]);
 
   function handleVoltar() {
     if (
