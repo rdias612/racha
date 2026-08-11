@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useSessao } from '../context/SessaoContext'
 import { POSICOES } from '../lib/times'
 import { Carregando, MensagemEstado } from '../components/Estado'
+import { ativarPush, desativarPush, statusPush, type StatusPush } from '../lib/pwa'
 
 interface Stats {
   jogador_id: number
@@ -28,6 +29,10 @@ export function Perfil() {
   const [trocando, setTrocando] = useState(false)
   const [erroSenha, setErroSenha] = useState<string | null>(null)
   const [okSenha, setOkSenha] = useState<string | null>(null)
+  const [pushStatus, setPushStatus] = useState<StatusPush>('desativado')
+  const [carregandoPush, setCarregandoPush] = useState(true)
+  const [alterandoPush, setAlterandoPush] = useState(false)
+  const [erroPush, setErroPush] = useState<string | null>(null)
 
   useEffect(() => {
     async function carregarStats() {
@@ -41,6 +46,25 @@ export function Perfil() {
       setCarregandoStats(false)
     }
     carregarStats()
+  }, [jogador?.id])
+
+  useEffect(() => {
+    let ativo = true
+    async function carregarPush() {
+      if (!jogador) return
+      try {
+        const status = await statusPush(jogador.id)
+        if (ativo) setPushStatus(status)
+      } catch {
+        if (ativo) setPushStatus('desativado')
+      } finally {
+        if (ativo) setCarregandoPush(false)
+      }
+    }
+    carregarPush()
+    return () => {
+      ativo = false
+    }
   }, [jogador?.id])
 
   if (!jogador) return null
@@ -87,6 +111,24 @@ export function Perfil() {
     navigate('/login', { replace: true })
   }
 
+  async function alternarPush() {
+    setAlterandoPush(true)
+    setErroPush(null)
+    try {
+      if (pushStatus === 'ativado') {
+        await desativarPush(jogador!.id)
+        setPushStatus('desativado')
+      } else {
+        await ativarPush(jogador!.id)
+        setPushStatus('ativado')
+      }
+    } catch (error) {
+      setErroPush(error instanceof Error ? error.message : 'Erro ao alterar notificações.')
+    } finally {
+      setAlterandoPush(false)
+    }
+  }
+
   return (
     <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-5">
       <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
@@ -123,6 +165,37 @@ export function Perfil() {
             <StatBox label="Assists" value={stats?.assistencias ?? 0} />
             <StatBox label="Gols contra" value={stats?.gols_contra ?? 0} />
           </div>
+        )}
+      </section>
+
+      {/* Notificações */}
+      <section>
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400 mb-2">
+          Notificações de votação
+        </h3>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-3">
+          Receba um lembrete quando houver uma votação pendente neste dispositivo.
+        </p>
+        {erroPush && <MensagemEstado>{erroPush}</MensagemEstado>}
+        {pushStatus === 'indisponivel' && (
+          <MensagemEstado tipo="info">Web Push não está disponível neste navegador.</MensagemEstado>
+        )}
+        {pushStatus === 'negado' && (
+          <MensagemEstado tipo="info">As notificações estão bloqueadas no navegador.</MensagemEstado>
+        )}
+        {pushStatus !== 'indisponivel' && pushStatus !== 'negado' && (
+          <button
+            type="button"
+            onClick={alternarPush}
+            disabled={carregandoPush || alterandoPush}
+            className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 disabled:opacity-50"
+          >
+            {carregandoPush || alterandoPush
+              ? 'Atualizando…'
+              : pushStatus === 'ativado'
+                ? 'Desativar notificações'
+                : 'Ativar notificações'}
+          </button>
         )}
       </section>
 

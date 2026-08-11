@@ -13,6 +13,11 @@
 -- SECURITY DEFINER + search_path = public (inalterado). Grants para anon e
 -- authenticated (inalterados).
 
+-- PostgreSQL nao permite alterar o tipo retornado por CREATE OR REPLACE
+-- FUNCTION. A assinatura de entrada permanece a mesma, entao a funcao antiga
+-- precisa ser removida antes de ser recriada com a coluna adicional.
+DROP FUNCTION IF EXISTS fazer_login(text, text);
+
 CREATE OR REPLACE FUNCTION fazer_login(p_username text, p_senha text)
 RETURNS TABLE (
   id             bigint,

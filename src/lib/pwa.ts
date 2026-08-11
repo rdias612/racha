@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { supabase } from "./supabase";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -82,4 +83,92 @@ export function useInstalacaoPWA() {
 
   const podeInstalar = !instalado && (!!deferredPrompt || ios);
   return { podeInstalar, instalar, iosManual: ios && !instalado };
+}
+
+export type StatusPush = "indisponivel" | "desativado" | "ativado" | "negado";
+
+function pushDisponivel() {
+  return (
+    window.isSecureContext &&
+    "serviceWorker" in navigator &&
+    "PushManager" in window &&
+    "Notification" in window
+  );
+}
+
+function chaveVapid() {
+  const chave = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+  if (!chave) throw new Error("Chave pública VAPID não configurada.");
+  const padding = "=".repeat((4 - (chave.length % 4)) % 4);
+  const base64 = (chave + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const binary = window.atob(base64);
+  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+}
+
+async function subscriptionAtual() {
+  if (!pushDisponivel()) return null;
+  const registration = await navigator.serviceWorker.ready;
+  return registration.pushManager.getSubscription();
+}
+
+function dadosSubscription(subscription: PushSubscription) {
+  const keys = subscription.toJSON().keys;
+  if (!keys?.p256dh || !keys.auth) {
+    throw new Error("Subscription Web Push inválida.");
+  }
+  return {
+    endpoint: subscription.endpoint,
+    p256dh: keys.p256dh,
+    auth: keys.auth,
+  };
+}
+
+export async function statusPush(jogadorId: number): Promise<StatusPush> {
+  if (!pushDisponivel()) return "indisponivel";
+  if (Notification.permission === "denied") return "negado";
+  const subscription = await subscriptionAtual();
+  if (!subscription) return "desativado";
+
+  const { error } = await supabase
+    .from("push_subscriptions")
+    .select("endpoint")
+    .eq("jogador_id", jogadorId)
+    .eq("endpoint", subscription.endpoint)
+    .maybeSingle();
+  return error ? "desativado" : "ativado";
+}
+
+export async function ativarPush(jogadorId: number) {
+  if (!pushDisponivel()) throw new Error("Web Push não é compatível neste dispositivo.");
+  if (Notification.permission === "denied") {
+    throw new Error("As notificações estão bloqueadas neste navegador.");
+  }
+  const permission = await Notification.requestPermission();
+  if (permission !== "granted") throw new Error("Permissão para notificações não concedida.");
+
+  const registration = await navigator.serviceWorker.ready;
+  const subscription =
+    (await registration.pushManager.getSubscription()) ??
+    (await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: chaveVapid(),
+    }));
+  const dados = dadosSubscription(subscription);
+  const { error } = await supabase.from("push_subscriptions").upsert(
+    { jogador_id: jogadorId, ...dados },
+    { onConflict: "endpoint" },
+  );
+  if (error) throw new Error("Não foi possível salvar a ativação das notificações.");
+}
+
+export async function desativarPush(jogadorId: number) {
+  const subscription = await subscriptionAtual();
+  if (!subscription) return;
+  const { error } = await supabase
+    .from("push_subscriptions")
+    .delete()
+    .eq("jogador_id", jogadorId)
+    .eq("endpoint", subscription.endpoint);
+  if (error) throw new Error("Não foi possível desativar as notificações.");
+  await subscription.unsubscribe();
 }
