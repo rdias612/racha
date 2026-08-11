@@ -163,7 +163,7 @@ export function Perfil() {
         {carregandoStats ? (
           <Carregando compacto>Carregando estatísticas</Carregando>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
             <StatBox label="Partidas" value={stats?.partidas ?? 0} />
             <StatBox label="Vitórias" value={stats?.vitorias ?? 0} />
             <StatBox label="Gols" value={stats?.gols ?? 0} />
@@ -268,9 +268,9 @@ export function Perfil() {
 
 function StatBox({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-lg border border-neutral-200 dark:border-neutral-800 px-2 py-3 text-center">
-      <div className="text-2xl font-bold text-[var(--cor-destaque)]">{value}</div>
-      <div className="text-[10px] uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+    <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/60 px-2 py-2.5 text-center shadow-xs">
+      <div className="text-xl sm:text-2xl font-extrabold text-[var(--cor-destaque)]">{value}</div>
+      <div className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
         {label}
       </div>
     </div>

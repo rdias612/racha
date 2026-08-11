@@ -82,7 +82,7 @@ export function EstatisticasRacha() {
           </MensagemEstado>
         ) : (
           <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <DuplaCard titulo="Melhor dupla" par={melhor} />
               <DuplaCard titulo="Pior dupla" par={pior} />
             </div>

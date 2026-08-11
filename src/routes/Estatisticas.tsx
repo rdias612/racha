@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabase";
 import { useSessao } from "../context/SessaoContext";
 import { Carregando, MensagemEstado } from "../components/Estado";
 import { PullToRefresh } from "../components/PullToRefresh";
+import { Avatar } from "../components/Avatar";
 
 // Stats básicas (mesma fonte do Perfil: view stats_jogador)
 interface Stats {
@@ -222,12 +223,12 @@ export function Estatisticas() {
         </select>
       </div>
 
-      {/* Estatísticas básicas (duplicado do Perfil) */}
+      {/* Estatísticas básicas */}
       <section>
         <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400 mb-2">
           Estatísticas básicas
         </h3>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
           <StatBox label="Partidas" value={stats?.partidas ?? 0} />
           <StatBox label="Vitórias" value={stats?.vitorias ?? 0} />
           <StatBox label="Gols" value={stats?.gols ?? 0} />
@@ -252,7 +253,7 @@ export function Estatisticas() {
               <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                 Companheiros de time
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <ParceriaCard
                   titulo="Melhor companheiro"
                   parceria={melhorComp}
@@ -265,7 +266,7 @@ export function Estatisticas() {
               <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                 Adversários
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <ParceriaCard titulo="Melhor % contra" parceria={melhorAdv} />
                 <ParceriaCard titulo="Pior % contra" parceria={piorAdv} />
               </div>
@@ -282,12 +283,12 @@ export function Estatisticas() {
                   destaque={destaques.mais_gols}
                 />
                 <ParceriaDestaqueCard
-                  titulo="Melhor média de nota"
+                  titulo="Melhor média nota"
                   metrica="melhor_nota"
                   destaque={destaques.melhor_nota}
                 />
                 <ParceriaDestaqueCard
-                  titulo="Pior média de nota"
+                  titulo="Pior média nota"
                   metrica="pior_nota"
                   destaque={destaques.pior_nota}
                 />
@@ -309,28 +310,36 @@ interface ParceriaDestaqueCardProps {
 
 function ParceriaDestaqueCard({ titulo, metrica, destaque }: ParceriaDestaqueCardProps) {
   return (
-    <div className="rounded-lg border border-neutral-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-950">
-      <h4 className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
-        {titulo}
-      </h4>
-      {!destaque ? (
-        <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
-          Sem dados suficientes (mín. 5 partidas)
-        </p>
-      ) : (
-        <>
-          <p className="mt-2 text-base font-bold text-neutral-900 dark:text-neutral-100">
-            {destaque.nome}
-          </p>
-          <p className="mt-0.5 text-sm font-medium text-(--cor-destaque)">
+    <div className="flex flex-col justify-between rounded-xl border border-neutral-200 bg-white p-3 shadow-xs dark:border-neutral-800 dark:bg-neutral-900/60">
+      <div className="flex items-center justify-between gap-1.5 mb-2">
+        <h4 className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 truncate">
+          {titulo}
+        </h4>
+        {destaque && (
+          <span className="inline-flex items-center shrink-0 rounded-full bg-(--cor-destaque)/10 px-2 py-0.5 text-xs font-extrabold text-(--cor-destaque)">
             {metrica === "mais_gols"
               ? `${destaque.valor ?? 0} gols`
               : (destaque.valor ?? 0).toFixed(1)}
-          </p>
-          <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
-            {destaque.partidas} partidas compartilhadas
-          </p>
-        </>
+          </span>
+        )}
+      </div>
+
+      {!destaque ? (
+        <p className="mt-1 text-xs text-neutral-400 dark:text-neutral-500">
+          Sem dados suficientes (mín. 5 partidas)
+        </p>
+      ) : (
+        <div className="flex items-center gap-2.5">
+          <Avatar nome={destaque.nome} size="sm" />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-bold text-neutral-900 dark:text-neutral-100">
+              {destaque.nome}
+            </p>
+            <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
+              {destaque.partidas} partidas juntas
+            </p>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -338,9 +347,9 @@ function ParceriaDestaqueCard({ titulo, metrica, destaque }: ParceriaDestaqueCar
 
 function StatBox({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-lg border border-neutral-200 dark:border-neutral-800 px-2 py-3 text-center">
-      <div className="text-2xl font-bold text-(--cor-destaque)">{value}</div>
-      <div className="text-[10px] uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+    <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/60 px-2 py-2.5 text-center shadow-xs">
+      <div className="text-xl sm:text-2xl font-extrabold text-(--cor-destaque)">{value}</div>
+      <div className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
         {label}
       </div>
     </div>
@@ -354,27 +363,42 @@ interface ParceriaCardProps {
 
 function ParceriaCard({ titulo, parceria }: ParceriaCardProps) {
   return (
-    <div className="rounded-lg border border-neutral-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-950">
-      <h4 className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
-        {titulo}
-      </h4>
+    <div className="flex flex-col justify-between rounded-xl border border-neutral-200 bg-white p-3 shadow-xs dark:border-neutral-800 dark:bg-neutral-900/60">
+      <div className="flex items-center justify-between gap-1.5 mb-2">
+        <h4 className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 truncate">
+          {titulo}
+        </h4>
+        {parceria && (
+          <span className="inline-flex items-center shrink-0 rounded-full bg-(--cor-destaque)/10 px-2 py-0.5 text-xs font-extrabold text-(--cor-destaque)">
+            {Math.round((parceria.percentual ?? 0) * 100)}%
+          </span>
+        )}
+      </div>
+
       {!parceria ? (
-        <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+        <p className="mt-1 text-xs text-neutral-400 dark:text-neutral-500">
           Sem dados suficientes (mín. 5 partidas)
         </p>
       ) : (
-        <>
-          <p className="mt-2 text-base font-bold text-neutral-900 dark:text-neutral-100">
-            {parceria.nome}
-          </p>
-          <p className="mt-0.5 text-sm font-medium text-(--cor-destaque)">
-            {Math.round((parceria.percentual ?? 0) * 100)}%
-          </p>
-          <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
-            {parceria.partidas} partidas · {parceria.vitorias}V{" "}
-            {parceria.empates}E {parceria.derrotas}D
-          </p>
-        </>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2.5">
+            <Avatar nome={parceria.nome} size="sm" />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-bold text-neutral-900 dark:text-neutral-100">
+                {parceria.nome}
+              </p>
+              <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                {parceria.partidas} partidas
+              </p>
+            </div>
+          </div>
+          <div className="pt-1.5 border-t border-neutral-100 dark:border-neutral-800/80 flex items-center justify-between text-[11px] text-neutral-500 dark:text-neutral-400">
+            <span>Retrospecto</span>
+            <span className="font-semibold text-neutral-700 dark:text-neutral-300">
+              {parceria.vitorias}V {parceria.empates}E {parceria.derrotas}D
+            </span>
+          </div>
+        </div>
       )}
     </div>
   );
