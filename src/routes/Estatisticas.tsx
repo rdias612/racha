@@ -221,7 +221,7 @@ export function Estatisticas() {
         <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400 mb-2">
           Estatísticas básicas
         </h3>
-        <div className="grid grid-cols-5 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
           <StatBox label="Partidas" value={stats?.partidas ?? 0} />
           <StatBox label="Vitórias" value={stats?.vitorias ?? 0} />
           <StatBox label="Gols" value={stats?.gols ?? 0} />

@@ -166,8 +166,8 @@ export function PartidaDetalhe() {
             <span className="sm:hidden">Preto</span>
             <span className="hidden sm:inline">Time Preto</span>
           </div>
-          <div className="px-4 sm:px-6 py-4 flex items-center bg-neutral-50 dark:bg-neutral-900">
-            <span className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-neutral-100">
+          <div className="px-5 sm:px-8 py-4 flex items-center justify-center bg-neutral-50 dark:bg-neutral-900">
+            <span className="text-5xl sm:text-6xl font-black tabular-nums tracking-tight text-neutral-900 dark:text-neutral-100">
               {placar.gols_time_a} × {placar.gols_time_b}
             </span>
           </div>

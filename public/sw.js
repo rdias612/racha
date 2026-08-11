@@ -1,9 +1,11 @@
-// Service worker mínimo para qualificar o app como PWA instalável.
-// Estratégia: stale-while-revalidate para tudo, sem cache agressivo de
-// longa duração. Foco em habilitar a instalação, não em offline-first.
-const CACHE = "racha-v1";
+// Service worker com estratégia NetworkFirst e App-Shell offline-first.
+const CACHE = "racha-v2";
+const OFFLINE_URL = "/offline.html";
 
 self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open(CACHE).then((cache) => cache.addAll([OFFLINE_URL, "/manifest.webmanifest"])),
+  );
   self.skipWaiting();
 });
 
@@ -53,23 +55,27 @@ self.addEventListener("notificationclick", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
-  // Apenas GET; ignora requisições para APIs externas (Supabase).
   if (request.method !== "GET" || !request.url.startsWith(self.location.origin)) {
     return;
   }
+
   event.respondWith(
     caches.open(CACHE).then(async (cache) => {
-      const cached = await cache.match(request);
-      const network = fetch(request)
-        .then((response) => {
-          // Cacheia apenas respostas válidas (status 200, tipo básico).
-          if (response && response.status === 200 && response.type === "basic") {
-            cache.put(request, response.clone());
-          }
-          return response;
-        })
-        .catch(() => cached);
-      return cached || network;
+      try {
+        const network = await fetch(request);
+        if (network && network.status === 200 && network.type === "basic") {
+          cache.put(request, network.clone());
+        }
+        return network;
+      } catch {
+        const cached = await cache.match(request);
+        if (cached) return cached;
+        if (request.mode === "navigate") {
+          const offlinePage = await cache.match(OFFLINE_URL);
+          if (offlinePage) return offlinePage;
+        }
+        throw new Error("Offline e sem cache disponível");
+      }
     }),
   );
 });

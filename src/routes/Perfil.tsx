@@ -163,7 +163,7 @@ export function Perfil() {
         {carregandoStats ? (
           <Carregando compacto>Carregando estatísticas</Carregando>
         ) : (
-          <div className="grid grid-cols-5 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
             <StatBox label="Partidas" value={stats?.partidas ?? 0} />
             <StatBox label="Vitórias" value={stats?.vitorias ?? 0} />
             <StatBox label="Gols" value={stats?.gols ?? 0} />
