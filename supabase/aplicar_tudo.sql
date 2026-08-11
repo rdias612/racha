@@ -1113,3 +1113,40 @@ GRANT INSERT, UPDATE, DELETE ON public.push_subscriptions,
 GRANT USAGE, SELECT ON SEQUENCE public.push_subscriptions_id_seq
   TO service_role;
 
+-- 040_schedule_push_reminders.sql
+-- Agenda a chamada da Edge Function de lembretes a cada minuto.
+-- O segredo `push_cron_secret` deve ser criado no Vault separadamente.
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+CREATE EXTENSION IF NOT EXISTS pg_net;
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM cron.job
+    WHERE jobname = 'enviar-lembretes-votacao-1min'
+  ) THEN
+    PERFORM cron.unschedule('enviar-lembretes-votacao-1min');
+  END IF;
+END;
+$$;
+
+SELECT cron.schedule(
+  'enviar-lembretes-votacao-1min',
+  '* * * * *',
+  $push_job$
+  SELECT net.http_post(
+    url := 'https://jtavmrlllyctkuxefhpc.supabase.co/functions/v1/send-voting-reminders',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'x-push-cron-secret', (
+        SELECT decrypted_secret
+        FROM vault.decrypted_secrets
+        WHERE name = 'push_cron_secret'
+      )
+    ),
+    body := '{}'::jsonb
+  );
+  $push_job$
+);
+
