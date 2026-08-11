@@ -8,7 +8,6 @@ import {
   MAX_MENSALISTAS,
   type JogadorLista,
 } from "../lib/jogadores";
-
 import { POSICOES } from "../lib/times";
 import { Avatar } from "../components/Avatar";
 import { Carregando, MensagemEstado } from "../components/Estado";
@@ -22,9 +21,17 @@ import {
   Crown,
   UserCheck,
   UserCheck2,
+  Save,
+  RotateCcw,
+  Sparkles,
 } from "lucide-react";
 
 type FiltroTipo = "todos" | "mensalistas" | "avulsos" | "admins";
+
+interface AlteracaoRascunho {
+  is_mensalista: boolean;
+  is_admin: boolean;
+}
 
 export function GestaoJogadores() {
   const isAdmin = useAdmin();
@@ -35,7 +42,10 @@ export function GestaoJogadores() {
   const [busca, setBusca] = useState("");
   const [filtro, setFiltro] = useState<FiltroTipo>("todos");
 
-  const [salvandoId, setSalvandoId] = useState<number | null>(null);
+  // Rascunho de alterações pendentes { [jogadorId]: { is_mensalista, is_admin } }
+  const [rascunhos, setRascunhos] = useState<Record<number, AlteracaoRascunho>>({});
+
+  const [salvandoLote, setSalvandoLote] = useState(false);
   const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null);
   const [mensagemErro, setMensagemErro] = useState<string | null>(null);
 
@@ -57,99 +67,173 @@ export function GestaoJogadores() {
 
   if (!isAdmin) return <Navigate to="/" replace />;
 
-  // Estatísticas do topo
+  // Função para obter o estado de um jogador (original mesclado com rascunho)
+  function obterEstadoDraft(j: JogadorLista): JogadorLista {
+    const draft = rascunhos[j.id];
+    if (!draft) return j;
+    return {
+      ...j,
+      is_mensalista: draft.is_mensalista,
+      is_admin: isSuperAdmin(j.username) ? true : draft.is_admin,
+    };
+  }
+
+  // Estatísticas calculadas sobre o estado de Rascunho (em tempo real)
+  const jogadoresDraft = jogadores.map(obterEstadoDraft);
   const totalJogadores = jogadores.length;
-  const totalMensalistas = jogadores.filter((j) => j.is_mensalista).length;
-  const totalAdmins = jogadores.filter(
+  const totalMensalistas = jogadoresDraft.filter((j) => j.is_mensalista).length;
+  const totalAdmins = jogadoresDraft.filter(
     (j) => j.is_admin || isSuperAdmin(j.username)
   ).length;
-  const totalSuperAdmins = jogadores.filter((j) =>
+  const totalSuperAdmins = jogadoresDraft.filter((j) =>
     isSuperAdmin(j.username)
   ).length;
 
-  async function alternarMensalista(jogador: JogadorLista) {
-    const novoValor = !jogador.is_mensalista;
+  const qtdModificacoes = Object.keys(rascunhos).length;
+  const temAlteracoes = qtdModificacoes > 0;
+  const limiteAtingido = totalMensalistas >= MAX_MENSALISTAS;
 
-    if (novoValor && totalMensalistas >= MAX_MENSALISTAS) {
+  function alternarMensalistaDraft(jOriginal: JogadorLista) {
+    const estadoAtual = obterEstadoDraft(jOriginal);
+    const novoMensalista = !estadoAtual.is_mensalista;
+
+    // Se estiver tentando virar mensalista e já atingiu limite
+    if (novoMensalista && totalMensalistas >= MAX_MENSALISTAS) {
       setMensagemErro(
-        `Limite máximo de ${MAX_MENSALISTAS} mensalistas atingido (${totalMensalistas}/${MAX_MENSALISTAS}). Remova o status de mensalista de outro jogador antes de adicionar.`
+        `Limite máximo de ${MAX_MENSALISTAS} mensalistas atingido (${totalMensalistas}/${MAX_MENSALISTAS}). Remova o status de outro jogador antes de adicionar.`
       );
       return;
     }
 
-    setSalvandoId(jogador.id);
-    setMensagemSucesso(null);
     setMensagemErro(null);
+    setMensagemSucesso(null);
+
+    let novoAdmin = estadoAtual.is_admin;
+
+    // Regra: Se estiver deixando de ser mensalista, deixa obrigatoriamente de ser admin (exceto superadmin)
+    if (!novoMensalista && estadoAtual.is_admin && !isSuperAdmin(jOriginal.username)) {
+      novoAdmin = false;
+      setMensagemSucesso(
+        `O status de administrador de "${jOriginal.nome}" foi desativado (apenas mensalistas podem ser admins).`
+      );
+    }
+
+    // Se o novo estado voltar a ser idêntico ao original, remove do rascunho
+    if (
+      novoMensalista === jOriginal.is_mensalista &&
+      novoAdmin === jOriginal.is_admin
+    ) {
+      setRascunhos((prev) => {
+        const cop = { ...prev };
+        delete cop[jOriginal.id];
+        return cop;
+      });
+    } else {
+      setRascunhos((prev) => ({
+        ...prev,
+        [jOriginal.id]: {
+          is_mensalista: novoMensalista,
+          is_admin: novoAdmin,
+        },
+      }));
+    }
+  }
+
+  function alternarAdminDraft(jOriginal: JogadorLista) {
+    if (isSuperAdmin(jOriginal.username)) {
+      setMensagemErro(
+        `O usuário "${jOriginal.username}" é Superadmin permanente. O acesso de administrador não pode ser alterado.`
+      );
+      return;
+    }
+
+    const estadoAtual = obterEstadoDraft(jOriginal);
+
+    // Regra: Apenas mensalistas podem ser admin
+    if (!estadoAtual.is_mensalista) {
+      setMensagemErro(
+        `Apenas jogadores mensalistas podem ser administradores. Torne "${jOriginal.nome}" mensalista primeiro.`
+      );
+      return;
+    }
+
+    const novoAdmin = !estadoAtual.is_admin;
+    const novoMensalista = estadoAtual.is_mensalista;
+
+    setMensagemErro(null);
+    setMensagemSucesso(null);
+
+    // Se o novo estado voltar a ser idêntico ao original, remove do rascunho
+    if (
+      novoMensalista === jOriginal.is_mensalista &&
+      novoAdmin === jOriginal.is_admin
+    ) {
+      setRascunhos((prev) => {
+        const cop = { ...prev };
+        delete cop[jOriginal.id];
+        return cop;
+      });
+    } else {
+      setRascunhos((prev) => ({
+        ...prev,
+        [jOriginal.id]: {
+          is_mensalista: novoMensalista,
+          is_admin: novoAdmin,
+        },
+      }));
+    }
+  }
+
+
+  function descartarAlteracoes() {
+    setRascunhos({});
+    setMensagemErro(null);
+    setMensagemSucesso("Alterações descartadas.");
+  }
+
+  async function salvarTodasAlteracoes() {
+    if (!temAlteracoes) return;
+
+    setSalvandoLote(true);
+    setMensagemErro(null);
+    setMensagemSucesso(null);
 
     try {
-      await atualizarCaracteristicasJogador(jogador.id, jogador.username, {
-        is_mensalista: novoValor,
-      });
+      // Salva cada jogador modificado no Supabase
+      const idsModificados = Object.keys(rascunhos).map(Number);
 
-      setJogadores((prev) =>
-        prev.map((j) =>
-          j.id === jogador.id ? { ...j, is_mensalista: novoValor } : j
-        )
-      );
+      for (const id of idsModificados) {
+        const jOriginal = jogadores.find((j) => j.id === id);
+        const draft = rascunhos[id];
+
+        if (jOriginal && draft) {
+          await atualizarCaracteristicasJogador(id, jOriginal.username, {
+            is_mensalista: draft.is_mensalista,
+            is_admin: draft.is_admin,
+          });
+        }
+      }
+
+      // Atualiza a lista original local com os rascunhos confirmados
+      setJogadores(jogadoresDraft);
+      setRascunhos({});
 
       setMensagemSucesso(
-        `"${jogador.nome}" agora é ${
-          novoValor ? "Mensalista" : "Avulso (Não-mensalista)"
-        }.`
+        `Sucesso! ${idsModificados.length} alteração(ões) salva(s) com sucesso.`
       );
     } catch (err) {
       setMensagemErro(
         err instanceof Error
           ? err.message
-          : "Erro ao atualizar status de mensalista."
+          : "Erro ao salvar alterações no servidor."
       );
     } finally {
-      setSalvandoId(null);
+      setSalvandoLote(false);
     }
   }
 
-  async function alternarAdmin(jogador: JogadorLista) {
-    if (isSuperAdmin(jogador.username)) {
-      setMensagemErro(
-        `O usuário "${jogador.username}" é Superadmin permanente. O acesso de administrador não pode ser removido.`
-      );
-      return;
-    }
-
-    const novoValor = !jogador.is_admin;
-    setSalvandoId(jogador.id);
-    setMensagemSucesso(null);
-    setMensagemErro(null);
-
-    try {
-      await atualizarCaracteristicasJogador(jogador.id, jogador.username, {
-        is_admin: novoValor,
-      });
-
-      setJogadores((prev) =>
-        prev.map((j) =>
-          j.id === jogador.id ? { ...j, is_admin: novoValor } : j
-        )
-      );
-
-      setMensagemSucesso(
-        `"${jogador.nome}" ${
-          novoValor ? "agora é Administrador" : "não é mais Administrador"
-        }.`
-      );
-    } catch (err) {
-      setMensagemErro(
-        err instanceof Error
-          ? err.message
-          : "Erro ao atualizar permissão de admin."
-      );
-    } finally {
-      setSalvandoId(null);
-    }
-  }
-
-  // Filtragem da lista
-  const jogadoresFiltrados = jogadores.filter((j) => {
+  // Filtragem da lista com estado de rascunho
+  const jogadoresFiltrados = jogadoresDraft.filter((j) => {
     const matchBusca =
       j.nome.toLowerCase().includes(busca.toLowerCase()) ||
       j.username.toLowerCase().includes(busca.toLowerCase());
@@ -163,10 +247,8 @@ export function GestaoJogadores() {
     return true;
   });
 
-  const limiteAtingido = totalMensalistas >= MAX_MENSALISTAS;
-
   return (
-    <div className="px-3 py-4 pb-24 sm:px-4 max-w-3xl mx-auto space-y-5">
+    <div className="px-3 py-4 pb-32 sm:px-4 max-w-3xl mx-auto space-y-5 relative">
       <button
         onClick={() => navigate(-1)}
         className="inline-flex items-center gap-1 text-xs text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 transition"
@@ -181,7 +263,7 @@ export function GestaoJogadores() {
           Gestão de Jogadores
         </h2>
         <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-          Gerencie o acesso de administradores e a classificação de mensalistas (limite fixo de {MAX_MENSALISTAS}).
+          Marque os mensalistas (máximo {MAX_MENSALISTAS}) e administradores. As alterações são aplicadas ao clicar em <strong>Confirmar Alterações</strong>.
         </p>
       </div>
 
@@ -194,9 +276,11 @@ export function GestaoJogadores() {
         <div className="rounded-xl border border-amber-300 dark:border-amber-900/60 bg-amber-50/80 dark:bg-amber-950/30 p-3 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2.5 shadow-xs">
           <UserCheck2 className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
           <div>
-            <span className="font-semibold block">Limite Máximo Atingido ({MAX_MENSALISTAS}/{MAX_MENSALISTAS} Mensalistas)</span>
+            <span className="font-semibold block">
+              Limite Máximo Atingido ({MAX_MENSALISTAS}/{MAX_MENSALISTAS} Mensalistas)
+            </span>
             <span className="opacity-90">
-              O limite de {MAX_MENSALISTAS} mensalistas foi alcançado. Para definir um novo mensalista, remova o status de um jogador atual.
+              O limite de {MAX_MENSALISTAS} mensalistas foi alcançado. Para definir um novo mensalista, desmarque um mensalista atual.
             </span>
           </div>
         </div>
@@ -241,7 +325,10 @@ export function GestaoJogadores() {
                   limiteAtingido ? "bg-amber-500" : "bg-emerald-600 dark:bg-emerald-400"
                 }`}
                 style={{
-                  width: `${Math.min(100, (totalMensalistas / MAX_MENSALISTAS) * 100)}%`,
+                  width: `${Math.min(
+                    100,
+                    (totalMensalistas / MAX_MENSALISTAS) * 100
+                  )}%`,
                 }}
               />
             </div>
@@ -356,14 +443,19 @@ export function GestaoJogadores() {
       ) : (
         <div className="space-y-3">
           {jogadoresFiltrados.map((j) => {
+            const jOriginal = jogadores.find((orig) => orig.id === j.id)!;
             const superadmin = isSuperAdmin(j.username);
-            const salvando = salvandoId === j.id;
+            const modificado = Boolean(rascunhos[j.id]);
             const bloqMensalista = !j.is_mensalista && limiteAtingido;
 
             return (
               <div
                 key={j.id}
-                className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/80 p-3.5 shadow-xs space-y-3 transition"
+                className={`rounded-xl border bg-white dark:bg-neutral-900/80 p-3.5 shadow-xs space-y-3 transition ${
+                  modificado
+                    ? "border-green-500 dark:border-green-500/80 ring-2 ring-green-500/20 dark:ring-green-500/30"
+                    : "border-neutral-200 dark:border-neutral-800"
+                }`}
               >
                 {/* Linha Superior: Dados do Jogador */}
                 <div className="flex items-center justify-between gap-3">
@@ -374,6 +466,14 @@ export function GestaoJogadores() {
                         <span className="font-semibold text-sm text-neutral-900 dark:text-neutral-100 truncate">
                           {j.nome}
                         </span>
+
+                        {modificado && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-green-500/20 border border-green-500/40 px-2 py-0.5 text-[10px] font-bold text-green-700 dark:text-green-300 animate-pulse shrink-0">
+                            <Sparkles className="w-3 h-3 text-green-600 dark:text-green-400" />
+                            Pendente
+                          </span>
+                        )}
+
                         {superadmin && (
                           <span
                             title="Superadmin permanente"
@@ -414,8 +514,8 @@ export function GestaoJogadores() {
                   {/* Toggle Mensalista */}
                   <button
                     type="button"
-                    disabled={salvando}
-                    onClick={() => alternarMensalista(j)}
+                    disabled={salvandoLote}
+                    onClick={() => alternarMensalistaDraft(jOriginal)}
                     title={
                       bloqMensalista
                         ? `Limite de ${MAX_MENSALISTAS} mensalistas atingido`
@@ -456,11 +556,13 @@ export function GestaoJogadores() {
                   {/* Toggle Admin */}
                   <button
                     type="button"
-                    disabled={salvando || superadmin}
-                    onClick={() => alternarAdmin(j)}
+                    disabled={salvandoLote || superadmin}
+                    onClick={() => alternarAdminDraft(jOriginal)}
                     title={
                       superadmin
                         ? "Superadmin permanente (acesso não pode ser removido)"
+                        : !j.is_mensalista
+                        ? "Apenas jogadores mensalistas podem ser administradores"
                         : undefined
                     }
                     className={`flex items-center justify-between p-2.5 rounded-lg border transition ${
@@ -468,6 +570,8 @@ export function GestaoJogadores() {
                         ? "border-amber-300/80 bg-amber-50/70 dark:border-amber-900/50 dark:bg-amber-950/20 text-amber-900 dark:text-amber-200 opacity-90 cursor-not-allowed"
                         : j.is_admin
                         ? "border-blue-300 bg-blue-50/60 dark:border-blue-900/60 dark:bg-blue-950/20 text-blue-900 dark:text-blue-200 hover:bg-blue-100/60 dark:hover:bg-blue-950/40"
+                        : !j.is_mensalista
+                        ? "border-neutral-200/80 bg-neutral-100/60 dark:border-neutral-800/50 dark:bg-neutral-900/40 text-neutral-400 dark:text-neutral-500 hover:bg-neutral-100/90 dark:hover:bg-neutral-800/40"
                         : "border-neutral-200 bg-neutral-50/50 dark:border-neutral-800 dark:bg-neutral-800/30 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800/60"
                     }`}
                   >
@@ -478,6 +582,8 @@ export function GestaoJogadores() {
                             ? "bg-amber-500 border-amber-500 text-white"
                             : j.is_admin
                             ? "bg-blue-600 border-blue-600 text-white"
+                            : !j.is_mensalista
+                            ? "border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800"
                             : "border-neutral-400 bg-white dark:bg-neutral-900"
                         }`}
                       >
@@ -496,18 +602,66 @@ export function GestaoJogadores() {
                         </>
                       ) : j.is_admin ? (
                         "Ativo"
+                      ) : !j.is_mensalista ? (
+                        "Requer Mensalista"
                       ) : (
                         "Tornar Admin"
                       )}
                     </span>
                   </button>
+
                 </div>
               </div>
             );
           })}
         </div>
       )}
+
+      {/* Floating Action Bar / Mobile Action Footer */}
+      {temAlteracoes && (
+        <div className="fixed bottom-16 sm:bottom-6 left-3 right-3 sm:left-auto sm:right-6 sm:w-auto z-40 animate-in fade-in slide-in-from-bottom-4 duration-200">
+          <div className="bg-neutral-900/95 dark:bg-neutral-900/95 text-white backdrop-blur-md border border-neutral-800 shadow-2xl rounded-2xl p-3 flex items-center justify-between gap-3 max-w-lg mx-auto">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="size-6 rounded-full bg-green-500 text-neutral-950 font-bold text-xs flex items-center justify-center shrink-0">
+                {qtdModificacoes}
+              </span>
+              <span className="text-xs font-semibold text-neutral-200 truncate">
+                {qtdModificacoes === 1
+                  ? "1 alteração pendente"
+                  : `${qtdModificacoes} alterações pendentes`}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                disabled={salvandoLote}
+                onClick={descartarAlteracoes}
+                className="inline-flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-medium text-neutral-400 hover:text-white hover:bg-neutral-800 transition disabled:opacity-50"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span className="hidden xs:inline">Descartar</span>
+              </button>
+
+              <button
+                type="button"
+                disabled={salvandoLote}
+                onClick={salvarTodasAlteracoes}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-green-600 hover:bg-green-500 text-white transition shadow-md disabled:opacity-50 shrink-0"
+              >
+                {salvandoLote ? (
+                  "Salvando..."
+                ) : (
+                  <>
+                    <Save className="w-3.5 h-3.5" />
+                    <span>Confirmar Alterações</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-

@@ -193,7 +193,11 @@ export function NovoJogador() {
             <input
               type="checkbox"
               checked={isMensalista}
-              onChange={(e) => setIsMensalista(e.target.checked)}
+              onChange={(e) => {
+                const val = e.target.checked;
+                setIsMensalista(val);
+                if (!val) setIsAdminNovo(false);
+              }}
               className="accent-green-600 w-4 h-4 rounded mt-0.5"
             />
             <div className="text-xs">
@@ -210,7 +214,11 @@ export function NovoJogador() {
             <input
               type="checkbox"
               checked={isAdminNovo}
-              onChange={(e) => setIsAdminNovo(e.target.checked)}
+              onChange={(e) => {
+                const val = e.target.checked;
+                setIsAdminNovo(val);
+                if (val) setIsMensalista(true);
+              }}
               className="accent-green-600 w-4 h-4 rounded mt-0.5"
             />
             <div className="text-xs">
@@ -218,10 +226,11 @@ export function NovoJogador() {
                 É Administrador
               </span>
               <span className="text-neutral-500 dark:text-neutral-400">
-                Pode criar, editar partidas, lançar eventos e gerenciar o racha.
+                Pode criar, editar partidas, lançar eventos e gerenciar o racha (requer ser Mensalista).
               </span>
             </div>
           </label>
+
         </div>
 
         {/* Seção 4: Senha Padrão */}

@@ -70,12 +70,22 @@ export async function atualizarCaracteristicasJogador(
   const payload: { is_mensalista?: boolean; is_admin?: boolean } = { ...dados };
 
   if (isSuperAdmin(username)) {
-    // Superadmins nunca podem perder o status de admin
+    // Superadmins sempre mantêm is_admin e is_mensalista como true
     payload.is_admin = true;
+    payload.is_mensalista = true;
+  } else {
+    // Regra: se o status de mensalista for removido, remove também o status de admin
+    if (payload.is_mensalista === false) {
+      payload.is_admin = false;
+    }
+    // Regra: não permite ativar is_admin se for não-mensalista
+    if (payload.is_admin === true && payload.is_mensalista === false) {
+      throw new Error("Apenas jogadores mensalistas podem ser administradores.");
+    }
   }
 
-  // Validação do limite de mensalistas
-  if (dados.is_mensalista === true) {
+  // Validação do limite de mensalistas se estiver ativando mensalista
+  if (payload.is_mensalista === true) {
     const { data: jogadorAtual } = await supabase
       .from("jogadores")
       .select("is_mensalista")
@@ -104,6 +114,7 @@ export async function atualizarCaracteristicasJogador(
 
   if (error) throw error;
 }
+
 
 
 export async function obterMediasNotasJogadores(): Promise<Record<number, number>> {
