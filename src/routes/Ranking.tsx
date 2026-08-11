@@ -41,13 +41,6 @@ const metricas: Record<
   },
 };
 
-const rotuloMetricaCurta: Record<CampoMetrica, string> = {
-  pontos: "pts",
-  gols: "gols",
-  assistencias: "assist.",
-  gols_contra: "GC",
-};
-
 interface ColunaTabela {
   key: ColunaOrdenacao;
   label: string;
@@ -293,22 +286,15 @@ export function Ranking() {
             : "Nenhum jogador atende ao mínimo de partidas selecionado."}
         </p>
       ) : (
-        <>
-          <TabelaRanking
-            linhas={linhasFiltradas}
-            colunasOrdenacao={colunasOrdenacao}
-            colunaOrdenacao={colunaOrdenacao}
-            direcaoOrdenacao={direcaoOrdenacao}
-            selecionarOrdenacao={selecionarOrdenacao}
-            valorOrdenacao={valorOrdenacao}
-            jogadorLogadoId={jogadorLogado?.id}
-          />
-          <CardRanking
-            linhas={linhasFiltradas}
-            configuracao={configuracao}
-            jogadorLogadoId={jogadorLogado?.id}
-          />
-        </>
+        <TabelaRanking
+          linhas={linhasFiltradas}
+          colunasOrdenacao={colunasOrdenacao}
+          colunaOrdenacao={colunaOrdenacao}
+          direcaoOrdenacao={direcaoOrdenacao}
+          selecionarOrdenacao={selecionarOrdenacao}
+          valorOrdenacao={valorOrdenacao}
+          jogadorLogadoId={jogadorLogado?.id}
+        />
       )}
     </div>
   );
@@ -332,7 +318,7 @@ function TabelaRanking({
   jogadorLogadoId?: number;
 }) {
   return (
-    <div className="hidden sm:block overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-800">
+    <div className="overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-800">
       <table className="w-full min-w-120 text-sm">
         <thead className="bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400">
           <tr>
@@ -418,76 +404,6 @@ function TabelaRanking({
           })}
         </tbody>
       </table>
-    </div>
-  );
-}
-
-function CardRanking({
-  linhas,
-  configuracao,
-  jogadorLogadoId,
-}: {
-  linhas: LinhaRanking[];
-  configuracao: (typeof metricas)[Metrica];
-  jogadorLogadoId?: number;
-}) {
-  return (
-    <div className="block sm:hidden space-y-2">
-      {linhas.map((l, i) => {
-        const posicao = i + 1;
-        const ehLogado = l.jogador_id === jogadorLogadoId;
-        const inicial = l.nome.trim().charAt(0).toUpperCase() || "?";
-        const corCirculo =
-          posicao === 1
-            ? "bg-yellow-400 text-neutral-900"
-            : posicao === 2
-              ? "bg-neutral-400 text-neutral-900"
-              : posicao === 3
-                ? "bg-amber-700 text-white"
-                : "bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-200";
-        const valorPrincipal = Number(l[configuracao.campo]);
-        const rotuloPrincipal = rotuloMetricaCurta[configuracao.campo];
-        const percentualVitorias =
-          l.partidas > 0 ? Math.round((l.vitorias / l.partidas) * 100) : 0;
-        return (
-          <div
-            key={l.jogador_id}
-            className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 ${
-              ehLogado
-                ? "border-(--cor-destaque)/40 bg-(--cor-destaque)/10"
-                : "border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950"
-            }`}
-          >
-            <span
-              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold ${corCirculo}`}
-              aria-hidden="true"
-            >
-              {inicial}
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-baseline justify-between gap-2">
-                <p className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                  <span className="text-neutral-500 dark:text-neutral-400">
-                    {posicao}º
-                  </span>{" "}
-                  {l.nome}
-                </p>
-                <p className="shrink-0 text-base font-bold text-(--cor-destaque)">
-                  {valorPrincipal}{" "}
-                  <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
-                    {rotuloPrincipal}
-                  </span>
-                </p>
-              </div>
-              <p className="mt-0.5 truncate text-xs text-neutral-500 dark:text-neutral-400">
-                {POSICOES[l.posicao] ?? l.posicao} · P {l.partidas} · V{" "}
-                {l.vitorias} · E {l.empates} · D {l.derrotas} ·{" "}
-                {percentualVitorias}% vit
-              </p>
-            </div>
-          </div>
-        );
-      })}
     </div>
   );
 }
