@@ -364,9 +364,14 @@ export function PartidaNovaTimes() {
                   <button
                     type="button"
                     onClick={() => atribuirTime(j.id, "a")}
-                    disabled={pretoCheio}
+                    disabled={pretoDisabled}
                     aria-pressed={time === "a"}
                     aria-label={`Escalar ${j.nome} no time Preto`}
+                    title={
+                      pretoBloqueiaGoleiro
+                        ? "O time Preto já tem um goleiro"
+                        : undefined
+                    }
                     className={`min-h-[44px] min-w-[3.5rem] px-2 rounded-lg border text-xs font-semibold transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed ${
                       time === "a"
                         ? "bg-neutral-900 text-neutral-50 border-neutral-900 dark:bg-neutral-800 dark:border-neutral-400"
@@ -378,9 +383,14 @@ export function PartidaNovaTimes() {
                   <button
                     type="button"
                     onClick={() => atribuirTime(j.id, "b")}
-                    disabled={brancoCheio}
+                    disabled={brancoDisabled}
                     aria-pressed={time === "b"}
                     aria-label={`Escalar ${j.nome} no time Branco`}
+                    title={
+                      brancoBloqueiaGoleiro
+                        ? "O time Branco já tem um goleiro"
+                        : undefined
+                    }
                     className={`min-h-[44px] min-w-[3.5rem] px-2 rounded-lg border text-xs font-semibold transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed ${
                       time === "b"
                         ? "bg-neutral-100 dark:bg-neutral-200 text-neutral-900 border-neutral-300 dark:border-neutral-300"
@@ -413,7 +423,10 @@ export function PartidaNovaTimes() {
           </button>
           {!podeSalvar && (
             <p className="mt-1 text-center text-xs text-neutral-500 dark:text-neutral-400">
-              Aloque 8 jogadores em cada time.
+              {contagemTime.a !== LIMITE_POR_TIME ||
+              contagemTime.b !== LIMITE_POR_TIME
+                ? "Aloque 8 jogadores em cada time."
+                : "Cada time precisa ter exatamente 1 goleiro."}
             </p>
           )}
         </div>
