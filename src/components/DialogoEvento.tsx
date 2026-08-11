@@ -7,8 +7,13 @@ import { formatarNome } from "../lib/formatacao";
 interface DialogoEventoProps {
   jogador: Participante | null;
   companheiros: Participante[];
+  jogadores?: Participante[];
   salvando: boolean;
+  editando?: boolean;
+  tipoAtual?: TipoEvento;
+  assistenciaAtual?: number | null;
   onClose: () => void;
+  onTrocarJogador?: (jogador: Participante) => void;
   onConfirmar: (tipo: TipoEvento, assistenciaId: number | null) => void;
 }
 
@@ -17,8 +22,13 @@ type Etapa = "tipo" | "assistencia";
 export function DialogoEvento({
   jogador,
   companheiros,
+  jogadores = [],
   salvando,
+  editando = false,
+  tipoAtual,
+  assistenciaAtual,
   onClose,
+  onTrocarJogador,
   onConfirmar,
 }: DialogoEventoProps) {
   const tituloId = useId();
@@ -32,7 +42,7 @@ export function DialogoEvento({
 
   useEffect(() => {
     setEtapa("tipo");
-  }, [jogador?.jogador_id]);
+  }, [jogador?.jogador_id, editando]);
 
   useEffect(() => {
     if (!jogador) return;
@@ -55,6 +65,8 @@ export function DialogoEvento({
   if (!jogador) return null;
 
   const nome = formatarNome(jogador.nome ?? `#${jogador.jogador_id}`);
+  const pretos = jogadores.filter((j) => j.time === "a");
+  const brancos = jogadores.filter((j) => j.time === "b");
 
   return createPortal(
     <div
@@ -79,17 +91,60 @@ export function DialogoEvento({
               id={tituloId}
               className="text-base font-semibold text-neutral-900 dark:text-neutral-100"
             >
-              Evento de {nome}
+              {editando ? "Editar evento" : `Evento de ${nome}`}
             </h2>
             <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-              O que aconteceu?
+              {editando
+                ? "Altere o jogador, o tipo ou a assistência."
+                : "O que aconteceu?"}
             </p>
+
+            {editando && onTrocarJogador && jogadores.length > 0 && (
+              <label className="mt-3 block">
+                <span className="mb-1 block text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                  Jogador
+                </span>
+                <select
+                  value={jogador.jogador_id}
+                  onChange={(e) => {
+                    const id = Number(e.target.value);
+                    const escolhido = jogadores.find((j) => j.jogador_id === id);
+                    if (escolhido) onTrocarJogador(escolhido);
+                  }}
+                  className="w-full cursor-pointer rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-sm text-neutral-900 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
+                >
+                  {pretos.length > 0 && (
+                    <optgroup label="Time Preto">
+                      {pretos.map((j) => (
+                        <option key={j.jogador_id} value={j.jogador_id}>
+                          {formatarNome(j.nome ?? `#${j.jogador_id}`)}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {brancos.length > 0 && (
+                    <optgroup label="Time Branco">
+                      {brancos.map((j) => (
+                        <option key={j.jogador_id} value={j.jogador_id}>
+                          {formatarNome(j.nome ?? `#${j.jogador_id}`)}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                </select>
+              </label>
+            )}
+
             <div className="mt-4 grid grid-cols-2 gap-2">
               <button
                 type="button"
                 disabled={salvando}
                 onClick={() => setEtapa("assistencia")}
-                className="cursor-pointer rounded-lg bg-[var(--cor-destaque)] px-3 py-3 text-sm font-medium text-white active:scale-95 disabled:opacity-40"
+                className={`cursor-pointer rounded-lg px-3 py-3 text-sm font-medium active:scale-95 disabled:opacity-40 ${
+                  editando && tipoAtual === "gol"
+                    ? "bg-[var(--cor-destaque)] text-white ring-2 ring-[var(--cor-destaque)] ring-offset-2 ring-offset-white dark:ring-offset-neutral-900"
+                    : "bg-[var(--cor-destaque)] text-white"
+                }`}
               >
                 ⚽ Gol
               </button>
@@ -97,7 +152,11 @@ export function DialogoEvento({
                 type="button"
                 disabled={salvando}
                 onClick={() => onConfirmar("gol_contra", null)}
-                className="cursor-pointer rounded-lg border border-red-300 px-3 py-3 text-sm font-medium text-red-600 active:scale-95 disabled:opacity-40 dark:border-red-900 dark:text-red-400"
+                className={`cursor-pointer rounded-lg border px-3 py-3 text-sm font-medium active:scale-95 disabled:opacity-40 ${
+                  editando && tipoAtual === "gol_contra"
+                    ? "border-red-600 bg-red-600 text-white"
+                    : "border-red-300 text-red-600 dark:border-red-900 dark:text-red-400"
+                }`}
               >
                 Gol contra
               </button>
@@ -126,22 +185,34 @@ export function DialogoEvento({
               type="button"
               disabled={salvando}
               onClick={() => onConfirmar("gol", null)}
-              className="mt-4 w-full cursor-pointer rounded-lg border border-neutral-300 px-3 py-3 text-sm font-medium text-neutral-800 active:scale-95 disabled:opacity-40 dark:border-neutral-700 dark:text-neutral-200"
+              className={`mt-4 w-full cursor-pointer rounded-lg border px-3 py-3 text-sm font-medium active:scale-95 disabled:opacity-40 ${
+                editando && assistenciaAtual == null && tipoAtual === "gol"
+                  ? "border-[var(--cor-destaque)] bg-[var(--cor-destaque)]/10 text-neutral-900 dark:text-neutral-100"
+                  : "border-neutral-300 text-neutral-800 dark:border-neutral-700 dark:text-neutral-200"
+              }`}
             >
               Sem assistência
             </button>
             <div className="mt-3 max-h-56 space-y-1 overflow-y-auto">
-              {companheiros.map((c) => (
-                <button
-                  key={c.jogador_id}
-                  type="button"
-                  disabled={salvando}
-                  onClick={() => onConfirmar("gol", c.jogador_id)}
-                  className="w-full cursor-pointer rounded-lg bg-neutral-100 px-3 py-2.5 text-left text-sm font-medium text-neutral-900 active:scale-[0.99] disabled:opacity-40 dark:bg-neutral-800 dark:text-neutral-100"
-                >
-                  {formatarNome(c.nome ?? `#${c.jogador_id}`)}
-                </button>
-              ))}
+              {companheiros.map((c) => {
+                const ativo =
+                  editando && assistenciaAtual === c.jogador_id;
+                return (
+                  <button
+                    key={c.jogador_id}
+                    type="button"
+                    disabled={salvando}
+                    onClick={() => onConfirmar("gol", c.jogador_id)}
+                    className={`w-full cursor-pointer rounded-lg px-3 py-2.5 text-left text-sm font-medium active:scale-[0.99] disabled:opacity-40 ${
+                      ativo
+                        ? "bg-[var(--cor-destaque)] text-white"
+                        : "bg-neutral-100 text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100"
+                    }`}
+                  >
+                    {formatarNome(c.nome ?? `#${c.jogador_id}`)}
+                  </button>
+                );
+              })}
             </div>
             <button
               type="button"

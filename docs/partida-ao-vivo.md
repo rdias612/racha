@@ -28,7 +28,7 @@ draft  →  live  →  published  →  closed
    - **Gol** → segundo passo: quem deu a assistência (ou “Sem assistência”).
    - **Gol contra** — sem assistência.
 4. **Acompanha o placar** — calculado pelos eventos (gol soma no time do autor; gol contra soma no adversário).
-5. **Desfaz** se errou (só enquanto estiver `live`).
+5. **Edita ou desfaz** se errou (só enquanto estiver `live`): tipo, jogador e assistência.
 6. **Finaliza** — agrega gols/assists/gols contra em `partidas_participantes`, status `published`, `voting_closes_at = now()+24h`. Os 16 da partida podem votar.
 
 Quem não é admin vê o campo e o placar, mas não lança evento.
@@ -40,7 +40,7 @@ Atalho antigo permanece: **Lançar resultado sem acompanhar** (tela de steppers)
 ## Regras
 
 - Só abre se estiver `draft` e tiver 8 no Preto e 8 no Branco.
-- Só registra/remove evento em `live`.
+- Só registra/edita/remove evento em `live`.
 - Assistência só em gol, do **mesmo time**, e não pode ser o próprio autor.
 - Eventos são gravados **na hora** (refresh não perde gol). Ao finalizar, os contadores são recalculados a partir do log (fonte da verdade).
 - Ranking, stats, parcerias e resumo do ano **continuam só com `published` + `closed`**. Partida `live` não pontua.
@@ -50,7 +50,7 @@ Tipos de evento hoje: `gol` e `gol_contra`. A tabela aceita novos tipos no futur
 
 ---
 
-## Banco (`046_partida_live_eventos.sql`)
+## Banco (`047_partida_live_eventos.sql` + `048_rpc_editar_evento.sql`)
 
 **Obrigatório aplicar no SQL Editor do Supabase** antes de testar. Sem isso, as RPCs não existem.
 
@@ -77,6 +77,7 @@ CHECK: gol contra não pode ter assistência.
 |---|---|
 | `abrir_partida(id)` | `draft` → `live`. Zera contadores e eventos. Exige 8+8. |
 | `registrar_evento(partida, tipo, jogador, assist?)` | Insert + sincroniza contadores. Só `live`. |
+| `editar_evento(evento_id, tipo, jogador, assist?)` | Update + sincroniza contadores. Só `live`. |
 | `remover_evento(evento_id)` | Delete + sincroniza. Só `live`. |
 | `finalizar_partida(id)` | Sincroniza, `live` → `published`, abre votação 24h. |
 | `sincronizar_contadores_partida(id)` | Interna. Recalcula `gols`, `assistencias`, `gols_contra` a partir do log. Sem GRANT a `anon`. |
@@ -114,10 +115,10 @@ Votação, ranking, perfil, push e cron de fechamento **não foram alterados**. 
 
 ## Como testar
 
-1. Aplicar `supabase/migrations/046_partida_live_eventos.sql` no projeto Supabase.
+1. Aplicar `047_partida_live_eventos.sql` e `048_rpc_editar_evento.sql` no SQL Editor do Supabase.
 2. Logar como admin → Jogos → Nova partida → escalar times → Criar.
 3. **Abrir partida** → tocar num jogador → gol + assistência (e um gol contra).
-4. Conferir placar e lista de eventos. Desfazer um.
+4. Conferir placar e lista de eventos. **Editar** um (trocar jogador/tipo/assistência) e **Desfazer** outro.
 5. Recarregar a página: eventos e placar permanecem.
 6. **Finalizar partida** → detalhe com placar, gols/assists por jogador e botão **Votar**.
 7. Logar como jogador da partida e votar.
