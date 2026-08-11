@@ -105,12 +105,12 @@ export function Resumo() {
       detalhe: `${resumo.eficiente_vitorias ?? 0} vitórias em ${resumo.eficiente_partidas ?? 0} partidas`,
     },
     {
-      titulo: "Maior sequência de vitórias (atual)",
+      titulo: "Maior sequência de vitórias",
       nome: resumo.sequencia_vitorias_nome,
       valor: `${resumo.sequencia_vitorias ?? 0} vitórias seguidas`,
     },
     {
-      titulo: "Maior seca de vitórias (atual)",
+      titulo: "Maior seca de vitórias",
       nome: resumo.seca_vitorias_nome,
       valor: `${resumo.seca_vitorias ?? 0} partidas sem vencer`,
     },
