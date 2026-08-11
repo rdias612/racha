@@ -130,6 +130,29 @@ export function PartidaVotar() {
 
   const todosAvaliados = alvos.every((a) => notas[a.jogador_id] !== undefined);
   const editando = votosOriginais.size > 0;
+  const [votosEnviados, setVotosEnviados] = useState(false);
+  const temModificacoes = Object.keys(notas).length > 0 && !votosEnviados && !salvando;
+
+  useEffect(() => {
+    function handleBeforeUnload(e: BeforeUnloadEvent) {
+      if (temModificacoes) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    }
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [temModificacoes]);
+
+  function handleVoltar() {
+    if (
+      temModificacoes &&
+      !window.confirm("Você tem votos não salvos. Deseja realmente sair sem salvar?")
+    ) {
+      return;
+    }
+    navigate(-1);
+  }
 
   async function enviar() {
     if (!jogador || !partida || !todosAvaliados) return;
@@ -161,6 +184,7 @@ export function PartidaVotar() {
       return;
     }
 
+    setVotosEnviados(true);
     setFeedback(editando ? "Votos atualizados!" : "Votos registrados!");
     setTimeout(
       () => navigate(`/partida/${partida.id}`, { replace: true }),
@@ -179,7 +203,7 @@ export function PartidaVotar() {
   return (
     <div className="px-3 py-4 pb-24 sm:px-4 max-w-2xl mx-auto space-y-4">
       <button
-        onClick={() => navigate(-1)}
+        onClick={handleVoltar}
         className="text-xs text-neutral-500 dark:text-neutral-400"
       >
         ← voltar

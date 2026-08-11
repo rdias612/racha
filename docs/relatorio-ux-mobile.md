@@ -95,7 +95,6 @@
 - **L113-140:** Placar principal (`Preto | 2 x 1 | Branco`) em `border-neutral-200` - bom tamanho mas desaponta visualmente; o placar e o coracao do app.
 - **L93-102 (grid-cols-2 dos times):** Cards de time lado a lado em 375px ficam em ~165px cada - nomes com `truncate`, gols/assistencias em `text-[11px]`. Apertado.
 - **L142-154:** Craque da partida em cartao azul claro com estrela emoji - bom destaque, mas o icone e emoji e o card nao tem avatar/silueta do jogador.
-- **Sem animacao de revelacao** quando votacao fecha - momento alto do produto, deveria ter transicao.
 
 #### `src/routes/PartidaEditar.tsx`
 - **L308+ (`Stepper`):** Stepper de gols/assistencias/gols-contra em botao - cada um `min-w-[3rem]` minimo. Em 320px com 3 steppers por linha (gols + assists + GC) ficam apertados nas bordas.
@@ -185,7 +184,6 @@ Evita render inconsistente iOS/Android e ganha peso/estilo controlavel (regular/
 - **Haptics (Vibration API):** light no toggle de time, medium ao finalizar partida, success pattern (curto-curto-longo) ao registrar votos. Wrap em `src/lib/haptics.ts` com fallback sem Vibration.
 - **Snackbar global:** hoje `MensagemEstado` e inline - melhor um portal unificado para feedbacks curtos ("Voto registrado", "Gol adicionado").
 - **Transicao de paginas:** slide-in / fade entre rotas (CSS transitions, sem dependencia).
-- **Reveal do craque:** quando `status` muda published -> closed, animacao `scale + fade` no card de craque (`PartidaDetalhe.tsx:142`).
 - **Voz consistente:** o app ja tem tom colloquial ("Botar o resultado", "Revisar escalacao") - formalizar: CTAs no imperativo do dia-a-dia, microcopy curto, girias so em momentos de comemoracao ("Craque!", "Sumidade!").
 
 ---
@@ -224,7 +222,6 @@ Evita render inconsistente iOS/Android e ganha peso/estilo controlavel (regular/
 | Publicar resultado (`PartidaEditar`) | Reload completo + `MensagemEstado` | Snackbar + haptic success + fade da lista |
 | Registrar votos (`PartidaVotar`) | `setFeedback` por 900ms | Snackbar full-screen confirmation + route transition |
 | Atingir cota (`PartidaNova`) | Cor verde no card | + haptic medium |
-| Craque revelado | Card estatico | Scale + fade + haptic long |
 
 ### 4.5 Uso com uma mao
 
@@ -267,7 +264,6 @@ Evita render inconsistente iOS/Android e ganha peso/estilo controlavel (regular/
 | **P2** | Trocar `window.location.href` por `navigate()` em `PartidaEditar` | 0.2d | Medio (sem flash) | `src/routes/PartidaEditar.tsx:113` |
 | **P2** | Busca/filtro em `PartidaNova` (lista de jogadores) | 1d | Medio (admin) | `src/routes/PartidaNova.tsx` |
 | **P2** | Pull-to-refresh em listas | 1.5d | Baixo-Medio | `Jogos`, `Ranking`, `Estatisticas` |
-| **P2** | Reveal animado do craque quando fecha votacao | 0.5d | Medio (momento alto) | `src/routes/PartidaDetalhe.tsx:142` |
 | **P2** | Stepper/wizard no `NovoJogador` | 1d | Baixo (admin, raro) | `src/routes/NovoJogador.tsx` |
 | **P2** | `useBlocker` em `PartidaVotar` prevenir saida incompleta | 0.5d | Medio (ja em docs/melhorias-futuras) | `src/routes/PartidaVotar.tsx` |
 | **P2** | Avatar/silueta por inicial em circulos coloridos (`Ranking`, `EstatisticasRacha`) | 1d | Baixo-Medio (personalidade) | varios |
@@ -332,7 +328,6 @@ Em `src/routes/PartidaVotar.tsx:228` trocar `fixed inset-x-0 bottom-16 z-40 p-3 
 - Snackbar global
 - Haptics wrapper
 - Replace `window.location.href` por `navigate()` em `PartidaEditar`
-- Reveal animado do craque
 - `useBlocker` na votacao
 - Filtro/busca em `PartidaNova`
 - **Verificar:** feedback claro para todo CTA principal.

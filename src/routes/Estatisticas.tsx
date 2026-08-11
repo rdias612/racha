@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useSessao } from "../context/SessaoContext";
 import { Carregando, MensagemEstado } from "../components/Estado";
+import { PullToRefresh } from "../components/PullToRefresh";
 
 // Stats básicas (mesma fonte do Perfil: view stats_jogador)
 interface Stats {
@@ -85,43 +86,40 @@ export function Estatisticas() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jogador?.id]);
 
-  // Busca as estatisticas do jogador selecionado.
-  useEffect(() => {
+  const carregar = useCallback(async () => {
     if (!jogadorSelecionadoId) return;
     setCarregando(true);
     setErro(null);
 
-    // busca paralela: stats básicas + parcerias
-    Promise.all([
-      supabase
-        .from("stats_jogador")
-        .select(
-          "jogador_id, partidas, gols, assistencias, gols_contra, vitorias",
-        )
-        .eq("jogador_id", jogadorSelecionadoId)
-        .maybeSingle(),
-      supabase.rpc("parcerias_jogador", {
-        p_jogador_id: jogadorSelecionadoId,
-        p_min_partidas: 5,
-      }),
-      supabase.rpc("parcerias_destaque_jogador", {
-        p_jogador_id: jogadorSelecionadoId,
-        p_min_partidas: 5,
-      }),
-    ]).then(([resStats, resParc, resDest]) => {
+    try {
+      const [resStats, resParc, resDest] = await Promise.all([
+        supabase
+          .from("stats_jogador")
+          .select(
+            "jogador_id, partidas, gols, assistencias, gols_contra, vitorias",
+          )
+          .eq("jogador_id", jogadorSelecionadoId)
+          .maybeSingle(),
+        supabase.rpc("parcerias_jogador", {
+          p_jogador_id: jogadorSelecionadoId,
+          p_min_partidas: 5,
+        }),
+        supabase.rpc("parcerias_destaque_jogador", {
+          p_jogador_id: jogadorSelecionadoId,
+          p_min_partidas: 5,
+        }),
+      ]);
+
       if (resStats.error) {
         setErro(resStats.error.message);
-        setCarregando(false);
         return;
       }
       if (resParc.error) {
         setErro(resParc.error.message);
-        setCarregando(false);
         return;
       }
       if (resDest.error) {
         setErro(resDest.error.message);
-        setCarregando(false);
         return;
       }
       setStats(resStats.data);
@@ -135,9 +133,16 @@ export function Estatisticas() {
         mapa[d.metrica] = d;
       }
       setDestaques(mapa);
+    } catch (e: any) {
+      setErro(e?.message ?? "Erro ao carregar");
+    } finally {
       setCarregando(false);
-    });
+    }
   }, [jogadorSelecionadoId]);
+
+  useEffect(() => {
+    carregar();
+  }, [carregar]);
 
   if (!jogador) return null;
   if (carregando) return <Carregando>Carregando estatísticas</Carregando>;
@@ -161,7 +166,8 @@ export function Estatisticas() {
     jogadores.find((j) => j.id === jogadorSelecionadoId)?.nome ?? null;
 
   return (
-    <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-5">
+    <PullToRefresh onRefresh={carregar}>
+      <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-5">
       <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
         Estatísticas{nomeSelecionado ? ` · ${nomeSelecionado}` : ""}
       </h2>
@@ -291,6 +297,7 @@ export function Estatisticas() {
         )}
       </section>
     </div>
+    </PullToRefresh>
   );
 }
 

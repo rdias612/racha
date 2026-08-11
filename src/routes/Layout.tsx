@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useSessao } from "../context/SessaoContext";
 import { useTema } from "../lib/tema";
+import { Logo } from "../components/Logo";
 import { BannerLembrete } from "../components/BannerLembrete";
 
 export function Layout() {
@@ -38,14 +39,9 @@ export function Layout() {
     <div className="min-h-full flex flex-col bg-neutral-50 dark:bg-neutral-950">
       <header className="shrink-0 border-b border-neutral-200 px-3 py-2.5 sm:px-4 dark:border-neutral-800">
         <div className="flex items-center justify-between gap-x-4">
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--cor-primaria)] text-xs font-bold text-white">
-              RG
-            </div>
-            <h1 className="text-base font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
-              Racha Gragoatá
-            </h1>
-          </div>
+          <Link to="/" className="hover:opacity-90 transition">
+            <Logo size="sm" />
+          </Link>
 
           <div className="relative">
             <button

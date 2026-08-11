@@ -1,4 +1,5 @@
 import type { ParRacha } from "../lib/partidas";
+import { Avatar } from "./Avatar";
 
 interface DuplaCardProps {
   titulo: string;
@@ -18,9 +19,15 @@ export function DuplaCard({ titulo, par }: DuplaCardProps) {
       ) : (
         <>
           <div className="mt-1.5 flex items-center justify-between gap-2">
-            <span className="text-sm font-bold text-neutral-900 dark:text-neutral-100">
-              {par.jogador_a_nome} + {par.jogador_b_nome}
-            </span>
+            <div className="flex items-center gap-2">
+              <div className="flex -space-x-2">
+                <Avatar nome={par.jogador_a_nome} size="xs" />
+                <Avatar nome={par.jogador_b_nome} size="xs" />
+              </div>
+              <span className="text-sm font-bold text-neutral-900 dark:text-neutral-100">
+                {par.jogador_a_nome} + {par.jogador_b_nome}
+              </span>
+            </div>
             <span className="shrink-0 text-base font-bold text-(--cor-destaque)">
               {par.pontos} pts
             </span>

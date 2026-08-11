@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { NavLink, useParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { POSICOES, type PosicaoId } from "../lib/times";
 import { useJogadorLogado } from "../hooks/useJogadorLogado";
 import { Carregando, MensagemEstado } from "../components/Estado";
+import { PullToRefresh } from "../components/PullToRefresh";
+import { Avatar } from "../components/Avatar";
 
 type Metrica = "pontos" | "gols" | "assistencias" | "gols-contra";
 type CampoMetrica = "pontos" | "gols" | "assistencias" | "gols_contra";
@@ -83,35 +85,36 @@ export function Ranking() {
     setPosicaoFiltro("todas");
   }, [metrica]);
 
-  useEffect(() => {
-    async function carregar() {
-      let query = supabase
-        .from("ranking")
-        .select(
-          "jogador_id, nome, posicao, pontos, vitorias, empates, derrotas, partidas, gols, assistencias, gols_contra",
-        )
-        .order("pontos", { ascending: false })
-        .order("vitorias", { ascending: false })
-        .order("partidas", { ascending: false })
-        .order("gols", { ascending: false })
-        .order("assistencias", { ascending: false })
-        .order("nome", { ascending: true });
+  const carregar = useCallback(async () => {
+    let query = supabase
+      .from("ranking")
+      .select(
+        "jogador_id, nome, posicao, pontos, vitorias, empates, derrotas, partidas, gols, assistencias, gols_contra",
+      )
+      .order("pontos", { ascending: false })
+      .order("vitorias", { ascending: false })
+      .order("partidas", { ascending: false })
+      .order("gols", { ascending: false })
+      .order("assistencias", { ascending: false })
+      .order("nome", { ascending: true });
 
-      if (posicaoFiltro !== "todas") {
-        query = query.eq("posicao", posicaoFiltro);
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        setErro(error.message);
-      } else {
-        setLinhas(data ?? []);
-      }
-      setCarregando(false);
+    if (posicaoFiltro !== "todas") {
+      query = query.eq("posicao", posicaoFiltro);
     }
-    carregar();
+
+    const { data, error } = await query;
+
+    if (error) {
+      setErro(error.message);
+    } else {
+      setLinhas(data ?? []);
+    }
+    setCarregando(false);
   }, [posicaoFiltro]);
+
+  useEffect(() => {
+    carregar();
+  }, [carregar]);
 
   useEffect(() => {
     setColunaOrdenacao(configuracao.campo);
@@ -181,10 +184,11 @@ export function Ranking() {
   );
 
   return (
-    <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto">
-      <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-3">
-        {configuracao.titulo}
-      </h2>
+    <PullToRefresh onRefresh={carregar}>
+      <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto">
+        <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-3">
+          {configuracao.titulo}
+        </h2>
 
       <div className="mb-3 flex gap-1 overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 p-1">
         <NavLink
@@ -297,6 +301,7 @@ export function Ranking() {
         />
       )}
     </div>
+    </PullToRefresh>
   );
 }
 
@@ -386,9 +391,12 @@ function TabelaRanking({
                         : "text-right"
                     }`}
                   >
-                    {coluna.key === "nome"
-                      ? l.nome
-                      : coluna.key === "media_gols"
+                    {coluna.key === "nome" ? (
+                      <div className="flex items-center gap-2">
+                        <Avatar nome={l.nome} posicao={l.posicao} size="xs" />
+                        <span>{l.nome}</span>
+                      </div>
+                    ) : coluna.key === "media_gols"
                         ? numero2casas.format(
                             Number(valorOrdenacao(l, coluna.key)),
                           )
