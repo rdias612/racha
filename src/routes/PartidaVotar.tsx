@@ -55,7 +55,23 @@ export function PartidaVotar() {
           return;
         }
 
+        // Jogadores 'random' (placeholders do sorteio) nunca votam.
+        if (jogador.username.toLowerCase().startsWith("random")) {
+          setErro("Jogadores random não podem votar.");
+          setCarregando(false);
+          return;
+        }
+
         const participantes = await carregarParticipantes(p.id);
+        // Só quem jogou a partida pode votar.
+        const ehParticipante = participantes.some(
+          (part) => part.jogador_id === jogador.id,
+        );
+        if (!ehParticipante) {
+          setErro("Você não participou desta partida.");
+          setCarregando(false);
+          return;
+        }
         // esconde o próprio votante (não vota em si)
         const alvosFiltrados = participantes
           .filter((part) => part.jogador_id !== jogador.id)

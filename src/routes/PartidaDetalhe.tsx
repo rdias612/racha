@@ -126,6 +126,9 @@ export function PartidaDetalhe() {
   const jaEhParticipante =
     !!jogadorLogado &&
     participantes.some((p) => p.jogador_id === jogadorLogado.id)
+  const isRandom =
+    !!jogadorLogado &&
+    jogadorLogado.username.toLowerCase().startsWith("random")
 
   return (
     <div className="px-3 py-4 pb-10 sm:px-4 max-w-2xl mx-auto space-y-4">
@@ -301,7 +304,7 @@ export function PartidaDetalhe() {
         </div>
       )}
 
-      {votacaoAberta && jaEhParticipante && (
+      {votacaoAberta && jaEhParticipante && !isRandom && (
         <div className="space-y-2">
           {jaVotou ? (
             <>
