@@ -14,6 +14,7 @@ export interface JogadorLista {
 }
 
 export const SUPERADMINS = ["dico", "tadeu", "natal"];
+export const MAX_MENSALISTAS = 16;
 
 export function isSuperAdmin(username?: string | null): boolean {
   if (!username) return false;
@@ -73,6 +74,29 @@ export async function atualizarCaracteristicasJogador(
     payload.is_admin = true;
   }
 
+  // Validação do limite de mensalistas
+  if (dados.is_mensalista === true) {
+    const { data: jogadorAtual } = await supabase
+      .from("jogadores")
+      .select("is_mensalista")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (jogadorAtual && !jogadorAtual.is_mensalista) {
+      const { count, error: countErr } = await supabase
+        .from("jogadores")
+        .select("id", { count: "exact", head: true })
+        .eq("is_mensalista", true);
+
+      if (countErr) throw countErr;
+      if ((count ?? 0) >= MAX_MENSALISTAS) {
+        throw new Error(
+          `Limite máximo de ${MAX_MENSALISTAS} mensalistas atingido. Remova o status de mensalista de outro jogador antes de adicionar.`
+        );
+      }
+    }
+  }
+
   const { error } = await supabase
     .from("jogadores")
     .update(payload)
@@ -80,6 +104,7 @@ export async function atualizarCaracteristicasJogador(
 
   if (error) throw error;
 }
+
 
 export async function obterMediasNotasJogadores(): Promise<Record<number, number>> {
   const { data, error } = await supabase

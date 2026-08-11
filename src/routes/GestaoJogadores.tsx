@@ -5,8 +5,10 @@ import {
   listarTodosJogadores,
   atualizarCaracteristicasJogador,
   isSuperAdmin,
+  MAX_MENSALISTAS,
   type JogadorLista,
 } from "../lib/jogadores";
+
 import { POSICOES } from "../lib/times";
 import { Avatar } from "../components/Avatar";
 import { Carregando, MensagemEstado } from "../components/Estado";
@@ -21,7 +23,6 @@ import {
   UserCheck,
   UserCheck2,
 } from "lucide-react";
-
 
 type FiltroTipo = "todos" | "mensalistas" | "avulsos" | "admins";
 
@@ -56,8 +57,26 @@ export function GestaoJogadores() {
 
   if (!isAdmin) return <Navigate to="/" replace />;
 
+  // Estatísticas do topo
+  const totalJogadores = jogadores.length;
+  const totalMensalistas = jogadores.filter((j) => j.is_mensalista).length;
+  const totalAdmins = jogadores.filter(
+    (j) => j.is_admin || isSuperAdmin(j.username)
+  ).length;
+  const totalSuperAdmins = jogadores.filter((j) =>
+    isSuperAdmin(j.username)
+  ).length;
+
   async function alternarMensalista(jogador: JogadorLista) {
     const novoValor = !jogador.is_mensalista;
+
+    if (novoValor && totalMensalistas >= MAX_MENSALISTAS) {
+      setMensagemErro(
+        `Limite máximo de ${MAX_MENSALISTAS} mensalistas atingido (${totalMensalistas}/${MAX_MENSALISTAS}). Remova o status de mensalista de outro jogador antes de adicionar.`
+      );
+      return;
+    }
+
     setSalvandoId(jogador.id);
     setMensagemSucesso(null);
     setMensagemErro(null);
@@ -144,15 +163,7 @@ export function GestaoJogadores() {
     return true;
   });
 
-  // Estatísticas do topo
-  const totalJogadores = jogadores.length;
-  const totalMensalistas = jogadores.filter((j) => j.is_mensalista).length;
-  const totalAdmins = jogadores.filter(
-    (j) => j.is_admin || isSuperAdmin(j.username)
-  ).length;
-  const totalSuperAdmins = jogadores.filter((j) =>
-    isSuperAdmin(j.username)
-  ).length;
+  const limiteAtingido = totalMensalistas >= MAX_MENSALISTAS;
 
   return (
     <div className="px-3 py-4 pb-24 sm:px-4 max-w-3xl mx-auto space-y-5">
@@ -170,13 +181,25 @@ export function GestaoJogadores() {
           Gestão de Jogadores
         </h2>
         <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
-          Gerencie o acesso de administradores e a classificação de mensalistas do racha.
+          Gerencie o acesso de administradores e a classificação de mensalistas (limite fixo de {MAX_MENSALISTAS}).
         </p>
       </div>
 
       {mensagemErro && <MensagemEstado>{mensagemErro}</MensagemEstado>}
       {mensagemSucesso && (
         <MensagemEstado tipo="sucesso">{mensagemSucesso}</MensagemEstado>
+      )}
+
+      {limiteAtingido && (
+        <div className="rounded-xl border border-amber-300 dark:border-amber-900/60 bg-amber-50/80 dark:bg-amber-950/30 p-3 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2.5 shadow-xs">
+          <UserCheck2 className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          <div>
+            <span className="font-semibold block">Limite Máximo Atingido ({MAX_MENSALISTAS}/{MAX_MENSALISTAS} Mensalistas)</span>
+            <span className="opacity-90">
+              O limite de {MAX_MENSALISTAS} mensalistas foi alcançado. Para definir um novo mensalista, remova o status de um jogador atual.
+            </span>
+          </div>
+        </div>
       )}
 
       {/* Cards de Resumo */}
@@ -193,15 +216,40 @@ export function GestaoJogadores() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/50 dark:bg-emerald-950/20 p-3 shadow-xs">
-          <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400 mb-1">
-            <span className="text-[10px] font-semibold uppercase tracking-wider">
-              Mensalistas
-            </span>
-            <UserCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+        <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/50 dark:bg-emerald-950/20 p-3 shadow-xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400 mb-1">
+              <span className="text-[10px] font-semibold uppercase tracking-wider">
+                Mensalistas
+              </span>
+              <UserCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <div className="flex items-baseline gap-1">
+              <span className="text-xl font-bold text-emerald-700 dark:text-emerald-300">
+                {totalMensalistas}
+              </span>
+              <span className="text-xs font-semibold text-emerald-600/70 dark:text-emerald-400/70">
+                / {MAX_MENSALISTAS}
+              </span>
+            </div>
           </div>
-          <div className="text-xl font-bold text-emerald-700 dark:text-emerald-300">
-            {totalMensalistas}
+
+          <div className="mt-2">
+            <div className="h-1.5 w-full bg-emerald-200/80 dark:bg-emerald-950 rounded-full overflow-hidden">
+              <div
+                className={`h-full transition-all duration-300 ${
+                  limiteAtingido ? "bg-amber-500" : "bg-emerald-600 dark:bg-emerald-400"
+                }`}
+                style={{
+                  width: `${Math.min(100, (totalMensalistas / MAX_MENSALISTAS) * 100)}%`,
+                }}
+              />
+            </div>
+            <div className="text-[9px] font-medium text-emerald-700/80 dark:text-emerald-300/80 mt-1">
+              {limiteAtingido
+                ? "Limite lotado"
+                : `${MAX_MENSALISTAS - totalMensalistas} vaga(s) livre(s)`}
+            </div>
           </div>
         </div>
 
@@ -271,7 +319,7 @@ export function GestaoJogadores() {
                 : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700"
             }`}
           >
-            Mensalistas ({totalMensalistas})
+            Mensalistas ({totalMensalistas}/{MAX_MENSALISTAS})
           </button>
           <button
             onClick={() => setFiltro("avulsos")}
@@ -310,6 +358,7 @@ export function GestaoJogadores() {
           {jogadoresFiltrados.map((j) => {
             const superadmin = isSuperAdmin(j.username);
             const salvando = salvandoId === j.id;
+            const bloqMensalista = !j.is_mensalista && limiteAtingido;
 
             return (
               <div
@@ -367,9 +416,16 @@ export function GestaoJogadores() {
                     type="button"
                     disabled={salvando}
                     onClick={() => alternarMensalista(j)}
+                    title={
+                      bloqMensalista
+                        ? `Limite de ${MAX_MENSALISTAS} mensalistas atingido`
+                        : undefined
+                    }
                     className={`flex items-center justify-between p-2.5 rounded-lg border transition ${
                       j.is_mensalista
                         ? "border-emerald-300 bg-emerald-50/60 dark:border-emerald-900/60 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-200 hover:bg-emerald-100/60 dark:hover:bg-emerald-950/40"
+                        : bloqMensalista
+                        ? "border-amber-200/80 bg-amber-50/40 dark:border-amber-900/40 dark:bg-amber-950/10 text-amber-800 dark:text-amber-300 opacity-80"
                         : "border-neutral-200 bg-neutral-50/50 dark:border-neutral-800 dark:bg-neutral-800/30 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800/60"
                     }`}
                   >
@@ -378,6 +434,8 @@ export function GestaoJogadores() {
                         className={`w-4 h-4 rounded flex items-center justify-center border transition ${
                           j.is_mensalista
                             ? "bg-emerald-600 border-emerald-600 text-white"
+                            : bloqMensalista
+                            ? "border-amber-400 bg-amber-100 dark:bg-amber-950"
                             : "border-neutral-400 bg-white dark:bg-neutral-900"
                         }`}
                       >
@@ -387,7 +445,11 @@ export function GestaoJogadores() {
                     </div>
 
                     <span className="text-[11px] font-medium opacity-80">
-                      {j.is_mensalista ? "Ativo" : "Tornar Mensalista"}
+                      {j.is_mensalista
+                        ? "Ativo"
+                        : bloqMensalista
+                        ? `Lotado (${MAX_MENSALISTAS}/${MAX_MENSALISTAS})`
+                        : "Tornar Mensalista"}
                     </span>
                   </button>
 
@@ -448,3 +510,4 @@ export function GestaoJogadores() {
     </div>
   );
 }
+
