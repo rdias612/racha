@@ -1,8 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Wand2 } from "lucide-react";
 import { supabase } from "../lib/supabase";
-import type { JogadorLista } from "../lib/jogadores";
+import {
+  obterMediasNotasJogadores,
+  type JogadorLista,
+} from "../lib/jogadores";
 import { useAdmin } from "../hooks/useAdmin";
 import { useJogadorLogado } from "../hooks/useJogadorLogado";
 import { type TimeId } from "../lib/times";
@@ -32,9 +35,18 @@ export function PartidaNovaTimes() {
 
   // Hooks sempre chamados antes de qualquer return condicional (Regra dos Hooks).
   const [participantes, setParticipantes] = useState<ParticipanteForm[]>([]);
+  const [mediasNotas, setMediasNotas] = useState<Record<number, number>>({});
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
+
+  useEffect(() => {
+    obterMediasNotasJogadores()
+      .then(setMediasNotas)
+      .catch(() => {
+        // Falha silenciosa: assume nota 6.0 padrao se falhar busca
+      });
+  }, []);
 
   const contagemTime = useMemo(() => {
     const c: Record<TimeId, number> = { a: 0, b: 0 };
@@ -61,15 +73,40 @@ export function PartidaNovaTimes() {
     estado.selecionados.includes(j.id),
   );
 
+  const mediasPorTime = useMemo(() => {
+    const res: Record<TimeId, number> = { a: 0, b: 0 };
+    for (const t of ["a", "b"] as TimeId[]) {
+      const parts = participantes.filter((p) => p.time === t);
+      if (parts.length === 0) {
+        res[t] = 0;
+      } else {
+        const soma = parts.reduce((acc, p) => {
+          const n = p.media_nota ?? mediasNotas[p.jogador.id] ?? 6.0;
+          return acc + n;
+        }, 0);
+        res[t] = Number((soma / parts.length).toFixed(1));
+      }
+    }
+    return res;
+  }, [participantes, mediasNotas]);
+
   function timeDoJogador(id: number): TimeId | null {
     return participantes.find((p) => p.jogador.id === id)?.time ?? null;
   }
 
   function autoEscalar() {
     setErro(null);
-    const proposta = gerarEscalacaoAutomatica(jogadoresConfirmados);
+    const proposta = gerarEscalacaoAutomatica(jogadoresConfirmados, mediasNotas);
     setParticipantes(proposta);
-    setFeedback("Times gerados automaticamente com base nas posições A e B!");
+    const timeAPart = proposta.filter((p) => p.time === "a");
+    const timeBPart = proposta.filter((p) => p.time === "b");
+    const avgA = timeAPart.length
+      ? (timeAPart.reduce((s, p) => s + (p.media_nota ?? 6.0), 0) / timeAPart.length).toFixed(1)
+      : "0.0";
+    const avgB = timeBPart.length
+      ? (timeBPart.reduce((s, p) => s + (p.media_nota ?? 6.0), 0) / timeBPart.length).toFixed(1)
+      : "0.0";
+    setFeedback(`Times equilibrados! (Preto ${avgA}★ vs Branco ${avgB}★)`);
   }
 
   function atribuirTime(id: number, time: TimeId) {
@@ -199,6 +236,7 @@ export function PartidaNovaTimes() {
           const qtd = contagemTime[t];
           const cheio = qtd >= LIMITE_POR_TIME;
           const rotulo = t === "a" ? "Preto" : "Branco";
+          const media = mediasPorTime[t];
           return (
             <div
               key={t}
@@ -208,7 +246,14 @@ export function PartidaNovaTimes() {
                   : "border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300"
               }`}
             >
-              <span className="text-sm font-medium">{rotulo}</span>
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">{rotulo}</span>
+                {qtd > 0 && (
+                  <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
+                    Média {media}★
+                  </span>
+                )}
+              </div>
               <span className="text-sm font-semibold tabular-nums">
                 {cheio ? "✓ " : ""}
                 {qtd}/{LIMITE_POR_TIME}
@@ -235,6 +280,9 @@ export function PartidaNovaTimes() {
             const pretoCheio = contagemTime.a >= LIMITE_POR_TIME && time !== "a";
             const brancoCheio =
               contagemTime.b >= LIMITE_POR_TIME && time !== "b";
+            const temNota = mediasNotas[j.id] !== undefined;
+            const notaJogador = temNota ? mediasNotas[j.id] : 6.0;
+
             return (
               <div
                 key={j.id}
@@ -242,9 +290,25 @@ export function PartidaNovaTimes() {
                   neutro ? "opacity-60" : ""
                 }`}
               >
-                <span className="flex-1 min-w-0 truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                  {j.nome}
-                </span>
+                <div className="flex-1 min-w-0 flex items-baseline gap-1.5">
+                  <span className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                    {j.nome}
+                  </span>
+                  <span
+                    className={`shrink-0 text-[11px] font-medium font-mono ${
+                      temNota
+                        ? "text-amber-600 dark:text-amber-400"
+                        : "text-neutral-400 dark:text-neutral-500"
+                    }`}
+                    title={
+                      temNota
+                        ? `Média dos votos: ${notaJogador.toFixed(1)}★`
+                        : "Sem votos registrados (nota padrão 6.0★)"
+                    }
+                  >
+                    {notaJogador.toFixed(1)}★
+                  </span>
+                </div>
                 <div className="shrink-0 flex gap-2">
                   <button
                     type="button"
