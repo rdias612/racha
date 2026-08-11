@@ -84,7 +84,7 @@ export function ConfirmDialog({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 min-h-[44px] rounded-lg font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 active:scale-95 transition"
+            className="flex-1 min-h-[44px] cursor-pointer rounded-lg font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 active:scale-95 transition"
           >
             {textoCancelar}
           </button>
@@ -92,7 +92,7 @@ export function ConfirmDialog({
             ref={confirmRef}
             type="button"
             onClick={onConfirm}
-            className={`flex-1 min-h-[44px] rounded-lg font-medium text-white active:scale-95 transition ${
+            className={`flex-1 min-h-[44px] cursor-pointer rounded-lg font-medium text-white active:scale-95 transition ${
               tomConfirmar === "perigo"
                 ? "bg-red-600 hover:bg-red-700"
                 : "bg-[var(--cor-destaque)] hover:brightness-110"

@@ -4,11 +4,12 @@ import { supabase } from '../lib/supabase'
 import { useAdmin } from '../hooks/useAdmin'
 import { Carregando, MensagemEstado } from '../components/Estado'
 import { formatarDataLista } from '../lib/formatacao'
+import { STATUS_COR, STATUS_LABEL, type StatusPartida } from '../lib/partidas'
 
 interface Partida {
   id: number
   data_jogo: string
-  status: 'draft' | 'published' | 'closed'
+  status: StatusPartida
 }
 
 interface Placar {
@@ -53,17 +54,6 @@ export function Jogos() {
     carregar()
   }, [])
 
-  const statusLabel: Record<Partida['status'], string> = {
-    draft: 'Rascunho',
-    published: 'Votação aberta',
-    closed: 'Encerrada',
-  }
-  const statusCor: Record<Partida['status'], string> = {
-    draft: 'text-neutral-500',
-    published: 'text-[var(--cor-destaque)]',
-    closed: 'text-green-600 dark:text-green-400',
-  }
-
   if (carregando) return <Carregando>Carregando jogos</Carregando>
   if (erro) return <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">{erro}</MensagemEstado>
 
@@ -94,21 +84,23 @@ export function Jogos() {
             return (
               <Link
                 key={p.id}
-                to={`/partida/${p.id}`}
+                to={p.status === 'live' ? `/partida/${p.id}/ao-vivo` : `/partida/${p.id}`}
                 className="block rounded-lg border border-neutral-200 dark:border-neutral-800 px-3 py-3 hover:border-[var(--cor-destaque)] transition"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-neutral-500 dark:text-neutral-400">
                     {formatarDataLista(p.data_jogo)}
                   </span>
-                  <span className={`text-[10px] font-medium ${statusCor[p.status]}`}>
-                    {statusLabel[p.status]}
+                  <span className={`text-[10px] font-medium ${STATUS_COR[p.status]}`}>
+                    {STATUS_LABEL[p.status]}
                   </span>
                 </div>
                 <div className="mt-1 flex items-center justify-center gap-3">
                   <span className="text-xs text-neutral-500">Preto</span>
                   <span className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
-                    {pl ? `${pl.gols_time_a} × ${pl.gols_time_b}` : '— × —'}
+                    {p.status === 'draft' || !pl
+                      ? '— × —'
+                      : `${pl.gols_time_a} × ${pl.gols_time_b}`}
                   </span>
                   <span className="text-xs text-neutral-500">Branco</span>
                 </div>

@@ -46,3 +46,16 @@ export function formatarDataCompleta(data: string) {
 export function formatarFechamento(data: string) {
   return formatar(data, formatoFechamento);
 }
+
+/** Primeira letra de cada palavra em maiúscula (nomes na UI). */
+export function formatarNome(nome: string) {
+  return nome
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map(
+      (parte) =>
+        parte.charAt(0).toLocaleUpperCase("pt-BR") + parte.slice(1),
+    )
+    .join(" ");
+}

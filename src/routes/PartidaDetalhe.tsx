@@ -5,11 +5,14 @@ import { useAdmin } from '../hooks/useAdmin'
 import { useJogadorLogado } from '../hooks/useJogadorLogado'
 import { TIMES, POSICOES, type TimeId } from '../lib/times'
 import {
+  abrirPartida,
   carregarPartida,
   carregarPlacar,
   carregarParticipantes,
   carregarNotas,
   descartarVotos,
+  STATUS_COR,
+  STATUS_LABEL,
   type Partida,
   type Placar,
   type Participante,
@@ -32,6 +35,7 @@ export function PartidaDetalhe() {
   const [jaVotou, setJaVotou] = useState(false)
   const [confirmandoDescarte, setConfirmandoDescarte] = useState(false)
   const [descartando, setDescartando] = useState(false)
+  const [abrindo, setAbrindo] = useState(false)
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
 
@@ -98,19 +102,32 @@ export function PartidaDetalhe() {
   }, [id])
 
   if (carregando) return <Carregando>Carregando partida</Carregando>
-  if (erro) return <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">{erro}</MensagemEstado>
   if (!partida)
-    return <MensagemEstado tipo="info" className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">Partida não encontrada.</MensagemEstado>
+    return (
+      <MensagemEstado
+        tipo={erro ? 'erro' : 'info'}
+        className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl"
+      >
+        {erro ?? 'Partida não encontrada.'}
+      </MensagemEstado>
+    )
 
-  const statusLabel: Record<Partida['status'], string> = {
-    draft: 'Agendada',
-    published: 'Resultado publicado',
-    closed: 'Encerrada',
-  }
-  const statusCor: Record<Partida['status'], string> = {
-    draft: 'text-neutral-500',
-    published: 'text-[var(--cor-destaque)]',
-    closed: 'text-green-600 dark:text-green-400',
+  async function confirmarAbrir() {
+    if (!partida) return
+    setAbrindo(true)
+    setErro(null)
+    try {
+      const ok = await abrirPartida(partida.id)
+      if (!ok) {
+        setErro('Não foi possível abrir. Confira se os dois times têm 8 jogadores.')
+        return
+      }
+      navigate(`/partida/${partida.id}/ao-vivo`, { replace: true })
+    } catch (e: any) {
+      setErro(e.message ?? String(e))
+    } finally {
+      setAbrindo(false)
+    }
   }
 
   const participantesDoTime = (t: TimeId) =>
@@ -145,16 +162,16 @@ export function PartidaDetalhe() {
           <span className="sm:hidden">{formatarDataMobile(partida.data_jogo)}</span>
           <span className="hidden sm:inline">{formatarDataCompleta(partida.data_jogo)}</span>
         </p>
-        <p className={`text-xs font-medium ${statusCor[partida.status]}`}>
-          {statusLabel[partida.status]}
+        <p className={`text-xs font-medium ${STATUS_COR[partida.status]}`}>
+          {STATUS_LABEL[partida.status]}
           {partida.status === 'published' && partida.voting_closes_at && (
             <> — fecha {formatarFechamento(partida.voting_closes_at)}</>
           )}
         </p>
       </div>
 
-      {/* Placar central */}
-      {placar && (
+      {/* Placar: some no draft (ainda nao comecou). Em live vem dos eventos sincronizados. */}
+      {placar && partida.status !== 'draft' && (
         <div className="flex items-stretch rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-800">
           <div
             className="flex-1 py-4 text-center text-sm font-medium"
@@ -275,17 +292,37 @@ export function PartidaDetalhe() {
         })}
       </div>
 
-      {/* Ações admin: Finalizar (draft) ou Editar (published) */}
+      {erro && <MensagemEstado>{erro}</MensagemEstado>}
+
       {partida.status === 'draft' && isAdmin && (
         <div className="space-y-2">
           <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            Lance o resultado para publicar o placar e abrir a votação por 24h.
+            Abra a partida para registrar os gols no campo. Se o jogo já acabou, lance o resultado na mão.
           </p>
+          <button
+            type="button"
+            onClick={confirmarAbrir}
+            disabled={abrindo}
+            className="block w-full text-center rounded-lg bg-[var(--cor-destaque)] px-4 py-3 font-medium text-white disabled:opacity-40"
+          >
+            {abrindo ? 'Abrindo…' : 'Abrir partida'}
+          </button>
           <Link
             to={`/partida/${partida.id}/editar`}
+            className="block text-center rounded-lg border border-neutral-300 dark:border-neutral-700 px-4 py-3 font-medium text-neutral-700 dark:text-neutral-300"
+          >
+            Lançar resultado sem acompanhar
+          </Link>
+        </div>
+      )}
+
+      {partida.status === 'live' && (
+        <div className="space-y-2">
+          <Link
+            to={`/partida/${partida.id}/ao-vivo`}
             className="block text-center rounded-lg bg-[var(--cor-destaque)] px-4 py-3 font-medium text-white"
           >
-            Finalizar
+            {isAdmin ? 'Registrar eventos' : 'Acompanhar ao vivo'}
           </Link>
         </div>
       )}
