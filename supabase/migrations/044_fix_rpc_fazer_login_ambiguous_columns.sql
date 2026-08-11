@@ -3,8 +3,6 @@
 -- de saida; sem qualificar as colunas, o PostgreSQL rejeita a chamada por
 -- referencia ambigua.
 
-DROP FUNCTION IF EXISTS fazer_login(text, text);
-
 CREATE OR REPLACE FUNCTION fazer_login(p_username text, p_senha text)
 RETURNS TABLE (
   id             bigint,
