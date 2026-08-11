@@ -1,7 +1,22 @@
 import { supabase } from "./supabase";
 import type { TimeId, PosicaoId } from "./times";
 
-export type StatusPartida = "draft" | "published" | "closed";
+export type StatusPartida = "draft" | "live" | "published" | "closed";
+export type TipoEvento = "gol" | "gol_contra";
+
+export const STATUS_LABEL: Record<StatusPartida, string> = {
+  draft: "Agendada",
+  live: "Em andamento",
+  published: "Votação aberta",
+  closed: "Encerrada",
+};
+
+export const STATUS_COR: Record<StatusPartida, string> = {
+  draft: "text-neutral-500",
+  live: "text-amber-600 dark:text-amber-400",
+  published: "text-[var(--cor-destaque)]",
+  closed: "text-green-600 dark:text-green-400",
+};
 
 export interface Partida {
   id: number;
@@ -38,6 +53,15 @@ export interface NotaPartida {
   avg_rating: number;
   vote_count: number;
   is_craque: boolean;
+}
+
+export interface EventoPartida {
+  id: number;
+  partida_id: number;
+  tipo: TipoEvento;
+  jogador_id: number;
+  assistencia_jogador_id: number | null;
+  created_at: string;
 }
 
 export async function carregarPartida(id: number) {
@@ -118,6 +142,79 @@ export async function descartarVotos(partidaId: number, voterId: number) {
   const { data, error } = await supabase.rpc("descartar_votos", {
     p_partida_id: partidaId,
     p_voter_id: voterId,
+  });
+  if (error) throw error;
+  return data as boolean;
+}
+
+export async function carregarEventos(partidaId: number) {
+  const { data, error } = await supabase
+    .from("partida_eventos")
+    .select(
+      "id, partida_id, tipo, jogador_id, assistencia_jogador_id, created_at",
+    )
+    .eq("partida_id", partidaId)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as EventoPartida[];
+}
+
+export function placarDeEventos(
+  eventos: EventoPartida[],
+  participantes: Participante[],
+): { gols_time_a: number; gols_time_b: number } {
+  const timePorJogador = new Map(
+    participantes.map((p) => [p.jogador_id, p.time]),
+  );
+  let gols_time_a = 0;
+  let gols_time_b = 0;
+  for (const evento of eventos) {
+    const time = timePorJogador.get(evento.jogador_id);
+    if (!time) continue;
+    const somaNoAdversario = evento.tipo === "gol_contra";
+    const timeQueRecebe =
+      somaNoAdversario ? (time === "a" ? "b" : "a") : time;
+    if (timeQueRecebe === "a") gols_time_a += 1;
+    else gols_time_b += 1;
+  }
+  return { gols_time_a, gols_time_b };
+}
+
+export async function abrirPartida(partidaId: number) {
+  const { data, error } = await supabase.rpc("abrir_partida", {
+    p_partida_id: partidaId,
+  });
+  if (error) throw error;
+  return data as boolean;
+}
+
+export async function registrarEvento(
+  partidaId: number,
+  tipo: TipoEvento,
+  jogadorId: number,
+  assistenciaJogadorId: number | null = null,
+) {
+  const { data, error } = await supabase.rpc("registrar_evento", {
+    p_partida_id: partidaId,
+    p_tipo: tipo,
+    p_jogador_id: jogadorId,
+    p_assistencia_jogador_id: assistenciaJogadorId,
+  });
+  if (error) throw error;
+  return data as number | null;
+}
+
+export async function removerEvento(eventoId: number) {
+  const { data, error } = await supabase.rpc("remover_evento", {
+    p_evento_id: eventoId,
+  });
+  if (error) throw error;
+  return data as boolean;
+}
+
+export async function finalizarPartida(partidaId: number) {
+  const { data, error } = await supabase.rpc("finalizar_partida", {
+    p_partida_id: partidaId,
   });
   if (error) throw error;
   return data as boolean;

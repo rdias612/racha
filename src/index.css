@@ -52,6 +52,20 @@ input[type="checkbox"] {
 }
 
 button,
+a,
+[role="button"],
+select,
+summary,
+label[for] {
+  cursor: pointer;
+}
+
+button:disabled,
+[role="button"][aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+button,
 [role="button"] {
   min-height: 44px;
 }

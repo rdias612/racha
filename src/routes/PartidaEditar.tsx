@@ -71,6 +71,9 @@ export function PartidaEditar() {
   }, [participantes]);
 
   if (!isAdmin) return <Navigate to="/" replace />;
+  if (partida?.status === "live") {
+    return <Navigate to={`/partida/${partidaId}/ao-vivo`} replace />;
+  }
   if (carregando) return <Carregando>Carregando partida</Carregando>;
   if (erro)
     return (
