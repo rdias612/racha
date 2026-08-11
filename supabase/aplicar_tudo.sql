@@ -327,10 +327,12 @@ GROUP BY pp.jogador_id;
 -- SECURITY DEFINER + search_path = public.
 
 CREATE OR REPLACE FUNCTION criar_jogador(
-  p_username text,
-  p_nome     text,
-  p_posicao  text,
-  p_is_admin boolean
+  p_username      text,
+  p_nome          text,
+  p_posicao       text,
+  p_is_admin      boolean,
+  p_posicao_b     text DEFAULT 'meia',
+  p_is_mensalista boolean DEFAULT false
 )
 RETURNS bigint
 LANGUAGE plpgsql
@@ -339,16 +341,21 @@ SET search_path = public
 AS $$
 DECLARE
   v_id bigint;
+  v_posicao_b text;
 BEGIN
-  INSERT INTO jogadores (username, senha_hash, nome, posicao, is_admin, is_ativo)
-  VALUES (p_username, '123', p_nome, p_posicao, p_is_admin, true)
+  -- Goleiros primarios nao tem posicao secundaria.
+  v_posicao_b := CASE WHEN p_posicao = 'goleiro' THEN NULL ELSE p_posicao_b END;
+
+  INSERT INTO jogadores (username, senha_hash, nome, posicao, is_admin, is_ativo, posicao_b, is_mensalista)
+  VALUES (p_username, '123', p_nome, p_posicao, p_is_admin, true, v_posicao_b, COALESCE(p_is_mensalista, false))
   RETURNING id INTO v_id;
 
   RETURN v_id;
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION criar_jogador(text, text, text, boolean) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION criar_jogador(text, text, text, boolean, text, boolean) TO anon, authenticated;
+
 -- 012_rpc_trocar_senha.sql
 -- RPC `trocar_senha(p_jogador_id bigint, p_senha_atual text, p_senha_nova text)
 --      RETURNS boolean`:
