@@ -617,9 +617,9 @@ export function GestaoJogadores() {
         </div>
       )}
 
-      {/* Floating Action Bar / Mobile Action Footer */}
+      {/* Floating Action Bar / Action Confirmation Footer */}
       {temAlteracoes && (
-        <div className="fixed bottom-16 sm:bottom-6 left-3 right-3 sm:left-auto sm:right-6 sm:w-auto z-40 animate-in fade-in slide-in-from-bottom-4 duration-200">
+        <div className="fixed bottom-20 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-md z-50 animate-in fade-in slide-in-from-bottom-4 duration-200">
           <div className="bg-neutral-900/95 dark:bg-neutral-900/95 text-white backdrop-blur-md border border-neutral-800 shadow-2xl rounded-2xl p-3 flex items-center justify-between gap-3 max-w-lg mx-auto">
             <div className="flex items-center gap-2 min-w-0">
               <span className="size-6 rounded-full bg-green-500 text-neutral-950 font-bold text-xs flex items-center justify-center shrink-0">
@@ -640,7 +640,7 @@ export function GestaoJogadores() {
                 className="inline-flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-medium text-neutral-400 hover:text-white hover:bg-neutral-800 transition disabled:opacity-50"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                <span className="hidden xs:inline">Descartar</span>
+                <span>Descartar</span>
               </button>
 
               <button
@@ -654,7 +654,7 @@ export function GestaoJogadores() {
                 ) : (
                   <>
                     <Save className="w-3.5 h-3.5" />
-                    <span>Confirmar Alterações</span>
+                    <span>Confirmar</span>
                   </>
                 )}
               </button>
@@ -662,6 +662,7 @@ export function GestaoJogadores() {
           </div>
         </div>
       )}
+
     </div>
   );
 }
