@@ -52,28 +52,25 @@ export async function listarDividasEmAberto(): Promise<Divida[]> {
   return (data ?? []) as unknown as Divida[];
 }
 
-/** Agrupa as dívidas por jogador (total devido + itens), ordenando pelo maior total. */
-export function agruparPorJogador(dividas: Divida[]): DividaPorJogador[] {
-  const mapa = new Map<number, DividaPorJogador>();
-  for (const d of dividas) {
-    const j = d.jogadores;
-    if (!j) continue;
-    let grupo = mapa.get(d.jogador_id);
-    if (!grupo) {
-      grupo = {
-        jogador_id: d.jogador_id,
-        nome: j.nome,
-        username: j.username,
-        is_mensalista: j.is_mensalista,
-        total_devido: 0,
-        dividas: [],
-      };
-      mapa.set(d.jogador_id, grupo);
-    }
-    grupo.total_devido += Number(d.valor);
-    grupo.dividas.push(d);
-  }
-  return [...mapa.values()].sort((a, b) => b.total_devido - a.total_devido);
+/** Linha da view `dividas_resumo` (total devido + qtd por jogador). */
+export interface DevedorResumo {
+  jogador_id: number;
+  nome: string;
+  username: string;
+  is_mensalista: boolean;
+  total_devido: number;
+  qtd_dividas: number;
+}
+
+/** Lista devedores (total_devido > 0) via view `dividas_resumo`, pelo maior total. */
+export async function listarResumoDevedores(): Promise<DevedorResumo[]> {
+  const { data, error } = await supabase
+    .from("dividas_resumo")
+    .select("jogador_id, nome, username, is_mensalista, total_devido, qtd_dividas")
+    .gt("total_devido", 0)
+    .order("total_devido", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as DevedorResumo[];
 }
 
 /** Lana uma nova dívida (server-side via RPC). Retorna o id criado. */

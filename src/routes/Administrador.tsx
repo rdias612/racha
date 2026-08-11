@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { Wallet, ChevronDown, Plus, Check } from "lucide-react";
 import { useAdmin } from "../hooks/useAdmin";
 import { Carregando, MensagemEstado } from "../components/Estado";
@@ -7,11 +7,12 @@ import { formatarReais, formatarDataLista } from "../lib/formatacao";
 import { listarJogadoresAtivos, type JogadorLista } from "../lib/jogadores";
 import {
   TIPOS_DIVIDA,
-  agruparPorJogador,
   listarDividasEmAberto,
+  listarResumoDevedores,
   quitarDivida,
   quitarDividasJogador,
   registrarDivida,
+  type Divida,
   type DividaPorJogador,
   type TipoDivida,
 } from "../lib/dividas";
@@ -68,12 +69,30 @@ export function Administrador() {
     setCarregando(true);
     setErro(null);
     try {
-      const [dividas, jogs] = await Promise.all([
+      const [resumo, dividas, jogs] = await Promise.all([
+        listarResumoDevedores(),
         listarDividasEmAberto(),
         jogadores.length ? Promise.resolve(jogadores) : listarJogadoresAtivos(),
       ]);
       if (!jogadores.length) setJogadores(jogs);
-      setGrupos(agruparPorJogador(dividas));
+
+      // A view `dividas_resumo` dita totais e ordem; os itens (drill-down) casam pelo jogador_id.
+      const itensPorJogador = new Map<number, Divida[]>();
+      for (const d of dividas) {
+        const arr = itensPorJogador.get(d.jogador_id) ?? [];
+        arr.push(d);
+        itensPorJogador.set(d.jogador_id, arr);
+      }
+      setGrupos(
+        resumo.map((r) => ({
+          jogador_id: r.jogador_id,
+          nome: r.nome,
+          username: r.username,
+          is_mensalista: r.is_mensalista,
+          total_devido: Number(r.total_devido),
+          dividas: itensPorJogador.get(r.jogador_id) ?? [],
+        })),
+      );
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro ao carregar dívidas.");
     } finally {
@@ -383,6 +402,14 @@ export function Administrador() {
                               <p className="text-xs text-neutral-700 dark:text-neutral-300">
                                 {d.descricao}
                               </p>
+                            )}
+                            {d.partida_id && (
+                              <Link
+                                to={`/partida/${d.partida_id}`}
+                                className="inline-block text-[11px] text-[var(--cor-primaria)] hover:underline"
+                              >
+                                ver partida →
+                              </Link>
                             )}
                           </div>
                           <div className="flex shrink-0 flex-col items-end gap-1.5">

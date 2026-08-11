@@ -6,6 +6,7 @@ import { TIMES, type TimeId } from "../lib/times";
 import {
   carregarPartida,
   carregarParticipantes,
+  publicarPartida,
   type Partida,
   type Participante,
 } from "../lib/partidas";
@@ -131,16 +132,14 @@ export function PartidaEditar() {
       const falha = resultados.find((r) => r.error);
       if (falha?.error) throw falha.error;
 
-      // Transição de status: draft -> published (abre votação 24h)
+      // Transição de status: draft -> published (abre votação 24h e gera avulsos via RPC).
       if (primeiraVez) {
-        const votingClosesAt = new Date(
-          Date.now() + 24 * 60 * 60 * 1000,
-        ).toISOString();
-        const { error: errStatus } = await supabase
-          .from("partidas")
-          .update({ status: "published", voting_closes_at: votingClosesAt })
-          .eq("id", partidaId);
-        if (errStatus) throw errStatus;
+        const publicado = await publicarPartida(partidaId);
+        if (!publicado) {
+          throw new Error(
+            "Não foi possível publicar a partida (ela precisa estar em rascunho).",
+          );
+        }
       }
 
       setFeedback("Resultado salvo.");

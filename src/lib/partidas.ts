@@ -235,3 +235,12 @@ export async function finalizarPartida(partidaId: number) {
   if (error) throw error;
   return data as boolean;
 }
+
+// Caminho legado de draft -> published (PartidaEditar). Abre votação 24h e gera avulsos.
+export async function publicarPartida(partidaId: number) {
+  const { data, error } = await supabase.rpc("publicar_partida", {
+    p_partida_id: partidaId,
+  });
+  if (error) throw error;
+  return data as boolean;
+}

@@ -1570,3 +1570,98 @@ SELECT id, 'mensalidade', 90.00, '2026-08', current_date, 'Mensalidade Agosto/20
   FROM jogadores
  WHERE username = 'tadeu'
 ON CONFLICT DO NOTHING;
+
+-- 053_view_dividas_resumo.sql
+CREATE OR REPLACE VIEW dividas_resumo AS
+SELECT
+  j.id            AS jogador_id,
+  j.nome          AS nome,
+  j.username      AS username,
+  j.is_mensalista AS is_mensalista,
+  COALESCE(SUM(d.valor) FILTER (WHERE d.paga = false), 0)::numeric AS total_devido,
+  COUNT(d.id)     FILTER (WHERE d.paga = false)::bigint          AS qtd_dividas
+FROM jogadores j
+LEFT JOIN dividas d ON d.jogador_id = j.id
+GROUP BY j.id, j.nome, j.username, j.is_mensalista;
+
+GRANT SELECT ON dividas_resumo TO anon, authenticated;
+
+-- 054_avulsos_partida.sql
+CREATE UNIQUE INDEX uq_dividas_avulso_partida
+  ON dividas (partida_id, jogador_id)
+  WHERE tipo = 'avulso' AND partida_id IS NOT NULL;
+
+CREATE OR REPLACE FUNCTION gerar_avulsos_partida(p_partida_id bigint)
+RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  INSERT INTO dividas (jogador_id, tipo, valor, partida_id, data_divida, referencia, descricao)
+  SELECT
+    pp.jogador_id, 'avulso', 20.00, p.id,
+    (p.data_jogo AT TIME ZONE 'America/Sao_Paulo')::date,
+    to_char(p.data_jogo AT TIME ZONE 'America/Sao_Paulo', 'YYYY-MM'),
+    'Avulso — partida ' || to_char(p.data_jogo AT TIME ZONE 'America/Sao_Paulo', 'DD/MM/YYYY')
+  FROM partidas_participantes pp
+  JOIN jogadores j ON j.id = pp.jogador_id
+  JOIN partidas   p ON p.id = pp.partida_id
+  WHERE pp.partida_id = p_partida_id AND j.is_mensalista = false
+  ON CONFLICT DO NOTHING;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION gerar_avulsos_partida(bigint) TO anon, authenticated;
+
+CREATE OR REPLACE FUNCTION publicar_partida(p_partida_id bigint)
+RETURNS boolean
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE v_status text;
+BEGIN
+  SELECT status INTO v_status FROM partidas WHERE id = p_partida_id;
+  IF v_status IS NULL OR v_status <> 'draft' THEN RETURN false; END IF;
+  PERFORM gerar_avulsos_partida(p_partida_id);
+  UPDATE partidas SET status = 'published', voting_closes_at = now() + interval '24 hours' WHERE id = p_partida_id;
+  RETURN true;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION publicar_partida(bigint) TO anon, authenticated;
+
+CREATE OR REPLACE FUNCTION finalizar_partida(p_partida_id bigint)
+RETURNS boolean
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE v_status text;
+BEGIN
+  SELECT status INTO v_status FROM partidas WHERE id = p_partida_id;
+  IF v_status IS NULL OR v_status <> 'live' THEN RETURN false; END IF;
+  PERFORM sincronizar_contadores_partida(p_partida_id);
+  PERFORM gerar_avulsos_partida(p_partida_id);
+  UPDATE partidas SET status = 'published', voting_closes_at = now() + interval '24 hours' WHERE id = p_partida_id;
+  RETURN true;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION finalizar_partida(bigint) TO anon, authenticated;
+
+-- 055_cron_mensalidades.sql
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'gerar-mensalidades-mensal') THEN
+    PERFORM cron.unschedule('gerar-mensalidades-mensal');
+  END IF;
+END;
+$$;
+
+SELECT cron.schedule(
+  'gerar-mensalidades-mensal',
+  '0 13 1 * *',
+  $$
+  INSERT INTO dividas (jogador_id, tipo, valor, referencia, data_divida, descricao)
+  SELECT
+    j.id, 'mensalidade', 90.00,
+    to_char(now() AT TIME ZONE 'America/Sao_Paulo', 'YYYY-MM'),
+    (now() AT TIME ZONE 'America/Sao_Paulo')::date,
+    'Mensalidade ' || to_char(now() AT TIME ZONE 'America/Sao_Paulo', 'MM/YYYY')
+  FROM jogadores j
+  WHERE j.is_mensalista = true AND j.is_ativo = true
+  ON CONFLICT DO NOTHING;
+  $$
+);
