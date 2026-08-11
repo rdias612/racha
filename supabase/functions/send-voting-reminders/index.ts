@@ -140,6 +140,28 @@ async function claim(candidate: Candidate) {
   return Boolean(data);
 }
 
+const notificationTemplates: Record<
+  (typeof reminders)[number]["key"],
+  { title: string; body: string }
+> = {
+  "6h": {
+    title: "Faltam 6 horas para fechar a votação!",
+    body: "Avalie a partida de ontem e deixe suas notas para o ranking.",
+  },
+  "3h": {
+    title: "Vote, ou então não reclama depois que a divisão tá ruim!",
+    body: "Faltam apenas 3 horas para fechar a súmula da partida de ontem.",
+  },
+  "1h": {
+    title: "Os analfabetos da bola já votaram, e você?",
+    body: "Acesse a partida de ontem antes que o tempo de votação esgote.",
+  },
+  "30m": {
+    title: "Ainda não votou, vai deixar Tchuca avacalhar as notas!?",
+    body: "Últimos 30 minutos para registrar seu voto na partida de ontem!",
+  },
+};
+
 async function send(candidate: Candidate) {
   const { data: subscriptions, error } = await supabase
     .from("push_subscriptions")
@@ -147,10 +169,13 @@ async function send(candidate: Candidate) {
     .eq("jogador_id", candidate.jogador_id);
   if (error) throw error;
 
+  const template = notificationTemplates[candidate.reminder_key];
   const payload = JSON.stringify({
-    title: "Votação pendente",
-    body: `Faltam ${candidate.label} para avaliar a partida #${candidate.partida_id}.`,
+    title: template.title,
+    body: template.body,
     url: `/partida/${candidate.partida_id}/votar`,
+    partida_id: candidate.partida_id,
+    tag: `votar-partida-${candidate.partida_id}`,
   });
   let lastError: string | null = null;
 

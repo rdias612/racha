@@ -34,6 +34,9 @@ self.addEventListener("push", (event) => {
     self.registration.showNotification(payload.title || "Racha", {
       body: payload.body || "Há uma votação de partida pendente.",
       data: { url },
+      tag: payload.tag || (id ? `votar-partida-${id}` : undefined),
+      renotify: true,
+      vibrate: [100, 50, 100, 50, 300],
     }),
   );
 });
