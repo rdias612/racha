@@ -172,8 +172,13 @@ async function send(candidate: Candidate) {
   let lastError: string | null = null;
 
   for (const subscription of subscriptions ?? []) {
+    // web-push espera o formato { endpoint, keys: { p256dh, auth } }.
+    const pushSubscription = {
+      endpoint: subscription.endpoint,
+      keys: { p256dh: subscription.p256dh, auth: subscription.auth },
+    };
     try {
-      await webpush.sendNotification(subscription, payload);
+      await webpush.sendNotification(pushSubscription, payload);
     } catch (error) {
       lastError = error instanceof Error ? error.message : String(error);
       const statusCode = (error as { statusCode?: number }).statusCode;
