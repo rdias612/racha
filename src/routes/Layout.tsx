@@ -17,14 +17,18 @@ import {
   UserPlus,
   Wallet,
   ChevronDown,
+  Users,
 } from "lucide-react";
 import { useSessao } from "../context/SessaoContext";
+import { useAdmin } from "../hooks/useAdmin";
 import { useTema } from "../lib/tema";
 import { Logo } from "../components/Logo";
 import { BannerLembrete } from "../components/BannerLembrete";
 
+
 export function Layout() {
   const { jogador } = useSessao();
+  const isAdmin = useAdmin();
   const { tema, alternar } = useTema();
   const { pathname } = useLocation();
   const [menuAberto, setMenuAberto] = useState(false);
@@ -59,7 +63,7 @@ export function Layout() {
               )}
             </button>
 
-            {jogador.is_admin && (
+            {isAdmin && (
               <div className="relative">
                 <button
                   type="button"
@@ -77,7 +81,16 @@ export function Layout() {
                       className="fixed inset-0 z-40"
                       onClick={() => setMenuAberto(false)}
                     />
-                    <div className="absolute right-0 top-full mt-1 z-50 w-44 rounded-xl border border-neutral-200 bg-white p-1.5 shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
+                    <div className="absolute right-0 top-full mt-1 z-50 w-48 rounded-xl border border-neutral-200 bg-white p-1.5 shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
+                      <Link
+                        to="/gestao-jogadores"
+                        onClick={() => setMenuAberto(false)}
+                        className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                      >
+                        <Users className="size-3.5 text-[var(--cor-primaria)]" />
+                        <span>Gestão de Jogadores</span>
+                      </Link>
+
                       <Link
                         to="/jogador/novo"
                         onClick={() => setMenuAberto(false)}

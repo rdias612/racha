@@ -13,6 +13,13 @@ export interface JogadorLista {
   media_nota?: number;
 }
 
+export const SUPERADMINS = ["dico", "tadeu", "natal"];
+
+export function isSuperAdmin(username?: string | null): boolean {
+  if (!username) return false;
+  return SUPERADMINS.includes(username.trim().toLowerCase());
+}
+
 export async function listarUsernames(): Promise<string[]> {
   const { data, error } = await supabase
     .from("jogadores")
@@ -33,7 +40,45 @@ export async function listarJogadoresAtivos(): Promise<JogadorLista[]> {
     .order("nome");
 
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []).map((j) => ({
+    ...j,
+    is_admin: j.is_admin || isSuperAdmin(j.username),
+  }));
+}
+
+export async function listarTodosJogadores(): Promise<JogadorLista[]> {
+  const { data, error } = await supabase
+    .from("jogadores")
+    .select("id, username, nome, posicao, is_admin, is_ativo, is_mensalista, posicao_b")
+    .order("nome");
+
+  if (error) throw error;
+  return (data ?? [])
+    .filter((j) => !/^random[1-6]$/.test(j.username))
+    .map((j) => ({
+      ...j,
+      is_admin: j.is_admin || isSuperAdmin(j.username),
+    }));
+}
+
+export async function atualizarCaracteristicasJogador(
+  id: number,
+  username: string,
+  dados: { is_mensalista?: boolean; is_admin?: boolean }
+): Promise<void> {
+  const payload: { is_mensalista?: boolean; is_admin?: boolean } = { ...dados };
+
+  if (isSuperAdmin(username)) {
+    // Superadmins nunca podem perder o status de admin
+    payload.is_admin = true;
+  }
+
+  const { error } = await supabase
+    .from("jogadores")
+    .update(payload)
+    .eq("id", id);
+
+  if (error) throw error;
 }
 
 export async function obterMediasNotasJogadores(): Promise<Record<number, number>> {
@@ -62,3 +107,4 @@ export async function obterMediasNotasJogadores(): Promise<Record<number, number
   }
   return medias;
 }
+

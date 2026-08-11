@@ -7,6 +7,7 @@ import {
 } from "react";
 import type { PosicaoId } from "../lib/times";
 import { supabase } from "../lib/supabase";
+import { isSuperAdmin } from "../lib/jogadores";
 
 export interface JogadorLogado {
   id: number;
@@ -39,9 +40,14 @@ function lerDoStorage(): JogadorLogado | null {
 }
 
 export function SessaoProvider({ children }: { children: ReactNode }) {
-  const [jogador, setJogadorState] = useState<JogadorLogado | null>(
-    lerDoStorage,
-  );
+
+  const [jogador, setJogadorState] = useState<JogadorLogado | null>(() => {
+    const cached = lerDoStorage();
+    if (cached && isSuperAdmin(cached.username)) {
+      return { ...cached, is_admin: true };
+    }
+    return cached;
+  });
 
   useEffect(() => {
     if (!jogador) return;
@@ -56,7 +62,17 @@ export function SessaoProvider({ children }: { children: ReactNode }) {
       if (error || !data || !data.is_ativo) return;
 
       const jogadorAtualizado = data as JogadorLogado;
-      if (jogadorAtualizado.id !== jogador!.id) {
+      if (isSuperAdmin(jogadorAtualizado.username)) {
+        jogadorAtualizado.is_admin = true;
+      }
+
+      if (
+        jogadorAtualizado.id !== jogador!.id ||
+        jogadorAtualizado.is_admin !== jogador!.is_admin ||
+        jogadorAtualizado.is_mensalista !== jogador!.is_mensalista ||
+        jogadorAtualizado.nome !== jogador!.nome ||
+        jogadorAtualizado.posicao !== jogador!.posicao
+      ) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(jogadorAtualizado));
         setJogadorState(jogadorAtualizado);
       }
@@ -67,12 +83,16 @@ export function SessaoProvider({ children }: { children: ReactNode }) {
 
   const setJogador = (novoJogador: JogadorLogado | null) => {
     if (novoJogador) {
+      if (isSuperAdmin(novoJogador.username)) {
+        novoJogador = { ...novoJogador, is_admin: true };
+      }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(novoJogador));
     } else {
       localStorage.removeItem(STORAGE_KEY);
     }
     setJogadorState(novoJogador);
   };
+
 
   const logout = () => setJogador(null);
 

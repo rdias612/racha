@@ -1,6 +1,9 @@
 import { useJogadorLogado } from './useJogadorLogado'
+import { isSuperAdmin } from '../lib/jogadores'
 
 export function useAdmin() {
   const jogador = useJogadorLogado()
-  return jogador?.is_admin ?? false
+  if (!jogador) return false
+  return jogador.is_admin || isSuperAdmin(jogador.username)
 }
+
