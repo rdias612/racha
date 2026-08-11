@@ -212,6 +212,22 @@ export async function removerEvento(eventoId: number) {
   return data as boolean;
 }
 
+export async function editarEvento(
+  eventoId: number,
+  tipo: TipoEvento,
+  jogadorId: number,
+  assistenciaJogadorId: number | null = null,
+) {
+  const { data, error } = await supabase.rpc("editar_evento", {
+    p_evento_id: eventoId,
+    p_tipo: tipo,
+    p_jogador_id: jogadorId,
+    p_assistencia_jogador_id: assistenciaJogadorId,
+  });
+  if (error) throw error;
+  return data as boolean;
+}
+
 export async function finalizarPartida(partidaId: number) {
   const { data, error } = await supabase.rpc("finalizar_partida", {
     p_partida_id: partidaId,

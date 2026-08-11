@@ -13,6 +13,7 @@ import {
   carregarPartida,
   finalizarPartida,
   placarDeEventos,
+  editarEvento,
   registrarEvento,
   removerEvento,
   STATUS_COR,
@@ -52,6 +53,9 @@ export function PartidaAoVivo() {
   const [finalizando, setFinalizando] = useState(false);
   const [eventoParaRemover, setEventoParaRemover] =
     useState<EventoPartida | null>(null);
+  const [eventoEmEdicao, setEventoEmEdicao] = useState<EventoPartida | null>(
+    null,
+  );
 
   const recarregar = useCallback(async () => {
     if (!partidaId) return;
@@ -141,6 +145,15 @@ export function PartidaAoVivo() {
     }
   }
 
+  function abrirEdicao(evento: EventoPartida) {
+    const jogador = participantes.find(
+      (p) => p.jogador_id === evento.jogador_id,
+    );
+    if (!jogador) return;
+    setEventoEmEdicao(evento);
+    setAlvo(jogador);
+  }
+
   async function confirmarEvento(
     tipo: TipoEvento,
     assistenciaId: number | null,
@@ -149,17 +162,33 @@ export function PartidaAoVivo() {
     setSalvando(true);
     setErro(null);
     try {
-      const idEvento = await registrarEvento(
-        partida.id,
-        tipo,
-        alvo.jogador_id,
-        assistenciaId,
-      );
-      if (idEvento == null) {
-        setErro("Não foi possível registrar o evento. A partida ainda está ao vivo?");
-        return;
+      if (eventoEmEdicao) {
+        const ok = await editarEvento(
+          eventoEmEdicao.id,
+          tipo,
+          alvo.jogador_id,
+          assistenciaId,
+        );
+        if (!ok) {
+          setErro("Não foi possível editar o evento. A partida ainda está ao vivo?");
+          return;
+        }
+      } else {
+        const idEvento = await registrarEvento(
+          partida.id,
+          tipo,
+          alvo.jogador_id,
+          assistenciaId,
+        );
+        if (idEvento == null) {
+          setErro(
+            "Não foi possível registrar o evento. A partida ainda está ao vivo?",
+          );
+          return;
+        }
       }
       setAlvo(null);
+      setEventoEmEdicao(null);
       await recarregar();
     } catch (e: unknown) {
       setErro(e instanceof Error ? e.message : String(e));
@@ -244,14 +273,22 @@ export function PartidaAoVivo() {
 
       {aoVivo && isAdmin && (
         <p className="text-xs text-neutral-500 dark:text-neutral-400">
-          Toque em um jogador para lançar gol ou gol contra.
+          Toque em um jogador para lançar gol ou gol contra. Toque num evento
+          para editar.
         </p>
       )}
 
       <CampoPartida
         participantes={participantes}
         placar={placar}
-        onJogadorClick={podeRegistrar ? setAlvo : undefined}
+        onJogadorClick={
+          podeRegistrar
+            ? (jogador) => {
+                setEventoEmEdicao(null);
+                setAlvo(jogador);
+              }
+            : undefined
+        }
         jogadorDestaqueId={alvo?.jogador_id}
       />
 
@@ -268,7 +305,12 @@ export function PartidaAoVivo() {
                 key={evento.id}
                 className="flex items-center gap-2 px-3 py-2 text-sm"
               >
-                <span className="flex-1 text-neutral-900 dark:text-neutral-100">
+                <button
+                  type="button"
+                  disabled={!podeRegistrar}
+                  onClick={() => podeRegistrar && abrirEdicao(evento)}
+                  className={`flex-1 cursor-pointer rounded-md py-1 text-left text-neutral-900 disabled:cursor-default dark:text-neutral-100`}
+                >
                   {evento.tipo === "gol" ? (
                     <>
                       ⚽ {nomeDoJogador(participantes, evento.jogador_id)}
@@ -289,15 +331,24 @@ export function PartidaAoVivo() {
                       {nomeDoJogador(participantes, evento.jogador_id)}
                     </>
                   )}
-                </span>
+                </button>
                 {podeRegistrar && (
-                  <button
-                    type="button"
-                    onClick={() => setEventoParaRemover(evento)}
-                    className="cursor-pointer rounded-md px-2 text-xs text-red-600 dark:text-red-400"
-                  >
-                    Desfazer
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => abrirEdicao(evento)}
+                      className="cursor-pointer rounded-md px-2 text-xs font-medium text-[var(--cor-destaque)]"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEventoParaRemover(evento)}
+                      className="cursor-pointer rounded-md px-2 text-xs text-red-600 dark:text-red-400"
+                    >
+                      Desfazer
+                    </button>
+                  </>
                 )}
               </li>
             ))}
@@ -348,10 +399,18 @@ export function PartidaAoVivo() {
       <DialogoEvento
         jogador={alvo}
         companheiros={companheiros}
+        jogadores={participantes}
         salvando={salvando}
+        editando={eventoEmEdicao != null}
+        tipoAtual={eventoEmEdicao?.tipo}
+        assistenciaAtual={eventoEmEdicao?.assistencia_jogador_id}
         onClose={() => {
-          if (!salvando) setAlvo(null);
+          if (!salvando) {
+            setAlvo(null);
+            setEventoEmEdicao(null);
+          }
         }}
+        onTrocarJogador={setAlvo}
         onConfirmar={confirmarEvento}
       />
 
