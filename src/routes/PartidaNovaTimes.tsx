@@ -54,6 +54,15 @@ export function PartidaNovaTimes() {
     return c;
   }, [participantes]);
 
+  // Goleiros escalados por time. Regra: cada time pode ter no máximo 1 goleiro
+  // (com 2 goleiros no total e 8 por time, o único estado válido é 1 em cada).
+  const contagemGoleiros = useMemo(() => {
+    const c: Record<TimeId, number> = { a: 0, b: 0 };
+    for (const p of participantes)
+      if (p.posicao === "goleiro") c[p.time]++;
+    return c;
+  }, [participantes]);
+
   // Guard admin.
   if (!isAdmin) return <Navigate to="/" replace />;
 
