@@ -75,6 +75,11 @@ export function PartidaVotar() {
           .eq("voter_id", jogador.id);
 
         const notasIniciais: Record<number, number> = {};
+        // default 6 para todos os alvos; o usuário ajusta a partir daí.
+        // Votos já existentes (modo edição) sobrescrevem o default abaixo.
+        for (const a of alvosFiltrados) {
+          notasIniciais[a.jogador_id] = 6;
+        }
         const originais = new Set<number>();
         for (const v of meusVotos ?? []) {
           notasIniciais[v.target_id] = v.rating;
