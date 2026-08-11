@@ -20,4 +20,14 @@ export const POSICOES = {
   random: "Random",
 } as const;
 
+// Posicoes secundarias validas (sem 'random'). Usada no form de novo jogador
+// e em qualquer lugar que trate de `posicao_b`.
+export const POSICOES_B = {
+  goleiro: "Goleiro",
+  zagueiro: "Zagueiro",
+  lateral: "Lateral",
+  meia: "Meia",
+  atacante: "Atacante",
+} as const;
+
 export type PosicaoId = keyof typeof POSICOES;

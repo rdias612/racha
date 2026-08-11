@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useAdmin } from "../hooks/useAdmin";
-import { POSICOES, type PosicaoId } from "../lib/times";
+import { POSICOES, POSICOES_B, type PosicaoId } from "../lib/times";
 import { MensagemEstado } from "../components/Estado";
 
 export function NovoJogador() {
@@ -12,6 +12,7 @@ export function NovoJogador() {
   const [username, setUsername] = useState("");
   const [nome, setNome] = useState("");
   const [posicao, setPosicao] = useState<PosicaoId>("meia");
+  const [posicaoB, setPosicaoB] = useState<PosicaoId>("meia");
   const [isAdminNovo, setIsAdminNovo] = useState(false);
   const [criando, setCriando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -35,6 +36,7 @@ export function NovoJogador() {
       p_nome: nome.trim(),
       p_posicao: posicao,
       p_is_admin: isAdminNovo,
+      p_posicao_b: posicao === "goleiro" ? null : posicaoB,
     });
     setCriando(false);
 
@@ -56,6 +58,7 @@ export function NovoJogador() {
     setUsername("");
     setNome("");
     setPosicao("meia");
+    setPosicaoB("meia");
     setIsAdminNovo(false);
   }
 
@@ -119,6 +122,24 @@ export function NovoJogador() {
             {(Object.keys(POSICOES) as PosicaoId[]).map((p) => (
               <option key={p} value={p}>
                 {POSICOES[p]}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="block">
+          <span className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">
+            Posição secundária{posicao === "goleiro" ? " (goleiro não tem)" : ""}
+          </span>
+          <select
+            value={posicaoB}
+            onChange={(e) => setPosicaoB(e.target.value as PosicaoId)}
+            disabled={posicao === "goleiro"}
+            className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 disabled:opacity-50"
+          >
+            {(Object.keys(POSICOES_B) as PosicaoId[]).map((p) => (
+              <option key={p} value={p}>
+                {POSICOES_B[p]}
               </option>
             ))}
           </select>

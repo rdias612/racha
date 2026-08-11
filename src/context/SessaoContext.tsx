@@ -16,6 +16,7 @@ export interface JogadorLogado {
   is_admin: boolean;
   is_ativo: boolean;
   is_mensalista: boolean;
+  posicao_b: PosicaoId | null;
 }
 
 interface SessaoContextValue {
@@ -48,7 +49,7 @@ export function SessaoProvider({ children }: { children: ReactNode }) {
     async function sincronizarJogador() {
       const { data, error } = await supabase
         .from("jogadores")
-        .select("id, username, nome, posicao, is_admin, is_ativo, is_mensalista")
+        .select("id, username, nome, posicao, is_admin, is_ativo, is_mensalista, posicao_b")
         .eq("username", jogador!.username)
         .maybeSingle();
 

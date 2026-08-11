@@ -142,6 +142,11 @@ export function Perfil() {
         </div>
         <p className="text-sm text-neutral-500 dark:text-neutral-400">
           @{jogador.username} · {POSICOES[jogador.posicao]}
+          {jogador.posicao_b && (
+            <span className="text-neutral-400 dark:text-neutral-500">
+              {" · "}2ª {POSICOES[jogador.posicao_b]}
+            </span>
+          )}
           {jogador.is_admin && (
             <span className="ml-2 text-[10px] uppercase bg-[var(--cor-destaque)] text-white px-1.5 py-0.5 rounded">
               Admin
