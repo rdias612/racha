@@ -137,7 +137,7 @@ export function NovoJogador() {
             disabled={posicao === "goleiro"}
             className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 disabled:opacity-50"
           >
-            {(Object.keys(POSICOES_B) as PosicaoId[]).map((p) => (
+            {(Object.keys(POSICOES_B) as (keyof typeof POSICOES_B)[]).map((p) => (
               <option key={p} value={p}>
                 {POSICOES_B[p]}
               </option>
