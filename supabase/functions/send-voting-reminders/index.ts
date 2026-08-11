@@ -2,7 +2,7 @@ import webpush from "npm:web-push@3.6.7";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
-const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+const serviceRoleKey = Deno.env.get("PUSH_SUPABASE_KEY") ?? Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 const cronSecret = Deno.env.get("PUSH_CRON_SECRET");
 const vapidSubject = Deno.env.get("VAPID_SUBJECT") ?? "mailto:admin@example.com";
 const vapidPublicKey = Deno.env.get("VAPID_PUBLIC_KEY");
@@ -40,6 +40,12 @@ function json(body: unknown, status = 200) {
     status,
     headers: { "content-type": "application/json" },
   });
+}
+
+function errorMessage(error: unknown) {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "object" && error !== null) return JSON.stringify(error);
+  return String(error);
 }
 
 async function findCandidates(): Promise<Candidate[]> {
@@ -172,6 +178,6 @@ Deno.serve(async (request) => {
     return json({ candidates: candidates.length, claimed });
   } catch (error) {
     console.error(error);
-    return json({ error: error instanceof Error ? error.message : String(error) }, 500);
+    return json({ error: errorMessage(error) }, 500);
   }
 });

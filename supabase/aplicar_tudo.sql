@@ -1096,3 +1096,20 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON push_subscriptions TO anon, authenticate
 GRANT USAGE, SELECT ON SEQUENCE push_subscriptions_id_seq TO anon, authenticated;
 REVOKE ALL ON push_reminder_deliveries FROM anon, authenticated;
 
+-- 037_push_function_permissions.sql
+CREATE EXTENSION IF NOT EXISTS pg_net;
+
+GRANT USAGE ON SCHEMA public TO service_role;
+GRANT SELECT ON public.partidas,
+  public.partidas_participantes,
+  public.jogadores,
+  public.votes,
+  public.push_subscriptions,
+  public.push_reminder_deliveries
+  TO service_role;
+GRANT INSERT, UPDATE, DELETE ON public.push_subscriptions,
+  public.push_reminder_deliveries
+  TO service_role;
+GRANT USAGE, SELECT ON SEQUENCE public.push_subscriptions_id_seq
+  TO service_role;
+
