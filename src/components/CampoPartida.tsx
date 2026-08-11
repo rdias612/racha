@@ -39,7 +39,7 @@ function ChipJogador({
   } ${destaque ? "ring-2 ring-yellow-300 ring-offset-1 ring-offset-transparent" : ""}`;
 
   const estilo = {
-    backgroundColor: TIMES[jogador.time].cor,
+    backgroundColor: TIMES[jogador.time ?? "a"].cor,
     minHeight: "2.25rem",
   } as const;
 

@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Carregando, MensagemEstado } from "../components/Estado";
 import { BotaoInstalar } from "../components/BotaoInstalar";
 import { supabase } from "../lib/supabase";
+import {
+  carregarParticipantes,
+  vagasOcupadas,
+  CAPACIDADE_PARTIDA,
+} from "../lib/partidas";
+import { formatarDataCompleta, formatarDataMobile } from "../lib/formatacao";
 
 interface ResumoAno {
   ano: number;
@@ -42,6 +49,11 @@ export function Resumo() {
   const [resumo, setResumo] = useState<ResumoAno | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
+  const [proxima, setProxima] = useState<{
+    id: number;
+    data_jogo: string;
+    ocupadas: number;
+  } | null>(null);
 
   useEffect(() => {
     async function carregar() {
@@ -59,6 +71,30 @@ export function Resumo() {
     carregar();
   }, [ano]);
 
+  useEffect(() => {
+    async function carregarProxima() {
+      try {
+        const { data } = await supabase
+          .from("partidas")
+          .select("id, data_jogo, confirmacao_closes_at")
+          .eq("status", "draft")
+          .order("data_jogo", { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        if (!data) {
+          setProxima(null);
+          return;
+        }
+        const parts = await carregarParticipantes(data.id);
+        const ocupadas = vagasOcupadas(parts, data.confirmacao_closes_at);
+        setProxima({ id: data.id, data_jogo: data.data_jogo, ocupadas });
+      } catch {
+        setProxima(null);
+      }
+    }
+    carregarProxima();
+  }, []);
+
   if (carregando) return <Carregando>Carregando resumo anual</Carregando>;
   if (erro) {
     return (
@@ -73,6 +109,7 @@ export function Resumo() {
         <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
           Resumo de {ano}
         </h2>
+        <CardProximaPartida proxima={proxima} />
         <MensagemEstado tipo="info" className="mt-3">
           Nenhuma partida publicada ainda neste ano.
         </MensagemEstado>
@@ -134,6 +171,8 @@ export function Resumo() {
 
       <BotaoInstalar />
 
+      <CardProximaPartida proxima={proxima} />
+
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {destaques.map((destaque) => (
           <Destaque key={destaque.titulo} {...destaque} />
@@ -159,5 +198,32 @@ function Destaque({ titulo, nome, valor, detalhe }: DestaqueProps) {
         </p>
       )}
     </section>
+  );
+}
+
+function CardProximaPartida({
+  proxima,
+}: {
+  proxima: { id: number; data_jogo: string; ocupadas: number } | null;
+}) {
+  if (!proxima) return null;
+  return (
+    <Link
+      to={`/partida/${proxima.id}`}
+      className="mb-4 block rounded-lg border border-[var(--cor-destaque)]/30 bg-[var(--cor-destaque)]/5 px-4 py-3"
+    >
+      <p className="text-xs font-semibold uppercase tracking-wide text-[var(--cor-destaque)]">
+        Próxima partida
+      </p>
+      <p className="mt-1 text-sm font-bold text-neutral-900 dark:text-neutral-100 capitalize">
+        <span className="sm:hidden">{formatarDataMobile(proxima.data_jogo)}</span>
+        <span className="hidden sm:inline">
+          {formatarDataCompleta(proxima.data_jogo)}
+        </span>
+      </p>
+      <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
+        {proxima.ocupadas}/{CAPACIDADE_PARTIDA} confirmados — toque para confirmar
+      </p>
+    </Link>
   );
 }

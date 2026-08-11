@@ -1931,6 +1931,56 @@ $$;
 
 GRANT EXECUTE ON FUNCTION abrir_partida(bigint) TO anon, authenticated;
 
+-- Ajusta criar_partida (fluxo manual, migration 013) para marcar os participantes
+-- escolhidos pelo admin como 'confirmado' (default do novo campo seria 'pendente').
+-- Como o admin já definiu o elenco ao criar, abrir_partida (que agora conta só
+-- confirmados) continua validando o elenco completo normalmente.
+CREATE OR REPLACE FUNCTION criar_partida(
+  p_data_jogo       timestamptz,
+  p_criado_por      bigint,
+  p_participantes   jsonb
+)
+RETURNS bigint
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_partida_id bigint;
+  elem         jsonb;
+BEGIN
+  BEGIN
+    INSERT INTO partidas (data_jogo, status, criado_por)
+    VALUES (p_data_jogo, 'draft', p_criado_por)
+    RETURNING id INTO v_partida_id;
+
+    FOR elem IN SELECT * FROM jsonb_array_elements(p_participantes)
+    LOOP
+      INSERT INTO partidas_participantes
+        (partida_id, jogador_id, time, posicao, gols, assistencias, gols_contra, status_confirmacao)
+      VALUES (
+        v_partida_id,
+        (elem->>'jogador_id')::bigint,
+        (elem->>'time')::char(1),
+        (elem->>'posicao')::text,
+        COALESCE((elem->>'gols')::integer, 0),
+        COALESCE((elem->>'assistencias')::integer, 0),
+        COALESCE((elem->>'gols_contra')::integer, 0),
+        'confirmado'
+      );
+    END LOOP;
+
+    RETURN v_partida_id;
+
+  EXCEPTION WHEN OTHERS THEN
+    ROLLBACK;
+    RETURN NULL;
+  END;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION criar_partida(timestamptz, bigint, jsonb) TO anon, authenticated;
+
 -- 059_rpc_criar_partida_semanal.sql
 --
 -- Cria automaticamente a partida semanal (quinta 19h BRT) já com todos os

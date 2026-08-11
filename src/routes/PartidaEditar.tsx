@@ -62,7 +62,9 @@ export function PartidaEditar() {
 
   const participantesPorTime = useMemo(() => {
     const map: Record<TimeId, Participante[]> = { a: [], b: [] };
-    for (const p of participantes) map[p.time].push(p);
+    for (const p of participantes) {
+      if (p.time) map[p.time].push(p);
+    }
     for (const t of ["a", "b"] as TimeId[]) {
       map[t].sort((a, b) =>
         (a.nome ?? "").localeCompare(b.nome ?? ""),

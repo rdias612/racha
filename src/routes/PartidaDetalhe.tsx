@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useAdmin } from '../hooks/useAdmin'
 import { useJogadorLogado } from '../hooks/useJogadorLogado'
 import { TIMES, POSICOES, type TimeId } from '../lib/times'
+import { listarJogadoresAtivos, type JogadorLista } from '../lib/jogadores'
 import {
   abrirPartida,
   carregarPartida,
@@ -11,12 +12,20 @@ import {
   carregarParticipantes,
   carregarNotas,
   descartarVotos,
+  confirmarPresenca,
+  adminDefinirConfirmacao,
+  adicionarParticipante,
+  vagasOcupadas,
+  podeConfirmar,
+  CAPACIDADE_PARTIDA,
+  STATUS_CONFIRMACAO_LABEL,
   STATUS_COR,
   STATUS_LABEL,
   type Partida,
   type Placar,
   type Participante,
   type NotaPartida,
+  type StatusConfirmacao,
 } from '../lib/partidas'
 import { Carregando, MensagemEstado } from '../components/Estado'
 import { ConfirmDialog } from '../components/ConfirmDialog'
@@ -250,8 +259,21 @@ export function PartidaDetalhe() {
         </div>
       )}
 
-      {/* Times com gols/assists/gols contra */}
-      <div className="grid grid-cols-2 gap-3">
+      {partida.status === 'draft' && (
+        <Confirmacoes
+          partida={partida}
+          participantes={participantes}
+          jogadorLogadoId={jogadorLogado?.id ?? null}
+          isAdmin={isAdmin}
+          onAtualizar={carregar}
+        />
+      )}
+
+      {(partida.status !== 'draft' ||
+        participantes.some((p) => p.time !== null)) && (
+        <>
+          {/* Times com gols/assists/gols contra */}
+          <div className="grid grid-cols-2 gap-3">
         {(['a', 'b'] as TimeId[]).map((t) => {
           const jogadoresDoTime = participantesDoTime(t)
           return (
@@ -298,7 +320,9 @@ export function PartidaDetalhe() {
             </div>
           )
         })}
-      </div>
+          </div>
+        </>
+      )}
 
       {erro && <MensagemEstado>{erro}</MensagemEstado>}
 
@@ -396,5 +420,327 @@ export function PartidaDetalhe() {
         </p>
       )}
     </div>
+  )
+}
+
+function BadgeStatus({ status }: { status: StatusConfirmacao }) {
+  const cls: Record<StatusConfirmacao, string> = {
+    confirmado: 'text-green-600 dark:text-green-400',
+    pendente: 'text-neutral-500 dark:text-neutral-400',
+    recusado: 'text-red-600 dark:text-red-400',
+  }
+  const icon: Record<StatusConfirmacao, string> = {
+    confirmado: '✓ ',
+    pendente: '⏳ ',
+    recusado: '✗ ',
+  }
+  return (
+    <span className={`text-[11px] font-medium ${cls[status]}`}>
+      {icon[status]}
+      {STATUS_CONFIRMACAO_LABEL[status]}
+    </span>
+  )
+}
+
+type PropsBotoes = {
+  status: StatusConfirmacao
+  podeConf: boolean
+  ocupadas: number
+  processando: boolean
+  onAtualizar: (alvo: StatusConfirmacao) => void
+}
+
+// Botões do próprio jogador (confirma/desconfirma/recusa a própria presença).
+function BotoesSelf({ status, podeConf, ocupadas, processando, onAtualizar }: PropsBotoes) {
+  const btn =
+    'min-h-[32px] rounded-md border px-2 text-[11px] font-medium active:scale-95 transition disabled:opacity-40'
+  const lotado = ocupadas >= CAPACIDADE_PARTIDA
+  return (
+    <>
+      {status !== 'confirmado' && (
+        <button
+          type="button"
+          disabled={processando || !podeConf}
+          onClick={() => onAtualizar('confirmado')}
+          title={lotado ? 'Vagas esgotadas' : undefined}
+          className={`${btn} border-[var(--cor-destaque)] text-[var(--cor-destaque)]`}
+        >
+          Vou jogar
+        </button>
+      )}
+      {status === 'confirmado' && (
+        <button
+          type="button"
+          disabled={processando}
+          onClick={() => onAtualizar('pendente')}
+          className={`${btn} border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300`}
+        >
+          Desconfirmar
+        </button>
+      )}
+      {status !== 'recusado' && (
+        <button
+          type="button"
+          disabled={processando}
+          onClick={() => onAtualizar('recusado')}
+          className={`${btn} border-red-300 dark:border-red-800 text-red-600 dark:text-red-400`}
+        >
+          Não vou
+        </button>
+      )}
+    </>
+  )
+}
+
+// Controles do admin (pode mexer em qualquer jogador).
+function BotoesAdmin({ status, podeConf, processando, onAtualizar }: PropsBotoes) {
+  const mini =
+    'min-h-[30px] min-w-[30px] rounded-md border text-xs font-bold active:scale-95 transition disabled:opacity-30'
+  const off = 'border-neutral-300 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400'
+  return (
+    <div className="flex items-center gap-1">
+      <button
+        type="button"
+        disabled={processando || (status !== 'confirmado' && !podeConf)}
+        onClick={() => onAtualizar('confirmado')}
+        title="Confirmar"
+        className={`${mini} ${
+          status === 'confirmado'
+            ? 'border-green-500 text-green-600 dark:text-green-400'
+            : off
+        }`}
+      >
+        ✓
+      </button>
+      <button
+        type="button"
+        disabled={processando}
+        onClick={() => onAtualizar('pendente')}
+        title="Pendente"
+        className={`${mini} ${
+          status === 'pendente'
+            ? 'border-[var(--cor-destaque)] text-[var(--cor-destaque)]'
+            : off
+        }`}
+      >
+        ⏳
+      </button>
+      <button
+        type="button"
+        disabled={processando}
+        onClick={() => onAtualizar('recusado')}
+        title="Não vai"
+        className={`${mini} ${
+          status === 'recusado'
+            ? 'border-red-500 text-red-600 dark:text-red-400'
+            : off
+        }`}
+      >
+        ✗
+      </button>
+    </div>
+  )
+}
+
+function Confirmacoes({
+  partida,
+  participantes,
+  jogadorLogadoId,
+  isAdmin,
+  onAtualizar,
+}: {
+  partida: Partida
+  participantes: Participante[]
+  jogadorLogadoId: number | null
+  isAdmin: boolean
+  onAtualizar: () => Promise<void> | void
+}) {
+  const [processando, setProcessando] = useState<number | null>(null)
+  const [erroLocal, setErroLocal] = useState<string | null>(null)
+  const [mostrandoAvulso, setMostrandoAvulso] = useState(false)
+  const [todosAtivos, setTodosAtivos] = useState<JogadorLista[]>([])
+
+  const closesAt = partida.confirmacao_closes_at
+  const agora = new Date()
+  const prazoPassou = !!closesAt && agora.getTime() >= new Date(closesAt).getTime()
+  const ocupadas = vagasOcupadas(participantes, closesAt, agora)
+  const livres = Math.max(0, CAPACIDADE_PARTIDA - ocupadas)
+
+  const ordenados = [...participantes].sort((a, b) => {
+    const peso = (s: StatusConfirmacao) =>
+      s === 'confirmado' ? 0 : s === 'pendente' ? 1 : 2
+    return (
+      peso(a.status_confirmacao) - peso(b.status_confirmacao) ||
+      (a.nome ?? '').localeCompare(b.nome ?? '')
+    )
+  })
+
+  async function atualizar(jogadorId: number, alvo: StatusConfirmacao) {
+    setErroLocal(null)
+    setProcessando(jogadorId)
+    try {
+      const ehSelf = jogadorId === jogadorLogadoId
+      const ok =
+        !ehSelf && isAdmin && jogadorLogadoId != null
+          ? await adminDefinirConfirmacao(partida.id, jogadorId, alvo, jogadorLogadoId)
+          : await confirmarPresenca(partida.id, jogadorId, alvo)
+      if (!ok) {
+        setErroLocal('Não foi possível atualizar — confira as vagas disponíveis.')
+      } else {
+        await onAtualizar()
+      }
+    } catch (e: any) {
+      setErroLocal(e.message ?? String(e))
+    } finally {
+      setProcessando(null)
+    }
+  }
+
+  async function adicionar(jogadorId: number) {
+    setErroLocal(null)
+    setProcessando(jogadorId)
+    try {
+      const ok = await adicionarParticipante(partida.id, jogadorId)
+      if (!ok) {
+        setErroLocal('Não foi possível adicionar — pode não haver vaga.')
+      } else {
+        setMostrandoAvulso(false)
+        await onAtualizar()
+      }
+    } catch (e: any) {
+      setErroLocal(e.message ?? String(e))
+    } finally {
+      setProcessando(null)
+    }
+  }
+
+  async function abrirAvulso() {
+    setMostrandoAvulso((v) => !v)
+    if (todosAtivos.length === 0) {
+      try {
+        setTodosAtivos(await listarJogadoresAtivos())
+      } catch {
+        /* ignora erro de listagem */
+      }
+    }
+  }
+
+  const idsNoElenco = new Set(participantes.map((p) => p.jogador_id))
+  const candidatosAvulso = todosAtivos.filter((j) => !idsNoElenco.has(j.id))
+
+  return (
+    <section className="rounded-lg border border-neutral-200 dark:border-neutral-800 overflow-hidden">
+      <div className="px-3 py-2 bg-neutral-100 dark:bg-neutral-900 flex items-center justify-between">
+        <h3 className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+          Confirmações
+        </h3>
+        <span className="text-xs font-medium text-[var(--cor-destaque)]">
+          {ocupadas}/{CAPACIDADE_PARTIDA} vagas
+        </span>
+      </div>
+
+      {closesAt && (
+        <p className="px-3 pt-2 text-[11px] text-neutral-500 dark:text-neutral-400">
+          {prazoPassou
+            ? 'Prazo encerrado — as vagas remanescentes estão liberadas (primeiro a confirmar leva).'
+            : `Reservas liberadas ${formatarFechamento(closesAt)}.`}
+        </p>
+      )}
+
+      <div className="divide-y divide-neutral-200 dark:divide-neutral-800">
+        {ordenados.map((p) => {
+          const ehSelf = p.jogador_id === jogadorLogadoId
+          const podeConf = podeConfirmar(p, 'confirmado', participantes, closesAt, agora)
+          return (
+            <div
+              key={p.jogador_id}
+              className="flex items-center justify-between gap-2 px-3 py-2"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <Avatar nome={p.nome ?? ""} size="xs" />
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                    {p.nome ?? `#${p.jogador_id}`}
+                    {ehSelf && (
+                      <span className="ml-1 text-[10px] text-neutral-400">(você)</span>
+                    )}
+                  </p>
+                  <BadgeStatus status={p.status_confirmacao} />
+                </div>
+              </div>
+
+              <div className="shrink-0 flex items-center gap-1">
+                {ehSelf ? (
+                  <BotoesSelf
+                    status={p.status_confirmacao}
+                    podeConf={podeConf}
+                    ocupadas={ocupadas}
+                    processando={processando === p.jogador_id}
+                    onAtualizar={(alvo) => atualizar(p.jogador_id, alvo)}
+                  />
+                ) : isAdmin ? (
+                  <BotoesAdmin
+                    status={p.status_confirmacao}
+                    podeConf={podeConf}
+                    ocupadas={ocupadas}
+                    processando={processando === p.jogador_id}
+                    onAtualizar={(alvo) => atualizar(p.jogador_id, alvo)}
+                  />
+                ) : null}
+              </div>
+            </div>
+          )
+        })}
+        {ordenados.length === 0 && (
+          <div className="px-3 py-3 text-xs text-neutral-400">Nenhum convite ainda.</div>
+        )}
+      </div>
+
+      {isAdmin && livres > 0 && (
+        <div className="border-t border-neutral-200 dark:border-neutral-800">
+          <button
+            type="button"
+            onClick={abrirAvulso}
+            className="w-full px-3 py-2 text-xs font-medium text-[var(--cor-destaque)]"
+          >
+            {mostrandoAvulso
+              ? 'Fechar'
+              : `+ Avulso (${livres} vaga${livres > 1 ? 's' : ''})`}
+          </button>
+          {mostrandoAvulso && (
+            <div className="max-h-52 overflow-y-auto divide-y divide-neutral-200 dark:divide-neutral-800">
+              {candidatosAvulso.map((j) => (
+                <button
+                  key={j.id}
+                  type="button"
+                  disabled={processando !== null}
+                  onClick={() => adicionar(j.id)}
+                  className="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-neutral-700 dark:text-neutral-300 active:scale-[.99]"
+                >
+                  <span className="flex items-center gap-2 min-w-0">
+                    <Avatar nome={j.nome} size="xs" />
+                    <span className="truncate">{j.nome}</span>
+                  </span>
+                  <span className="text-[10px] uppercase text-neutral-400">
+                    {POSICOES[j.posicao]}
+                  </span>
+                </button>
+              ))}
+              {candidatosAvulso.length === 0 && (
+                <div className="px-3 py-3 text-xs text-neutral-400">
+                  Nenhum jogador disponível.
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {erroLocal && (
+        <p className="px-3 py-2 text-xs text-red-600 dark:text-red-400 border-t border-neutral-200 dark:border-neutral-800">
+          {erroLocal}
+        </p>
+      )}
+    </section>
   )
 }

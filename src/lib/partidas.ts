@@ -2,7 +2,14 @@ import { supabase } from "./supabase";
 import type { TimeId, PosicaoId } from "./times";
 
 export type StatusPartida = "draft" | "live" | "published" | "closed";
+export type StatusConfirmacao = "pendente" | "confirmado" | "recusado";
 export type TipoEvento = "gol" | "gol_contra";
+
+export const STATUS_CONFIRMACAO_LABEL: Record<StatusConfirmacao, string> = {
+  pendente: "Pendente",
+  confirmado: "Confirmado",
+  recusado: "Não vai",
+};
 
 export const STATUS_LABEL: Record<StatusPartida, string> = {
   draft: "Agendada",
@@ -23,6 +30,7 @@ export interface Partida {
   data_jogo: string;
   status: StatusPartida;
   voting_closes_at: string | null;
+  confirmacao_closes_at: string | null;
   criado_por: number;
 }
 
@@ -36,11 +44,13 @@ export interface Placar {
 export interface Participante {
   partida_id: number;
   jogador_id: number;
-  time: TimeId;
+  time: TimeId | null;
   posicao: PosicaoId;
   gols: number;
   assistencias: number;
   gols_contra: number;
+  status_confirmacao: StatusConfirmacao;
+  confirmado_em: string | null;
   // join com jogadores:
   nome?: string;
   username?: string;
@@ -67,7 +77,9 @@ export interface EventoPartida {
 export async function carregarPartida(id: number) {
   const { data, error } = await supabase
     .from("partidas")
-    .select("id, data_jogo, status, voting_closes_at, criado_por")
+    .select(
+      "id, data_jogo, status, voting_closes_at, confirmacao_closes_at, criado_por",
+    )
     .eq("id", id)
     .maybeSingle();
   if (error) throw error;
@@ -88,7 +100,7 @@ export async function carregarParticipantes(partidaId: number) {
   const { data, error } = await supabase
     .from("partidas_participantes")
     .select(
-      "partida_id, jogador_id, time, posicao, gols, assistencias, gols_contra, jogadores(nome, username)",
+      "partida_id, jogador_id, time, posicao, gols, assistencias, gols_contra, status_confirmacao, confirmado_em, jogadores(nome, username)",
     )
     .eq("partida_id", partidaId);
   if (error) throw error;
@@ -101,6 +113,8 @@ export async function carregarParticipantes(partidaId: number) {
     gols: p.gols,
     assistencias: p.assistencias,
     gols_contra: p.gols_contra,
+    status_confirmacao: p.status_confirmacao,
+    confirmado_em: p.confirmado_em,
     nome: p.jogadores?.nome,
     username: p.jogadores?.username,
   })) as Participante[];
@@ -240,6 +254,96 @@ export async function finalizarPartida(partidaId: number) {
 export async function publicarPartida(partidaId: number) {
   const { data, error } = await supabase.rpc("publicar_partida", {
     p_partida_id: partidaId,
+  });
+  if (error) throw error;
+  return data as boolean;
+}
+
+// --- Confirmação de presença ---
+
+export const CAPACIDADE_PARTIDA = 16;
+
+// Regra de capacidade (espelha o RPC confirmar_presenca da migration 057):
+// ocupa vaga = 'confirmado', ou 'pendente' antes do prazo. 'recusado' nunca ocupa.
+export function vagaOcupada(
+  status: StatusConfirmacao,
+  closesAt: string | null,
+  agora: Date = new Date(),
+): boolean {
+  if (status === "confirmado") return true;
+  if (status === "pendente") {
+    if (!closesAt) return false;
+    return agora.getTime() < new Date(closesAt).getTime();
+  }
+  return false;
+}
+
+export function vagasOcupadas(
+  participantes: Participante[],
+  closesAt: string | null,
+  agora: Date = new Date(),
+): number {
+  return participantes.filter((p) =>
+    vagaOcupada(p.status_confirmacao, closesAt, agora),
+  ).length;
+}
+
+// O jogador pode ir para o status `alvo`? Espelha a regra server-side:
+// transição permitida sse (vagas ocupadas pelos demais + (1 se alvo ocupa)) <= 16.
+export function podeConfirmar(
+  participante: Participante,
+  alvo: StatusConfirmacao,
+  participantes: Participante[],
+  closesAt: string | null,
+  agora: Date = new Date(),
+): boolean {
+  const ocupadasPelosDemais = participantes
+    .filter((p) => p.jogador_id !== participante.jogador_id)
+    .filter((p) => vagaOcupada(p.status_confirmacao, closesAt, agora)).length;
+  const alvoOcupa = vagaOcupada(alvo, closesAt, agora);
+  return !alvoOcupa || ocupadasPelosDemais < CAPACIDADE_PARTIDA;
+}
+
+// O próprio jogador confirma/desconfirma/recusa.
+export async function confirmarPresenca(
+  partidaId: number,
+  jogadorId: number,
+  status: StatusConfirmacao,
+) {
+  const { data, error } = await supabase.rpc("confirmar_presenca", {
+    p_partida_id: partidaId,
+    p_jogador_id: jogadorId,
+    p_status: status,
+  });
+  if (error) throw error;
+  return data as boolean;
+}
+
+// Admin altera o status de qualquer jogador.
+export async function adminDefinirConfirmacao(
+  partidaId: number,
+  jogadorId: number,
+  status: StatusConfirmacao,
+  adminId: number,
+) {
+  const { data, error } = await supabase.rpc("admin_definir_confirmacao", {
+    p_partida_id: partidaId,
+    p_jogador_id: jogadorId,
+    p_status: status,
+    p_admin_id: adminId,
+  });
+  if (error) throw error;
+  return data as boolean;
+}
+
+// Admin adiciona um avulso (preenche vaga liberada após o prazo).
+export async function adicionarParticipante(
+  partidaId: number,
+  jogadorId: number,
+) {
+  const { data, error } = await supabase.rpc("adicionar_participante", {
+    p_partida_id: partidaId,
+    p_jogador_id: jogadorId,
   });
   if (error) throw error;
   return data as boolean;

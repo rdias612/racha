@@ -89,12 +89,14 @@ export function PartidaVotar() {
         }
         // esconde o próprio votante (não vota em si)
         const alvosFiltrados = participantes
-          .filter((part) => part.jogador_id !== jogador.id)
+          .filter(
+            (part) => part.jogador_id !== jogador.id && part.time !== null,
+          )
           .map((part) => ({
             jogador_id: part.jogador_id,
             nome: part.nome ?? "?",
             posicao: part.posicao,
-            time: part.time,
+            time: part.time!,
           }));
         setAlvos(alvosFiltrados);
 
