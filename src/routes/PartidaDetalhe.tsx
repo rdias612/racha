@@ -260,7 +260,7 @@ export function PartidaDetalhe() {
               className="rounded-lg border border-neutral-200 dark:border-neutral-800 overflow-hidden"
             >
               <div
-                className="px-3 py-2 text-xs font-semibold"
+                className="px-3 py-2 text-xs font-semibold border-b border-neutral-200 dark:border-neutral-800"
                 style={{
                   backgroundColor: TIMES[t].cor,
                   color: t === 'a' ? '#f9fafb' : '#111827',
@@ -272,23 +272,23 @@ export function PartidaDetalhe() {
                 {jogadoresDoTime.map((p) => (
                   <div
                     key={p.jogador_id}
-                    className="px-3 py-2 text-xs"
+                    className="flex items-center justify-between gap-1.5 px-3 py-2 text-xs min-h-[36px]"
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-neutral-900 dark:text-neutral-100">
+                    <div className="flex items-center gap-1.5 min-w-0 truncate">
+                      <span className="font-medium text-neutral-900 dark:text-neutral-100 truncate">
                         {p.nome}
                       </span>
-                      <span className="text-[10px] uppercase text-neutral-400">
-                        {POSICOES[p.posicao]}
-                      </span>
+                      {(p.gols > 0 || p.assistencias > 0 || p.gols_contra > 0) && (
+                        <span className="inline-flex items-center gap-1 text-[11px] text-neutral-500 dark:text-neutral-400 shrink-0">
+                          {p.gols > 0 && <span>⚽ {p.gols}</span>}
+                          {p.assistencias > 0 && <span>🅰️ {p.assistencias}</span>}
+                          {p.gols_contra > 0 && <span>GC {p.gols_contra}</span>}
+                        </span>
+                      )}
                     </div>
-                    {(p.gols > 0 || p.assistencias > 0 || p.gols_contra > 0) && (
-                      <div className="mt-0.5 text-[11px] text-neutral-500 dark:text-neutral-400">
-                        {p.gols > 0 && <>⚽ {p.gols} </>}
-                        {p.assistencias > 0 && <>🅰️ {p.assistencias} </>}
-                        {p.gols_contra > 0 && <>GC {p.gols_contra}</>}
-                      </div>
-                    )}
+                    <span className="text-[10px] uppercase text-neutral-400 dark:text-neutral-500 shrink-0">
+                      {POSICOES[p.posicao]}
+                    </span>
                   </div>
                 ))}
                 {jogadoresDoTime.length === 0 && (

@@ -120,37 +120,58 @@ export function PartidaNovaTimes() {
 
   function atribuirTime(id: number, time: TimeId) {
     setFeedback(null);
+    const atual = participantes.find((p) => p.jogador.id === id) ?? null;
+    const jogador = jogadoresConfirmados.find((j) => j.id === id)!;
+    const ehGoleiro = jogador.posicao === "goleiro";
+
+    // Já está nesse time -> remove (não joga)
+    if (atual && atual.time === time) {
+      setParticipantes((prev) => prev.filter((p) => p.jogador.id !== id));
+      return;
+    }
+
+    // Regra: cada time pode ter no máximo 1 goleiro. Bloqueia mover/adicionar
+    // um goleiro a um time que já tem outro goleiro.
+    const destinoTemGoleiro = participantes.some(
+      (p) => p.time === time && p.posicao === "goleiro" && p.jogador.id !== id,
+    );
+    if (ehGoleiro && destinoTemGoleiro) {
+      setFeedback(
+        `Cada time só pode ter 1 goleiro. ${jogador.nome} não pode ir para o ${time === "a" ? "Preto" : "Branco"}.`,
+      );
+      return;
+    }
+
+    // Bloqueia se o time alvo já está cheio.
+    const destinoCheio =
+      participantes.filter((p) => p.time === time).length >= LIMITE_POR_TIME;
+    if (destinoCheio) return;
+
     setParticipantes((prev) => {
-      const idx = prev.findIndex((p) => p.jogador.id === id);
-      // Já está nesse time -> remove (não joga)
-      if (idx !== -1 && prev[idx].time === time) {
-        return prev.filter((p) => p.jogador.id !== id);
+      // Não está em time -> adiciona
+      if (!atual) {
+        return [
+          ...prev,
+          {
+            jogador,
+            time,
+            posicao: jogador.posicao,
+            gols: 0,
+            assistencias: 0,
+            gols_contra: 0,
+          },
+        ];
       }
       // Está no outro time -> troca
-      if (idx !== -1) {
-        return prev.map((p) => (p.jogador.id === id ? { ...p, time } : p));
-      }
-      // Não está -> adiciona (bloqueia se o time alvo já está cheio)
-      const cheio = prev.filter((p) => p.time === time).length >= LIMITE_POR_TIME;
-      if (cheio) return prev;
-      const jogador = jogadoresConfirmados.find((j) => j.id === id)!;
-      return [
-        ...prev,
-        {
-          jogador,
-          time,
-          posicao: jogador.posicao,
-          gols: 0,
-          assistencias: 0,
-          gols_contra: 0,
-        },
-      ];
+      return prev.map((p) => (p.jogador.id === id ? { ...p, time } : p));
     });
   }
 
   const podeSalvar =
     contagemTime.a === LIMITE_POR_TIME &&
     contagemTime.b === LIMITE_POR_TIME &&
+    contagemGoleiros.a === 1 &&
+    contagemGoleiros.b === 1 &&
     !!dataJogo &&
     !salvando;
 
@@ -258,9 +279,14 @@ export function PartidaNovaTimes() {
               <div className="flex flex-col">
                 <span className="text-sm font-medium">{rotulo}</span>
                 {qtd > 0 && (
-                  <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
-                    Média {media}★
-                  </span>
+                  <>
+                    <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
+                      Média {media}★
+                    </span>
+                    <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
+                      🧤 {contagemGoleiros[t]}/1
+                    </span>
+                  </>
                 )}
               </div>
               <span className="text-sm font-semibold tabular-nums">
@@ -286,9 +312,17 @@ export function PartidaNovaTimes() {
           {jogadoresConfirmados.map((j) => {
             const time = timeDoJogador(j.id);
             const neutro = time === null;
+            const ehGoleiro = j.posicao === "goleiro";
             const pretoCheio = contagemTime.a >= LIMITE_POR_TIME && time !== "a";
             const brancoCheio =
               contagemTime.b >= LIMITE_POR_TIME && time !== "b";
+            // Goleiro não pode entrar num time que já tem outro goleiro.
+            const pretoBloqueiaGoleiro =
+              ehGoleiro && time !== "a" && contagemGoleiros.a >= 1;
+            const brancoBloqueiaGoleiro =
+              ehGoleiro && time !== "b" && contagemGoleiros.b >= 1;
+            const pretoDisabled = pretoCheio || pretoBloqueiaGoleiro;
+            const brancoDisabled = brancoCheio || brancoBloqueiaGoleiro;
             const temNota = mediasNotas[j.id] !== undefined;
             const notaJogador = temNota ? mediasNotas[j.id] : 6.0;
 
@@ -303,6 +337,14 @@ export function PartidaNovaTimes() {
                   <span className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
                     {j.nome}
                   </span>
+                  {ehGoleiro && (
+                    <span
+                      className="shrink-0 text-[11px]"
+                      title="Goleiro — cada time só pode ter 1"
+                    >
+                      🧤
+                    </span>
+                  )}
                   <span
                     className={`shrink-0 text-[11px] font-medium font-mono ${
                       temNota
