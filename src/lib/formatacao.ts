@@ -47,6 +47,14 @@ export function formatarFechamento(data: string) {
   return formatar(data, formatoFechamento);
 }
 
+/** Valor monetário em reais (R$ 1.234,56). */
+export function formatarReais(valor: number): string {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(valor);
+}
+
 /** Primeira letra de cada palavra em maiúscula (nomes na UI). */
 export function formatarNome(nome: string) {
   return nome

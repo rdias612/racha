@@ -16,6 +16,7 @@ import { PartidaEditar } from "./routes/PartidaEditar";
 import { PartidaAoVivo } from "./routes/PartidaAoVivo";
 import { PartidaVotar } from "./routes/PartidaVotar";
 import { NovoJogador } from "./routes/NovoJogador";
+import { Administrador } from "./routes/Administrador";
 
 export function App() {
   return (
@@ -45,6 +46,7 @@ export function App() {
           <Route path="/partida/:id/editar" element={<PartidaEditar />} />
           <Route path="/partida/:id/votar" element={<PartidaVotar />} />
           <Route path="/jogador/novo" element={<NovoJogador />} />
+          <Route path="/administrador" element={<Administrador />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

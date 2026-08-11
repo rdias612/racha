@@ -15,6 +15,7 @@ import {
   Sun,
   Moon,
   UserPlus,
+  Wallet,
   ChevronDown,
 } from "lucide-react";
 import { useSessao } from "../context/SessaoContext";
@@ -73,6 +74,17 @@ export function Layout() {
                     >
                       <UserPlus className="size-3.5 text-[var(--cor-primaria)]" />
                       <span>+ Novo Jogador</span>
+                    </Link>
+                  )}
+
+                  {jogador.is_admin && (
+                    <Link
+                      to="/administrador"
+                      onClick={() => setMenuAberto(false)}
+                      className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                    >
+                      <Wallet className="size-3.5 text-[var(--cor-primaria)]" />
+                      <span>Administrador</span>
                     </Link>
                   )}
 
