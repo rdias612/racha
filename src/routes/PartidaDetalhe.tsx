@@ -9,12 +9,14 @@ import {
   carregarPlacar,
   carregarParticipantes,
   carregarNotas,
+  descartarVotos,
   type Partida,
   type Placar,
   type Participante,
   type NotaPartida,
 } from '../lib/partidas'
 import { Carregando, MensagemEstado } from '../components/Estado'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 import { formatarDataCompleta, formatarDataMobile, formatarFechamento } from '../lib/formatacao'
 
 export function PartidaDetalhe() {
@@ -28,6 +30,8 @@ export function PartidaDetalhe() {
   const [participantes, setParticipantes] = useState<Participante[]>([])
   const [notas, setNotas] = useState<NotaPartida[]>([])
   const [jaVotou, setJaVotou] = useState(false)
+  const [confirmandoDescarte, setConfirmandoDescarte] = useState(false)
+  const [descartando, setDescartando] = useState(false)
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
 
@@ -64,6 +68,27 @@ export function PartidaDetalhe() {
       setErro(e.message ?? String(e))
     } finally {
       setCarregando(false)
+    }
+  }
+
+  async function confirmarDescarte() {
+    if (!partida || !jogadorLogado) return
+    setDescartando(true)
+    try {
+      const ok = await descartarVotos(partida.id, jogadorLogado.id)
+      if (ok) {
+        setConfirmandoDescarte(false)
+        setJaVotou(false)
+        navigate(`/partida/${partida.id}/votar`)
+      } else {
+        setConfirmandoDescarte(false)
+        setErro('Não foi possível descartar — a votação pode estar encerrada.')
+      }
+    } catch (e: any) {
+      setConfirmandoDescarte(false)
+      setErro(e.message ?? String(e))
+    } finally {
+      setDescartando(false)
     }
   }
 
@@ -279,9 +304,26 @@ export function PartidaDetalhe() {
       {votacaoAberta && jaEhParticipante && (
         <div className="space-y-2">
           {jaVotou ? (
-            <p className="text-center text-xs text-green-600 dark:text-green-400">
-              ✓ Você já votou. Pode editar até a votação fechar.
-            </p>
+            <>
+              <p className="text-center text-xs text-green-600 dark:text-green-400">
+                ✓ Você já votou. Pode editar ou descartar até a votação fechar.
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <Link
+                  to={`/partida/${partida.id}/votar`}
+                  className="block text-center rounded-lg bg-[var(--cor-destaque)] px-4 py-3 font-medium text-white"
+                >
+                  Editar votos
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setConfirmandoDescarte(true)}
+                  className="block text-center rounded-lg border border-red-300 dark:border-red-900 px-4 py-3 font-medium text-red-600 dark:text-red-400"
+                >
+                  Descartar votos
+                </button>
+              </div>
+            </>
           ) : (
             <Link
               to={`/partida/${partida.id}/votar`}
@@ -292,6 +334,16 @@ export function PartidaDetalhe() {
           )}
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmandoDescarte}
+        onClose={() => setConfirmandoDescarte(false)}
+        onConfirm={confirmarDescarte}
+        titulo="Descartar seus votos?"
+        mensagem="Isso vai apagar todas as notas que você deu nesta partida. Você poderá votar novamente enquanto a votação estiver aberta."
+        textoConfirmar={descartando ? 'Descartando…' : 'Descartar'}
+        tomConfirmar="perigo"
+      />
 
       {partida.status === 'published' && !votacaoAberta && (
         <p className="text-center text-xs text-amber-600 dark:text-amber-400">

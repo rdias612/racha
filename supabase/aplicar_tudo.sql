@@ -1150,3 +1150,51 @@ SELECT cron.schedule(
   $push_job$
 );
 
+-- 041_rpc_descartar_votos.sql
+-- RPC `descartar_votos(p_partida_id, p_voter_id) RETURNS boolean`:
+--   Apaga TODOS os votos de um votante numa partida, devolvendo-o ao estado
+--   "ainda nao votei" para refazer do zero. Bloqueio server-side identico ao
+--   `registrar_votos` (status='published' E voting_closes_at > now()).
+--   Retorna true se sucesso (mesmo que 0 linhas apagadas); false caso contrario.
+
+CREATE OR REPLACE FUNCTION descartar_votos(
+  p_partida_id  bigint,
+  p_voter_id    bigint
+)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_status           text;
+  v_voting_closes_at timestamptz;
+BEGIN
+  SELECT status, voting_closes_at
+  INTO v_status, v_voting_closes_at
+  FROM partidas
+  WHERE id = p_partida_id;
+
+  IF v_status IS NULL
+     OR v_status <> 'published'
+     OR v_voting_closes_at IS NULL
+     OR v_voting_closes_at <= now() THEN
+    RETURN false;
+  END IF;
+
+  BEGIN
+    DELETE FROM votes
+    WHERE partida_id = p_partida_id
+      AND voter_id = p_voter_id;
+
+    RETURN true;
+
+  EXCEPTION WHEN OTHERS THEN
+    ROLLBACK;
+    RETURN false;
+  END;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION descartar_votos(bigint, bigint) TO anon, authenticated;
+

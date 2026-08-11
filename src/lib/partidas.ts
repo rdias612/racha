@@ -111,3 +111,14 @@ export async function carregarParesRacha(minPartidas: number = 5) {
   if (error) throw error;
   return (data ?? []) as ParRacha[];
 }
+
+// Apaga TODOS os votos do jogador logado numa partida (descartar p/ refazer).
+// Retorna true se o servidor aceitou (votacao aberta); false caso contrario.
+export async function descartarVotos(partidaId: number, voterId: number) {
+  const { data, error } = await supabase.rpc("descartar_votos", {
+    p_partida_id: partidaId,
+    p_voter_id: voterId,
+  });
+  if (error) throw error;
+  return data as boolean;
+}
