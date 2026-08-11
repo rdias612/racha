@@ -5,6 +5,16 @@ import {
   Link,
   useLocation,
 } from "react-router-dom";
+import {
+  Home,
+  Shield,
+  Medal,
+  TrendingUp,
+  User,
+  Sun,
+  Moon,
+  UserPlus,
+} from "lucide-react";
 import { useSessao } from "../context/SessaoContext";
 import { useTema } from "../lib/tema";
 import { BannerLembrete } from "../components/BannerLembrete";
@@ -31,16 +41,22 @@ export function Layout() {
             {jogador.is_admin && (
               <Link
                 to="/jogador/novo"
-                className="rounded border border-neutral-300 px-2 py-1 text-xs text-neutral-600 dark:border-neutral-700 dark:text-neutral-300"
+                className="inline-flex items-center gap-1.5 rounded border border-neutral-300 px-2 py-1 text-xs text-neutral-600 dark:border-neutral-700 dark:text-neutral-300"
               >
-                + Jogador
+                <UserPlus className="size-3.5" />
+                <span>+ Jogador</span>
               </Link>
             )}
             <button
               onClick={alternar}
-              className="rounded border border-neutral-300 px-2 py-1 text-xs text-neutral-600 dark:border-neutral-700 dark:text-neutral-300"
+              aria-label="Alternar tema"
+              className="inline-flex items-center justify-center rounded border border-neutral-300 p-1.5 text-neutral-600 dark:border-neutral-700 dark:text-neutral-300"
             >
-              {tema === "dark" ? "☀️" : "🌙"}
+              {tema === "dark" ? (
+                <Sun className="size-4 text-amber-400" />
+              ) : (
+                <Moon className="size-4 text-neutral-600" />
+              )}
             </button>
           </div>
         </div>
@@ -63,13 +79,11 @@ export function Layout() {
             aria-current={pathname === "/" ? "page" : undefined}
             className={`flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-2 ${
               pathname === "/"
-                ? "text-(--cor-destaque)"
+                ? "text-(--cor-destaque) font-medium"
                 : "text-neutral-500 dark:text-neutral-400"
             }`}
           >
-            <span className="text-lg" aria-hidden="true">
-              👤
-            </span>
+            <Home className="size-5" aria-hidden="true" />
             <span className="text-[10px]">Resumo</span>
           </NavLink>
           <NavLink
@@ -77,13 +91,11 @@ export function Layout() {
             aria-current={pathname === "/jogos" ? "page" : undefined}
             className={`flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-2 ${
               pathname === "/jogos"
-                ? "text-(--cor-destaque)"
+                ? "text-(--cor-destaque) font-medium"
                 : "text-neutral-500 dark:text-neutral-400"
             }`}
           >
-            <span className="text-lg" aria-hidden="true">
-              ⚽
-            </span>
+            <Shield className="size-5" aria-hidden="true" />
             <span className="text-[10px]">Jogos</span>
           </NavLink>
           <NavLink
@@ -91,13 +103,11 @@ export function Layout() {
             aria-current={rankingAtivo ? "page" : undefined}
             className={`flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-2 ${
               rankingAtivo
-                ? "text-(--cor-destaque)"
+                ? "text-(--cor-destaque) font-medium"
                 : "text-neutral-500 dark:text-neutral-400"
             }`}
           >
-            <span className="text-lg" aria-hidden="true">
-              🏆
-            </span>
+            <Medal className="size-5" aria-hidden="true" />
             <span className="text-[10px]">Ranking</span>
           </NavLink>
           <NavLink
@@ -105,13 +115,11 @@ export function Layout() {
             aria-current={estatisticasAtivo ? "page" : undefined}
             className={`flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-2 ${
               estatisticasAtivo
-                ? "text-(--cor-destaque)"
+                ? "text-(--cor-destaque) font-medium"
                 : "text-neutral-500 dark:text-neutral-400"
             }`}
           >
-            <span className="text-lg" aria-hidden="true">
-              📊
-            </span>
+            <TrendingUp className="size-5" aria-hidden="true" />
             <span className="text-[10px]">Estatísticas</span>
           </NavLink>
           <NavLink
@@ -119,13 +127,11 @@ export function Layout() {
             aria-current={pathname === "/perfil" ? "page" : undefined}
             className={`flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-2 ${
               pathname === "/perfil"
-                ? "text-(--cor-destaque)"
+                ? "text-(--cor-destaque) font-medium"
                 : "text-neutral-500 dark:text-neutral-400"
             }`}
           >
-            <span className="text-lg" aria-hidden="true">
-              ⚙️
-            </span>
+            <User className="size-5" aria-hidden="true" />
             <span className="text-[10px]">Perfil</span>
           </NavLink>
         </div>
