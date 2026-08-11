@@ -1,14 +1,16 @@
 {
-  "name": "Racha Gragoatá",
+  "name": "Racha Gragoatá CBO",
   "short_name": "Racha",
-  "description": "Estatísticas e gestão do racha do Gragoatá",
+  "description": "Estatísticas, votação e gestão do Racha Gragoatá CBO",
+  "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0a0a0a",
-  "theme_color": "#2563eb",
+  "theme_color": "#15803d",
   "lang": "pt-BR",
+  "categories": ["sports", "utilities"],
   "icons": [
     {
       "src": "/icon-192.png",
@@ -27,6 +29,15 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Racha Gragoatá CBO em dispositivos móveis"
     }
   ]
 }

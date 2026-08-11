@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useAdmin } from "../hooks/useAdmin";
 import { TIMES, type TimeId } from "../lib/times";
@@ -21,6 +21,7 @@ interface Stats {
 
 export function PartidaEditar() {
   const isAdmin = useAdmin();
+  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const partidaId = Number(id);
 
@@ -144,7 +145,7 @@ export function PartidaEditar() {
 
       setFeedback("Resultado salvo.");
       setTimeout(() => {
-        window.location.href = `/partida/${partidaId}`;
+        navigate(`/partida/${partidaId}`);
       }, 700);
     } catch (e: any) {
       setErro("Erro ao salvar resultado: " + (e?.message ?? String(e)));

@@ -31,6 +31,21 @@ export function PartidaVotar() {
   const [erro, setErro] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [votosEnviados, setVotosEnviados] = useState(false);
+
+  const temModificacoes =
+    Object.keys(notas).length > 0 && !votosEnviados && !salvando;
+
+  useEffect(() => {
+    function handleBeforeUnload(e: BeforeUnloadEvent) {
+      if (temModificacoes) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    }
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [temModificacoes]);
 
   useEffect(() => {
     async function carregar() {
@@ -55,7 +70,23 @@ export function PartidaVotar() {
           return;
         }
 
+        // Jogadores 'random' (placeholders do sorteio) nunca votam.
+        if (jogador.username.toLowerCase().startsWith("random")) {
+          setErro("Jogadores random não podem votar.");
+          setCarregando(false);
+          return;
+        }
+
         const participantes = await carregarParticipantes(p.id);
+        // Só quem jogou a partida pode votar.
+        const ehParticipante = participantes.some(
+          (part) => part.jogador_id === jogador.id,
+        );
+        if (!ehParticipante) {
+          setErro("Você não participou desta partida.");
+          setCarregando(false);
+          return;
+        }
         // esconde o próprio votante (não vota em si)
         const alvosFiltrados = participantes
           .filter((part) => part.jogador_id !== jogador.id)
@@ -115,6 +146,16 @@ export function PartidaVotar() {
   const todosAvaliados = alvos.every((a) => notas[a.jogador_id] !== undefined);
   const editando = votosOriginais.size > 0;
 
+  function handleVoltar() {
+    if (
+      temModificacoes &&
+      !window.confirm("Você tem votos não salvos. Deseja realmente sair sem salvar?")
+    ) {
+      return;
+    }
+    navigate(-1);
+  }
+
   async function enviar() {
     if (!jogador || !partida || !todosAvaliados) return;
     setSalvando(true);
@@ -145,6 +186,7 @@ export function PartidaVotar() {
       return;
     }
 
+    setVotosEnviados(true);
     setFeedback(editando ? "Votos atualizados!" : "Votos registrados!");
     setTimeout(
       () => navigate(`/partida/${partida.id}`, { replace: true }),
@@ -163,7 +205,7 @@ export function PartidaVotar() {
   return (
     <div className="px-3 py-4 pb-24 sm:px-4 max-w-2xl mx-auto space-y-4">
       <button
-        onClick={() => navigate(-1)}
+        onClick={handleVoltar}
         className="text-xs text-neutral-500 dark:text-neutral-400"
       >
         ← voltar
@@ -237,12 +279,15 @@ export function PartidaVotar() {
       {erro && <MensagemEstado>{erro}</MensagemEstado>}
       {feedback && <MensagemEstado tipo="sucesso">{feedback}</MensagemEstado>}
 
-      <div className="fixed inset-x-0 bottom-16 z-40 p-3 pb-3 bg-neutral-50/90 dark:bg-neutral-950/90 backdrop-blur border-t border-neutral-200 dark:border-neutral-800">
+      <div
+        className="fixed inset-x-0 z-40 p-3 bg-neutral-50/90 dark:bg-neutral-950/90 backdrop-blur border-t border-neutral-200 dark:border-neutral-800"
+        style={{ bottom: "calc(4rem + env(safe-area-inset-bottom))" }}
+      >
         <div className="max-w-2xl mx-auto">
           <button
             onClick={enviar}
             disabled={!todosAvaliados || salvando}
-            className="w-full rounded-lg bg-[var(--cor-destaque)] px-4 py-3 font-medium text-white disabled:opacity-40"
+            className="w-full min-h-[44px] rounded-lg bg-[var(--cor-destaque)] px-4 py-3 font-medium text-white disabled:opacity-40"
           >
             {salvando
               ? "Enviando…"

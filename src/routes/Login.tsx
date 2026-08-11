@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabase";
 import { useSessao } from "../context/SessaoContext";
 import { MensagemEstado } from "../components/Estado";
 import { listarUsernames } from "../lib/jogadores";
+import { Logo } from "../components/Logo";
 
 export function Login() {
   const navigate = useNavigate();
@@ -51,11 +52,11 @@ export function Login() {
 
   return (
     <div className="min-h-full flex items-center justify-center p-3 sm:p-4 bg-neutral-50 dark:bg-neutral-950">
-      <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-center text-neutral-900 dark:text-neutral-100 mb-1">
-          Racha Gragoata CBO
-        </h1>
-        <p className="text-center text-sm text-neutral-500 dark:text-neutral-400 mb-8">
+      <div className="w-full max-w-sm flex flex-col items-center">
+        <div className="mb-2">
+          <Logo size="lg" />
+        </div>
+        <p className="text-center text-sm text-neutral-500 dark:text-neutral-400 mb-6">
           Entre com seu usuário e senha
         </p>
 
@@ -67,26 +68,29 @@ export function Login() {
             >
               Usuário
             </label>
-            <select
+            <input
               id="username"
+              type="text"
+              list="lista-usernames"
               autoComplete="username"
+              autoCapitalize="none"
+              autoCorrect="off"
+              placeholder={
+                carregandoUsernames
+                  ? "Carregando usuários..."
+                  : "Selecione ou digite seu usuário"
+              }
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-[var(--cor-destaque)]"
               required
               disabled={carregandoUsernames || !!erroUsernames}
-            >
-              <option value="">
-                {carregandoUsernames
-                  ? "Carregando usuários..."
-                  : "Selecione seu usuário"}
-              </option>
+            />
+            <datalist id="lista-usernames">
               {usernames.map((nome) => (
-                <option key={nome} value={nome}>
-                  {nome}
-                </option>
+                <option key={nome} value={nome} />
               ))}
-            </select>
+            </datalist>
           </div>
 
           <div>
@@ -100,6 +104,7 @@ export function Login() {
               id="senha"
               type="password"
               autoComplete="current-password"
+              enterKeyHint="go"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
               className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-[var(--cor-destaque)]"

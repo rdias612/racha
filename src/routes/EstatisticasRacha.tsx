@@ -3,6 +3,7 @@ import { NavLink } from "react-router-dom";
 import { Carregando, MensagemEstado } from "../components/Estado";
 import { DuplaCard } from "../components/DuplaCard";
 import { SecaoRacha } from "../components/SecaoRacha";
+import { Avatar } from "../components/Avatar";
 import { carregarParesRacha, type ParRacha } from "../lib/partidas";
 
 const MIN_PARTIDAS = 5;
@@ -82,7 +83,7 @@ export function EstatisticasRacha() {
           </MensagemEstado>
         ) : (
           <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <DuplaCard titulo="Melhor dupla" par={melhor} />
               <DuplaCard titulo="Pior dupla" par={pior} />
             </div>
@@ -91,7 +92,7 @@ export function EstatisticasRacha() {
               <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                 Top 5
               </p>
-              <ListaDuplas pares={pares.slice(0, 5)} inicio={1} />
+              <TabelaDuplas pares={pares.slice(0, 5)} inicio={1} />
             </div>
 
             {pares.length > 5 && (
@@ -99,7 +100,7 @@ export function EstatisticasRacha() {
                 <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                   Bottom 5
                 </p>
-                <ListaDuplas
+                <TabelaDuplas
                   pares={pares.slice(-5).reverse()}
                   inicio={1}
                 />
@@ -112,34 +113,58 @@ export function EstatisticasRacha() {
   );
 }
 
-function ListaDuplas({ pares, inicio }: { pares: ParRacha[]; inicio: number }) {
+function TabelaDuplas({ pares, inicio }: { pares: ParRacha[]; inicio: number }) {
   return (
-    <ol className="divide-y divide-neutral-200 dark:divide-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-800">
-      {pares.map((par, i) => (
-        <li
-          key={`${par.jogador_a_id}-${par.jogador_b_id}`}
-          className="px-3 py-2"
-        >
-          <div className="flex items-center justify-between gap-2">
-            <span className="flex items-center gap-2 text-sm text-neutral-900 dark:text-neutral-100">
-              <span className="w-6 text-right text-xs text-neutral-500 dark:text-neutral-400">
+    <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900/60 shadow-xs">
+      <table className="w-full text-left text-xs">
+        <thead className="border-b border-neutral-200 bg-neutral-50/80 text-[10px] font-bold uppercase tracking-wider text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900/80 dark:text-neutral-400">
+          <tr>
+            <th scope="col" className="px-3 py-2 text-center w-8">#</th>
+            <th scope="col" className="px-3 py-2">Dupla</th>
+            <th scope="col" className="px-3 py-2 text-center">Pts</th>
+            <th scope="col" className="px-3 py-2 text-center">J</th>
+            <th scope="col" className="px-3 py-2 text-center">V/E/D</th>
+            <th scope="col" className="px-3 py-2 text-right">%</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800/80">
+          {pares.map((par, i) => (
+            <tr
+              key={`${par.jogador_a_id}-${par.jogador_b_id}`}
+              className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors"
+            >
+              <td className="px-3 py-2.5 text-center font-medium text-neutral-400 dark:text-neutral-500 text-[11px]">
                 {inicio + i}
-              </span>
-              <span className="font-medium">
-                {par.jogador_a_nome} + {par.jogador_b_nome}
-              </span>
-            </span>
-            <span className="font-semibold text-(--cor-destaque)">{par.pontos} pts</span>
-          </div>
-          <div className="mt-1 flex items-center justify-between gap-2 text-xs text-neutral-500 dark:text-neutral-400">
-            <span>
-              {par.partidas}J · {par.vitorias}V · {par.empates}E ·{" "}
-              {par.derrotas}D
-            </span>
-            <span>{par.percentual === null ? "—" : `${Math.round(par.percentual * 100)}%`}</span>
-          </div>
-        </li>
-      ))}
-    </ol>
+              </td>
+              <td className="px-3 py-2.5 font-bold text-neutral-900 dark:text-neutral-100 whitespace-nowrap">
+                <div className="flex items-center gap-2">
+                  <div className="flex -space-x-1.5 shrink-0">
+                    <Avatar nome={par.jogador_a_nome} size="xs" />
+                    <Avatar nome={par.jogador_b_nome} size="xs" />
+                  </div>
+                  <span>
+                    {par.jogador_a_nome} + {par.jogador_b_nome}
+                  </span>
+                </div>
+              </td>
+              <td className="px-3 py-2.5 text-center font-extrabold text-(--cor-destaque)">
+                {par.pontos}
+              </td>
+              <td className="px-3 py-2.5 text-center text-neutral-600 dark:text-neutral-400">
+                {par.partidas}
+              </td>
+              <td className="px-3 py-2.5 text-center text-neutral-500 dark:text-neutral-400 text-[11px] whitespace-nowrap">
+                {par.vitorias}V {par.empates}E {par.derrotas}D
+              </td>
+              <td className="px-3 py-2.5 text-right font-semibold text-neutral-700 dark:text-neutral-300">
+                {par.percentual === null
+                  ? "—"
+                  : `${Math.round(par.percentual * 100)}%`}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

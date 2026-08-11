@@ -3,11 +3,21 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-destaque: #2563eb;
+  --color-primaria: var(--cor-primaria);
+  --color-destaque: var(--cor-destaque);
+  --color-perigo: var(--cor-perigo);
 }
 
 :root {
-  --cor-destaque: #2563eb;
+  --cor-primaria: #15803d;
+  --cor-destaque: #f59e0b;
+  --cor-perigo: #dc2626;
+}
+
+.dark {
+  --cor-primaria: #22c55e;
+  --cor-destaque: #fbbf24;
+  --cor-perigo: #ef4444;
 }
 
 html,

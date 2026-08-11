@@ -25,6 +25,7 @@ export function PartidaNova() {
   const [selecionados, setSelecionados] = useState<number[]>([]);
   const [dataJogo, setDataJogo] = useState("");
   const [horaJogo, setHoraJogo] = useState("20:00");
+  const [busca, setBusca] = useState("");
   const [hidratado, setHidratado] = useState(false);
 
   // Hidratação no mount: lê localStorage e lista jogadores ativos.
@@ -72,19 +73,39 @@ export function PartidaNova() {
     }
   }, [selecionados, dataJogo, horaJogo, hidratado]);
 
-  // Derivação dos 3 grupos.
+  // Derivação dos 3 grupos (filtrados pela busca).
+  const termo = busca.trim().toLowerCase();
   const goleiros = useMemo(
-    () => jogadores.filter((j) => j.posicao === "goleiro"),
-    [jogadores],
+    () =>
+      jogadores.filter(
+        (j) =>
+          j.posicao === "goleiro" &&
+          (j.nome.toLowerCase().includes(termo) ||
+            j.username.toLowerCase().includes(termo)),
+      ),
+    [jogadores, termo],
   );
   const mensalistas = useMemo(
-    () => jogadores.filter((j) => j.is_mensalista && j.posicao !== "goleiro"),
-    [jogadores],
+    () =>
+      jogadores.filter(
+        (j) =>
+          j.is_mensalista &&
+          j.posicao !== "goleiro" &&
+          (j.nome.toLowerCase().includes(termo) ||
+            j.username.toLowerCase().includes(termo)),
+      ),
+    [jogadores, termo],
   );
   const avulsos = useMemo(
     () =>
-      jogadores.filter((j) => !j.is_mensalista && j.posicao !== "goleiro"),
-    [jogadores],
+      jogadores.filter(
+        (j) =>
+          !j.is_mensalista &&
+          j.posicao !== "goleiro" &&
+          (j.nome.toLowerCase().includes(termo) ||
+            j.username.toLowerCase().includes(termo)),
+      ),
+    [jogadores, termo],
   );
 
   // Contadores derivados.
@@ -198,6 +219,25 @@ export function PartidaNova() {
             {goleiroSel}/{LIMITE_GOLEIROS}
           </span>
         </div>
+      </div>
+
+      {/* Input de Busca */}
+      <div className="relative">
+        <input
+          type="text"
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          placeholder="Buscar jogador por nome..."
+          className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-green-500/50"
+        />
+        {busca && (
+          <button
+            onClick={() => setBusca("")}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
+          >
+            Limpar
+          </button>
+        )}
       </div>
 
       {/* Grupos */}

@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAdmin } from '../hooks/useAdmin'
 import { Carregando, MensagemEstado } from '../components/Estado'
 import { formatarDataLista } from '../lib/formatacao'
 import { STATUS_COR, STATUS_LABEL, type StatusPartida } from '../lib/partidas'
+import { PullToRefresh } from '../components/PullToRefresh'
 
 interface Partida {
   id: number
@@ -25,90 +26,93 @@ export function Jogos() {
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
 
-  useEffect(() => {
-    async function carregar() {
-      const { data: ps, error } = await supabase
-        .from('partidas')
-        .select('id, data_jogo, status')
-        .order('data_jogo', { ascending: false })
+  const carregar = useCallback(async () => {
+    const { data: ps, error } = await supabase
+      .from('partidas')
+      .select('id, data_jogo, status')
+      .order('data_jogo', { ascending: false })
 
-      if (error) {
-        setErro(error.message)
-        setCarregando(false)
-        return
-      }
-      setPartidas(ps ?? [])
-
-      if (ps && ps.length > 0) {
-        const ids = ps.map((p) => p.id)
-        const { data: pls } = await supabase
-          .from('partida_placar')
-          .select('partida_id, gols_time_a, gols_time_b')
-          .in('partida_id', ids)
-        const mapa: Record<number, Placar> = {}
-        for (const pl of pls ?? []) mapa[pl.partida_id] = pl
-        setPlacares(mapa)
-      }
+    if (error) {
+      setErro(error.message)
       setCarregando(false)
+      return
     }
-    carregar()
+    setPartidas(ps ?? [])
+
+    if (ps && ps.length > 0) {
+      const ids = ps.map((p) => p.id)
+      const { data: pls } = await supabase
+        .from('partida_placar')
+        .select('partida_id, gols_time_a, gols_time_b')
+        .in('partida_id', ids)
+      const mapa: Record<number, Placar> = {}
+      for (const pl of pls ?? []) mapa[pl.partida_id] = pl
+      setPlacares(mapa)
+    }
+    setCarregando(false)
   }, [])
+
+  useEffect(() => {
+    carregar()
+  }, [carregar])
 
   if (carregando) return <Carregando>Carregando jogos</Carregando>
   if (erro) return <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">{erro}</MensagemEstado>
 
   return (
-    <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-3">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Jogos</h2>
-        {isAdmin && (
-          <Link
-            to="/partida/nova"
-            className="text-xs rounded-lg bg-[var(--cor-destaque)] text-white px-3 py-1.5"
-          >
-            + Nova partida
-          </Link>
+    <PullToRefresh onRefresh={carregar}>
+      <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Jogos</h2>
+          {isAdmin && (
+            <Link
+              to="/partida/nova"
+              className="text-xs rounded-lg bg-[var(--cor-destaque)] text-white px-3 py-1.5"
+            >
+              + Nova partida
+            </Link>
+          )}
+        </div>
+
+        {partidas.length === 0 ? (
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            {isAdmin
+              ? 'Nenhuma partida ainda. Crie a primeira com "Nova partida".'
+              : 'Nenhuma partida ainda.'}
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {partidas.map((p) => {
+              const pl = placares[p.id]
+              return (
+                <Link
+                  key={p.id}
+                  to={p.status === 'live' ? `/partida/${p.id}/ao-vivo` : `/partida/${p.id}`}
+                  className="block rounded-lg border border-neutral-200 dark:border-neutral-800 px-3 py-3 hover:border-[var(--cor-destaque)] transition"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                      {formatarDataLista(p.data_jogo)}
+                    </span>
+                    <span className={`text-[10px] font-medium ${STATUS_COR[p.status]}`}>
+                      {STATUS_LABEL[p.status]}
+                    </span>
+                  </div>
+                  <div className="mt-1 flex items-center justify-center gap-3">
+                    <span className="text-xs text-neutral-500">Preto</span>
+                    <span className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
+                      {p.status === 'draft' || !pl
+                        ? '— × —'
+                        : `${pl.gols_time_a} × ${pl.gols_time_b}`}
+                    </span>
+                    <span className="text-xs text-neutral-500">Branco</span>
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
         )}
       </div>
-
-      {partidas.length === 0 ? (
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          {isAdmin
-            ? 'Nenhuma partida ainda. Crie a primeira com "Nova partida".'
-            : 'Nenhuma partida ainda.'}
-        </p>
-      ) : (
-        <div className="space-y-2">
-          {partidas.map((p) => {
-            const pl = placares[p.id]
-            return (
-              <Link
-                key={p.id}
-                to={p.status === 'live' ? `/partida/${p.id}/ao-vivo` : `/partida/${p.id}`}
-                className="block rounded-lg border border-neutral-200 dark:border-neutral-800 px-3 py-3 hover:border-[var(--cor-destaque)] transition"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-neutral-500 dark:text-neutral-400">
-                    {formatarDataLista(p.data_jogo)}
-                  </span>
-                  <span className={`text-[10px] font-medium ${STATUS_COR[p.status]}`}>
-                    {STATUS_LABEL[p.status]}
-                  </span>
-                </div>
-                <div className="mt-1 flex items-center justify-center gap-3">
-                  <span className="text-xs text-neutral-500">Preto</span>
-                  <span className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
-                    {p.status === 'draft' || !pl
-                      ? '— × —'
-                      : `${pl.gols_time_a} × ${pl.gols_time_b}`}
-                  </span>
-                  <span className="text-xs text-neutral-500">Branco</span>
-                </div>
-              </Link>
-            )
-          })}
-        </div>
-      )}
-    </div>
+    </PullToRefresh>
   )
 }

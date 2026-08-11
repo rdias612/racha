@@ -21,6 +21,7 @@ import {
 import { Carregando, MensagemEstado } from '../components/Estado'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { formatarDataCompleta, formatarDataMobile, formatarFechamento } from '../lib/formatacao'
+import { Avatar } from '../components/Avatar'
 
 export function PartidaDetalhe() {
   const { id } = useParams<{ id: string }>()
@@ -143,6 +144,9 @@ export function PartidaDetalhe() {
   const jaEhParticipante =
     !!jogadorLogado &&
     participantes.some((p) => p.jogador_id === jogadorLogado.id)
+  const isRandom =
+    !!jogadorLogado &&
+    jogadorLogado.username.toLowerCase().startsWith("random")
 
   return (
     <div className="px-3 py-4 pb-10 sm:px-4 max-w-2xl mx-auto space-y-4">
@@ -180,8 +184,8 @@ export function PartidaDetalhe() {
             <span className="sm:hidden">Preto</span>
             <span className="hidden sm:inline">Time Preto</span>
           </div>
-          <div className="px-4 sm:px-6 py-4 flex items-center bg-neutral-50 dark:bg-neutral-900">
-            <span className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-neutral-100">
+          <div className="px-5 sm:px-8 py-4 flex items-center justify-center bg-neutral-50 dark:bg-neutral-900">
+            <span className="text-5xl sm:text-6xl font-black tabular-nums tracking-tight text-neutral-900 dark:text-neutral-100">
               {placar.gols_time_a} × {placar.gols_time_b}
             </span>
           </div>
@@ -197,10 +201,11 @@ export function PartidaDetalhe() {
 
       {/* Craque da partida (só quando closed) */}
       {partida.status === 'closed' && craque && (
-        <div className="rounded-lg border border-[var(--cor-destaque)] bg-[var(--cor-destaque)]/10 px-4 py-3 text-center">
+        <div className="rounded-lg border border-[var(--cor-destaque)] bg-[var(--cor-destaque)]/10 px-4 py-3 text-center flex flex-col items-center gap-1.5">
           <p className="text-xs uppercase tracking-wide text-[var(--cor-destaque)] font-semibold">
             ⭐ Craque da partida
           </p>
+          <Avatar nome={craque.nome} size="lg" />
           <p className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
             {craque.nome}
           </p>
@@ -228,10 +233,13 @@ export function PartidaDetalhe() {
                   key={n.target_id}
                   className="flex items-center justify-between px-3 py-2 text-sm"
                 >
-                  <span className="text-neutral-900 dark:text-neutral-100">
-                    {n.is_craque ? '⭐ ' : ''}
-                    {n.nome}
-                  </span>
+                  <div className="flex items-center gap-2 text-neutral-900 dark:text-neutral-100">
+                    <Avatar nome={n.nome} size="xs" />
+                    <span>
+                      {n.is_craque ? '⭐ ' : ''}
+                      {n.nome}
+                    </span>
+                  </div>
                   <span className="text-neutral-600 dark:text-neutral-400">
                     {Number(n.avg_rating).toFixed(1)}{' '}
                     <span className="text-xs">({n.vote_count})</span>
@@ -338,7 +346,7 @@ export function PartidaDetalhe() {
         </div>
       )}
 
-      {votacaoAberta && jaEhParticipante && (
+      {votacaoAberta && jaEhParticipante && !isRandom && (
         <div className="space-y-2">
           {jaVotou ? (
             <>
