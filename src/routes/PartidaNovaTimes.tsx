@@ -1,27 +1,23 @@
 import { useMemo, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Wand2 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import type { JogadorLista } from "../lib/jogadores";
 import { useAdmin } from "../hooks/useAdmin";
 import { useJogadorLogado } from "../hooks/useJogadorLogado";
-import { type TimeId, type PosicaoId } from "../lib/times";
+import { type TimeId } from "../lib/times";
 import { formatarDataCompleta } from "../lib/formatacao";
 import { MensagemEstado } from "../components/Estado";
+import {
+  gerarEscalacaoAutomatica,
+  type ParticipanteForm,
+} from "../lib/escalacao";
 
 interface EstadoPartida {
   selecionados: number[];
   jogadores: JogadorLista[];
   dataJogo: string;
   horaJogo: string;
-}
-
-interface ParticipanteForm {
-  jogador: JogadorLista;
-  time: TimeId;
-  posicao: PosicaoId;
-  gols: number;
-  assistencias: number;
-  gols_contra: number;
 }
 
 const LIMITE_POR_TIME = 8;
@@ -67,6 +63,13 @@ export function PartidaNovaTimes() {
 
   function timeDoJogador(id: number): TimeId | null {
     return participantes.find((p) => p.jogador.id === id)?.time ?? null;
+  }
+
+  function autoEscalar() {
+    setErro(null);
+    const proposta = gerarEscalacaoAutomatica(jogadoresConfirmados);
+    setParticipantes(proposta);
+    setFeedback("Times gerados automaticamente com base nas posições A e B!");
   }
 
   function atribuirTime(id: number, time: TimeId) {
@@ -165,9 +168,20 @@ export function PartidaNovaTimes() {
         >
           ← voltar
         </button>
-        <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-          Escolher times
-        </h2>
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+            Escolher times
+          </h2>
+          <button
+            type="button"
+            onClick={autoEscalar}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 active:scale-95 transition shrink-0"
+            title="Gera uma proposta equilibrada de divisão dos times usando as posições A e B"
+          >
+            <Wand2 className="w-3.5 h-3.5" />
+            <span>Gerar automaticamente</span>
+          </button>
+        </div>
       </div>
 
       {/* Resumo: data/hora */}
