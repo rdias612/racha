@@ -6,10 +6,10 @@ a notificação na tela de perfil.
 ## Fluxo completo
 
 ```
-┌────────────┐   POST a cada 15min   ┌─────────────────────────┐   web-push    ┌─────────┐
+┌────────────┐   POST a cada 1 min     ┌─────────────────────────┐   web-push    ┌─────────┐
 │  pg_cron   │ ─────────────────────▶│ send-voting-reminders   │ ────────────▶ │ FCM/Moz │
-│ (0,15,30,45│   header x-push-      │ (Edge Function)         │   VAPID-signed│  push   │
-│  * * * *)  │   cron-secret          │                         │               │ srv     │
+│(* * * * *) │   header x-push-       │ (Edge Function)         │   VAPID-signed│  push   │
+│            │   cron-secret          │ buckets: 6h/3h/1h/30m   │               │ srv     │
 └────────────┘                        └────────┬────────────────┘               └─────────┘
                                                │ SELECT
                                                ▼
@@ -22,11 +22,17 @@ a notificação na tela de perfil.
 
 - **Ativação**: o usuário opta na tela `/perfil`. O SW registra uma inscrição
   PushManager e o app faz upsert em `push_subscriptions`.
-- **Envio (produção)**: a Edge Function `send-voting-reminders` roda nos
-  minutos `0, 15, 30, 45` de cada hora, busca partidas `published` dentro da
-  janela de votação (24h) e envia para inscritos que ainda não votaram.
-- **Idempotência**: cada `(partida_id, jogador_id, slot_HH:MM)` só é enviado
-  uma vez — PK em `push_reminder_deliveries`.
+- **Envio (produção)**: a Edge Function `send-voting-reminders` roda **a cada
+  minuto** e busca partidas `published` cuja votação fecha dentro dos próximos
+  6h. Para cada partida, avalia em qual dos 4 buckets a partir do tempo
+  restante e dispara push aos inscritos que ainda não votaram:
+  - **`6h`** — quando faltam entre 5h50 e 6h
+  - **`3h`** — quando faltam entre 2h50 e 3h
+  - **`1h`** — quando faltam entre 50 min e 1h
+  - **`30m`** — quando faltam entre 20 min e 30min
+- **Idempotência**: cada `(partida_id, jogador_id, reminder_key)` só é enviado
+  uma vez — PK em `push_reminder_deliveries`. Se o usuário votar após receber
+  o lembrete de 6h, ele só voltará a ser elegível no próximo bucket (`3h`).
 
 ## Variáveis de ambiente (secrets)
 
