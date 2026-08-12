@@ -329,13 +329,19 @@ export function PartidaDetalhe() {
       {partida.status === 'draft' && isAdmin && (
         <div className="space-y-2">
           <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            Abra a partida para registrar os gols no campo. Se o jogo já acabou, lance o resultado na mão.
+            Escale os times (8 por time, 1 goleiro cada) e depois abra a partida para registrar os gols no campo.
           </p>
+          <Link
+            to={`/partida/${partida.id}/times`}
+            className="block text-center rounded-lg bg-[var(--cor-destaque)] px-4 py-3 font-medium text-white"
+          >
+            Escalar times
+          </Link>
           <button
             type="button"
             onClick={confirmarAbrir}
             disabled={abrindo}
-            className="block w-full text-center rounded-lg bg-[var(--cor-destaque)] px-4 py-3 font-medium text-white disabled:opacity-40"
+            className="block w-full text-center rounded-lg border border-[var(--cor-destaque)] px-4 py-3 font-medium text-[var(--cor-destaque)] disabled:opacity-40"
           >
             {abrindo ? 'Abrindo…' : 'Abrir partida'}
           </button>

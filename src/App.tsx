@@ -13,6 +13,7 @@ import { PartidaConfirma } from "./routes/PartidaConfirma";
 import { PartidaNovaTimes } from "./routes/PartidaNovaTimes";
 import { PartidaDetalhe } from "./routes/PartidaDetalhe";
 import { PartidaEditar } from "./routes/PartidaEditar";
+import { PartidaTimes } from "./routes/PartidaTimes";
 import { PartidaAoVivo } from "./routes/PartidaAoVivo";
 import { PartidaVotar } from "./routes/PartidaVotar";
 import { NovoJogador } from "./routes/NovoJogador";
@@ -43,6 +44,7 @@ export function App() {
           <Route path="/partida/nova/confirma" element={<PartidaConfirma />} />
           <Route path="/partida/nova/times" element={<PartidaNovaTimes />} />
           <Route path="/partida/:id" element={<PartidaDetalhe />} />
+          <Route path="/partida/:id/times" element={<PartidaTimes />} />
           <Route path="/partida/:id/ao-vivo" element={<PartidaAoVivo />} />
           <Route path="/partida/:id/editar" element={<PartidaEditar />} />
           <Route path="/partida/:id/votar" element={<PartidaVotar />} />

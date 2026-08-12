@@ -10,7 +10,7 @@ CREATE TABLE jogadores (
   username    text        NOT NULL UNIQUE,
   senha_hash  text        NOT NULL,
   nome        text        NOT NULL,
-  posicao     text        NOT NULL CHECK (posicao IN ('goleiro','zagueiro','lateral','meia','atacante')),
+  posicao     text        NOT NULL CHECK (posicao IN ('goleiro','zagueiro','lateral','meia','atacante','random')),
   is_admin    boolean     NOT NULL DEFAULT false,
   is_ativo    boolean     NOT NULL DEFAULT true,
   is_mensalista boolean   NOT NULL DEFAULT false,
@@ -101,7 +101,7 @@ CREATE TABLE partidas (
   id                bigserial   PRIMARY KEY,
   data_jogo         timestamptz NOT NULL,
   status            text        NOT NULL DEFAULT 'draft'
-                              CHECK (status IN ('draft','published','closed')),
+                              CHECK (status IN ('draft','live','published','closed')),
   voting_closes_at  timestamptz,
   criado_por        bigint      NOT NULL REFERENCES jogadores(id),
   created_at        timestamptz NOT NULL DEFAULT now()
@@ -122,7 +122,7 @@ CREATE TABLE partidas_participantes (
   partida_id    bigint  NOT NULL REFERENCES partidas(id) ON DELETE CASCADE,
   jogador_id    bigint  NOT NULL REFERENCES jogadores(id),
   time          char(1) NOT NULL CHECK (time IN ('a','b')),
-  posicao       text    NOT NULL CHECK (posicao IN ('goleiro','zagueiro','lateral','meia','atacante')),
+  posicao       text    NOT NULL CHECK (posicao IN ('goleiro','zagueiro','lateral','meia','atacante','random')),
   gols          integer NOT NULL DEFAULT 0 CHECK (gols >= 0),
   assistencias  integer NOT NULL DEFAULT 0 CHECK (assistencias >= 0),
   gols_contra   integer NOT NULL DEFAULT 0 CHECK (gols_contra >= 0),
@@ -535,7 +535,25 @@ BEGIN
     RETURN false;
   END IF;
 
-  -- (2) Validacao previa: nenhum self-vote. Iteramos antes de gravar para
+  -- (2) Votante precisa ser participante da partida.
+  PERFORM 1
+    FROM partidas_participantes
+    WHERE partida_id = p_partida_id
+      AND jogador_id = p_voter_id;
+  IF NOT FOUND THEN
+    RETURN false;
+  END IF;
+
+  -- (3) Votante não pode ser jogador 'random' (placeholder do sorteio).
+  PERFORM 1
+    FROM jogadores
+    WHERE id = p_voter_id
+      AND username NOT ILIKE 'random%';
+  IF NOT FOUND THEN
+    RETURN false;
+  END IF;
+
+  -- (4) Validacao previa: nenhum self-vote. Iteramos antes de gravar para
   --     garantir atomicidade (ou grava tudo, ou nada).
   FOR elem IN SELECT * FROM jsonb_array_elements(p_votos)
   LOOP
@@ -545,7 +563,7 @@ BEGIN
     END IF;
   END LOOP;
 
-  -- (3) UPSERT de cada voto em transacao.
+  -- (5) UPSERT de cada voto em transacao.
   BEGIN
     FOR elem IN SELECT * FROM jsonb_array_elements(p_votos)
     LOOP
@@ -1177,6 +1195,7 @@ DECLARE
   v_status           text;
   v_voting_closes_at timestamptz;
 BEGIN
+  -- (1) Bloqueio de janela: partida deve estar published e dentro do prazo.
   SELECT status, voting_closes_at
   INTO v_status, v_voting_closes_at
   FROM partidas
@@ -1189,6 +1208,18 @@ BEGIN
     RETURN false;
   END IF;
 
+  -- (2) Só participa do descarte quem podia votar (participante e não-random).
+  PERFORM 1
+    FROM partidas_participantes pp
+    JOIN jogadores j ON j.id = pp.jogador_id
+    WHERE pp.partida_id = p_partida_id
+      AND pp.jogador_id = p_voter_id
+      AND j.username NOT ILIKE 'random%';
+  IF NOT FOUND THEN
+    RETURN false;
+  END IF;
+
+  -- (3) DELETE de todos os votos do votante na partida, em transacao.
   BEGIN
     DELETE FROM votes
     WHERE partida_id = p_partida_id
