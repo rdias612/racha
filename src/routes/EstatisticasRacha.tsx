@@ -76,7 +76,10 @@ export function EstatisticasRacha() {
 
       {/* Secao extensível: próximas estatísticas (sequências, coeficientes, etc.)
           entram como novos <SecaoRacha titulo="...">. */}
-      <SecaoRacha titulo="Duplas">
+      <SecaoRacha
+        titulo="Duplas"
+        nota={`Consideramos apenas duplas com pelo menos ${MIN_PARTIDAS} partidas juntos.`}
+      >
         {pares.length === 0 ? (
           <MensagemEstado tipo="info">
             Ainda não há duplas com {MIN_PARTIDAS}+ partidas.

@@ -7,6 +7,10 @@ import { Carregando, MensagemEstado } from "../components/Estado";
 import { PullToRefresh } from "../components/PullToRefresh";
 import { Avatar } from "../components/Avatar";
 
+// Mínimo de partidas juntos para uma parceria entrar nas estatísticas
+// (mesmo valor do DEFAULT 5 das RPCs parcerias_jogador / parcerias_destaque_jogador).
+const MIN_PARTIDAS = 5;
+
 // Stats básicas (mesma fonte do Perfil: view stats_jogador)
 interface Stats {
   jogador_id: number;
@@ -104,11 +108,11 @@ export function Estatisticas() {
           .maybeSingle(),
         supabase.rpc("parcerias_jogador", {
           p_jogador_id: jogadorSelecionadoId,
-          p_min_partidas: 5,
+          p_min_partidas: MIN_PARTIDAS,
         }),
         supabase.rpc("parcerias_destaque_jogador", {
           p_jogador_id: jogadorSelecionadoId,
-          p_min_partidas: 5,
+          p_min_partidas: MIN_PARTIDAS,
         }),
       ]);
 
@@ -243,10 +247,14 @@ export function Estatisticas() {
         <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400 mb-2">
           Parcerias
         </h3>
+        <p className="text-[11px] text-neutral-500 dark:text-neutral-400 -mt-1 mb-3">
+          Consideramos apenas parcerias com pelo menos {MIN_PARTIDAS} partidas
+          juntos.
+        </p>
 
         {semParcerias ? (
           <MensagemEstado tipo="info">
-            Ainda não há parcerias com 5+ partidas.
+            Ainda não há parcerias com {MIN_PARTIDAS}+ partidas.
           </MensagemEstado>
         ) : (
           <div className="space-y-4">
