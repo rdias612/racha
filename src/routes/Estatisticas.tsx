@@ -248,8 +248,7 @@ export function Estatisticas() {
           Parcerias
         </h3>
         <p className="text-[11px] text-neutral-500 dark:text-neutral-400 -mt-1 mb-3">
-          Consideramos apenas parcerias com pelo menos {MIN_PARTIDAS} partidas
-          juntos.
+          Mínimo de {MIN_PARTIDAS} partidas juntos.
         </p>
 
         {semParcerias ? (
