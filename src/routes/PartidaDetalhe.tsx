@@ -6,6 +6,7 @@ import { useJogadorLogado } from '../hooks/useJogadorLogado'
 import { TIMES, POSICOES, type TimeId } from '../lib/times'
 import {
   isRandomUsername,
+  isSuperAdmin,
   listarJogadoresAtivos,
   type JogadorLista,
 } from '../lib/jogadores'
@@ -367,11 +368,15 @@ export function PartidaDetalhe() {
         </div>
       )}
 
-      {partida.status === 'published' && isAdmin && (
+      {(partida.status === 'published' || (partida.status === 'closed' && isSuperAdmin(jogadorLogado?.username))) && isAdmin && (
         <div className="space-y-2">
           <Link
             to={`/partida/${partida.id}/editar`}
-            className="block text-center rounded-lg border border-neutral-300 dark:border-neutral-700 px-4 py-3 font-medium text-neutral-700 dark:text-neutral-300"
+            className={
+              partida.status === 'closed'
+                ? 'block text-center rounded-lg bg-amber-500 dark:bg-amber-600 px-4 py-3 font-medium text-white'
+                : 'block text-center rounded-lg border border-neutral-300 dark:border-neutral-700 px-4 py-3 font-medium text-neutral-700 dark:text-neutral-300'
+            }
           >
             Editar resultado
           </Link>

@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useAdmin } from "../hooks/useAdmin";
+import { useJogadorLogado } from "../hooks/useJogadorLogado";
+import { isSuperAdmin } from "../lib/jogadores";
 import { TIMES, type TimeId } from "../lib/times";
 import {
   carregarPartida,
@@ -22,6 +24,7 @@ interface Stats {
 
 export function PartidaEditar() {
   const isAdmin = useAdmin();
+  const jogadorLogado = useJogadorLogado();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const partidaId = Number(id);
@@ -91,8 +94,9 @@ export function PartidaEditar() {
       </MensagemEstado>
     );
 
-  // Em closed, não editável
-  const bloqueado = partida.status === "closed";
+  // Em closed, só superadmin pode editar (histórico)
+  const bloqueado =
+    partida.status === "closed" && !isSuperAdmin(jogadorLogado?.username);
   const primeiraVez = partida.status === "draft";
 
   function ajustar(jogadorId: number, campo: keyof Stats, delta: number) {
