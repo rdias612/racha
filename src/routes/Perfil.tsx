@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useSessao } from '../context/SessaoContext'
 import { POSICOES } from '../lib/times'
+import { atualizarNomeJogador } from '../lib/jogadores'
 import { Carregando, MensagemEstado } from '../components/Estado'
 import { ativarPush, desativarPush, statusPush, type StatusPush } from '../lib/pwa'
 
@@ -16,11 +17,17 @@ interface Stats {
 }
 
 export function Perfil() {
-  const { jogador, logout } = useSessao()
+  const { jogador, setJogador, logout } = useSessao()
   const navigate = useNavigate()
 
   const [stats, setStats] = useState<Stats | null>(null)
   const [carregandoStats, setCarregandoStats] = useState(true)
+
+  // formulário de alteração de nome
+  const [nomeNovo, setNomeNovo] = useState('')
+  const [salvandoNome, setSalvandoNome] = useState(false)
+  const [erroNome, setErroNome] = useState<string | null>(null)
+  const [okNome, setOkNome] = useState<string | null>(null)
 
   // formulário de troca de senha
   const [senhaAtual, setSenhaAtual] = useState('')
@@ -68,6 +75,38 @@ export function Perfil() {
   }, [jogador?.id])
 
   if (!jogador) return null
+
+  async function alterarNome(e: React.FormEvent) {
+    e.preventDefault()
+    setErroNome(null)
+    setOkNome(null)
+
+    const nome = nomeNovo.trim()
+    if (!nome) {
+      setErroNome('Digite um nome.')
+      return
+    }
+    if (nome.length > 60) {
+      setErroNome('O nome deve ter no máximo 60 caracteres.')
+      return
+    }
+    if (nome === jogador!.nome) {
+      setErroNome('O nome é igual ao atual.')
+      return
+    }
+
+    setSalvandoNome(true)
+    try {
+      await atualizarNomeJogador(jogador!.id, nome)
+      setJogador({ ...jogador!, nome })
+      setOkNome('Nome alterado com sucesso!')
+      setNomeNovo('')
+    } catch (error) {
+      setErroNome('Erro: ' + (error instanceof Error ? error.message : 'falha ao salvar.'))
+    } finally {
+      setSalvandoNome(false)
+    }
+  }
 
   async function trocarSenha(e: React.FormEvent) {
     e.preventDefault()
@@ -202,6 +241,39 @@ export function Perfil() {
                 : 'Ativar notificações'}
           </button>
         )}
+      </section>
+
+      {/* Alterar nome */}
+      <section>
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400 mb-2">
+          Alterar nome
+        </h3>
+        <form onSubmit={alterarNome} className="space-y-3">
+          <input
+            type="text"
+            placeholder={jogador.nome}
+            autoCapitalize="words"
+            autoComplete="name"
+            maxLength={60}
+            value={nomeNovo}
+            onChange={(e) => setNomeNovo(e.target.value)}
+            className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
+            required
+          />
+          {erroNome && (
+            <MensagemEstado>{erroNome}</MensagemEstado>
+          )}
+          {okNome && (
+            <MensagemEstado tipo="sucesso">{okNome}</MensagemEstado>
+          )}
+          <button
+            type="submit"
+            disabled={salvandoNome}
+            className="w-full rounded-lg bg-[var(--cor-destaque)] px-4 py-2.5 font-medium text-white disabled:opacity-50"
+          >
+            {salvandoNome ? 'Salvando…' : 'Salvar nome'}
+          </button>
+        </form>
       </section>
 
       {/* Trocar senha */}

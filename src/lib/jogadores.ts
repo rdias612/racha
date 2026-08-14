@@ -122,7 +122,14 @@ export async function atualizarCaracteristicasJogador(
   if (error) throw error;
 }
 
+export async function atualizarNomeJogador(id: number, nome: string): Promise<void> {
+  const { error } = await supabase
+    .from("jogadores")
+    .update({ nome })
+    .eq("id", id);
 
+  if (error) throw error;
+}
 
 export async function obterMediasNotasJogadores(): Promise<Record<number, number>> {
   const { data, error } = await supabase
