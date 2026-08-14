@@ -253,7 +253,7 @@ export function Estatisticas() {
 
         {semParcerias ? (
           <MensagemEstado tipo="info">
-            Ainda não há parcerias com {MIN_PARTIDAS}+ partidas.
+            Ainda não há {MIN_PARTIDAS}+ partidas com nenhum jogador.
           </MensagemEstado>
         ) : (
           <div className="space-y-4">
