@@ -18,9 +18,11 @@ import {
   Wallet,
   ChevronDown,
   Users,
+  WifiOff,
 } from "lucide-react";
 import { useSessao } from "../context/SessaoContext";
 import { useAdmin } from "../hooks/useAdmin";
+import { useOnlineStatus } from "../hooks/useOnlineStatus";
 import { useTema } from "../lib/tema";
 import { Logo } from "../components/Logo";
 import { BannerLembrete } from "../components/BannerLembrete";
@@ -29,6 +31,7 @@ import { BannerLembrete } from "../components/BannerLembrete";
 export function Layout() {
   const { jogador } = useSessao();
   const isAdmin = useAdmin();
+  const isOnline = useOnlineStatus();
   const { tema, alternar } = useTema();
   const { pathname } = useLocation();
   const [menuAberto, setMenuAberto] = useState(false);
@@ -42,6 +45,17 @@ export function Layout() {
 
   return (
     <div className="min-h-full flex flex-col bg-neutral-50 dark:bg-neutral-950">
+      {!isOnline && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex items-center justify-center gap-1.5 bg-amber-500/90 px-3 py-1.5 text-center text-xs font-medium text-amber-950 dark:bg-amber-600 dark:text-white shrink-0"
+        >
+          <WifiOff className="size-3.5" aria-hidden="true" />
+          <span>Você está offline. Algumas informações podem estar desatualizadas.</span>
+        </div>
+      )}
+
       <header className="shrink-0 border-b border-neutral-200 px-3 py-2.5 sm:px-4 dark:border-neutral-800">
         <div className="flex items-center justify-between gap-x-4">
           <Link to="/" className="hover:opacity-90 transition">
@@ -119,7 +133,7 @@ export function Layout() {
 
       <BannerLembrete />
 
-      <main className="min-h-0 min-w-0 flex-1 overflow-y-auto pb-16">
+      <main className="min-h-0 min-w-0 flex-1 overflow-y-auto pb-28">
         <Outlet />
       </main>
 

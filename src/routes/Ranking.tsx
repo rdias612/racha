@@ -4,8 +4,9 @@ import { supabase } from "../lib/supabase";
 import { POSICOES, type PosicaoId } from "../lib/times";
 import { useJogadorLogado } from "../hooks/useJogadorLogado";
 import { Carregando, MensagemEstado } from "../components/Estado";
-import { PullToRefresh } from "../components/PullToRefresh";
 import { Avatar } from "../components/Avatar";
+import { PullToRefresh } from "../components/PullToRefresh";
+import { vibrateLight } from "../lib/haptics";
 
 type Metrica = "pontos" | "gols" | "assistencias" | "gols-contra";
 type CampoMetrica = "pontos" | "gols" | "assistencias" | "gols_contra";
@@ -121,11 +122,15 @@ export function Ranking() {
     setDirecaoOrdenacao("desc");
   }, [configuracao.campo]);
 
-  const maximoPartidas = Math.max(6, ...linhas.map((linha) => linha.partidas));
+  const maxPartidasReais =
+    linhas.length > 0 ? Math.max(...linhas.map((linha) => linha.partidas)) : 0;
+  const maximoPartidas = Math.max(6, maxPartidasReais);
 
   useEffect(() => {
-    setMinimoPartidas((minimo) => Math.min(minimo, maximoPartidas));
-  }, [maximoPartidas]);
+    if (maxPartidasReais > 0) {
+      setMinimoPartidas((minimo) => Math.min(minimo, maxPartidasReais));
+    }
+  }, [maxPartidasReais]);
 
   if (carregando) return <Carregando>Carregando ranking</Carregando>;
   if (erro)
@@ -147,6 +152,7 @@ export function Ranking() {
   }
 
   function selecionarOrdenacao(coluna: ColunaOrdenacao) {
+    vibrateLight();
     if (coluna === colunaOrdenacao) {
       setDirecaoOrdenacao((direcao) => (direcao === "asc" ? "desc" : "asc"));
       return;
@@ -193,6 +199,7 @@ export function Ranking() {
       <div className="mb-3 flex gap-1 overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 p-1">
         <NavLink
           to="/ranking/pontos"
+          onClick={() => vibrateLight()}
           className={({ isActive }) =>
             `flex-1 min-w-max rounded-md px-3 py-1.5 text-center text-xs font-medium whitespace-nowrap ${
               isActive
@@ -205,6 +212,7 @@ export function Ranking() {
         </NavLink>
         <NavLink
           to="/ranking/gols"
+          onClick={() => vibrateLight()}
           className={({ isActive }) =>
             `flex-1 min-w-max rounded-md px-3 py-1.5 text-center text-xs font-medium whitespace-nowrap ${
               isActive
@@ -217,6 +225,7 @@ export function Ranking() {
         </NavLink>
         <NavLink
           to="/ranking/assistencias"
+          onClick={() => vibrateLight()}
           className={({ isActive }) =>
             `flex-1 min-w-max rounded-md px-3 py-1.5 text-center text-xs font-medium whitespace-nowrap ${
               isActive
@@ -229,6 +238,7 @@ export function Ranking() {
         </NavLink>
         <NavLink
           to="/ranking/gols-contra"
+          onClick={() => vibrateLight()}
           className={({ isActive }) =>
             `flex-1 min-w-max rounded-md px-3 py-1.5 text-center text-xs font-medium whitespace-nowrap ${
               isActive

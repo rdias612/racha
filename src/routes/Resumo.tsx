@@ -9,6 +9,8 @@ import {
   CAPACIDADE_PARTIDA,
 } from "../lib/partidas";
 import { formatarDataCompleta, formatarDataMobile } from "../lib/formatacao";
+import { Trophy, Flame, Zap, ShieldCheck, TrendingUp, AlertTriangle } from "lucide-react";
+import { vibrateLight } from "../lib/haptics";
 
 interface ResumoAno {
   ano: number;
@@ -39,9 +41,11 @@ interface ResumoAno {
 
 interface DestaqueProps {
   titulo: string;
+  subtitulo: string;
   nome: string | null;
   valor: string;
   detalhe?: string;
+  icone: React.ReactNode;
 }
 
 export function Resumo() {
@@ -95,7 +99,7 @@ export function Resumo() {
     carregarProxima();
   }, []);
 
-  if (carregando) return <Carregando>Carregando resumo anual</Carregando>;
+  if (carregando) return <Carregando>Carregando a resenha do ano</Carregando>;
   if (erro) {
     return (
       <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">
@@ -106,50 +110,71 @@ export function Resumo() {
   if (!resumo || resumo.total_partidas === 0) {
     return (
       <div className="px-3 py-4 sm:px-4 sm:mx-auto sm:max-w-2xl">
-        <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-          Resumo de {ano}
+        <h2 className="text-lg font-bold font-heading text-neutral-900 dark:text-neutral-100">
+          Resumo da Temporada {ano}
         </h2>
         <CardProximaPartida proxima={proxima} />
-        <MensagemEstado tipo="info" className="mt-3">
-          Nenhuma partida publicada ainda neste ano.
-        </MensagemEstado>
+        <div className="mt-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/60 p-6 text-center shadow-xs">
+          <Trophy className="mx-auto size-10 text-neutral-400 dark:text-neutral-500 mb-2" />
+          <h3 className="font-heading font-bold text-neutral-900 dark:text-neutral-100">
+            Nenhum golaço registrado em {ano}!
+          </h3>
+          <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+            A bola tá rolando ou tá rolando churrasco? Quando as primeiras partidas forem publicadas, a resenha completa dos craques aparece aqui.
+          </p>
+        </div>
       </div>
     );
   }
 
   const destaques: DestaqueProps[] = [
     {
-      titulo: "Artilheiro",
+      titulo: "Artilheiro Nato",
+      subtitulo: "Terror dos goleiros",
       nome: resumo.artilheiro_nome,
       valor: `${resumo.artilheiro_gols ?? 0} gols`,
-      detalhe: `${resumo.artilheiro_partidas ?? 0} partidas`,
+      detalhe: `${resumo.artilheiro_partidas ?? 0} jogos disputados`,
+      icone: <Flame className="size-4 text-amber-500" />,
     },
     {
-      titulo: "Maestro",
+      titulo: "Garçom do Ano",
+      subtitulo: "Pifou geral com classe",
       nome: resumo.maestro_nome,
       valor: `${resumo.maestro_assistencias ?? 0} assistências`,
-      detalhe: `${resumo.maestro_partidas ?? 0} partidas`,
+      detalhe: `${resumo.maestro_partidas ?? 0} jogos disputados`,
+      icone: <Zap className="size-4 text-amber-500" />,
     },
     {
-      titulo: "O que importa é participar",
+      titulo: "Fominha de Plantão",
+      subtitulo: "O que importa é participar",
       nome: resumo.participante_nome,
-      valor: `${resumo.participante_partidas ?? 0} partidas`,
+      valor: `${resumo.participante_partidas ?? 0} presenças`,
+      detalhe: "Bateu o ponto no Gragoatá",
+      icone: <ShieldCheck className="size-4 text-emerald-500" />,
     },
     {
-      titulo: "Eficiente",
+      titulo: "Puro Suco de Eficiência",
+      subtitulo: "Entra pra buscar vitória",
       nome: resumo.eficiente_nome,
-      valor: `${Math.round((resumo.eficiente_percentual ?? 0) * 100)}% de vitórias`,
-      detalhe: `${resumo.eficiente_vitorias ?? 0} vitórias em ${resumo.eficiente_partidas ?? 0} partidas`,
+      valor: `${Math.round((resumo.eficiente_percentual ?? 0) * 100)}% aproveitamento`,
+      detalhe: `${resumo.eficiente_vitorias ?? 0} vitórias em ${resumo.eficiente_partidas ?? 0} jogos`,
+      icone: <Trophy className="size-4 text-amber-400" />,
     },
     {
-      titulo: "Maior sequência de vitórias",
+      titulo: "Na Crista da Onda",
+      subtitulo: "Maior sequência invicta",
       nome: resumo.sequencia_vitorias_nome,
       valor: `${resumo.sequencia_vitorias ?? 0} vitórias seguidas`,
+      detalhe: "Ninguém segurou a fera",
+      icone: <TrendingUp className="size-4 text-emerald-500" />,
     },
     {
-      titulo: "Maior seca de vitórias",
+      titulo: "Seca Brava",
+      subtitulo: "A redenção tá logo ali",
       nome: resumo.seca_vitorias_nome,
-      valor: `${resumo.seca_vitorias ?? 0} partidas sem vencer`,
+      valor: `${resumo.seca_vitorias ?? 0} jogos sem vencer`,
+      detalhe: "Fase do bagre, mas vai passar!",
+      icone: <AlertTriangle className="size-4 text-red-400" />,
     },
   ];
 
@@ -157,15 +182,15 @@ export function Resumo() {
     <div className="px-3 py-4 pb-20 sm:px-4 sm:mx-auto sm:max-w-2xl">
       <div className="mb-4 flex items-end justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-(--cor-destaque)">
-            Racha do ano
+          <p className="text-xs font-bold uppercase tracking-wider text-(--cor-destaque)">
+            ⭐ Hall da Fama {ano}
           </p>
-          <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-            Resumo de {ano}
+          <h2 className="text-lg font-bold font-heading text-neutral-900 dark:text-neutral-100">
+            Resenha da Temporada
           </h2>
         </div>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          {resumo.total_partidas} partidas
+        <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
+          {resumo.total_partidas} {resumo.total_partidas === 1 ? "partida" : "partidas"} na súmula
         </p>
       </div>
 
@@ -182,21 +207,32 @@ export function Resumo() {
   );
 }
 
-function Destaque({ titulo, nome, valor, detalhe }: DestaqueProps) {
+function Destaque({ titulo, subtitulo, nome, valor, detalhe, icone }: DestaqueProps) {
   return (
-    <section className="rounded-lg border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-950">
-      <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
-        {titulo}
-      </h3>
-      <p className="mt-3 text-lg font-bold text-neutral-900 dark:text-neutral-100">
-        {nome ?? "Sem vencedor"}
-      </p>
-      <p className="mt-1 text-sm font-medium text-(--cor-destaque)">{valor}</p>
-      {detalhe && (
-        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-          {detalhe}
+    <section className="flex flex-col justify-between rounded-xl border border-neutral-200 bg-white p-3.5 shadow-xs dark:border-neutral-800 dark:bg-neutral-900/60 transition-all hover:border-amber-400/40">
+      <div>
+        <div className="flex items-center justify-between gap-1 mb-1.5">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 truncate">
+            {titulo}
+          </span>
+          {icone}
+        </div>
+        <p className="text-[10px] text-neutral-400 dark:text-neutral-500">
+          {subtitulo}
         </p>
-      )}
+        <p className="mt-2 text-base font-bold font-heading text-neutral-900 dark:text-neutral-100 truncate">
+          {nome ?? "Sem dono ainda"}
+        </p>
+      </div>
+
+      <div className="mt-3 pt-2 border-t border-neutral-100 dark:border-neutral-800/80">
+        <p className="text-xs font-extrabold text-(--cor-destaque)">{valor}</p>
+        {detalhe && (
+          <p className="mt-0.5 text-[10px] text-neutral-500 dark:text-neutral-400">
+            {detalhe}
+          </p>
+        )}
+      </div>
     </section>
   );
 }
@@ -210,19 +246,25 @@ function CardProximaPartida({
   return (
     <Link
       to={`/partida/${proxima.id}`}
-      className="mb-4 block rounded-lg border border-[var(--cor-destaque)]/30 bg-[var(--cor-destaque)]/5 px-4 py-3"
+      onClick={() => vibrateLight()}
+      className="mb-4 block rounded-xl border border-[var(--cor-destaque)]/40 bg-[var(--cor-destaque)]/10 px-4 py-3 shadow-xs hover:border-[var(--cor-destaque)] transition"
     >
-      <p className="text-xs font-semibold uppercase tracking-wide text-[var(--cor-destaque)]">
-        Próxima partida
-      </p>
-      <p className="mt-1 text-sm font-bold text-neutral-900 dark:text-neutral-100 capitalize">
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] font-extrabold uppercase tracking-wider text-[var(--cor-destaque)]">
+          🔥 Próximo Racha · Convocação Aberta
+        </p>
+        <span className="text-[10px] font-bold text-neutral-600 dark:text-neutral-300">
+          {proxima.ocupadas}/{CAPACIDADE_PARTIDA} vagas
+        </span>
+      </div>
+      <p className="mt-1 text-sm font-bold font-heading text-neutral-900 dark:text-neutral-100 capitalize">
         <span className="sm:hidden">{formatarDataMobile(proxima.data_jogo)}</span>
         <span className="hidden sm:inline">
           {formatarDataCompleta(proxima.data_jogo)}
         </span>
       </p>
-      <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
-        {proxima.ocupadas}/{CAPACIDADE_PARTIDA} confirmados — toque para confirmar
+      <p className="mt-0.5 text-xs text-neutral-600 dark:text-neutral-400">
+        Garanta sua presença antes que encerrem os convites!
       </p>
     </Link>
   );

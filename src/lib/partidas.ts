@@ -41,6 +41,19 @@ export interface Placar {
   vencedor: "a" | "b" | "empate";
 }
 
+export interface PlacarResumido {
+  partida_id: number;
+  gols_time_a: number;
+  gols_time_b: number;
+}
+
+export interface JogoComPlacar {
+  id: number;
+  data_jogo: string;
+  status: StatusPartida;
+  placar: PlacarResumido | null;
+}
+
 export interface Participante {
   partida_id: number;
   jogador_id: number;
@@ -96,6 +109,49 @@ export async function carregarPlacar(partidaId: number) {
   return data as Placar | null;
 }
 
+export async function listarJogosComPlacar(): Promise<JogoComPlacar[]> {
+  const { data: ps, error: errPs } = await supabase
+    .from("partidas")
+    .select("id, data_jogo, status")
+    .order("data_jogo", { ascending: false });
+
+  if (errPs) throw errPs;
+  if (!ps || ps.length === 0) return [];
+
+  const ids = ps.map((p) => p.id);
+  const { data: pls, error: errPls } = await supabase
+    .from("partida_placar")
+    .select("partida_id, gols_time_a, gols_time_b")
+    .in("partida_id", ids);
+
+  if (errPls) throw errPls;
+
+  const mapaPlacar = new Map<number, PlacarResumido>();
+  for (const pl of pls ?? []) {
+    mapaPlacar.set(pl.partida_id, pl as PlacarResumido);
+  }
+
+  return (ps as Array<{ id: number; data_jogo: string; status: StatusPartida }>).map((p) => ({
+    id: p.id,
+    data_jogo: p.data_jogo,
+    status: p.status,
+    placar: mapaPlacar.get(p.id) ?? null,
+  }));
+}
+
+interface ParticipanteRow {
+  partida_id: number;
+  jogador_id: number;
+  time: TimeId | null;
+  posicao: PosicaoId;
+  gols: number;
+  assistencias: number;
+  gols_contra: number;
+  status_confirmacao: StatusConfirmacao;
+  confirmado_em: string | null;
+  jogadores: { nome?: string; username?: string } | null;
+}
+
 export async function carregarParticipantes(partidaId: number) {
   const { data, error } = await supabase
     .from("partidas_participantes")
@@ -105,7 +161,7 @@ export async function carregarParticipantes(partidaId: number) {
     .eq("partida_id", partidaId);
   if (error) throw error;
   // achata o join
-  return (data ?? []).map((p: any) => ({
+  return ((data as unknown as ParticipanteRow[]) ?? []).map((p) => ({
     partida_id: p.partida_id,
     jogador_id: p.jogador_id,
     time: p.time,

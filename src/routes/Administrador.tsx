@@ -5,6 +5,7 @@ import { useAdmin } from "../hooks/useAdmin";
 import { Carregando, MensagemEstado } from "../components/Estado";
 import { formatarReais, formatarDataLista } from "../lib/formatacao";
 import { listarJogadoresAtivos, type JogadorLista } from "../lib/jogadores";
+import { PixCopiaECola, BotaoCobrarWhatsApp } from "../components/PixCopiaECola";
 import {
   TIPOS_DIVIDA,
   listarDividasEmAberto,
@@ -193,6 +194,12 @@ export function Administrador() {
       {erro && <MensagemEstado>{erro}</MensagemEstado>}
       {ok && <MensagemEstado tipo="sucesso">{ok}</MensagemEstado>}
 
+      {/* Chave Pix e Copia & Cola do Administrador */}
+      <PixCopiaECola
+        permitirEditarChave={true}
+        descricao="Chave Pix para recebimento de mensalidades e avulsos"
+      />
+
       {/* Adicionar dívida */}
       <form
         onSubmit={handleAdicionar}
@@ -365,6 +372,11 @@ export function Administrador() {
                     <span className="shrink-0 text-sm font-semibold text-red-600 dark:text-red-400">
                       {formatarReais(g.total_devido)}
                     </span>
+                    <BotaoCobrarWhatsApp
+                      nome={g.nome}
+                      valor={g.total_devido}
+                      dividas={g.dividas}
+                    />
                     <button
                       onClick={(e) => handleQuitarTodas(e, g.jogador_id, g.nome)}
                       title="Quitar todas"

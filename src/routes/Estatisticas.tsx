@@ -5,6 +5,8 @@ import { useSessao } from "../context/SessaoContext";
 import { Carregando, MensagemEstado } from "../components/Estado";
 import { PullToRefresh } from "../components/PullToRefresh";
 import { Avatar } from "../components/Avatar";
+import { vibrateLight } from "../lib/haptics";
+import { Sparkles, Users, Swords, Flame } from "lucide-react";
 
 // Stats básicas (mesma fonte do Perfil: view stats_jogador)
 interface Stats {
@@ -29,9 +31,6 @@ interface Parceria {
   percentual: number | null;
 }
 
-// Destaques (RPC 042) - 3 metricas de companheiro de time:
-//   - mais_gols: Soma de gols do PROPRIO usuario nas partidas compartilhadas.
-//   - melhor_nota / pior_nota: AVG(partida_notas.avg_rating) do proprio usuario.
 type MetricaDestaque = "mais_gols" | "melhor_nota" | "pior_nota";
 
 interface ParceriaDestaque {
@@ -146,7 +145,7 @@ export function Estatisticas() {
   }, [carregar]);
 
   if (!jogador) return null;
-  if (carregando) return <Carregando>Carregando estatísticas</Carregando>;
+  if (carregando) return <Carregando>Carregando estatísticas e parcerias</Carregando>;
   if (erro)
     return (
       <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">
@@ -169,154 +168,200 @@ export function Estatisticas() {
   return (
     <PullToRefresh onRefresh={carregar}>
       <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-5">
-      <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-        Estatísticas{nomeSelecionado ? ` · ${nomeSelecionado}` : ""}
-      </h2>
-
-      <div className="flex gap-1 overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 p-1">
-        <NavLink
-          to="/estatisticas/jogador"
-          className={({ isActive }) =>
-            `flex-1 min-w-max rounded-md px-3 py-1.5 text-center text-xs font-medium whitespace-nowrap ${
-              isActive
-                ? "bg-(--cor-destaque) text-white"
-                : "text-neutral-600 dark:text-neutral-400"
-            }`
-          }
-        >
-          Jogador
-        </NavLink>
-        <NavLink
-          to="/estatisticas/racha"
-          className={({ isActive }) =>
-            `flex-1 min-w-max rounded-md px-3 py-1.5 text-center text-xs font-medium whitespace-nowrap ${
-              isActive
-                ? "bg-(--cor-destaque) text-white"
-                : "text-neutral-600 dark:text-neutral-400"
-            }`
-          }
-        >
-          Racha
-        </NavLink>
-      </div>
-
-      {/* Dropdown de jogador */}
-      <div>
-        <label
-          htmlFor="select-jogador-stats"
-          className="block text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400 mb-1"
-        >
-          Ver estatísticas de
-        </label>
-        <select
-          id="select-jogador-stats"
-          value={jogadorSelecionadoId ?? ""}
-          onChange={(e) => setJogadorSelecionadoId(Number(e.target.value))}
-          className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
-        >
-          {jogadores.map((j) => (
-            <option key={j.id} value={j.id}>
-              {j.nome}
-              {j.id === jogador?.id ? " (eu)" : ""}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Estatísticas básicas */}
-      <section>
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400 mb-2">
-          Estatísticas básicas
-        </h3>
-        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-          <StatBox label="Partidas" value={stats?.partidas ?? 0} />
-          <StatBox label="Vitórias" value={stats?.vitorias ?? 0} />
-          <StatBox label="Gols" value={stats?.gols ?? 0} />
-          <StatBox label="Assists" value={stats?.assistencias ?? 0} />
-          <StatBox label="Gols contra" value={stats?.gols_contra ?? 0} />
+        <div>
+          <h2 className="text-lg font-bold font-heading text-neutral-900 dark:text-neutral-100">
+            Raio-X do Atleta{nomeSelecionado ? ` · ${nomeSelecionado}` : ""}
+          </h2>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">
+            Estatísticas individuais e afinidade tática no racha
+          </p>
         </div>
-      </section>
 
-      {/* Parcerias */}
-      <section>
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400 mb-2">
-          Parcerias
-        </h3>
+        {/* Alternador de visualização */}
+        <div className="flex gap-1 overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 p-1">
+          <NavLink
+            to="/estatisticas/jogador"
+            onClick={() => vibrateLight()}
+            className={({ isActive }) =>
+              `flex-1 min-w-max rounded-lg px-3 py-2 text-center text-xs font-bold uppercase tracking-wider whitespace-nowrap transition ${
+                isActive
+                  ? "bg-(--cor-destaque) text-white shadow-xs"
+                  : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100"
+              }`
+            }
+          >
+            Jogador
+          </NavLink>
+          <NavLink
+            to="/estatisticas/racha"
+            onClick={() => vibrateLight()}
+            className={({ isActive }) =>
+              `flex-1 min-w-max rounded-lg px-3 py-2 text-center text-xs font-bold uppercase tracking-wider whitespace-nowrap transition ${
+                isActive
+                  ? "bg-(--cor-destaque) text-white shadow-xs"
+                  : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100"
+              }`
+            }
+          >
+            Racha &amp; Duplas
+          </NavLink>
+        </div>
 
-        {semParcerias ? (
-          <MensagemEstado tipo="info">
-            Ainda não há parcerias com 5+ partidas.
-          </MensagemEstado>
-        ) : (
-          <div className="space-y-4">
-            <div>
-              <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                Companheiros de time
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                <ParceriaCard
-                  titulo="Melhor companheiro"
-                  parceria={melhorComp}
-                />
-                <ParceriaCard titulo="Pior companheiro" parceria={piorComp} />
-              </div>
-            </div>
+        {/* Dropdown de jogador */}
+        <div>
+          <label
+            htmlFor="select-jogador-stats"
+            className="block text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1"
+          >
+            Ver estatísticas de
+          </label>
+          <select
+            id="select-jogador-stats"
+            value={jogadorSelecionadoId ?? ""}
+            onChange={(e) => {
+              vibrateLight();
+              setJogadorSelecionadoId(Number(e.target.value));
+            }}
+            className="w-full cursor-pointer rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2.5 text-sm font-medium text-neutral-900 dark:text-neutral-100 shadow-xs"
+          >
+            {jogadores.map((j) => (
+              <option key={j.id} value={j.id}>
+                {j.nome}
+                {j.id === jogador?.id ? " (eu)" : ""}
+              </option>
+            ))}
+          </select>
+        </div>
 
-            <div>
-              <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                Adversários
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                <ParceriaCard titulo="Melhor % contra" parceria={melhorAdv} />
-                <ParceriaCard titulo="Pior % contra" parceria={piorAdv} />
-              </div>
-            </div>
-
-            <div>
-              <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                Gols &amp; notas por companheiro
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <ParceriaDestaqueCard
-                  titulo="Mais gols junto"
-                  metrica="mais_gols"
-                  destaque={destaques.mais_gols}
-                />
-                <ParceriaDestaqueCard
-                  titulo="Melhor média nota"
-                  metrica="melhor_nota"
-                  destaque={destaques.melhor_nota}
-                />
-                <ParceriaDestaqueCard
-                  titulo="Pior média nota"
-                  metrica="pior_nota"
-                  destaque={destaques.pior_nota}
-                />
-              </div>
-            </div>
+        {/* Estatísticas básicas */}
+        <section>
+          <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">
+            Números na Carreira
+          </h3>
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+            <StatBox label="Partidas" value={stats?.partidas ?? 0} />
+            <StatBox label="Vitórias" value={stats?.vitorias ?? 0} />
+            <StatBox label="Gols" value={stats?.gols ?? 0} />
+            <StatBox label="Assists" value={stats?.assistencias ?? 0} />
+            <StatBox label="Gols contra" value={stats?.gols_contra ?? 0} />
           </div>
-        )}
-      </section>
-    </div>
+        </section>
+
+        {/* Parcerias */}
+        <section>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+              Química &amp; Parcerias (Mín. 5 Partidas)
+            </h3>
+            <Sparkles className="size-3.5 text-amber-500" />
+          </div>
+
+          {semParcerias ? (
+            <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/60 p-5 text-center shadow-xs">
+              <p className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+                Ainda não há parcerias com 5+ partidas no racha.
+              </p>
+              <p className="mt-1 text-[11px] text-neutral-500 dark:text-neutral-400">
+                Menos chinelinho e mais presença no Gragoatá pra destravar o entrosamento com a rapaziada!
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-2">
+                  <Users className="size-3.5 text-emerald-500" />
+                  Companheiros de time
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  <ParceriaCard
+                    titulo="Dupla Dinâmica"
+                    subtitulo="Casamento perfeito"
+                    parceria={melhorComp}
+                  />
+                  <ParceriaCard
+                    titulo="Dupla do Desastre"
+                    subtitulo="Falta entrosamento"
+                    parceria={piorComp}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-2">
+                  <Swords className="size-3.5 text-red-500" />
+                  Adversários
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  <ParceriaCard
+                    titulo="Freguês Favorito"
+                    subtitulo="Retrospecto dominante"
+                    parceria={melhorAdv}
+                  />
+                  <ParceriaCard
+                    titulo="Pedra no Sapato"
+                    subtitulo="Carrasco do clássico"
+                    parceria={piorAdv}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-2">
+                  <Flame className="size-3.5 text-amber-500" />
+                  Gols &amp; Notas por Companheiro
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <ParceriaDestaqueCard
+                    titulo="Fábrica de Gols"
+                    subtitulo="Mais gols juntos"
+                    metrica="mais_gols"
+                    destaque={destaques.mais_gols}
+                  />
+                  <ParceriaDestaqueCard
+                    titulo="Sinergia Máxima"
+                    subtitulo="Melhor média de nota"
+                    metrica="melhor_nota"
+                    destaque={destaques.melhor_nota}
+                  />
+                  <ParceriaDestaqueCard
+                    titulo="Incompatibilidade"
+                    subtitulo="Pior média de nota"
+                    metrica="pior_nota"
+                    destaque={destaques.pior_nota}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
+      </div>
     </PullToRefresh>
   );
 }
 
 interface ParceriaDestaqueCardProps {
   titulo: string;
+  subtitulo?: string;
   metrica: MetricaDestaque;
   destaque?: ParceriaDestaque;
 }
 
-function ParceriaDestaqueCard({ titulo, metrica, destaque }: ParceriaDestaqueCardProps) {
+function ParceriaDestaqueCard({ titulo, subtitulo, metrica, destaque }: ParceriaDestaqueCardProps) {
   return (
     <div className="flex flex-col justify-between rounded-xl border border-neutral-200 bg-white p-3 shadow-xs dark:border-neutral-800 dark:bg-neutral-900/60">
-      <div className="flex items-center justify-between gap-1.5 mb-2">
-        <h4 className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 truncate">
-          {titulo}
-        </h4>
+      <div className="flex items-center justify-between gap-1.5 mb-1">
+        <div>
+          <h4 className="text-[10px] font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 truncate">
+            {titulo}
+          </h4>
+          {subtitulo && (
+            <p className="text-[9px] text-neutral-400 dark:text-neutral-500">
+              {subtitulo}
+            </p>
+          )}
+        </div>
         {destaque && (
-          <span className="inline-flex items-center shrink-0 rounded-full bg-(--cor-destaque)/10 px-2 py-0.5 text-xs font-extrabold text-(--cor-destaque)">
+          <span className="font-scoreboard inline-flex items-center shrink-0 rounded-full bg-(--cor-destaque)/10 px-2 py-0.5 text-sm font-black text-(--cor-destaque)">
             {metrica === "mais_gols"
               ? `${destaque.valor ?? 0} gols`
               : (destaque.valor ?? 0).toFixed(1)}
@@ -325,11 +370,11 @@ function ParceriaDestaqueCard({ titulo, metrica, destaque }: ParceriaDestaqueCar
       </div>
 
       {!destaque ? (
-        <p className="mt-1 text-xs text-neutral-400 dark:text-neutral-500">
+        <p className="mt-2 text-xs text-neutral-400 dark:text-neutral-500 italic">
           Sem dados suficientes (mín. 5 partidas)
         </p>
       ) : (
-        <div className="flex items-center gap-2.5">
+        <div className="mt-2 flex items-center gap-2.5">
           <Avatar nome={destaque.nome} size="sm" />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-bold text-neutral-900 dark:text-neutral-100">
@@ -348,8 +393,10 @@ function ParceriaDestaqueCard({ titulo, metrica, destaque }: ParceriaDestaqueCar
 function StatBox({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/60 px-2 py-2.5 text-center shadow-xs">
-      <div className="text-xl sm:text-2xl font-extrabold text-(--cor-destaque)">{value}</div>
-      <div className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+      <div className="font-scoreboard text-2xl sm:text-3xl font-black text-(--cor-destaque) leading-tight">
+        {value}
+      </div>
+      <div className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
         {label}
       </div>
     </div>
@@ -358,29 +405,37 @@ function StatBox({ label, value }: { label: string; value: number }) {
 
 interface ParceriaCardProps {
   titulo: string;
+  subtitulo?: string;
   parceria?: Parceria;
 }
 
-function ParceriaCard({ titulo, parceria }: ParceriaCardProps) {
+function ParceriaCard({ titulo, subtitulo, parceria }: ParceriaCardProps) {
   return (
     <div className="flex flex-col justify-between rounded-xl border border-neutral-200 bg-white p-3 shadow-xs dark:border-neutral-800 dark:bg-neutral-900/60">
-      <div className="flex items-center justify-between gap-1.5 mb-2">
-        <h4 className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 truncate">
-          {titulo}
-        </h4>
+      <div className="flex items-center justify-between gap-1.5 mb-1">
+        <div>
+          <h4 className="text-[10px] font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 truncate">
+            {titulo}
+          </h4>
+          {subtitulo && (
+            <p className="text-[9px] text-neutral-400 dark:text-neutral-500">
+              {subtitulo}
+            </p>
+          )}
+        </div>
         {parceria && (
-          <span className="inline-flex items-center shrink-0 rounded-full bg-(--cor-destaque)/10 px-2 py-0.5 text-xs font-extrabold text-(--cor-destaque)">
+          <span className="font-scoreboard inline-flex items-center shrink-0 rounded-full bg-(--cor-destaque)/10 px-2 py-0.5 text-sm font-black text-(--cor-destaque)">
             {Math.round((parceria.percentual ?? 0) * 100)}%
           </span>
         )}
       </div>
 
       {!parceria ? (
-        <p className="mt-1 text-xs text-neutral-400 dark:text-neutral-500">
+        <p className="mt-2 text-xs text-neutral-400 dark:text-neutral-500 italic">
           Sem dados suficientes (mín. 5 partidas)
         </p>
       ) : (
-        <div className="space-y-2">
+        <div className="mt-2 space-y-2">
           <div className="flex items-center gap-2.5">
             <Avatar nome={parceria.nome} size="sm" />
             <div className="min-w-0 flex-1">
@@ -388,13 +443,13 @@ function ParceriaCard({ titulo, parceria }: ParceriaCardProps) {
                 {parceria.nome}
               </p>
               <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
-                {parceria.partidas} partidas
+                {parceria.partidas} jogos juntos
               </p>
             </div>
           </div>
-          <div className="pt-1.5 border-t border-neutral-100 dark:border-neutral-800/80 flex items-center justify-between text-[11px] text-neutral-500 dark:text-neutral-400">
+          <div className="pt-1.5 border-t border-neutral-100 dark:border-neutral-800/80 flex items-center justify-between text-[11px] text-neutral-500 dark:text-neutral-400 font-medium">
             <span>Retrospecto</span>
-            <span className="font-semibold text-neutral-700 dark:text-neutral-300">
+            <span className="font-semibold text-neutral-800 dark:text-neutral-200">
               {parceria.vitorias}V {parceria.empates}E {parceria.derrotas}D
             </span>
           </div>

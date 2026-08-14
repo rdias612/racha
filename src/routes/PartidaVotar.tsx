@@ -10,6 +10,9 @@ import {
 import { POSICOES, TIMES, type PosicaoId, type TimeId } from "../lib/times";
 import { Carregando, MensagemEstado } from "../components/Estado";
 import { SeletorNota } from "../components/SeletorNota";
+import { Avatar } from "../components/Avatar";
+import { Check } from "lucide-react";
+import { vibrateLight, vibrateSuccess } from "../lib/haptics";
 
 interface Alvo {
   jogador_id: number;
@@ -26,12 +29,16 @@ export function PartidaVotar() {
   const [partida, setPartida] = useState<Partida | null>(null);
   const [alvos, setAlvos] = useState<Alvo[]>([]);
   const [notas, setNotas] = useState<Record<number, number>>({});
+  const [bagreId, setBagreId] = useState<number | null>(null);
   const [votosOriginais, setVotosOriginais] = useState<Set<number>>(new Set());
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [votosEnviados, setVotosEnviados] = useState(false);
+  const [rascunhoRestaurado, setRascunhoRestaurado] = useState(false);
+
+  const STORAGE_KEY = id && jogador ? `racha_voto_draft_${id}_${jogador.id}` : null;
 
   const temModificacoes =
     Object.keys(notas).length > 0 && !votosEnviados && !salvando;
@@ -46,6 +53,23 @@ export function PartidaVotar() {
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [temModificacoes]);
+
+  // Persiste rascunho de notas e bagre automaticamente no sessionStorage
+  useEffect(() => {
+    if (!STORAGE_KEY || votosEnviados || carregando) return;
+    try {
+      if (Object.keys(notas).length > 0) {
+        sessionStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({
+            notas,
+            bagreId,
+            timestamp: Date.now(),
+          }),
+        );
+      }
+    } catch {}
+  }, [notas, bagreId, STORAGE_KEY, votosEnviados, carregando]);
 
   useEffect(() => {
     async function carregar() {
@@ -100,7 +124,7 @@ export function PartidaVotar() {
           }));
         setAlvos(alvosFiltrados);
 
-        // pré-carrega votos já dados (pra permitir edição)
+        // pré-carrega votos já dados no banco (pra permitir edição)
         const { data: meusVotos } = await supabase
           .from("votes")
           .select("target_id, rating")
@@ -108,8 +132,6 @@ export function PartidaVotar() {
           .eq("voter_id", jogador.id);
 
         const notasIniciais: Record<number, number> = {};
-        // default 6 para todos os alvos; o usuário ajusta a partir daí.
-        // Votos já existentes (modo edição) sobrescrevem o default abaixo.
         for (const a of alvosFiltrados) {
           notasIniciais[a.jogador_id] = 6;
         }
@@ -118,8 +140,29 @@ export function PartidaVotar() {
           notasIniciais[v.target_id] = v.rating;
           originais.add(v.target_id);
         }
+
+        // Tenta recuperar rascunho do sessionStorage caso o usuário tenha recarregado ou perdido sinal
+        const draftKey = `racha_voto_draft_${p.id}_${jogador.id}`;
+        let draftRecuperado = false;
+        try {
+          const draftSalvo = sessionStorage.getItem(draftKey);
+          if (draftSalvo) {
+            const parsed = JSON.parse(draftSalvo);
+            if (parsed.notas && typeof parsed.notas === "object") {
+              Object.assign(notasIniciais, parsed.notas);
+              draftRecuperado = true;
+            }
+            if (parsed.bagreId !== undefined) {
+              setBagreId(parsed.bagreId);
+            }
+          }
+        } catch {}
+
         setNotas(notasIniciais);
         setVotosOriginais(originais);
+        if (draftRecuperado) {
+          setRascunhoRestaurado(true);
+        }
       } catch (e: any) {
         setErro(e.message ?? String(e));
       } finally {
@@ -141,6 +184,7 @@ export function PartidaVotar() {
   if (!partida) return null;
 
   function setNota(targetId: number, rating: number) {
+    vibrateLight();
     setFeedback(null);
     setNotas((prev) => ({ ...prev, [targetId]: rating }));
   }
@@ -189,7 +233,35 @@ export function PartidaVotar() {
     }
 
     setVotosEnviados(true);
-    setFeedback(editando ? "Votos atualizados!" : "Votos registrados!");
+    vibrateSuccess();
+    if (STORAGE_KEY) {
+      try {
+        sessionStorage.removeItem(STORAGE_KEY);
+      } catch {}
+    }
+    if (bagreId) {
+      try {
+        const bagreJogador = alvos.find((a) => a.jogador_id === bagreId);
+        if (bagreJogador) {
+          localStorage.setItem(
+            `racha_bagre_${partida.id}`,
+            JSON.stringify({
+              jogador_id: bagreId,
+              nome: bagreJogador.nome,
+              data: new Date().toISOString(),
+            }),
+          );
+        }
+      } catch {}
+    }
+
+    setFeedback(
+      editando
+        ? "Votos atualizados com sucesso!"
+        : bagreId
+          ? "Votos e Troféu Bagre registrados com sucesso! 🐟"
+          : "Votos registrados com sucesso!",
+    );
     setTimeout(
       () => navigate(`/partida/${partida.id}`, { replace: true }),
       900,
@@ -225,6 +297,19 @@ export function PartidaVotar() {
           média. Votos anônimos.
         </p>
       </div>
+
+      {rascunhoRestaurado && (
+        <div className="rounded-lg bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 px-3 py-2 text-xs text-blue-700 dark:text-blue-300 flex items-center justify-between">
+          <span>💾 Rascunho de votos recuperado automaticamente da sessão.</span>
+          <button
+            type="button"
+            onClick={() => setRascunhoRestaurado(false)}
+            className="text-[10px] font-bold uppercase underline ml-2"
+          >
+            OK
+          </button>
+        </div>
+      )}
 
       <div className="space-y-4">
         {(["a", "b"] as TimeId[]).map((t) => {
@@ -276,6 +361,59 @@ export function PartidaVotar() {
             </div>
           );
         })}
+      </div>
+
+      {/* Eleição Troféu Bagre da Rodada (Caneludo) */}
+      <div className="rounded-xl border border-amber-200 dark:border-amber-900/60 bg-amber-50/40 dark:bg-amber-950/20 p-3.5 space-y-3 shadow-xs">
+        <div className="flex items-center gap-2">
+          <span className="text-xl">🐟</span>
+          <div>
+            <h3 className="text-sm font-bold text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
+              Troféu Bagre da Rodada (Caneludo) 🩴
+              <span className="text-[10px] uppercase font-normal tracking-wide text-amber-700 dark:text-amber-400 bg-amber-200/60 dark:bg-amber-900/40 px-1.5 py-0.5 rounded">
+                Opcional
+              </span>
+            </h3>
+            <p className="text-[11px] text-amber-800 dark:text-amber-300">
+              Votação para a resenha pós-jogo. Quem foi o mais caneludo em campo hoje?
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          <button
+            type="button"
+            onClick={() => setBagreId(null)}
+            className={`flex items-center justify-center gap-1.5 p-2 rounded-lg text-xs font-medium border transition ${
+              bagreId === null
+                ? "border-amber-500 bg-amber-100 dark:bg-amber-900/60 text-amber-950 dark:text-amber-100 font-bold shadow-xs"
+                : "border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800"
+            }`}
+          >
+            {bagreId === null && <Check className="size-3.5 text-amber-600 dark:text-amber-400" />}
+            Nenhum / Não eleger
+          </button>
+
+          {alvos.map((a) => {
+            const isSelected = bagreId === a.jogador_id;
+            return (
+              <button
+                key={a.jogador_id}
+                type="button"
+                onClick={() => setBagreId(a.jogador_id)}
+                className={`flex items-center gap-2 p-2 rounded-lg text-xs font-medium border text-left transition ${
+                  isSelected
+                    ? "border-amber-500 bg-amber-100 dark:bg-amber-900/60 text-amber-950 dark:text-amber-100 font-bold shadow-xs ring-1 ring-amber-500"
+                    : "border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                }`}
+              >
+                <Avatar nome={a.nome} size="xs" />
+                <span className="truncate flex-1">{a.nome}</span>
+                {isSelected && <span className="text-xs shrink-0">🐟</span>}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {erro && <MensagemEstado>{erro}</MensagemEstado>}

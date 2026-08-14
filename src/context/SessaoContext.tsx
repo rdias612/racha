@@ -3,6 +3,8 @@ import {
   createContext,
   useContext,
   useState,
+  useCallback,
+  useMemo,
   type ReactNode,
 } from "react";
 import type { PosicaoId } from "../lib/times";
@@ -40,7 +42,6 @@ function lerDoStorage(): JogadorLogado | null {
 }
 
 export function SessaoProvider({ children }: { children: ReactNode }) {
-
   const [jogador, setJogadorState] = useState<JogadorLogado | null>(() => {
     const cached = lerDoStorage();
     if (cached && isSuperAdmin(cached.username)) {
@@ -49,8 +50,26 @@ export function SessaoProvider({ children }: { children: ReactNode }) {
     return cached;
   });
 
+  const setJogador = useCallback((novoJogador: JogadorLogado | null) => {
+    if (novoJogador) {
+      if (isSuperAdmin(novoJogador.username)) {
+        novoJogador = { ...novoJogador, is_admin: true };
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(novoJogador));
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+    setJogadorState(novoJogador);
+  }, []);
+
+  const logout = useCallback(() => {
+    setJogador(null);
+  }, [setJogador]);
+
   useEffect(() => {
     if (!jogador) return;
+
+    let ativo = true;
 
     async function sincronizarJogador() {
       const { data, error } = await supabase
@@ -59,7 +78,14 @@ export function SessaoProvider({ children }: { children: ReactNode }) {
         .eq("username", jogador!.username)
         .maybeSingle();
 
-      if (error || !data || !data.is_ativo) return;
+      if (!ativo) return;
+
+      if (error || !data) return;
+
+      if (!data.is_ativo) {
+        logout();
+        return;
+      }
 
       const jogadorAtualizado = data as JogadorLogado;
       if (isSuperAdmin(jogadorAtualizado.username)) {
@@ -71,7 +97,9 @@ export function SessaoProvider({ children }: { children: ReactNode }) {
         jogadorAtualizado.is_admin !== jogador!.is_admin ||
         jogadorAtualizado.is_mensalista !== jogador!.is_mensalista ||
         jogadorAtualizado.nome !== jogador!.nome ||
-        jogadorAtualizado.posicao !== jogador!.posicao
+        jogadorAtualizado.posicao !== jogador!.posicao ||
+        jogadorAtualizado.posicao_b !== jogador!.posicao_b ||
+        jogadorAtualizado.is_ativo !== jogador!.is_ativo
       ) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(jogadorAtualizado));
         setJogadorState(jogadorAtualizado);
@@ -79,25 +107,19 @@ export function SessaoProvider({ children }: { children: ReactNode }) {
     }
 
     sincronizarJogador();
-  }, [jogador]);
 
-  const setJogador = (novoJogador: JogadorLogado | null) => {
-    if (novoJogador) {
-      if (isSuperAdmin(novoJogador.username)) {
-        novoJogador = { ...novoJogador, is_admin: true };
-      }
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(novoJogador));
-    } else {
-      localStorage.removeItem(STORAGE_KEY);
-    }
-    setJogadorState(novoJogador);
-  };
+    return () => {
+      ativo = false;
+    };
+  }, [jogador?.username, logout]);
 
-
-  const logout = () => setJogador(null);
+  const value = useMemo(
+    () => ({ jogador, setJogador, logout }),
+    [jogador, setJogador, logout]
+  );
 
   return (
-    <SessaoContext.Provider value={{ jogador, setJogador, logout }}>
+    <SessaoContext.Provider value={value}>
       {children}
     </SessaoContext.Provider>
   );

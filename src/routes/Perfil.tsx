@@ -5,6 +5,8 @@ import { useSessao } from '../context/SessaoContext'
 import { POSICOES } from '../lib/times'
 import { Carregando, MensagemEstado } from '../components/Estado'
 import { ativarPush, desativarPush, statusPush, type StatusPush } from '../lib/pwa'
+import { PixCopiaECola } from '../components/PixCopiaECola'
+import { formatarReais } from '../lib/formatacao'
 
 interface Stats {
   jogador_id: number
@@ -15,12 +17,23 @@ interface Stats {
   vitorias: number
 }
 
+interface DividaItem {
+  id: number
+  tipo: string
+  valor: number
+  descricao: string | null
+  referencia: string | null
+  data_divida: string
+}
+
 export function Perfil() {
   const { jogador, logout } = useSessao()
   const navigate = useNavigate()
 
   const [stats, setStats] = useState<Stats | null>(null)
   const [carregandoStats, setCarregandoStats] = useState(true)
+  const [dividas, setDividas] = useState<DividaItem[]>([])
+  const [carregandoDividas, setCarregandoDividas] = useState(true)
 
   // formulário de troca de senha
   const [senhaAtual, setSenhaAtual] = useState('')
@@ -35,17 +48,29 @@ export function Perfil() {
   const [erroPush, setErroPush] = useState<string | null>(null)
 
   useEffect(() => {
-    async function carregarStats() {
+    async function carregarDados() {
       if (!jogador) return
-      const { data, error } = await supabase
-        .from('stats_jogador')
-        .select('jogador_id, partidas, gols, assistencias, gols_contra, vitorias')
-        .eq('jogador_id', jogador.id)
-        .maybeSingle()
-      if (!error) setStats(data)
+      const [resStats, resDividas] = await Promise.all([
+        supabase
+          .from('stats_jogador')
+          .select('jogador_id, partidas, gols, assistencias, gols_contra, vitorias')
+          .eq('jogador_id', jogador.id)
+          .maybeSingle(),
+        supabase
+          .from('dividas')
+          .select('id, tipo, valor, descricao, referencia, data_divida')
+          .eq('jogador_id', jogador.id)
+          .eq('paga', false)
+          .order('data_divida', { ascending: false }),
+      ])
+
+      if (!resStats.error) setStats(resStats.data)
+      if (!resDividas.error) setDividas(resDividas.data ?? [])
+
       setCarregandoStats(false)
+      setCarregandoDividas(false)
     }
-    carregarStats()
+    carregarDados()
   }, [jogador?.id])
 
   useEffect(() => {
@@ -170,6 +195,52 @@ export function Perfil() {
             <StatBox label="Assists" value={stats?.assistencias ?? 0} />
             <StatBox label="Gols contra" value={stats?.gols_contra ?? 0} />
           </div>
+        )}
+      </section>
+
+      {/* Financeiro / Pix */}
+      <section className="space-y-2">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+          Financeiro & Pix
+        </h3>
+        {carregandoDividas ? (
+          <Carregando compacto>Carregando situação financeira</Carregando>
+        ) : (
+          <>
+            {dividas.length > 0 ? (
+              <div className="space-y-3">
+                <div className="rounded-xl border border-red-200 dark:border-red-900/60 bg-red-50/50 dark:bg-red-950/20 p-3 flex items-center justify-between">
+                  <div>
+                    <span className="text-xs font-bold text-red-900 dark:text-red-200 block">
+                      Pendências em aberto ({dividas.length})
+                    </span>
+                    <span className="text-[11px] text-red-700 dark:text-red-300">
+                      Total a acertar com o administrador
+                    </span>
+                  </div>
+                  <span className="text-base font-extrabold text-red-600 dark:text-red-400">
+                    {formatarReais(dividas.reduce((acc, d) => acc + Number(d.valor), 0))}
+                  </span>
+                </div>
+                <PixCopiaECola
+                  valor={dividas.reduce((acc, d) => acc + Number(d.valor), 0)}
+                  nomeDevedor={jogador.nome}
+                  permitirEditarChave={jogador.is_admin}
+                  descricao="Pague suas pendências copiando o código ou chave Pix abaixo"
+                />
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="rounded-xl border border-green-200 dark:border-green-900/60 bg-green-50/50 dark:bg-green-950/20 p-3 text-xs text-green-800 dark:text-green-300 font-medium">
+                  🎉 Tudo certo! Nenhuma pendência financeira no momento.
+                </div>
+                <PixCopiaECola
+                  permitirEditarChave={jogador.is_admin}
+                  descricao="Chave Pix para pagamentos e mensalidades"
+                />
+              </div>
+            )}
+          </>
         )}
       </section>
 

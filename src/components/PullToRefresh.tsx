@@ -14,17 +14,28 @@ export function PullToRefresh({
   const [pullDistance, setPullDistance] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const startY = useRef<number | null>(null);
+  const passedThreshold = useRef(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  function getScrollTop(): number {
+    const main =
+      containerRef.current?.closest("main") || document.querySelector("main");
+    if (main) return main.scrollTop;
+    return window.scrollY || document.documentElement.scrollTop || 0;
+  }
 
   function handleTouchStart(e: TouchEvent<HTMLDivElement>) {
-    if (window.scrollY === 0 && e.touches.length === 1) {
+    if (getScrollTop() <= 0 && e.touches.length === 1) {
       startY.current = e.touches[0].clientY;
+      passedThreshold.current = false;
     }
   }
 
   function handleTouchMove(e: TouchEvent<HTMLDivElement>) {
     if (startY.current === null || refreshing) return;
-    if (window.scrollY > 0) {
+    if (getScrollTop() > 0) {
       setPullDistance(0);
+      startY.current = null;
       return;
     }
 
@@ -35,12 +46,26 @@ export function PullToRefresh({
       // Aplica resistência ao puxar
       const distance = Math.min(diff * 0.5, threshold * 1.5);
       setPullDistance(distance);
+
+      if (distance >= threshold && !passedThreshold.current) {
+        passedThreshold.current = true;
+        if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+          try {
+            navigator.vibrate(15);
+          } catch {
+            // Ignora se não suportado
+          }
+        }
+      } else if (distance < threshold && passedThreshold.current) {
+        passedThreshold.current = false;
+      }
     }
   }
 
   async function handleTouchEnd() {
     if (startY.current === null) return;
     startY.current = null;
+    passedThreshold.current = false;
 
     if (pullDistance >= threshold && !refreshing) {
       setRefreshing(true);
@@ -58,6 +83,7 @@ export function PullToRefresh({
 
   return (
     <div
+      ref={containerRef}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}

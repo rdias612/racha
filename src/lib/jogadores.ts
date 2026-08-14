@@ -119,27 +119,30 @@ export async function atualizarCaracteristicasJogador(
 
 export async function obterMediasNotasJogadores(): Promise<Record<number, number>> {
   const { data, error } = await supabase
-    .from("votes")
-    .select("target_id, rating");
+    .from("partida_notas")
+    .select("target_id, avg_rating, vote_count");
 
   if (error || !data) return {};
 
   const acumulado: Record<number, { soma: number; qtd: number }> = {};
-  for (const v of data) {
-    const tid = Number(v.target_id);
-    const rat = Number(v.rating);
-    if (!isNaN(tid) && !isNaN(rat)) {
+  for (const row of data) {
+    const tid = Number(row.target_id);
+    const avg = Number(row.avg_rating);
+    const count = Number(row.vote_count);
+    if (!isNaN(tid) && !isNaN(avg) && !isNaN(count) && count > 0) {
       if (!acumulado[tid]) {
         acumulado[tid] = { soma: 0, qtd: 0 };
       }
-      acumulado[tid].soma += rat;
-      acumulado[tid].qtd += 1;
+      acumulado[tid].soma += avg * count;
+      acumulado[tid].qtd += count;
     }
   }
 
   const medias: Record<number, number> = {};
   for (const id in acumulado) {
-    medias[id] = Number((acumulado[id].soma / acumulado[id].qtd).toFixed(2));
+    if (acumulado[id].qtd > 0) {
+      medias[id] = Number((acumulado[id].soma / acumulado[id].qtd).toFixed(2));
+    }
   }
   return medias;
 }

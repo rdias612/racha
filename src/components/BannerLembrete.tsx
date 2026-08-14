@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useJogadorLogado } from '../hooks/useJogadorLogado'
@@ -20,43 +20,73 @@ export function BannerLembrete() {
   const [pendentes, setPendentes] = useState<PartidaAberta[]>([])
   const [agora, setAgora] = useState(Date.now())
 
-  // Recarrega a cada 30s se houver pendentes, senão a cada 5min
-  useEffect(() => {
-    async function verificar() {
-      if (!jogador) return
-      // Busca partidas published com votação aberta
-      const { data } = await supabase
-        .from('partidas')
-        .select('id, voting_closes_at')
-        .eq('status', 'published')
-        .gt('voting_closes_at', new Date().toISOString())
+  const jogadorId = jogador?.id
 
-      if (!data || data.length === 0) {
-        setPendentes([])
-        return
-      }
-
-      // Filtra as que o usuário ainda não votou (LEFT JOIN virtual: pega
-      // os ids onde ele já votou e exclui)
-      const { data: votados } = await supabase
-        .from('votes')
-        .select('partida_id')
-        .eq('voter_id', jogador.id)
-        .in(
-          'partida_id',
-          data.map((p) => p.id),
-        )
-      const idsVotados = new Set((votados ?? []).map((v) => v.partida_id))
-      const pendentesLista = data.filter((p) => !idsVotados.has(p.id))
-      setPendentes(pendentesLista)
+  const verificar = useCallback(async () => {
+    if (!jogadorId) {
+      setPendentes([])
+      return
     }
+
+    // 1. Busca partidas published com votação aberta
+    const { data: partidasAbertas } = await supabase
+      .from('partidas')
+      .select('id, voting_closes_at')
+      .eq('status', 'published')
+      .gt('voting_closes_at', new Date().toISOString())
+
+    if (!partidasAbertas || partidasAbertas.length === 0) {
+      setPendentes([])
+      return
+    }
+
+    const idsPartidas = partidasAbertas.map((p) => p.id)
+
+    // 2. Busca partidas em que o jogador efetivamente participou
+    const { data: participacoes } = await supabase
+      .from('partidas_participantes')
+      .select('partida_id')
+      .eq('jogador_id', jogadorId)
+      .in('partida_id', idsPartidas)
+
+    if (!participacoes || participacoes.length === 0) {
+      setPendentes([])
+      return
+    }
+
+    const idsParticipou = new Set(participacoes.map((p) => p.partida_id))
+    const partidasDoJogador = partidasAbertas.filter((p) =>
+      idsParticipou.has(p.id)
+    )
+
+    if (partidasDoJogador.length === 0) {
+      setPendentes([])
+      return
+    }
+
+    // 3. Filtra as partidas onde o jogador já votou
+    const { data: votados } = await supabase
+      .from('votes')
+      .select('partida_id')
+      .eq('voter_id', jogadorId)
+      .in(
+        'partida_id',
+        partidasDoJogador.map((p) => p.id)
+      )
+
+    const idsVotados = new Set((votados ?? []).map((v) => v.partida_id))
+    const pendentesLista = partidasDoJogador.filter(
+      (p) => !idsVotados.has(p.id)
+    )
+    setPendentes(pendentesLista)
+  }, [jogadorId])
+
+  // Recarrega a cada 1min sem dependência cíclica
+  useEffect(() => {
     verificar()
-    const temPendentes = pendentes.length > 0
-    const intervalo = temPendentes ? 30_000 : 5 * 60_000
-    const i = setInterval(verificar, intervalo)
-    return () => clearInterval(i)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [jogador?.id, pendentes.length])
+    const intervalo = setInterval(verificar, 60_000)
+    return () => clearInterval(intervalo)
+  }, [verificar])
 
   // Tick a cada 1min para atualizar o countdown
   useEffect(() => {
