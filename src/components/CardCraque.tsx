@@ -1,6 +1,7 @@
 import { Trophy, Award, Flame, Zap } from "lucide-react";
 import { Avatar } from "./Avatar";
-import { vibrateLight } from "../lib/haptics";
+import { vibrateSuccess } from "../lib/haptics";
+import { dispararConfetesCraque } from "../lib/confete";
 
 export interface CardCraqueProps {
   nome: string;
@@ -42,8 +43,11 @@ export function CardCraque({
 
   return (
     <div
-      onClick={() => vibrateLight()}
-      className={`relative mx-auto w-full max-w-sm select-none overflow-hidden rounded-2xl p-[2px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.99] ${className}`}
+      onClick={() => {
+        vibrateSuccess();
+        dispararConfetesCraque();
+      }}
+      className={`relative mx-auto w-full max-w-sm select-none overflow-hidden rounded-2xl p-[2px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.99] cursor-pointer ${className}`}
     >
       {/* Halo Luminoso Dourado / Borda Gradiente Estilo FUT */}
       <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-amber-300 via-yellow-500 to-amber-700 animate-halo-glow" />

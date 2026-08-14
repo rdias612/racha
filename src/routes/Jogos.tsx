@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAdmin } from "../hooks/useAdmin";
-import { Carregando, MensagemEstado } from "../components/Estado";
+import { MensagemEstado } from "../components/Estado";
+import { SkeletonJogos } from "../components/Skeletons";
 import { formatarDataLista } from "../lib/formatacao";
 import {
   STATUS_COR,
@@ -36,7 +37,7 @@ export function Jogos() {
     carregar();
   }, [carregar]);
 
-  if (carregando) return <Carregando>Carregando histórico de jogos</Carregando>;
+  if (carregando) return <SkeletonJogos />;
   if (erro)
     return (
       <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">
@@ -46,7 +47,7 @@ export function Jogos() {
 
   return (
     <PullToRefresh onRefresh={carregar}>
-      <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-4">
+      <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-4 animate-page-enter">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-bold font-heading text-neutral-900 dark:text-neutral-100">

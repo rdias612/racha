@@ -1,14 +1,21 @@
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
-import { Carregando, MensagemEstado } from "../components/Estado";
+import { MensagemEstado } from "../components/Estado";
+import { SkeletonEstatisticas } from "../components/Skeletons";
+import { useSwipeTabs } from "../hooks/useSwipeTabs";
 import { DuplaCard } from "../components/DuplaCard";
 import { SecaoRacha } from "../components/SecaoRacha";
 import { Avatar } from "../components/Avatar";
 import { carregarParesRacha, type ParRacha } from "../lib/partidas";
 
 const MIN_PARTIDAS = 5;
+const ESTATISTICAS_TABS = ["/estatisticas/jogador", "/estatisticas/racha"];
 
 export function EstatisticasRacha() {
+  const swipeHandlers = useSwipeTabs({
+    tabs: ESTATISTICAS_TABS,
+    activeTab: "/estatisticas/racha",
+  });
   const [pares, setPares] = useState<ParRacha[] | null>(null);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -35,14 +42,17 @@ export function EstatisticasRacha() {
     );
   }
   if (pares === null) {
-    return <Carregando>Carregando estatísticas do racha…</Carregando>;
+    return <SkeletonEstatisticas />;
   }
 
   const melhor = pares[0] ?? null;
   const pior = pares.length > 1 ? pares[pares.length - 1] : null;
 
   return (
-    <div className="mx-auto w-full max-w-2xl space-y-6 px-3 py-4 sm:px-4">
+    <div
+      {...swipeHandlers}
+      className="mx-auto w-full max-w-2xl space-y-6 px-3 py-4 sm:px-4 animate-page-enter"
+    >
       <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
         Estatísticas · Racha
       </h2>
@@ -115,7 +125,10 @@ export function EstatisticasRacha() {
 
 function TabelaDuplas({ pares, inicio }: { pares: ParRacha[]; inicio: number }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900/60 shadow-xs">
+    <div
+      data-no-swipe
+      className="overflow-x-auto rounded-xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900/60 shadow-xs"
+    >
       <table className="w-full text-left text-xs">
         <thead className="border-b border-neutral-200 bg-neutral-50/80 text-[10px] font-bold uppercase tracking-wider text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900/80 dark:text-neutral-400">
           <tr>

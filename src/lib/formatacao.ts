@@ -67,3 +67,23 @@ export function formatarNome(nome: string) {
     )
     .join(" ");
 }
+
+/**
+ * Extrai com segurança uma mensagem de texto legível de um erro desconhecido.
+ */
+export function extrairMensagemErro(
+  erro: unknown,
+  fallback = "Ocorreu um erro inesperado."
+): string {
+  if (!erro) return fallback;
+  if (typeof erro === "string") return erro;
+  if (erro instanceof Error && erro.message) return erro.message;
+  if (
+    typeof erro === "object" &&
+    "message" in erro &&
+    typeof (erro as { message: unknown }).message === "string"
+  ) {
+    return (erro as { message: string }).message;
+  }
+  return fallback;
+}

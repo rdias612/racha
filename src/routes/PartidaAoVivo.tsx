@@ -4,10 +4,12 @@ import { CampoPartida } from "../components/CampoPartida";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { DialogoEvento } from "../components/DialogoEvento";
 import { Carregando, MensagemEstado } from "../components/Estado";
+import { LinhaDoTempoPartida } from "../components/LinhaDoTempoPartida";
 import { useAdmin } from "../hooks/useAdmin";
-import { formatarDataMobile, formatarNome } from "../lib/formatacao";
+import { formatarDataMobile } from "../lib/formatacao";
 import { tocarApito } from "../lib/audio";
-import { vibrateWhistle } from "../lib/haptics";
+import { vibrateWhistle, vibrateSuccess } from "../lib/haptics";
+import { dispararConfetesGol, dispararConfetesVitoria } from "../lib/confete";
 import {
   Play,
   Pause,
@@ -33,17 +35,6 @@ import {
   type Partida,
   type TipoEvento,
 } from "../lib/partidas";
-
-function nomeDoJogador(
-  participantes: Participante[],
-  jogadorId: number | null,
-): string {
-  if (jogadorId == null) return "";
-  const nome =
-    participantes.find((p) => p.jogador_id === jogadorId)?.nome ??
-    `#${jogadorId}`;
-  return formatarNome(nome);
-}
 
 export function PartidaAoVivo() {
   const { id } = useParams<{ id: string }>();
@@ -318,6 +309,10 @@ export function PartidaAoVivo() {
           setErro("Não foi possível editar o evento. A partida ainda está ao vivo?");
           return;
         }
+        if (tipo === "gol") {
+          dispararConfetesGol();
+          vibrateSuccess();
+        }
       } else {
         const idEvento = await registrarEvento(
           partida.id,
@@ -330,6 +325,10 @@ export function PartidaAoVivo() {
             "Não foi possível registrar o evento. A partida ainda está ao vivo?",
           );
           return;
+        }
+        if (tipo === "gol") {
+          dispararConfetesGol();
+          vibrateSuccess();
         }
       }
       setAlvo(null);
@@ -374,6 +373,7 @@ export function PartidaAoVivo() {
       }
       tocarApito("fim");
       vibrateWhistle();
+      dispararConfetesVitoria();
       setCronometroRodando(false);
       try {
         localStorage.removeItem(CRONOMETRO_STORAGE_KEY);
@@ -556,69 +556,15 @@ export function PartidaAoVivo() {
         jogadorDestaqueId={alvo?.jogador_id}
       />
 
-      <section className="rounded-lg border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950">
-        <div className="border-b border-neutral-200 px-3 py-2 text-xs font-semibold text-neutral-700 dark:border-neutral-800 dark:text-neutral-300">
-          Eventos ({eventos.length})
-        </div>
-        {eventos.length === 0 ? (
-          <p className="px-3 py-3 text-sm text-neutral-400">Nenhum evento ainda.</p>
-        ) : (
-          <ul className="max-h-40 divide-y divide-neutral-200 overflow-y-auto dark:divide-neutral-800">
-            {[...eventos].reverse().map((evento) => (
-              <li
-                key={evento.id}
-                className="flex items-center gap-2 px-3 py-2 text-sm"
-              >
-                <button
-                  type="button"
-                  disabled={!podeRegistrar}
-                  onClick={() => podeRegistrar && abrirEdicao(evento)}
-                  className={`flex-1 cursor-pointer rounded-md py-1 text-left text-neutral-900 disabled:cursor-default dark:text-neutral-100`}
-                >
-                  {evento.tipo === "gol" ? (
-                    <>
-                      ⚽ {nomeDoJogador(participantes, evento.jogador_id)}
-                      {evento.assistencia_jogador_id != null && (
-                        <span className="text-neutral-500 dark:text-neutral-400">
-                          {" "}
-                          · 🅰️{" "}
-                          {nomeDoJogador(
-                            participantes,
-                            evento.assistencia_jogador_id,
-                          )}
-                        </span>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-red-600 dark:text-red-400">GC</span>{" "}
-                      {nomeDoJogador(participantes, evento.jogador_id)}
-                    </>
-                  )}
-                </button>
-                {podeRegistrar && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => abrirEdicao(evento)}
-                      className="cursor-pointer rounded-md px-2 text-xs font-medium text-[var(--cor-destaque)]"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setEventoParaRemover(evento)}
-                      className="cursor-pointer rounded-md px-2 text-xs text-red-600 dark:text-red-400"
-                    >
-                      Desfazer
-                    </button>
-                  </>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      {/* Linha do Tempo Gráfica com Ações Ao Vivo */}
+      <LinhaDoTempoPartida
+        eventos={eventos}
+        participantes={participantes}
+        status={partida.status}
+        isAdmin={podeRegistrar}
+        onEditarEvento={podeRegistrar ? (evento) => abrirEdicao(evento) : undefined}
+        onRemoverEvento={podeRegistrar ? (evento) => setEventoParaRemover(evento) : undefined}
+      />
 
       {erro && <MensagemEstado>{erro}</MensagemEstado>}
 

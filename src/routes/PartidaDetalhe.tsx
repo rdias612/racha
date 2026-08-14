@@ -11,6 +11,7 @@ import {
   carregarPlacar,
   carregarParticipantes,
   carregarNotas,
+  carregarEventos,
   descartarVotos,
   confirmarPresenca,
   adminDefinirConfirmacao,
@@ -25,16 +26,19 @@ import {
   type Placar,
   type Participante,
   type NotaPartida,
+  type EventoPartida,
   type StatusConfirmacao,
 } from '../lib/partidas'
 import { Carregando, MensagemEstado } from '../components/Estado'
+import { LinhaDoTempoPartida } from '../components/LinhaDoTempoPartida'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { formatarDataCompleta, formatarDataMobile, formatarFechamento } from '../lib/formatacao'
 import { Avatar } from '../components/Avatar'
 import { Snackbar, type TipoSnackbar } from '../components/Snackbar'
-import { Share2 } from 'lucide-react'
+import { Share2, Sparkles } from 'lucide-react'
 import { CardCraque } from '../components/CardCraque'
 import { PlacarEstadio } from '../components/PlacarEstadio'
+import { GeradorCardCompartilhamento } from '../components/GeradorCardCompartilhamento'
 import { vibrateWhistle, vibrateSuccess, vibrateLight } from '../lib/haptics'
 
 export function PartidaDetalhe() {
@@ -47,10 +51,12 @@ export function PartidaDetalhe() {
   const [placar, setPlacar] = useState<Placar | null>(null)
   const [participantes, setParticipantes] = useState<Participante[]>([])
   const [notas, setNotas] = useState<NotaPartida[]>([])
+  const [eventos, setEventos] = useState<EventoPartida[]>([])
   const [jaVotou, setJaVotou] = useState(false)
   const [confirmandoDescarte, setConfirmandoDescarte] = useState(false)
   const [descartando, setDescartando] = useState(false)
   const [abrindo, setAbrindo] = useState(false)
+  const [modalCardAberto, setModalCardAberto] = useState(false)
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
   const [snackbar, setSnackbar] = useState<{
@@ -71,14 +77,16 @@ export function PartidaDetalhe() {
       const p = await carregarPartida(Number(id))
       setPartida(p)
       if (p) {
-        const [pl, parts, ns] = await Promise.all([
+        const [pl, parts, ns, evs] = await Promise.all([
           carregarPlacar(p.id),
           carregarParticipantes(p.id),
           carregarNotas(p.id),
+          carregarEventos(p.id),
         ])
         setPlacar(pl)
         setParticipantes(parts)
         setNotas(ns)
+        setEventos(evs)
 
         // Verifica se o jogador logado já votou nesta partida
         if (jogadorLogado && p.status === 'published') {
@@ -289,14 +297,28 @@ export function PartidaDetalhe() {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={handleCopiarListaWhatsApp}
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 px-3.5 py-2.5 text-xs font-semibold text-white shadow-xs transition active:scale-95 cursor-pointer"
-        >
-          <Share2 className="size-4 shrink-0" />
-          <span>Copiar Lista WhatsApp</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              vibrateLight()
+              setModalCardAberto(true)
+            }}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-400 hover:brightness-110 px-3.5 py-2.5 text-xs font-bold text-neutral-950 shadow-xs transition active:scale-95 cursor-pointer"
+          >
+            <Sparkles className="size-4 shrink-0" />
+            <span>Gerar Card Stories / Zap</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleCopiarListaWhatsApp}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 px-3.5 py-2.5 text-xs font-semibold text-white shadow-xs transition active:scale-95 cursor-pointer"
+          >
+            <Share2 className="size-4 shrink-0" />
+            <span>Copiar Lista WhatsApp</span>
+          </button>
+        </div>
       </div>
 
       {/* Placar Dinâmico de Estádio: Preto × Branco */}
@@ -425,6 +447,15 @@ export function PartidaDetalhe() {
           )
         })}
           </div>
+
+          {/* Linha do Tempo Visual dos Lances */}
+          {eventos.length > 0 && (
+            <LinhaDoTempoPartida
+              eventos={eventos}
+              participantes={participantes}
+              status={partida.status}
+            />
+          )}
         </>
       )}
 
@@ -541,6 +572,16 @@ export function PartidaDetalhe() {
         mensagem="Isso vai apagar todas as notas que você deu nesta partida. Você poderá votar novamente enquanto a votação estiver aberta."
         textoConfirmar={descartando ? 'Descartando…' : 'Descartar'}
         tomConfirmar="perigo"
+      />
+
+      <GeradorCardCompartilhamento
+        open={modalCardAberto}
+        onClose={() => setModalCardAberto(false)}
+        partida={partida}
+        placar={placar}
+        participantes={participantes}
+        craque={craque}
+        notas={notas}
       />
 
       {partida.status === 'published' && !votacaoAberta && (

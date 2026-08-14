@@ -114,10 +114,36 @@ main {
   animation: live-pulse 1.4s ease-in-out infinite;
 }
 
+/* Transição suave de entrada de tela / abas */
+@keyframes page-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-page-enter {
+  animation: page-enter 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+}
+
 input:not([type="checkbox"]):not([type="radio"]),
 select,
 textarea {
   font-size: 16px;
+}
+
+/* Margem de segurança de scroll ao focar inputs no mobile (evita sobreposição por teclado/navbar) */
+input,
+select,
+textarea,
+fieldset {
+  scroll-margin-top: 5rem;
+  scroll-margin-bottom: 6rem;
 }
 
 input[type="checkbox"] {

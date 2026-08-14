@@ -2,7 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useSessao } from "../context/SessaoContext";
-import { Carregando, MensagemEstado } from "../components/Estado";
+import { useSwipeTabs } from "../hooks/useSwipeTabs";
+import { MensagemEstado } from "../components/Estado";
+import { SkeletonEstatisticas } from "../components/Skeletons";
 import { PullToRefresh } from "../components/PullToRefresh";
 import { Avatar } from "../components/Avatar";
 import { vibrateLight } from "../lib/haptics";
@@ -48,8 +50,14 @@ interface JogadorOpcao {
   username: string;
 }
 
+const ESTATISTICAS_TABS = ["/estatisticas/jogador", "/estatisticas/racha"];
+
 export function Estatisticas() {
   const { jogador } = useSessao();
+  const swipeHandlers = useSwipeTabs({
+    tabs: ESTATISTICAS_TABS,
+    activeTab: "/estatisticas/jogador",
+  });
   const [jogadores, setJogadores] = useState<JogadorOpcao[]>([]);
   const [jogadorSelecionadoId, setJogadorSelecionadoId] = useState<
     number | null
@@ -145,7 +153,7 @@ export function Estatisticas() {
   }, [carregar]);
 
   if (!jogador) return null;
-  if (carregando) return <Carregando>Carregando estatísticas e parcerias</Carregando>;
+  if (carregando) return <SkeletonEstatisticas />;
   if (erro)
     return (
       <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">
@@ -167,7 +175,10 @@ export function Estatisticas() {
 
   return (
     <PullToRefresh onRefresh={carregar}>
-      <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-5">
+      <div
+        {...swipeHandlers}
+        className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-5 animate-page-enter"
+      >
         <div>
           <h2 className="text-lg font-bold font-heading text-neutral-900 dark:text-neutral-100">
             Raio-X do Atleta{nomeSelecionado ? ` · ${nomeSelecionado}` : ""}

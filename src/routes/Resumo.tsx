@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Carregando, MensagemEstado } from "../components/Estado";
+import { MensagemEstado } from "../components/Estado";
+import { SkeletonResumo } from "../components/Skeletons";
 import { BotaoInstalar } from "../components/BotaoInstalar";
 import { supabase } from "../lib/supabase";
 import {
@@ -99,7 +100,7 @@ export function Resumo() {
     carregarProxima();
   }, []);
 
-  if (carregando) return <Carregando>Carregando a resenha do ano</Carregando>;
+  if (carregando) return <SkeletonResumo />;
   if (erro) {
     return (
       <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">
@@ -179,7 +180,7 @@ export function Resumo() {
   ];
 
   return (
-    <div className="px-3 py-4 pb-20 sm:px-4 sm:mx-auto sm:max-w-2xl">
+    <div className="px-3 py-4 pb-20 sm:px-4 sm:mx-auto sm:max-w-2xl animate-page-enter">
       <div className="mb-4 flex items-end justify-between gap-3">
         <div>
           <p className="text-xs font-bold uppercase tracking-wider text-(--cor-destaque)">
