@@ -1,6 +1,13 @@
 import { supabase } from "./supabase";
 import type { PosicaoId } from "./times";
 
+// Detecta jogadores "random" (placeholders): username com prefixo 'random'
+// e sufixo opcional de dígitos (casa 'random', 'random1'...'random6', 'random99').
+// Case-insensitive para equivaler ao .toLowerCase().startsWith("random").
+export function isRandomUsername(username?: string | null): boolean {
+  return !!username && /^random\d*$/i.test(username.trim());
+}
+
 export interface JogadorLista {
   id: number;
   username: string;
@@ -30,7 +37,7 @@ export async function listarUsernames(): Promise<string[]> {
   if (error) throw error;
   return (data ?? [])
     .map((jogador) => jogador.username)
-    .filter((username) => !/^random[1-6]$/.test(username));
+    .filter((username) => !isRandomUsername(username));
 }
 
 export async function listarJogadoresAtivos(): Promise<JogadorLista[]> {
@@ -55,7 +62,7 @@ export async function listarTodosJogadores(): Promise<JogadorLista[]> {
 
   if (error) throw error;
   return (data ?? [])
-    .filter((j) => !/^random[1-6]$/.test(j.username))
+    .filter((j) => !isRandomUsername(j.username))
     .map((j) => ({
       ...j,
       is_admin: j.is_admin || isSuperAdmin(j.username),

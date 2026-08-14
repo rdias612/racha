@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import { isRandomUsername } from "../lib/jogadores";
 import { useJogadorLogado } from "../hooks/useJogadorLogado";
 import {
   carregarPartida,
@@ -71,7 +72,7 @@ export function PartidaVotar() {
         }
 
         // Jogadores 'random' (placeholders do sorteio) nunca votam.
-        if (jogador.username.toLowerCase().startsWith("random")) {
+        if (isRandomUsername(jogador.username)) {
           setErro("Jogadores random não podem votar.");
           setCarregando(false);
           return;

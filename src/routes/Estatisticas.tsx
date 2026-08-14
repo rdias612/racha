@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import { isRandomUsername } from "../lib/jogadores";
 import { useSessao } from "../context/SessaoContext";
 import { Carregando, MensagemEstado } from "../components/Estado";
 import { PullToRefresh } from "../components/PullToRefresh";
@@ -76,7 +77,7 @@ export function Estatisticas() {
       .then(({ data, error }) => {
         if (error || !data) return;
         const filtrados = data.filter(
-          (j) => !/^random[1-6]$/.test(j.username),
+          (j) => !isRandomUsername(j.username),
         );
         setJogadores(filtrados);
         // default: o proprio jogador logado

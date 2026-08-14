@@ -185,10 +185,7 @@ export function placarDeEventos(
   for (const evento of eventos) {
     const time = timePorJogador.get(evento.jogador_id);
     if (!time) continue;
-    const somaNoAdversario = evento.tipo === "gol_contra";
-    const timeQueRecebe =
-      somaNoAdversario ? (time === "a" ? "b" : "a") : time;
-    if (timeQueRecebe === "a") gols_time_a += 1;
+    if (time === "a") gols_time_a += 1;
     else gols_time_b += 1;
   }
   return { gols_time_a, gols_time_b };

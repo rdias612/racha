@@ -4,7 +4,11 @@ import { supabase } from '../lib/supabase'
 import { useAdmin } from '../hooks/useAdmin'
 import { useJogadorLogado } from '../hooks/useJogadorLogado'
 import { TIMES, POSICOES, type TimeId } from '../lib/times'
-import { listarJogadoresAtivos, type JogadorLista } from '../lib/jogadores'
+import {
+  isRandomUsername,
+  listarJogadoresAtivos,
+  type JogadorLista,
+} from '../lib/jogadores'
 import {
   abrirPartida,
   carregarPartida,
@@ -153,9 +157,7 @@ export function PartidaDetalhe() {
   const jaEhParticipante =
     !!jogadorLogado &&
     participantes.some((p) => p.jogador_id === jogadorLogado.id)
-  const isRandom =
-    !!jogadorLogado &&
-    jogadorLogado.username.toLowerCase().startsWith("random")
+  const isRandom = !!jogadorLogado && isRandomUsername(jogadorLogado.username)
 
   return (
     <div className="px-3 py-4 pb-10 sm:px-4 max-w-2xl mx-auto space-y-4">
