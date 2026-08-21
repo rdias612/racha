@@ -335,6 +335,18 @@ export async function adminDefinirConfirmacao(
   return data as boolean;
 }
 
+// Admin exclui a partida do histórico, independente do status.
+// Remove também dívidas vinculadas (pagas e não pagas); participantes, votos,
+// eventos e push reminders caem por CASCADE. Ver migration 066.
+export async function excluirPartida(partidaId: number, adminId: number) {
+  const { data, error } = await supabase.rpc("excluir_partida", {
+    p_partida_id: partidaId,
+    p_admin_id: adminId,
+  });
+  if (error) throw error;
+  return data as boolean;
+}
+
 // Admin adiciona um avulso (preenche vaga liberada após o prazo).
 export async function adicionarParticipante(
   partidaId: number,
