@@ -9,9 +9,7 @@ import { SkeletonEstatisticas } from "../components/Skeletons";
 import { PullToRefresh } from "../components/PullToRefresh";
 import { Avatar } from "../components/Avatar";
 
-// Mínimo de partidas juntos para uma parceria entrar nas estatísticas
-// (mesmo valor do DEFAULT 5 das RPCs parcerias_jogador / parcerias_destaque_jogador).
-const MIN_PARTIDAS = 5;
+const DEFAULT_MIN_PARTIDAS = 5;
 
 // Stats básicas (mesma fonte do Perfil: view stats_jogador)
 interface Stats {
@@ -62,6 +60,7 @@ export function Estatisticas() {
   const [jogadorSelecionadoId, setJogadorSelecionadoId] = useState<
     number | null
   >(null);
+  const [minimoPartidas, setMinimoPartidas] = useState(DEFAULT_MIN_PARTIDAS);
   const [stats, setStats] = useState<Stats | null>(null);
   const [parcerias, setParcerias] = useState<Parceria[]>([]);
   const [destaques, setDestaques] = useState<Record<MetricaDestaque, ParceriaDestaque | undefined>>({
@@ -99,6 +98,12 @@ export function Estatisticas() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jogador?.id]);
 
+  const maximoPartidas = Math.max(5, stats?.partidas ?? 5);
+
+  useEffect(() => {
+    setMinimoPartidas((minimo) => Math.min(minimo, maximoPartidas));
+  }, [maximoPartidas]);
+
   const carregar = useCallback(async () => {
     if (!jogadorSelecionadoId) return;
     setCarregando(true);
@@ -115,11 +120,11 @@ export function Estatisticas() {
           .maybeSingle(),
         supabase.rpc("parcerias_jogador", {
           p_jogador_id: jogadorSelecionadoId,
-          p_min_partidas: MIN_PARTIDAS,
+          p_min_partidas: minimoPartidas,
         }),
         supabase.rpc("parcerias_destaque_jogador", {
           p_jogador_id: jogadorSelecionadoId,
-          p_min_partidas: MIN_PARTIDAS,
+          p_min_partidas: minimoPartidas,
         }),
       ]);
 
@@ -151,14 +156,14 @@ export function Estatisticas() {
     } finally {
       setCarregando(false);
     }
-  }, [jogadorSelecionadoId]);
+  }, [jogadorSelecionadoId, minimoPartidas]);
 
   useEffect(() => {
     carregar();
   }, [carregar]);
 
   if (!jogador) return null;
-  if (carregando) return <SkeletonEstatisticas />;
+  if (carregando && !stats) return <SkeletonEstatisticas />;
   if (erro)
     return (
       <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">
@@ -257,13 +262,29 @@ export function Estatisticas() {
         <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400 mb-2">
           Parcerias
         </h3>
-        <p className="text-[11px] text-neutral-500 dark:text-neutral-400 -mt-1 mb-3">
-          Mínimo de {MIN_PARTIDAS} partidas juntos.
-        </p>
+
+        <div className="mb-4">
+          <label
+            htmlFor="filtro-minimo-partidas"
+            className="flex items-center justify-between text-sm text-neutral-700 dark:text-neutral-300"
+          >
+            <span>Mínimo de partidas</span>
+            <strong>{minimoPartidas}</strong>
+          </label>
+          <input
+            id="filtro-minimo-partidas"
+            type="range"
+            min="1"
+            max={maximoPartidas}
+            value={minimoPartidas}
+            onChange={(e) => setMinimoPartidas(Number(e.target.value))}
+            className="w-full accent-destaque"
+          />
+        </div>
 
         {semParcerias ? (
           <MensagemEstado tipo="info">
-            Ainda não há {MIN_PARTIDAS}+ partidas com nenhum jogador.
+            Ainda não há {minimoPartidas}+ partidas com nenhum jogador.
           </MensagemEstado>
         ) : (
           <div className="space-y-4">
@@ -275,8 +296,13 @@ export function Estatisticas() {
                 <ParceriaCard
                   titulo="Melhor companheiro"
                   parceria={melhorComp}
+                  minimoPartidas={minimoPartidas}
                 />
-                <ParceriaCard titulo="Pior companheiro" parceria={piorComp} />
+                <ParceriaCard
+                  titulo="Pior companheiro"
+                  parceria={piorComp}
+                  minimoPartidas={minimoPartidas}
+                />
               </div>
             </div>
 
@@ -285,8 +311,16 @@ export function Estatisticas() {
                 Adversários
               </p>
               <div className="grid grid-cols-2 gap-2">
-                <ParceriaCard titulo="Melhor % contra" parceria={melhorAdv} />
-                <ParceriaCard titulo="Pior % contra" parceria={piorAdv} />
+                <ParceriaCard
+                  titulo="Melhor % contra"
+                  parceria={melhorAdv}
+                  minimoPartidas={minimoPartidas}
+                />
+                <ParceriaCard
+                  titulo="Pior % contra"
+                  parceria={piorAdv}
+                  minimoPartidas={minimoPartidas}
+                />
               </div>
             </div>
 
@@ -299,16 +333,19 @@ export function Estatisticas() {
                   titulo="Mais gols junto"
                   metrica="mais_gols"
                   destaque={destaques.mais_gols}
+                  minimoPartidas={minimoPartidas}
                 />
                 <ParceriaDestaqueCard
                   titulo="Melhor média nota"
                   metrica="melhor_nota"
                   destaque={destaques.melhor_nota}
+                  minimoPartidas={minimoPartidas}
                 />
                 <ParceriaDestaqueCard
                   titulo="Pior média nota"
                   metrica="pior_nota"
                   destaque={destaques.pior_nota}
+                  minimoPartidas={minimoPartidas}
                 />
               </div>
             </div>
@@ -324,9 +361,15 @@ interface ParceriaDestaqueCardProps {
   titulo: string;
   metrica: MetricaDestaque;
   destaque?: ParceriaDestaque;
+  minimoPartidas: number;
 }
 
-function ParceriaDestaqueCard({ titulo, metrica, destaque }: ParceriaDestaqueCardProps) {
+function ParceriaDestaqueCard({
+  titulo,
+  metrica,
+  destaque,
+  minimoPartidas,
+}: ParceriaDestaqueCardProps) {
   return (
     <div className="flex flex-col justify-between rounded-xl border border-neutral-200 bg-white p-3 shadow-xs dark:border-neutral-800 dark:bg-neutral-900/60">
       <div className="flex items-center justify-between gap-1.5 mb-2">
@@ -344,7 +387,8 @@ function ParceriaDestaqueCard({ titulo, metrica, destaque }: ParceriaDestaqueCar
 
       {!destaque ? (
         <p className="mt-1 text-xs text-neutral-400 dark:text-neutral-500">
-          Sem dados suficientes (mín. 5 partidas)
+          Sem dados suficientes (mín. {minimoPartidas}{" "}
+          {minimoPartidas === 1 ? "partida" : "partidas"})
         </p>
       ) : (
         <div className="flex items-center gap-2.5">
@@ -354,7 +398,8 @@ function ParceriaDestaqueCard({ titulo, metrica, destaque }: ParceriaDestaqueCar
               {destaque.nome}
             </p>
             <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
-              {destaque.partidas} partidas juntas
+              {destaque.partidas}{" "}
+              {destaque.partidas === 1 ? "partida junta" : "partidas juntas"}
             </p>
           </div>
         </div>
@@ -377,9 +422,10 @@ function StatBox({ label, value }: { label: string; value: number }) {
 interface ParceriaCardProps {
   titulo: string;
   parceria?: Parceria;
+  minimoPartidas: number;
 }
 
-function ParceriaCard({ titulo, parceria }: ParceriaCardProps) {
+function ParceriaCard({ titulo, parceria, minimoPartidas }: ParceriaCardProps) {
   return (
     <div className="flex flex-col justify-between rounded-xl border border-neutral-200 bg-white p-3 shadow-xs dark:border-neutral-800 dark:bg-neutral-900/60">
       <div className="flex items-center justify-between gap-1.5 mb-2">
@@ -395,7 +441,8 @@ function ParceriaCard({ titulo, parceria }: ParceriaCardProps) {
 
       {!parceria ? (
         <p className="mt-1 text-xs text-neutral-400 dark:text-neutral-500">
-          Sem dados suficientes (mín. 5 partidas)
+          Sem dados suficientes (mín. {minimoPartidas}{" "}
+          {minimoPartidas === 1 ? "partida" : "partidas"})
         </p>
       ) : (
         <div className="space-y-2">
@@ -406,7 +453,8 @@ function ParceriaCard({ titulo, parceria }: ParceriaCardProps) {
                 {parceria.nome}
               </p>
               <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
-                {parceria.partidas} partidas
+                {parceria.partidas}{" "}
+                {parceria.partidas === 1 ? "partida" : "partidas"}
               </p>
             </div>
           </div>
