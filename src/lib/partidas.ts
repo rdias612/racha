@@ -347,3 +347,140 @@ export async function adicionarParticipante(
   if (error) throw error;
   return data as boolean;
 }
+
+// Remove participante de uma partida em draft.
+export async function removerParticipanteDraft(
+  partidaId: number,
+  jogadorId: number,
+) {
+  const { error } = await supabase
+    .from("partidas_participantes")
+    .delete()
+    .eq("partida_id", partidaId)
+    .eq("jogador_id", jogadorId);
+  if (error) throw error;
+  return true;
+}
+
+export interface ParticipanteEdicao {
+  partida_id: number;
+  jogador_id: number;
+  time: TimeId | null;
+  posicao: PosicaoId;
+  gols: number;
+  assistencias: number;
+  gols_contra: number;
+  status_confirmacao: StatusConfirmacao;
+  nome?: string;
+  username?: string;
+}
+
+// Salva adições, remoções, trocas de time e estatísticas de participantes.
+export async function salvarEdicaoCompletaPartida(
+  partidaId: number,
+  participantesNovos: ParticipanteEdicao[],
+  participantesOriginais: Participante[],
+  statusPartida: StatusPartida,
+  primeiraVezPublicacao: boolean = false,
+) {
+  const originaisIds = new Set(participantesOriginais.map((p) => p.jogador_id));
+  const novosIds = new Set(participantesNovos.map((p) => p.jogador_id));
+
+  const removidos = participantesOriginais.filter(
+    (p) => !novosIds.has(p.jogador_id),
+  );
+  const adicionados = participantesNovos.filter(
+    (p) => !originaisIds.has(p.jogador_id),
+  );
+  const mantidos = participantesNovos.filter((p) =>
+    originaisIds.has(p.jogador_id),
+  );
+
+  // 1. Processar removidos
+  for (const p of removidos) {
+    // Remove eventos vinculados se houver
+    await supabase
+      .from("partida_eventos")
+      .delete()
+      .eq("partida_id", partidaId)
+      .or(`jogador_id.eq.${p.jogador_id},assistencia_jogador_id.eq.${p.jogador_id}`);
+
+    // Remove votos associados se houver
+    await supabase
+      .from("votes")
+      .delete()
+      .eq("partida_id", partidaId)
+      .or(`voter_id.eq.${p.jogador_id},target_id.eq.${p.jogador_id}`);
+
+    // Remove dívidas avulsas não pagas desta partida se houver
+    await supabase
+      .from("dividas")
+      .delete()
+      .eq("partida_id", partidaId)
+      .eq("jogador_id", p.jogador_id)
+      .eq("tipo", "avulso")
+      .eq("paga", false);
+
+    // Remove de partidas_participantes
+    const { error: errDel } = await supabase
+      .from("partidas_participantes")
+      .delete()
+      .eq("partida_id", partidaId)
+      .eq("jogador_id", p.jogador_id);
+    if (errDel) throw errDel;
+  }
+
+  // 2. Processar adicionados
+  if (adicionados.length > 0) {
+    const records = adicionados.map((p) => ({
+      partida_id: partidaId,
+      jogador_id: p.jogador_id,
+      time: p.time,
+      posicao: p.posicao,
+      gols: p.gols ?? 0,
+      assistencias: p.assistencias ?? 0,
+      gols_contra: p.gols_contra ?? 0,
+      status_confirmacao: p.status_confirmacao ?? "confirmado",
+    }));
+    const { error: errIns } = await supabase
+      .from("partidas_participantes")
+      .insert(records);
+    if (errIns) throw errIns;
+  }
+
+  // 3. Processar atualizações de mantidos
+  for (const p of mantidos) {
+    const { error: errUpd } = await supabase
+      .from("partidas_participantes")
+      .update({
+        time: p.time,
+        posicao: p.posicao,
+        gols: p.gols ?? 0,
+        assistencias: p.assistencias ?? 0,
+        gols_contra: p.gols_contra ?? 0,
+        status_confirmacao: p.status_confirmacao ?? "confirmado",
+      })
+      .eq("partida_id", partidaId)
+      .eq("jogador_id", p.jogador_id);
+    if (errUpd) throw errUpd;
+  }
+
+  // 4. Se for primeira vez publicando (draft -> published)
+  if (primeiraVezPublicacao) {
+    const publicado = await publicarPartida(partidaId);
+    if (!publicado) {
+      throw new Error(
+        "Não foi possível publicar a partida (ela precisa estar em rascunho).",
+      );
+    }
+  } else if (statusPartida === "published" || statusPartida === "closed") {
+    // Sincroniza geração de avulsos caso novo avulso tenha sido adicionado
+    try {
+      await supabase.rpc("gerar_avulsos_partida", { p_partida_id: partidaId });
+    } catch {
+      // Ignora caso a RPC não precise rodar
+    }
+  }
+
+  return true;
+}

@@ -20,6 +20,7 @@ import {
   confirmarPresenca,
   adminDefinirConfirmacao,
   adicionarParticipante,
+  removerParticipanteDraft,
   vagasOcupadas,
   podeConfirmar,
   CAPACIDADE_PARTIDA,
@@ -352,7 +353,7 @@ export function PartidaDetalhe() {
             to={`/partida/${partida.id}/editar`}
             className="block text-center rounded-lg border border-neutral-300 dark:border-neutral-700 px-4 py-3 font-medium text-neutral-700 dark:text-neutral-300"
           >
-            Lançar resultado sem acompanhar
+            Lançar resultado / editar escalação
           </Link>
         </div>
       )}
@@ -378,7 +379,7 @@ export function PartidaDetalhe() {
                 : 'block text-center rounded-lg border border-neutral-300 dark:border-neutral-700 px-4 py-3 font-medium text-neutral-700 dark:text-neutral-300'
             }
           >
-            Editar resultado
+            Editar partida e resultado
           </Link>
         </div>
       )}
@@ -506,7 +507,13 @@ function BotoesSelf({ status, podeConf, ocupadas, processando, onAtualizar }: Pr
 }
 
 // Controles do admin (pode mexer em qualquer jogador).
-function BotoesAdmin({ status, podeConf, processando, onAtualizar }: PropsBotoes) {
+function BotoesAdmin({
+  status,
+  podeConf,
+  processando,
+  onAtualizar,
+  onRemover,
+}: PropsBotoes & { onRemover?: () => void }) {
   const mini =
     'min-h-[30px] min-w-[30px] rounded-md border text-xs font-bold active:scale-95 transition disabled:opacity-30'
   const off = 'border-neutral-300 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400'
@@ -551,6 +558,17 @@ function BotoesAdmin({ status, podeConf, processando, onAtualizar }: PropsBotoes
       >
         ✗
       </button>
+      {onRemover && (
+        <button
+          type="button"
+          disabled={processando}
+          onClick={onRemover}
+          title="Remover convite"
+          className={`${mini} ${off} hover:text-red-600 dark:hover:text-red-400`}
+        >
+          ✕
+        </button>
+      )}
     </div>
   )
 }
@@ -602,6 +620,19 @@ function Confirmacoes({
       } else {
         await onAtualizar()
       }
+    } catch (e: any) {
+      setErroLocal(e.message ?? String(e))
+    } finally {
+      setProcessando(null)
+    }
+  }
+
+  async function remover(jogadorId: number) {
+    setErroLocal(null)
+    setProcessando(jogadorId)
+    try {
+      await removerParticipanteDraft(partida.id, jogadorId)
+      await onAtualizar()
     } catch (e: any) {
       setErroLocal(e.message ?? String(e))
     } finally {
@@ -698,6 +729,7 @@ function Confirmacoes({
                     ocupadas={ocupadas}
                     processando={processando === p.jogador_id}
                     onAtualizar={(alvo) => atualizar(p.jogador_id, alvo)}
+                    onRemover={() => remover(p.jogador_id)}
                   />
                 ) : null}
               </div>
