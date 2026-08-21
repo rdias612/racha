@@ -207,21 +207,32 @@ export function EstatisticasRacha() {
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                    Ranking de Duplas ({paresOrdenados.length})
-                  </p>
-                  <span className="text-[11px] text-neutral-400 dark:text-neutral-500">
-                    Clique no cabeçalho para ordenar
-                  </span>
-                </div>
+                <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                  Top 5
+                </p>
                 <TabelaDuplas
-                  pares={paresOrdenados}
+                  pares={paresOrdenados.slice(0, 5)}
                   colunaOrdenacao={colunaOrdenacao}
                   direcaoOrdenacao={direcaoOrdenacao}
                   onOrdenar={selecionarOrdenacao}
+                  inicio={1}
                 />
               </div>
+
+              {paresOrdenados.length > 5 && (
+                <div>
+                  <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                    Bottom 5
+                  </p>
+                  <TabelaDuplas
+                    pares={paresOrdenados.slice(-5).reverse()}
+                    colunaOrdenacao={colunaOrdenacao}
+                    direcaoOrdenacao={direcaoOrdenacao}
+                    onOrdenar={selecionarOrdenacao}
+                    inicio={1}
+                  />
+                </div>
+              )}
             </div>
           )}
         </SecaoRacha>
@@ -235,6 +246,7 @@ interface TabelaDuplasProps {
   colunaOrdenacao: ColunaOrdenacaoDuplas;
   direcaoOrdenacao: DirecaoOrdenacao;
   onOrdenar: (coluna: ColunaOrdenacaoDuplas) => void;
+  inicio?: number;
 }
 
 function TabelaDuplas({
@@ -242,6 +254,7 @@ function TabelaDuplas({
   colunaOrdenacao,
   direcaoOrdenacao,
   onOrdenar,
+  inicio = 1,
 }: TabelaDuplasProps) {
   function renderIndicador(coluna: ColunaOrdenacaoDuplas) {
     if (colunaOrdenacao !== coluna) {
@@ -326,7 +339,7 @@ function TabelaDuplas({
               className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors"
             >
               <td className="px-3 py-2.5 text-center font-medium text-neutral-400 dark:text-neutral-500 text-[11px]">
-                {i + 1}
+                {inicio + i}
               </td>
               <td className="px-3 py-2.5 font-bold text-neutral-900 dark:text-neutral-100 whitespace-nowrap">
                 <div className="flex items-center gap-2">
