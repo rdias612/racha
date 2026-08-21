@@ -131,6 +131,16 @@ export async function atualizarNomeJogador(id: number, nome: string): Promise<vo
   if (error) throw error;
 }
 
+// Redefine a senha do jogador para o padrão "123" (RPC resetar_senha).
+export async function resetarSenhaJogador(id: number): Promise<void> {
+  const { data, error } = await supabase.rpc("resetar_senha", {
+    p_jogador_id: id,
+  });
+
+  if (error) throw error;
+  if (data !== true) throw new Error("Jogador não encontrado.");
+}
+
 export async function obterMediasNotasJogadores(): Promise<Record<number, number>> {
   const { data, error } = await supabase
     .from("votes")

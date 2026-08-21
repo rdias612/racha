@@ -4,6 +4,7 @@ import { useAdmin } from "../hooks/useAdmin";
 import {
   listarTodosJogadores,
   atualizarCaracteristicasJogador,
+  resetarSenhaJogador,
   isSuperAdmin,
   MAX_MENSALISTAS,
   type JogadorLista,
@@ -11,6 +12,8 @@ import {
 import { POSICOES } from "../lib/times";
 import { Avatar } from "../components/Avatar";
 import { Carregando, MensagemEstado } from "../components/Estado";
+import { ConfirmDialog } from "../components/ConfirmDialog";
+import { Snackbar, type TipoSnackbar } from "../components/Snackbar";
 import {
   ArrowLeft,
   Users,
@@ -24,6 +27,7 @@ import {
   Save,
   RotateCcw,
   Sparkles,
+  KeyRound,
 } from "lucide-react";
 
 type FiltroTipo = "todos" | "mensalistas" | "avulsos" | "admins";
@@ -48,6 +52,15 @@ export function GestaoJogadores() {
   const [salvandoLote, setSalvandoLote] = useState(false);
   const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null);
   const [mensagemErro, setMensagemErro] = useState<string | null>(null);
+
+  // Reset de senha (ação imediata, fora do fluxo de rascunhos)
+  const [resetandoId, setResetandoId] = useState<number | null>(null);
+  const [alvoReset, setAlvoReset] = useState<JogadorLista | null>(null);
+  const [snackbar, setSnackbar] = useState<{
+    visivel: boolean;
+    tipo: TipoSnackbar;
+    mensagem: string;
+  }>({ visivel: false, tipo: "sucesso", mensagem: "" });
 
   useEffect(() => {
     async function carregar() {
@@ -189,6 +202,29 @@ export function GestaoJogadores() {
     setRascunhos({});
     setMensagemErro(null);
     setMensagemSucesso("Alterações descartadas.");
+  }
+
+  async function confirmarResetSenha() {
+    if (!alvoReset || resetandoId !== null) return;
+
+    setResetandoId(alvoReset.id);
+    try {
+      await resetarSenhaJogador(alvoReset.id);
+      setSnackbar({
+        visivel: true,
+        tipo: "sucesso",
+        mensagem: `Senha de ${alvoReset.nome} resetada para "123".`,
+      });
+      setAlvoReset(null);
+    } catch (err) {
+      setSnackbar({
+        visivel: true,
+        tipo: "erro",
+        mensagem: err instanceof Error ? err.message : "Erro ao resetar senha.",
+      });
+    } finally {
+      setResetandoId(null);
+    }
   }
 
   async function salvarTodasAlteracoes() {
@@ -610,6 +646,26 @@ export function GestaoJogadores() {
                     </span>
                   </button>
 
+                  {/* Ações: Resetar Senha */}
+                  {!superadmin && (
+                    <button
+                      type="button"
+                      disabled={resetandoId !== null}
+                      onClick={() => setAlvoReset(jOriginal)}
+                      title="Redefinir a senha para o padrão 123"
+                      className="flex items-center justify-between p-2.5 rounded-lg border border-neutral-200 bg-neutral-50/50 dark:border-neutral-800 dark:bg-neutral-800/30 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800/60 transition disabled:opacity-50"
+                    >
+                      <div className="flex items-center gap-2">
+                        <KeyRound className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
+                        <span className="font-semibold">Resetar Senha</span>
+                      </div>
+
+                      <span className="text-[11px] font-medium opacity-80">
+                        {resetandoId === j.id ? "Resetando..." : "Padrão \"123\""}
+                      </span>
+                    </button>
+                  )}
+
                 </div>
               </div>
             );
@@ -662,6 +718,27 @@ export function GestaoJogadores() {
           </div>
         </div>
       )}
+
+      {/* Confirmação de Reset de Senha */}
+      <ConfirmDialog
+        open={alvoReset !== null}
+        onClose={() => setAlvoReset(null)}
+        onConfirm={confirmarResetSenha}
+        titulo="Resetar senha"
+        mensagem={
+          alvoReset
+            ? `Redefinir a senha de ${alvoReset.nome} (@${alvoReset.username}) para o padrão "123"? Ele deve trocá-la depois no Perfil.`
+            : undefined
+        }
+        textoConfirmar={resetandoId !== null ? "Resetando..." : "Resetar"}
+      />
+
+      <Snackbar
+        mensagem={snackbar.mensagem}
+        tipo={snackbar.tipo}
+        visivel={snackbar.visivel}
+        onFechar={() => setSnackbar((s) => ({ ...s, visivel: false }))}
+      />
 
     </div>
   );
