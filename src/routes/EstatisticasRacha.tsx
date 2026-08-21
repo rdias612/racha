@@ -1,16 +1,23 @@
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
-import { Carregando, MensagemEstado } from "../components/Estado";
+import { MensagemEstado } from "../components/Estado";
+import { SkeletonEstatisticas } from "../components/Skeletons";
 import { DuplaCard } from "../components/DuplaCard";
 import { SecaoRacha } from "../components/SecaoRacha";
 import { Avatar } from "../components/Avatar";
 import { carregarParesRacha, type ParRacha } from "../lib/partidas";
+import { useSwipeTabs } from "../hooks/useSwipeTabs";
 
 const MIN_PARTIDAS = 5;
 
 export function EstatisticasRacha() {
   const [pares, setPares] = useState<ParRacha[] | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+
+  const { handlers: swipeHandlers } = useSwipeTabs({
+    tabs: ["/estatisticas/jogador", "/estatisticas/racha"],
+    activeTab: "/estatisticas/racha",
+  });
 
   useEffect(() => {
     let cancelado = false;
@@ -35,14 +42,17 @@ export function EstatisticasRacha() {
     );
   }
   if (pares === null) {
-    return <Carregando>Carregando estatísticas do racha…</Carregando>;
+    return <SkeletonEstatisticas />;
   }
 
   const melhor = pares[0] ?? null;
   const pior = pares.length > 1 ? (pares[pares.length - 1] ?? null) : null;
 
   return (
-    <div className="mx-auto w-full max-w-2xl space-y-6 px-3 py-4 sm:px-4">
+    <div
+      className="mx-auto w-full max-w-2xl space-y-6 px-3 py-4 sm:px-4 touch-pan-y"
+      {...swipeHandlers}
+    >
       <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
         Estatísticas · Racha
       </h2>

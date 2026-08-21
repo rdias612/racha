@@ -3,7 +3,9 @@ import { NavLink } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { isRandomUsername } from "../lib/jogadores";
 import { useSessao } from "../context/SessaoContext";
-import { Carregando, MensagemEstado } from "../components/Estado";
+import { useSwipeTabs } from "../hooks/useSwipeTabs";
+import { MensagemEstado } from "../components/Estado";
+import { SkeletonEstatisticas } from "../components/Skeletons";
 import { PullToRefresh } from "../components/PullToRefresh";
 import { Avatar } from "../components/Avatar";
 
@@ -69,6 +71,11 @@ export function Estatisticas() {
   });
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
+
+  const { handlers: swipeHandlers } = useSwipeTabs({
+    tabs: ["/estatisticas/jogador", "/estatisticas/racha"],
+    activeTab: "/estatisticas/jogador",
+  });
 
   // Carrega lista de jogadores ativos uma vez, filtrando os "random".
   useEffect(() => {
@@ -151,7 +158,7 @@ export function Estatisticas() {
   }, [carregar]);
 
   if (!jogador) return null;
-  if (carregando) return <Carregando>Carregando estatísticas</Carregando>;
+  if (carregando) return <SkeletonEstatisticas />;
   if (erro)
     return (
       <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">
@@ -173,7 +180,10 @@ export function Estatisticas() {
 
   return (
     <PullToRefresh onRefresh={carregar}>
-      <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-5">
+      <div
+        className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-5 touch-pan-y"
+        {...swipeHandlers}
+      >
       <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
         Estatísticas{nomeSelecionado ? ` · ${nomeSelecionado}` : ""}
       </h2>

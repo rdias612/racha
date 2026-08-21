@@ -11,7 +11,8 @@ import {
 } from "../lib/jogadores";
 import { POSICOES } from "../lib/times";
 import { Avatar } from "../components/Avatar";
-import { Carregando, MensagemEstado } from "../components/Estado";
+import { MensagemEstado } from "../components/Estado";
+import { SkeletonGestao } from "../components/Skeletons";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { Snackbar, type TipoSnackbar } from "../components/Snackbar";
 import {
@@ -283,6 +284,8 @@ export function GestaoJogadores() {
     return true;
   });
 
+  if (carregando) return <SkeletonGestao />;
+
   return (
     <div className="px-3 py-4 pb-32 sm:px-4 max-w-3xl mx-auto space-y-5 relative">
       <button
@@ -468,9 +471,7 @@ export function GestaoJogadores() {
       </div>
 
       {/* Lista de Jogadores */}
-      {carregando ? (
-        <Carregando>Carregando jogadores...</Carregando>
-      ) : jogadoresFiltrados.length === 0 ? (
+      {jogadoresFiltrados.length === 0 ? (
         <div className="text-center py-8 border border-dashed border-neutral-300 dark:border-neutral-800 rounded-xl">
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
             Nenhum jogador encontrado com os filtros selecionados.

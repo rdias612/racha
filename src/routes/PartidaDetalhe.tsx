@@ -33,7 +33,8 @@ import {
   type NotaPartida,
   type StatusConfirmacao,
 } from '../lib/partidas'
-import { Carregando, MensagemEstado } from '../components/Estado'
+import { MensagemEstado } from '../components/Estado'
+import { SkeletonDetalhe } from '../components/Skeletons'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { formatarDataCompleta, formatarDataMobile, formatarFechamento } from '../lib/formatacao'
 import { Avatar } from '../components/Avatar'
@@ -117,7 +118,7 @@ export function PartidaDetalhe() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
-  if (carregando) return <Carregando>Carregando partida</Carregando>
+  if (carregando) return <SkeletonDetalhe />
   if (!partida)
     return (
       <MensagemEstado

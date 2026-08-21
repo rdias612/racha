@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Carregando, MensagemEstado } from "../components/Estado";
+import { MensagemEstado } from "../components/Estado";
+import { SkeletonResumo } from "../components/Skeletons";
 import { BotaoInstalar } from "../components/BotaoInstalar";
 import { supabase } from "../lib/supabase";
 import {
@@ -95,7 +96,7 @@ export function Resumo() {
     carregarProxima();
   }, []);
 
-  if (carregando) return <Carregando>Carregando resumo anual</Carregando>;
+  if (carregando) return <SkeletonResumo />;
   if (erro) {
     return (
       <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">

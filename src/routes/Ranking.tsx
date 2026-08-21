@@ -3,7 +3,9 @@ import { NavLink, useParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { POSICOES, type PosicaoId } from "../lib/times";
 import { useJogadorLogado } from "../hooks/useJogadorLogado";
-import { Carregando, MensagemEstado } from "../components/Estado";
+import { useSwipeTabs } from "../hooks/useSwipeTabs";
+import { MensagemEstado } from "../components/Estado";
+import { SkeletonRanking } from "../components/Skeletons";
 import { PullToRefresh } from "../components/PullToRefresh";
 import { Avatar } from "../components/Avatar";
 
@@ -76,10 +78,18 @@ export function Ranking() {
   );
   const [direcaoOrdenacao, setDirecaoOrdenacao] =
     useState<DirecaoOrdenacao>("desc");
-  const [posicaoFiltro, setPosicaoFiltro] = useState<PosicaoId | "todas">(
-    "todas",
-  );
+  const [posicaoFiltro, setPosicaoFiltro] = useState<PosicaoId | "todas">("todas");
   const [minimoPartidas, setMinimoPartidas] = useState(6);
+
+  const { handlers: swipeHandlers } = useSwipeTabs({
+    tabs: [
+      "/ranking/pontos",
+      "/ranking/gols",
+      "/ranking/assistencias",
+      "/ranking/gols-contra",
+    ],
+    activeTab: `/ranking/${metrica}`,
+  });
 
   useEffect(() => {
     setPosicaoFiltro("todas");
@@ -127,7 +137,7 @@ export function Ranking() {
     setMinimoPartidas((minimo) => Math.min(minimo, maximoPartidas));
   }, [maximoPartidas]);
 
-  if (carregando) return <Carregando>Carregando ranking</Carregando>;
+  if (carregando) return <SkeletonRanking />;
   if (erro)
     return (
       <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">
@@ -185,7 +195,10 @@ export function Ranking() {
 
   return (
     <PullToRefresh onRefresh={carregar}>
-      <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto">
+      <div
+        className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto touch-pan-y"
+        {...swipeHandlers}
+      >
         <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-3">
           {configuracao.titulo}
         </h2>

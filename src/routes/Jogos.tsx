@@ -4,7 +4,8 @@ import { Trash2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAdmin } from '../hooks/useAdmin'
 import { useSessao } from '../context/SessaoContext'
-import { Carregando, MensagemEstado } from '../components/Estado'
+import { MensagemEstado } from '../components/Estado'
+import { SkeletonJogos } from '../components/Skeletons'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { Snackbar, type TipoSnackbar } from '../components/Snackbar'
 import { formatarDataLista } from '../lib/formatacao'
@@ -92,7 +93,7 @@ export function Jogos() {
     }
   }
 
-  if (carregando) return <Carregando>Carregando jogos</Carregando>
+  if (carregando) return <SkeletonJogos />
   if (erro) return <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">{erro}</MensagemEstado>
 
   return (
