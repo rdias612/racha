@@ -203,7 +203,7 @@ GROUP BY p.id;
 -- View `partida_notas` com colunas: partida_id, target_id, nome, avg_rating,
 -- vote_count, is_craque.
 --   - Agrega `votes` por (partida_id, target_id):
---       avg_rating = AVG(rating), vote_count = COUNT(*).
+--       avg_rating = média desconsiderando a menor e a maior nota se >= 3 votos, vote_count = COUNT(*).
 --   - Join com jogadores para trazer `nome`.
 --   - `is_craque` boolean resolvido via window function:
 --       RANK() OVER (PARTITION BY partida_id
@@ -218,20 +218,32 @@ GROUP BY p.id;
 -- e ambos ficariam is_craque=true). Isso e aceitavel para o MVP.
 
 CREATE OR REPLACE VIEW partida_notas AS
-WITH agg AS (
+WITH raw_agg AS (
   SELECT
     v.partida_id,
     v.target_id,
     j.nome,
-    AVG(v.rating)::numeric                                     AS avg_rating,
-    COUNT(*)::bigint                                           AS vote_count,
-    RANK() OVER (
-      PARTITION BY v.partida_id
-      ORDER BY AVG(v.rating) DESC, COUNT(*) DESC, j.nome ASC
-    )                                                          AS rk
+    CASE
+      WHEN COUNT(*) >= 3 THEN (SUM(v.rating) - MIN(v.rating) - MAX(v.rating))::numeric / (COUNT(*) - 2)
+      ELSE AVG(v.rating)::numeric
+    END                                                        AS avg_rating,
+    COUNT(*)::bigint                                           AS vote_count
   FROM votes v
   JOIN jogadores j ON j.id = v.target_id
   GROUP BY v.partida_id, v.target_id, j.nome
+),
+agg AS (
+  SELECT
+    partida_id,
+    target_id,
+    nome,
+    avg_rating,
+    vote_count,
+    RANK() OVER (
+      PARTITION BY partida_id
+      ORDER BY avg_rating DESC, vote_count DESC, nome ASC
+    )                                                          AS rk
+  FROM raw_agg
 )
 SELECT
   partida_id,

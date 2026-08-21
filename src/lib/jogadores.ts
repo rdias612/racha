@@ -148,22 +148,32 @@ export async function obterMediasNotasJogadores(): Promise<Record<number, number
 
   if (error || !data) return {};
 
-  const acumulado: Record<number, { soma: number; qtd: number }> = {};
+  const acumulado: Record<number, number[]> = {};
   for (const v of data) {
     const tid = Number(v.target_id);
     const rat = Number(v.rating);
     if (!isNaN(tid) && !isNaN(rat)) {
       if (!acumulado[tid]) {
-        acumulado[tid] = { soma: 0, qtd: 0 };
+        acumulado[tid] = [];
       }
-      acumulado[tid].soma += rat;
-      acumulado[tid].qtd += 1;
+      acumulado[tid].push(rat);
     }
   }
 
   const medias: Record<number, number> = {};
   for (const id in acumulado) {
-    medias[id] = Number((acumulado[id].soma / acumulado[id].qtd).toFixed(2));
+    const notas = acumulado[id];
+    if (notas.length >= 3) {
+      const soma = notas.reduce((acc, r) => acc + r, 0);
+      const min = Math.min(...notas);
+      const max = Math.max(...notas);
+      const somaAjustada = soma - min - max;
+      const qtdAjustada = notas.length - 2;
+      medias[id] = Number((somaAjustada / qtdAjustada).toFixed(2));
+    } else if (notas.length > 0) {
+      const soma = notas.reduce((acc, r) => acc + r, 0);
+      medias[id] = Number((soma / notas.length).toFixed(2));
+    }
   }
   return medias;
 }
