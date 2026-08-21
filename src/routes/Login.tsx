@@ -129,7 +129,7 @@ export function Login() {
                 onFocus={() => setAberto(true)}
                 onBlur={fecharComAtraso}
                 onKeyDown={navegarTeclado}
-                className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 pr-10 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-[var(--cor-destaque)]"
+                className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 pr-10 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-destaque"
                 required
                 disabled={carregandoUsernames || !!erroUsernames}
               />
@@ -198,7 +198,7 @@ export function Login() {
               enterKeyHint="go"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
-              className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-[var(--cor-destaque)]"
+              className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-destaque"
               required
             />
           </div>
@@ -212,7 +212,7 @@ export function Login() {
             disabled={
               carregando || carregandoUsernames || !!erroUsernames || !username
             }
-            className="w-full rounded-lg bg-[var(--cor-destaque)] px-4 py-2 font-medium text-white disabled:opacity-50 hover:opacity-90 transition"
+            className="w-full rounded-lg bg-destaque px-4 py-2 font-medium text-white disabled:opacity-50 hover:opacity-90 transition"
           >
             {carregando ? "Entrando..." : "Entrar"}
           </button>

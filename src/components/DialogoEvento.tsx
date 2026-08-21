@@ -142,8 +142,8 @@ export function DialogoEvento({
                 onClick={() => setEtapa("assistencia")}
                 className={`cursor-pointer rounded-lg px-3 py-3 text-sm font-medium active:scale-95 disabled:opacity-40 ${
                   editando && tipoAtual === "gol"
-                    ? "bg-[var(--cor-destaque)] text-white ring-2 ring-[var(--cor-destaque)] ring-offset-2 ring-offset-white dark:ring-offset-neutral-900"
-                    : "bg-[var(--cor-destaque)] text-white"
+                    ? "bg-destaque text-white ring-2 ring-destaque ring-offset-2 ring-offset-white dark:ring-offset-neutral-900"
+                    : "bg-destaque text-white"
                 }`}
               >
                 ⚽ Gol
@@ -187,7 +187,7 @@ export function DialogoEvento({
               onClick={() => onConfirmar("gol", null)}
               className={`mt-4 w-full cursor-pointer rounded-lg border px-3 py-3 text-sm font-medium active:scale-95 disabled:opacity-40 ${
                 editando && assistenciaAtual == null && tipoAtual === "gol"
-                  ? "border-[var(--cor-destaque)] bg-[var(--cor-destaque)]/10 text-neutral-900 dark:text-neutral-100"
+                  ? "border-destaque bg-destaque/10 text-neutral-900 dark:text-neutral-100"
                   : "border-neutral-300 text-neutral-800 dark:border-neutral-700 dark:text-neutral-200"
               }`}
             >
@@ -205,7 +205,7 @@ export function DialogoEvento({
                     onClick={() => onConfirmar("gol", c.jogador_id)}
                     className={`w-full cursor-pointer rounded-lg px-3 py-2.5 text-left text-sm font-medium active:scale-[0.99] disabled:opacity-40 ${
                       ativo
-                        ? "bg-[var(--cor-destaque)] text-white"
+                        ? "bg-destaque text-white"
                         : "bg-neutral-100 text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100"
                     }`}
                   >

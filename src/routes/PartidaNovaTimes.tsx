@@ -324,8 +324,8 @@ export function PartidaNovaTimes() {
               ehGoleiro && time !== "b" && contagemGoleiros.b >= 1;
             const pretoDisabled = pretoCheio || pretoBloqueiaGoleiro;
             const brancoDisabled = brancoCheio || brancoBloqueiaGoleiro;
+            const notaJogador = mediasNotas[j.id] ?? 6.0;
             const temNota = mediasNotas[j.id] !== undefined;
-            const notaJogador = temNota ? mediasNotas[j.id] : 6.0;
 
             return (
               <div
@@ -418,7 +418,7 @@ export function PartidaNovaTimes() {
           <button
             onClick={salvarComoDraft}
             disabled={!podeSalvar}
-            className="w-full min-h-[44px] rounded-lg bg-[var(--cor-destaque)] px-4 py-3 font-medium text-white disabled:opacity-40 active:scale-95 transition"
+            className="w-full min-h-[44px] rounded-lg bg-destaque px-4 py-3 font-medium text-white disabled:opacity-40 active:scale-95 transition"
           >
             {salvando ? "Criando…" : "Criar partida"}
           </button>

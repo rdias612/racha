@@ -17,7 +17,12 @@ function embaralhar<T>(array: T[]): T[] {
   const arr = [...array];
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+    const current = arr[i];
+    const target = arr[j];
+    if (current !== undefined && target !== undefined) {
+      arr[i] = target;
+      arr[j] = current;
+    }
   }
   return arr;
 }
@@ -62,8 +67,7 @@ export function gerarEscalacaoAutomatica(
 
   // 1. Distribuir Goleiros alternadamente (atribuindo o melhor goleiro ao time com menor saldo)
   goleiros.sort((a, b) => b.nota - a.nota);
-  for (let i = 0; i < goleiros.length; i++) {
-    const g = goleiros[i];
+  for (const g of goleiros) {
     if (timeA.length < limitePorTime && (timeB.length >= limitePorTime || somaNotas(timeA) <= somaNotas(timeB))) {
       timeA.push(g);
     } else if (timeB.length < limitePorTime) {
@@ -78,7 +82,7 @@ export function gerarEscalacaoAutomatica(
   for (const j of linha) {
     const pos = j.posicao;
     if (!gruposPosicao[pos]) gruposPosicao[pos] = [];
-    gruposPosicao[pos].push(j);
+    gruposPosicao[pos]!.push(j);
   }
 
   const sobras: JogadorComRating[] = [];
@@ -86,13 +90,14 @@ export function gerarEscalacaoAutomatica(
   // 3. Pares por posição primária usando ABBA equilibrado pela soma das notas
   for (const pos in gruposPosicao) {
     // Ordena por nota (maior para menor) com pequena variação aleatória para não ser 100% estático
-    const lista = gruposPosicao[pos].sort(
+    const lista = (gruposPosicao[pos] ?? []).sort(
       (a, b) => b.nota - a.nota + (Math.random() * 0.2 - 0.1),
     );
 
     while (lista.length >= 2) {
-      const p1 = lista.shift()!;
-      const p2 = lista.shift()!;
+      const p1 = lista.shift();
+      const p2 = lista.shift();
+      if (!p1 || !p2) break;
 
       if (timeA.length < limitePorTime && timeB.length < limitePorTime) {
         // Envia o jogador mais forte para o time com menor soma total de notas atual
@@ -109,7 +114,8 @@ export function gerarEscalacaoAutomatica(
     }
 
     if (lista.length === 1) {
-      sobras.push(lista.shift()!);
+      const resto = lista.shift();
+      if (resto) sobras.push(resto);
     }
   }
 

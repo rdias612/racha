@@ -139,8 +139,8 @@ export function Estatisticas() {
         mapa[d.metrica] = d;
       }
       setDestaques(mapa);
-    } catch (e: any) {
-      setErro(e?.message ?? "Erro ao carregar");
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Erro ao carregar");
     } finally {
       setCarregando(false);
     }
@@ -184,7 +184,7 @@ export function Estatisticas() {
           className={({ isActive }) =>
             `flex-1 min-w-max rounded-md px-3 py-1.5 text-center text-xs font-medium whitespace-nowrap ${
               isActive
-                ? "bg-(--cor-destaque) text-white"
+                ? "bg-destaque text-white"
                 : "text-neutral-600 dark:text-neutral-400"
             }`
           }
@@ -196,7 +196,7 @@ export function Estatisticas() {
           className={({ isActive }) =>
             `flex-1 min-w-max rounded-md px-3 py-1.5 text-center text-xs font-medium whitespace-nowrap ${
               isActive
-                ? "bg-(--cor-destaque) text-white"
+                ? "bg-destaque text-white"
                 : "text-neutral-600 dark:text-neutral-400"
             }`
           }
@@ -324,7 +324,7 @@ function ParceriaDestaqueCard({ titulo, metrica, destaque }: ParceriaDestaqueCar
           {titulo}
         </h4>
         {destaque && (
-          <span className="inline-flex items-center shrink-0 rounded-full bg-(--cor-destaque)/10 px-2 py-0.5 text-xs font-extrabold text-(--cor-destaque)">
+          <span className="inline-flex items-center shrink-0 rounded-full bg-destaque/10 px-2 py-0.5 text-xs font-extrabold text-destaque">
             {metrica === "mais_gols"
               ? `${destaque.valor ?? 0} gols`
               : (destaque.valor ?? 0).toFixed(1)}
@@ -356,7 +356,7 @@ function ParceriaDestaqueCard({ titulo, metrica, destaque }: ParceriaDestaqueCar
 function StatBox({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/60 px-2 py-2.5 text-center shadow-xs">
-      <div className="text-xl sm:text-2xl font-extrabold text-(--cor-destaque)">{value}</div>
+      <div className="text-xl sm:text-2xl font-extrabold text-destaque">{value}</div>
       <div className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
         {label}
       </div>
@@ -377,7 +377,7 @@ function ParceriaCard({ titulo, parceria }: ParceriaCardProps) {
           {titulo}
         </h4>
         {parceria && (
-          <span className="inline-flex items-center shrink-0 rounded-full bg-(--cor-destaque)/10 px-2 py-0.5 text-xs font-extrabold text-(--cor-destaque)">
+          <span className="inline-flex items-center shrink-0 rounded-full bg-destaque/10 px-2 py-0.5 text-xs font-extrabold text-destaque">
             {Math.round((parceria.percentual ?? 0) * 100)}%
           </span>
         )}

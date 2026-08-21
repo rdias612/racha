@@ -21,7 +21,7 @@ export const STATUS_LABEL: Record<StatusPartida, string> = {
 export const STATUS_COR: Record<StatusPartida, string> = {
   draft: "text-neutral-500",
   live: "text-amber-600 dark:text-amber-400",
-  published: "text-[var(--cor-destaque)]",
+  published: "text-destaque",
   closed: "text-green-600 dark:text-green-400",
 };
 
@@ -96,6 +96,22 @@ export async function carregarPlacar(partidaId: number) {
   return data as Placar | null;
 }
 
+interface ParticipanteJoinRow {
+  partida_id: number;
+  jogador_id: number;
+  time: TimeId | null;
+  posicao: PosicaoId | null;
+  gols: number;
+  assistencias: number;
+  gols_contra: number;
+  status_confirmacao: StatusConfirmacao;
+  confirmado_em: string | null;
+  jogadores: {
+    nome: string;
+    username: string | null;
+  } | null;
+}
+
 export async function carregarParticipantes(partidaId: number) {
   const { data, error } = await supabase
     .from("partidas_participantes")
@@ -105,7 +121,8 @@ export async function carregarParticipantes(partidaId: number) {
     .eq("partida_id", partidaId);
   if (error) throw error;
   // achata o join
-  return (data ?? []).map((p: any) => ({
+  const rows = (data ?? []) as unknown as ParticipanteJoinRow[];
+  return rows.map((p) => ({
     partida_id: p.partida_id,
     jogador_id: p.jogador_id,
     time: p.time,

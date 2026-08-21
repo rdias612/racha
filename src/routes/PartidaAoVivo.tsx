@@ -337,7 +337,7 @@ export function PartidaAoVivo() {
                     <button
                       type="button"
                       onClick={() => abrirEdicao(evento)}
-                      className="cursor-pointer rounded-md px-2 text-xs font-medium text-[var(--cor-destaque)]"
+                      className="cursor-pointer rounded-md px-2 text-xs font-medium text-destaque"
                     >
                       Editar
                     </button>
@@ -368,7 +368,7 @@ export function PartidaAoVivo() {
               type="button"
               onClick={confirmarAbrir}
               disabled={abrindo}
-              className="w-full cursor-pointer rounded-lg bg-[var(--cor-destaque)] px-4 py-3 font-medium text-white active:scale-95 disabled:opacity-40"
+              className="w-full cursor-pointer rounded-lg bg-destaque px-4 py-3 font-medium text-white active:scale-95 disabled:opacity-40"
             >
               {abrindo ? "Abrindo…" : "Abrir partida"}
             </button>
@@ -385,7 +385,7 @@ export function PartidaAoVivo() {
             <button
               type="button"
               onClick={() => setConfirmandoFim(true)}
-              className="w-full cursor-pointer rounded-lg bg-[var(--cor-destaque)] px-4 py-3 font-medium text-white active:scale-95"
+              className="w-full cursor-pointer rounded-lg bg-destaque px-4 py-3 font-medium text-white active:scale-95"
             >
               Finalizar partida
             </button>

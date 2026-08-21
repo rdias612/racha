@@ -121,8 +121,8 @@ export function PartidaVotar() {
         }
         setNotas(notasIniciais);
         setVotosOriginais(originais);
-      } catch (e: any) {
-        setErro(e.message ?? String(e));
+      } catch (e) {
+        setErro(e instanceof Error ? e.message : String(e));
       } finally {
         setCarregando(false);
       }
@@ -218,7 +218,7 @@ export function PartidaVotar() {
         <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
           {editando ? "Editar votos" : "Votação"} — partida #{partida.id}
         </h2>
-        <p className="text-xs text-[var(--cor-destaque)]">
+        <p className="text-xs text-destaque">
           ⏳ Fecha em {horasRestantes}h {minutosRestantes}min
         </p>
         <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
@@ -290,7 +290,7 @@ export function PartidaVotar() {
           <button
             onClick={enviar}
             disabled={!todosAvaliados || salvando}
-            className="w-full min-h-[44px] rounded-lg bg-[var(--cor-destaque)] px-4 py-3 font-medium text-white disabled:opacity-40"
+            className="w-full min-h-[44px] rounded-lg bg-destaque px-4 py-3 font-medium text-white disabled:opacity-40"
           >
             {salvando
               ? "Enviando…"

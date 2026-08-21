@@ -90,15 +90,17 @@ export function PartidaTimes() {
 
   const contagemTime = useMemo(() => {
     const c: Record<TimeId, number> = { a: 0, b: 0 };
-    for (const jid in times) c[times[jid]]++;
+    for (const time of Object.values(times)) {
+      if (time) c[time]++;
+    }
     return c;
   }, [times]);
 
   const contagemGoleiros = useMemo(() => {
     const c: Record<TimeId, number> = { a: 0, b: 0 };
-    for (const jid in times) {
+    for (const [jid, time] of Object.entries(times)) {
       const j = confirmadosJogadores.find((x) => x.id === Number(jid));
-      if (j?.posicao === "goleiro") c[times[jid]]++;
+      if (j?.posicao === "goleiro" && time) c[time]++;
     }
     return c;
   }, [times, confirmadosJogadores]);
@@ -230,8 +232,8 @@ export function PartidaTimes() {
       if (falha?.error) throw falha.error;
       setFeedback("Times salvos.");
       setTimeout(() => navigate(`/partida/${partidaId}`, { replace: true }), 600);
-    } catch (e: any) {
-      setErro("Erro ao salvar times: " + (e?.message ?? String(e)));
+    } catch (e) {
+      setErro("Erro ao salvar times: " + (e instanceof Error ? e.message : String(e)));
     } finally {
       setSalvando(false);
     }
@@ -337,8 +339,8 @@ export function PartidaTimes() {
               ehGoleiro && time !== "b" && contagemGoleiros.b >= 1;
             const pretoDisabled = pretoCheio || pretoBloqueiaGoleiro;
             const brancoDisabled = brancoCheio || brancoBloqueiaGoleiro;
+            const notaJogador = mediasNotas[j.id] ?? 6.0;
             const temNota = mediasNotas[j.id] !== undefined;
-            const notaJogador = temNota ? mediasNotas[j.id] : 6.0;
 
             return (
               <div
@@ -436,7 +438,7 @@ export function PartidaTimes() {
           <button
             onClick={salvar}
             disabled={!podeSalvar}
-            className="w-full min-h-[44px] rounded-lg bg-[var(--cor-destaque)] px-4 py-3 font-medium text-white disabled:opacity-40 active:scale-95 transition"
+            className="w-full min-h-[44px] rounded-lg bg-destaque px-4 py-3 font-medium text-white disabled:opacity-40 active:scale-95 transition"
           >
             {salvando ? "Salvando…" : "Salvar times"}
           </button>

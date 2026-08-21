@@ -14,7 +14,7 @@ export function DuplaCard({ titulo, par }: DuplaCardProps) {
           {titulo}
         </h4>
         {par && (
-          <span className="inline-flex items-center shrink-0 rounded-full bg-(--cor-destaque)/10 px-2 py-0.5 text-xs font-extrabold text-(--cor-destaque)">
+          <span className="inline-flex items-center shrink-0 rounded-full bg-destaque/10 px-2 py-0.5 text-xs font-extrabold text-destaque">
             {par.pontos} pts
           </span>
         )}

@@ -157,7 +157,7 @@ export function Resumo() {
     <div className="px-3 py-4 pb-20 sm:px-4 sm:mx-auto sm:max-w-2xl">
       <div className="mb-4 flex items-end justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-(--cor-destaque)">
+          <p className="text-xs font-semibold uppercase tracking-wide text-destaque">
             Racha do ano
           </p>
           <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
@@ -191,7 +191,7 @@ function Destaque({ titulo, nome, valor, detalhe }: DestaqueProps) {
       <p className="mt-3 text-lg font-bold text-neutral-900 dark:text-neutral-100">
         {nome ?? "Sem vencedor"}
       </p>
-      <p className="mt-1 text-sm font-medium text-(--cor-destaque)">{valor}</p>
+      <p className="mt-1 text-sm font-medium text-destaque">{valor}</p>
       {detalhe && (
         <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
           {detalhe}
@@ -210,9 +210,9 @@ function CardProximaPartida({
   return (
     <Link
       to={`/partida/${proxima.id}`}
-      className="mb-4 block rounded-lg border border-[var(--cor-destaque)]/30 bg-[var(--cor-destaque)]/5 px-4 py-3"
+      className="mb-4 block rounded-lg border border-destaque/30 bg-destaque/5 px-4 py-3"
     >
-      <p className="text-xs font-semibold uppercase tracking-wide text-[var(--cor-destaque)]">
+      <p className="text-xs font-semibold uppercase tracking-wide text-destaque">
         Próxima partida
       </p>
       <p className="mt-1 text-sm font-bold text-neutral-900 dark:text-neutral-100 capitalize">

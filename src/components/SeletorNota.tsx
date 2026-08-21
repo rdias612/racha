@@ -146,7 +146,7 @@ export function SeletorNota({
         <span
           className={
             definido
-              ? "font-bold text-[var(--cor-destaque)]"
+              ? "font-bold text-destaque"
               : "text-neutral-400 dark:text-neutral-500"
           }
         >
@@ -197,7 +197,7 @@ export function SeletorNota({
                   emDestaque ? "bg-neutral-100 dark:bg-neutral-800" : ""
                 } ${
                   selecionado
-                    ? "font-bold text-[var(--cor-destaque)]"
+                    ? "font-bold text-destaque"
                     : "text-neutral-700 dark:text-neutral-300"
                 }`}
               >

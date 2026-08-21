@@ -187,7 +187,7 @@ export function Perfil() {
             </span>
           )}
           {jogador.is_admin && (
-            <span className="ml-2 text-[10px] uppercase bg-[var(--cor-destaque)] text-white px-1.5 py-0.5 rounded">
+            <span className="ml-2 text-[10px] uppercase bg-destaque text-white px-1.5 py-0.5 rounded">
               Admin
             </span>
           )}
@@ -269,7 +269,7 @@ export function Perfil() {
           <button
             type="submit"
             disabled={salvandoNome}
-            className="w-full rounded-lg bg-[var(--cor-destaque)] px-4 py-2.5 font-medium text-white disabled:opacity-50"
+            className="w-full rounded-lg bg-destaque px-4 py-2.5 font-medium text-white disabled:opacity-50"
           >
             {salvandoNome ? 'Salvando…' : 'Salvar nome'}
           </button>
@@ -318,7 +318,7 @@ export function Perfil() {
           <button
             type="submit"
             disabled={trocando}
-            className="w-full rounded-lg bg-[var(--cor-destaque)] px-4 py-2.5 font-medium text-white disabled:opacity-50"
+            className="w-full rounded-lg bg-destaque px-4 py-2.5 font-medium text-white disabled:opacity-50"
           >
             {trocando ? 'Alterando…' : 'Alterar senha'}
           </button>
@@ -341,7 +341,7 @@ export function Perfil() {
 function StatBox({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/60 px-2 py-2.5 text-center shadow-xs">
-      <div className="text-xl sm:text-2xl font-extrabold text-[var(--cor-destaque)]">{value}</div>
+      <div className="text-xl sm:text-2xl font-extrabold text-destaque">{value}</div>
       <div className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
         {label}
       </div>

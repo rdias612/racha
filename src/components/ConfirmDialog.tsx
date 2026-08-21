@@ -95,7 +95,7 @@ export function ConfirmDialog({
             className={`flex-1 min-h-[44px] cursor-pointer rounded-lg font-medium text-white active:scale-95 transition ${
               tomConfirmar === "perigo"
                 ? "bg-red-600 hover:bg-red-700"
-                : "bg-[var(--cor-destaque)] hover:brightness-110"
+                : "bg-destaque hover:brightness-110"
             }`}
           >
             {textoConfirmar}

@@ -84,8 +84,8 @@ export function PartidaDetalhe() {
           setJaVotou(false)
         }
       }
-    } catch (e: any) {
-      setErro(e.message ?? String(e))
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : String(e))
     } finally {
       setCarregando(false)
     }
@@ -104,9 +104,9 @@ export function PartidaDetalhe() {
         setConfirmandoDescarte(false)
         setErro('Não foi possível descartar — a votação pode estar encerrada.')
       }
-    } catch (e: any) {
+    } catch (e) {
       setConfirmandoDescarte(false)
-      setErro(e.message ?? String(e))
+      setErro(e instanceof Error ? e.message : String(e))
     } finally {
       setDescartando(false)
     }
@@ -139,8 +139,8 @@ export function PartidaDetalhe() {
         return
       }
       navigate(`/partida/${partida.id}/ao-vivo`, { replace: true })
-    } catch (e: any) {
-      setErro(e.message ?? String(e))
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : String(e))
     } finally {
       setAbrindo(false)
     }
@@ -214,8 +214,8 @@ export function PartidaDetalhe() {
 
       {/* Craque da partida (só quando closed) */}
       {partida.status === 'closed' && craque && (
-        <div className="rounded-lg border border-[var(--cor-destaque)] bg-[var(--cor-destaque)]/10 px-4 py-3 text-center flex flex-col items-center gap-1.5">
-          <p className="text-xs uppercase tracking-wide text-[var(--cor-destaque)] font-semibold">
+        <div className="rounded-lg border border-destaque bg-destaque/10 px-4 py-3 text-center flex flex-col items-center gap-1.5">
+          <p className="text-xs uppercase tracking-wide text-destaque font-semibold">
             ⭐ Craque da partida
           </p>
           <Avatar nome={craque.nome} size="lg" />
@@ -328,6 +328,28 @@ export function PartidaDetalhe() {
         </>
       )}
 
+      {/* Botões de Ação por Status */}
+      {isAdmin && (
+        <div className="flex gap-2">
+          {partida.status !== 'live' && (
+            <Link
+              to={`/partida/${partida.id}/editar`}
+              className="flex-1 text-center rounded-lg border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-xs font-medium text-neutral-700 dark:text-neutral-300"
+            >
+              Editar partida
+            </Link>
+          )}
+          {partida.status === 'draft' && (
+            <Link
+              to={`/partida/${partida.id}/times`}
+              className="flex-1 text-center rounded-lg border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-xs font-medium text-neutral-700 dark:text-neutral-300"
+            >
+              Escalar times
+            </Link>
+          )}
+        </div>
+      )}
+
       {erro && <MensagemEstado>{erro}</MensagemEstado>}
 
       {partida.status === 'draft' && isAdmin && (
@@ -337,7 +359,7 @@ export function PartidaDetalhe() {
           </p>
           <Link
             to={`/partida/${partida.id}/times`}
-            className="block text-center rounded-lg bg-[var(--cor-destaque)] px-4 py-3 font-medium text-white"
+            className="block text-center rounded-lg bg-destaque px-4 py-3 font-medium text-white"
           >
             Escalar times
           </Link>
@@ -345,7 +367,7 @@ export function PartidaDetalhe() {
             type="button"
             onClick={confirmarAbrir}
             disabled={abrindo}
-            className="block w-full text-center rounded-lg border border-[var(--cor-destaque)] px-4 py-3 font-medium text-[var(--cor-destaque)] disabled:opacity-40"
+            className="block w-full text-center rounded-lg border border-destaque px-4 py-3 font-medium text-destaque disabled:opacity-40"
           >
             {abrindo ? 'Abrindo…' : 'Abrir partida'}
           </button>
@@ -362,7 +384,7 @@ export function PartidaDetalhe() {
         <div className="space-y-2">
           <Link
             to={`/partida/${partida.id}/ao-vivo`}
-            className="block text-center rounded-lg bg-[var(--cor-destaque)] px-4 py-3 font-medium text-white"
+            className="block text-center rounded-lg bg-destaque px-4 py-3 font-medium text-white"
           >
             {isAdmin ? 'Registrar eventos' : 'Acompanhar ao vivo'}
           </Link>
@@ -394,7 +416,7 @@ export function PartidaDetalhe() {
               <div className="grid grid-cols-2 gap-2">
                 <Link
                   to={`/partida/${partida.id}/votar`}
-                  className="block text-center rounded-lg bg-[var(--cor-destaque)] px-4 py-3 font-medium text-white"
+                  className="block text-center rounded-lg bg-destaque px-4 py-3 font-medium text-white"
                 >
                   Editar votos
                 </Link>
@@ -410,7 +432,7 @@ export function PartidaDetalhe() {
           ) : (
             <Link
               to={`/partida/${partida.id}/votar`}
-              className="block text-center rounded-lg bg-[var(--cor-destaque)] px-4 py-3 font-medium text-white"
+              className="block text-center rounded-lg bg-destaque px-4 py-3 font-medium text-white"
             >
               Votar
             </Link>
@@ -477,7 +499,7 @@ function BotoesSelf({ status, podeConf, ocupadas, processando, onAtualizar }: Pr
           disabled={processando || !podeConf}
           onClick={() => onAtualizar('confirmado')}
           title={lotado ? 'Vagas esgotadas' : undefined}
-          className={`${btn} border-[var(--cor-destaque)] text-[var(--cor-destaque)]`}
+          className={`${btn} border-destaque text-destaque`}
         >
           Vou jogar
         </button>
@@ -539,7 +561,7 @@ function BotoesAdmin({
         title="Pendente"
         className={`${mini} ${
           status === 'pendente'
-            ? 'border-[var(--cor-destaque)] text-[var(--cor-destaque)]'
+            ? 'border-destaque text-destaque'
             : off
         }`}
       >
@@ -620,8 +642,8 @@ function Confirmacoes({
       } else {
         await onAtualizar()
       }
-    } catch (e: any) {
-      setErroLocal(e.message ?? String(e))
+    } catch (e) {
+      setErroLocal(e instanceof Error ? e.message : String(e))
     } finally {
       setProcessando(null)
     }
@@ -633,8 +655,8 @@ function Confirmacoes({
     try {
       await removerParticipanteDraft(partida.id, jogadorId)
       await onAtualizar()
-    } catch (e: any) {
-      setErroLocal(e.message ?? String(e))
+    } catch (e) {
+      setErroLocal(e instanceof Error ? e.message : String(e))
     } finally {
       setProcessando(null)
     }
@@ -651,8 +673,8 @@ function Confirmacoes({
         setMostrandoAvulso(false)
         await onAtualizar()
       }
-    } catch (e: any) {
-      setErroLocal(e.message ?? String(e))
+    } catch (e) {
+      setErroLocal(e instanceof Error ? e.message : String(e))
     } finally {
       setProcessando(null)
     }
@@ -678,7 +700,7 @@ function Confirmacoes({
         <h3 className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
           Confirmações
         </h3>
-        <span className="text-xs font-medium text-[var(--cor-destaque)]">
+        <span className="text-xs font-medium text-destaque">
           {ocupadas}/{CAPACIDADE_PARTIDA} vagas
         </span>
       </div>
@@ -746,7 +768,7 @@ function Confirmacoes({
           <button
             type="button"
             onClick={abrirAvulso}
-            className="w-full px-3 py-2 text-xs font-medium text-[var(--cor-destaque)]"
+            className="w-full px-3 py-2 text-xs font-medium text-destaque"
           >
             {mostrandoAvulso
               ? 'Fechar'

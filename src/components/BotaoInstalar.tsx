@@ -22,8 +22,8 @@ export function BotaoInstalar() {
   }
 
   return (
-    <section className="rounded-lg border border-(--cor-destaque)/30 bg-(--cor-destaque)/10 p-3">
-      <h3 className="text-xs font-semibold uppercase tracking-wide text-(--cor-destaque)">
+    <section className="rounded-lg border border-destaque/30 bg-destaque/10 p-3">
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-destaque">
         📲 Instalar app
       </h3>
 
@@ -36,7 +36,7 @@ export function BotaoInstalar() {
           <button
             onClick={handleClick}
             disabled={instalando}
-            className="mt-2.5 w-full rounded-lg bg-(--cor-destaque) px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50"
+            className="mt-2.5 w-full rounded-lg bg-destaque px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50"
           >
             {instalando ? "Instalando…" : "Instalar app"}
           </button>
@@ -48,7 +48,7 @@ export function BotaoInstalar() {
           </p>
           <button
             onClick={() => setExpandido((v) => !v)}
-            className="mt-2 w-full rounded-lg border border-(--cor-destaque)/40 px-4 py-2 text-sm font-medium text-(--cor-destaque)"
+            className="mt-2 w-full rounded-lg border border-destaque/40 px-4 py-2 text-sm font-medium text-destaque"
           >
             {expandido ? "Ver passo a passo ▴" : "Ver passo a passo ▾"}
           </button>

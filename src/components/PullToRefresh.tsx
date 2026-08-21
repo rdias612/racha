@@ -16,8 +16,9 @@ export function PullToRefresh({
   const startY = useRef<number | null>(null);
 
   function handleTouchStart(e: TouchEvent<HTMLDivElement>) {
-    if (window.scrollY === 0 && e.touches.length === 1) {
-      startY.current = e.touches[0].clientY;
+    const touch = e.touches[0];
+    if (window.scrollY === 0 && e.touches.length === 1 && touch) {
+      startY.current = touch.clientY;
     }
   }
 
@@ -28,7 +29,9 @@ export function PullToRefresh({
       return;
     }
 
-    const currentY = e.touches[0].clientY;
+    const touch = e.touches[0];
+    if (!touch) return;
+    const currentY = touch.clientY;
     const diff = currentY - startY.current;
 
     if (diff > 0) {

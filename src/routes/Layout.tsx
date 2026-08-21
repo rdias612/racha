@@ -87,7 +87,7 @@ export function Layout() {
                         onClick={() => setMenuAberto(false)}
                         className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
                       >
-                        <Users className="size-3.5 text-[var(--cor-primaria)]" />
+                        <Users className="size-3.5 text-primaria" />
                         <span>Gestão de Jogadores</span>
                       </Link>
 
@@ -96,7 +96,7 @@ export function Layout() {
                         onClick={() => setMenuAberto(false)}
                         className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
                       >
-                        <UserPlus className="size-3.5 text-[var(--cor-primaria)]" />
+                        <UserPlus className="size-3.5 text-primaria" />
                         <span>+ Novo Jogador</span>
                       </Link>
 
@@ -105,7 +105,7 @@ export function Layout() {
                         onClick={() => setMenuAberto(false)}
                         className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
                       >
-                        <Wallet className="size-3.5 text-[var(--cor-primaria)]" />
+                        <Wallet className="size-3.5 text-primaria" />
                         <span>Financeiro</span>
                       </Link>
                     </div>
@@ -134,7 +134,7 @@ export function Layout() {
             aria-current={pathname === "/" ? "page" : undefined}
             className={`flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-2 ${
               pathname === "/"
-                ? "text-(--cor-destaque) font-medium"
+                ? "text-destaque font-medium"
                 : "text-neutral-500 dark:text-neutral-400"
             }`}
           >
@@ -146,7 +146,7 @@ export function Layout() {
             aria-current={pathname === "/jogos" ? "page" : undefined}
             className={`flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-2 ${
               pathname === "/jogos"
-                ? "text-(--cor-destaque) font-medium"
+                ? "text-destaque font-medium"
                 : "text-neutral-500 dark:text-neutral-400"
             }`}
           >
@@ -158,7 +158,7 @@ export function Layout() {
             aria-current={rankingAtivo ? "page" : undefined}
             className={`flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-2 ${
               rankingAtivo
-                ? "text-(--cor-destaque) font-medium"
+                ? "text-destaque font-medium"
                 : "text-neutral-500 dark:text-neutral-400"
             }`}
           >
@@ -170,7 +170,7 @@ export function Layout() {
             aria-current={estatisticasAtivo ? "page" : undefined}
             className={`flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-2 ${
               estatisticasAtivo
-                ? "text-(--cor-destaque) font-medium"
+                ? "text-destaque font-medium"
                 : "text-neutral-500 dark:text-neutral-400"
             }`}
           >
@@ -182,7 +182,7 @@ export function Layout() {
             aria-current={pathname === "/perfil" ? "page" : undefined}
             className={`flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-2 ${
               pathname === "/perfil"
-                ? "text-(--cor-destaque) font-medium"
+                ? "text-destaque font-medium"
                 : "text-neutral-500 dark:text-neutral-400"
             }`}
           >

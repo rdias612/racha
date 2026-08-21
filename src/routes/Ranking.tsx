@@ -196,7 +196,7 @@ export function Ranking() {
           className={({ isActive }) =>
             `flex-1 min-w-max rounded-md px-3 py-1.5 text-center text-xs font-medium whitespace-nowrap ${
               isActive
-                ? "bg-(--cor-destaque) text-white"
+                ? "bg-destaque text-white"
                 : "text-neutral-600 dark:text-neutral-400"
             }`
           }
@@ -208,7 +208,7 @@ export function Ranking() {
           className={({ isActive }) =>
             `flex-1 min-w-max rounded-md px-3 py-1.5 text-center text-xs font-medium whitespace-nowrap ${
               isActive
-                ? "bg-(--cor-destaque) text-white"
+                ? "bg-destaque text-white"
                 : "text-neutral-600 dark:text-neutral-400"
             }`
           }
@@ -220,7 +220,7 @@ export function Ranking() {
           className={({ isActive }) =>
             `flex-1 min-w-max rounded-md px-3 py-1.5 text-center text-xs font-medium whitespace-nowrap ${
               isActive
-                ? "bg-(--cor-destaque) text-white"
+                ? "bg-destaque text-white"
                 : "text-neutral-600 dark:text-neutral-400"
             }`
           }
@@ -232,7 +232,7 @@ export function Ranking() {
           className={({ isActive }) =>
             `flex-1 min-w-max rounded-md px-3 py-1.5 text-center text-xs font-medium whitespace-nowrap ${
               isActive
-                ? "bg-(--cor-destaque) text-white"
+                ? "bg-destaque text-white"
                 : "text-neutral-600 dark:text-neutral-400"
             }`
           }
@@ -279,7 +279,7 @@ export function Ranking() {
           max={maximoPartidas}
           value={minimoPartidas}
           onChange={(e) => setMinimoPartidas(Number(e.target.value))}
-          className="w-full accent-(--cor-destaque)"
+          className="w-full accent-destaque"
         />
       </div>
 
@@ -375,7 +375,7 @@ function TabelaRanking({
                 key={l.jogador_id}
                 className={
                   ehLogado
-                    ? "bg-(--cor-destaque)/10"
+                    ? "bg-destaque/10"
                     : "bg-white dark:bg-neutral-950"
                 }
               >

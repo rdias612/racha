@@ -19,7 +19,6 @@ function isIOS() {
 function isStandalone() {
   return (
     window.matchMedia("(display-mode: standalone)").matches ||
-    // @ts-expect-error - propriedade iOS específica
     window.navigator.standalone === true
   );
 }

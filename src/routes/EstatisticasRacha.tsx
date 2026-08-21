@@ -39,7 +39,7 @@ export function EstatisticasRacha() {
   }
 
   const melhor = pares[0] ?? null;
-  const pior = pares.length > 1 ? pares[pares.length - 1] : null;
+  const pior = pares.length > 1 ? (pares[pares.length - 1] ?? null) : null;
 
   return (
     <div className="mx-auto w-full max-w-2xl space-y-6 px-3 py-4 sm:px-4">
@@ -53,7 +53,7 @@ export function EstatisticasRacha() {
           className={({ isActive }) =>
             `flex-1 min-w-max rounded-md px-3 py-1.5 text-center text-xs font-medium whitespace-nowrap ${
               isActive
-                ? "bg-(--cor-destaque) text-white"
+                ? "bg-destaque text-white"
                 : "text-neutral-600 dark:text-neutral-400"
             }`
           }
@@ -65,7 +65,7 @@ export function EstatisticasRacha() {
           className={({ isActive }) =>
             `flex-1 min-w-max rounded-md px-3 py-1.5 text-center text-xs font-medium whitespace-nowrap ${
               isActive
-                ? "bg-(--cor-destaque) text-white"
+                ? "bg-destaque text-white"
                 : "text-neutral-600 dark:text-neutral-400"
             }`
           }
@@ -150,7 +150,7 @@ function TabelaDuplas({ pares, inicio }: { pares: ParRacha[]; inicio: number }) 
                   </span>
                 </div>
               </td>
-              <td className="px-3 py-2.5 text-center font-extrabold text-(--cor-destaque)">
+              <td className="px-3 py-2.5 text-center font-extrabold text-destaque">
                 {par.pontos}
               </td>
               <td className="px-3 py-2.5 text-center text-neutral-600 dark:text-neutral-400">

@@ -103,7 +103,7 @@ export function Jogos() {
           {isAdmin && (
             <Link
               to="/partida/nova"
-              className="text-xs rounded-lg bg-[var(--cor-destaque)] text-white px-3 py-1.5"
+              className="text-xs rounded-lg bg-destaque text-white px-3 py-1.5"
             >
               + Nova partida
             </Link>
@@ -124,7 +124,7 @@ export function Jogos() {
                 <Link
                   key={p.id}
                   to={p.status === 'live' ? `/partida/${p.id}/ao-vivo` : `/partida/${p.id}`}
-                  className="block rounded-lg border border-neutral-200 dark:border-neutral-800 px-3 py-3 hover:border-[var(--cor-destaque)] transition"
+                  className="block rounded-lg border border-neutral-200 dark:border-neutral-800 px-3 py-3 hover:border-destaque transition"
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-neutral-500 dark:text-neutral-400">

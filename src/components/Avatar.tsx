@@ -24,16 +24,18 @@ function getHashColor(str: string): string {
     hash = str.charCodeAt(i) + ((hash << 5) - hash);
   }
   const index = Math.abs(hash) % COLOR_PALETTE.length;
-  return COLOR_PALETTE[index];
+  return COLOR_PALETTE[index] ?? COLOR_PALETTE[0] ?? "bg-neutral-600 text-white";
 }
 
 function getIniciais(nome: string): string {
   const partes = nome.trim().split(/\s+/);
-  if (partes.length === 0 || !partes[0]) return "?";
+  const primeiro = partes[0] ?? "";
+  if (partes.length === 0 || !primeiro) return "?";
   if (partes.length === 1) {
-    return partes[0].slice(0, 2).toUpperCase();
+    return primeiro.slice(0, 2).toUpperCase();
   }
-  return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase();
+  const ultimo = partes[partes.length - 1] ?? "";
+  return ((primeiro[0] ?? "") + (ultimo[0] ?? "")).toUpperCase() || "?";
 }
 
 const SIZE_CLASSES = {

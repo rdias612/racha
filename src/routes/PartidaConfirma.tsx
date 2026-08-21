@@ -111,7 +111,7 @@ export function PartidaConfirma() {
                 },
               })
             }
-            className="w-full min-h-[44px] rounded-lg bg-[var(--cor-destaque)] px-4 py-3 font-medium text-white active:scale-95 transition"
+            className="w-full min-h-[44px] rounded-lg bg-destaque px-4 py-3 font-medium text-white active:scale-95 transition"
           >
             Confirmar e ir para times
           </button>

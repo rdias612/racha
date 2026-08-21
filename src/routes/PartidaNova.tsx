@@ -174,7 +174,7 @@ export function PartidaNova() {
             type="date"
             value={dataJogo}
             onChange={(e) => setDataJogo(e.target.value)}
-            className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-[var(--cor-destaque)]"
+            className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-destaque"
           />
         </label>
       </div>
@@ -274,7 +274,7 @@ export function PartidaNova() {
               })
             }
             disabled={!podeRevisar}
-            className="w-full rounded-lg bg-[var(--cor-destaque)] px-4 py-3 font-medium text-white disabled:opacity-40 active:scale-95 transition"
+            className="w-full rounded-lg bg-destaque px-4 py-3 font-medium text-white disabled:opacity-40 active:scale-95 transition"
           >
             Revisar escalação
           </button>
@@ -371,7 +371,7 @@ function GrupoJogadores({
                     title={bloqueado ? "Cota cheia" : undefined}
                     className={`min-h-[44px] min-w-[7rem] px-3 rounded-lg border text-xs font-semibold transition active:scale-95 ${
                       selecionado
-                        ? "bg-[var(--cor-destaque)] text-white border-[var(--cor-destaque)]"
+                        ? "bg-destaque text-white border-destaque"
                         : "border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300"
                     } disabled:cursor-not-allowed`}
                   >

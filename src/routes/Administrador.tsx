@@ -179,7 +179,7 @@ export function Administrador() {
       </button>
 
       <div className="flex items-center gap-2">
-        <Wallet className="size-5 text-[var(--cor-primaria)]" />
+        <Wallet className="size-5 text-primaria" />
         <div>
           <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
             Administrador
@@ -310,7 +310,7 @@ export function Administrador() {
           <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
             Dívidas em aberto
           </h3>
-          <span className="text-sm font-semibold text-[var(--cor-destaque)]">
+          <span className="text-sm font-semibold text-destaque">
             {formatarReais(totalGeral)}
           </span>
         </div>
@@ -352,7 +352,7 @@ export function Administrador() {
                           {g.nome}
                         </span>
                         {g.is_mensalista && (
-                          <span className="shrink-0 rounded bg-[var(--cor-destaque)]/15 px-1.5 py-0.5 text-[10px] font-medium text-[var(--cor-destaque)]">
+                          <span className="shrink-0 rounded bg-destaque/15 px-1.5 py-0.5 text-[10px] font-medium text-destaque">
                             mensalista
                           </span>
                         )}
@@ -406,7 +406,7 @@ export function Administrador() {
                             {d.partida_id && (
                               <Link
                                 to={`/partida/${d.partida_id}`}
-                                className="inline-block text-[11px] text-[var(--cor-primaria)] hover:underline"
+                                className="inline-block text-[11px] text-primaria hover:underline"
                               >
                                 ver partida →
                               </Link>

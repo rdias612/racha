@@ -33,7 +33,7 @@ export class ErrorBoundary extends Component<Props, State> {
           </p>
           <button
             onClick={() => (window.location.href = "/")}
-            className="rounded-lg bg-[var(--cor-destaque)] px-4 py-2 text-sm font-medium text-white shadow hover:opacity-90 transition"
+            className="rounded-lg bg-destaque px-4 py-2 text-sm font-medium text-white shadow hover:opacity-90 transition"
           >
             Voltar para o início
           </button>

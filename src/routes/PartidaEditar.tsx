@@ -242,8 +242,8 @@ export function PartidaEditar() {
       setTimeout(() => {
         navigate(`/partida/${partidaId}`);
       }, 700);
-    } catch (e: any) {
-      setErro("Erro ao salvar alterações: " + (e?.message ?? String(e)));
+    } catch (e) {
+      setErro("Erro ao salvar alterações: " + (e instanceof Error ? e.message : String(e)));
     } finally {
       setSalvando(false);
     }
@@ -513,7 +513,7 @@ export function PartidaEditar() {
             <button
               onClick={() => setConfirmandoSalvar(true)}
               disabled={salvando}
-              className="w-full rounded-xl bg-[var(--cor-destaque)] hover:brightness-105 px-4 py-3.5 font-bold text-white shadow-sm disabled:opacity-40 active:scale-[.99] transition cursor-pointer text-sm"
+              className="w-full rounded-xl bg-destaque hover:brightness-105 px-4 py-3.5 font-bold text-white shadow-sm disabled:opacity-40 active:scale-[.99] transition cursor-pointer text-sm"
             >
               {salvando
                 ? "Salvando alterações…"
@@ -537,7 +537,7 @@ export function PartidaEditar() {
             {/* Cabeçalho do Modal */}
             <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between bg-neutral-50 dark:bg-neutral-950">
               <div className="flex items-center gap-2">
-                <UserPlus className="w-4 h-4 text-[var(--cor-destaque)]" />
+                <UserPlus className="w-4 h-4 text-destaque" />
                 <h3 className="text-sm font-bold text-neutral-900 dark:text-neutral-100">
                   Adicionar ao {TIMES[modalTime].nome}
                 </h3>
@@ -561,7 +561,7 @@ export function PartidaEditar() {
                   placeholder="Buscar por nome ou apelido..."
                   value={buscaJogador}
                   onChange={(e) => setBuscaJogador(e.target.value)}
-                  className="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 pl-9 pr-8 py-2 text-sm text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--cor-destaque)]"
+                  className="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 pl-9 pr-8 py-2 text-sm text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-destaque"
                 />
                 {buscaJogador && (
                   <button
@@ -601,22 +601,22 @@ export function PartidaEditar() {
               </div>
             </div>
 
-            {/* Lista com Rolagem */}
-            <div className="flex-1 overflow-y-auto divide-y divide-neutral-100 dark:divide-neutral-800/80 p-1">
+            {/* Lista com scroll otimizado */}
+            <div className="flex-1 overflow-y-auto divide-y divide-neutral-100 dark:divide-neutral-800/80 p-2 space-y-1">
               {candidatosAdicionar.map((j) => (
                 <button
                   key={j.id}
                   type="button"
                   onClick={() => adicionarJogador(j, modalTime)}
-                  className="w-full flex items-center justify-between gap-3 p-3 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 text-left active:scale-[.99] transition cursor-pointer"
+                  className="w-full p-2.5 rounded-xl flex items-center justify-between gap-3 text-left hover:bg-neutral-100 dark:hover:bg-neutral-800/60 active:scale-[.99] transition cursor-pointer"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <Avatar nome={j.nome} size="sm" />
                     <div className="min-w-0">
-                      <p className="font-semibold text-sm text-neutral-900 dark:text-neutral-100 truncate">
+                      <p className="text-sm font-bold text-neutral-900 dark:text-neutral-100 truncate">
                         {j.nome}
                       </p>
-                      <p className="text-[11px] text-neutral-400">
+                      <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
                         {j.is_mensalista ? "Mensalista" : "Avulso"}
                       </p>
                     </div>
@@ -625,7 +625,7 @@ export function PartidaEditar() {
                     <span className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
                       {j.posicao === "goleiro" ? "🧤 Goleiro" : POSICOES[j.posicao] ?? "Linha"}
                     </span>
-                    <span className="min-h-0 px-2 py-1 rounded-md bg-[var(--cor-destaque)]/15 text-[var(--cor-destaque)] text-xs font-bold">
+                    <span className="min-h-0 px-2 py-1 rounded-md bg-destaque/15 text-destaque text-xs font-bold">
                       + Escalar
                     </span>
                   </div>
@@ -750,7 +750,7 @@ function StepperBox({
           aria-label={`Aumentar ${label}`}
           className={`min-h-0 h-8 w-8 rounded-lg text-sm font-bold flex items-center justify-center active:scale-95 transition shadow-2xs cursor-pointer ${
             corAtiva === "destaque"
-              ? "bg-[var(--cor-destaque)] text-white hover:brightness-105"
+              ? "bg-destaque text-white hover:brightness-105"
               : corAtiva === "azul"
                 ? "bg-blue-600 text-white hover:bg-blue-500"
                 : "bg-red-600 text-white hover:bg-red-500"

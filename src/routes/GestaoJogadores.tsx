@@ -295,7 +295,7 @@ export function GestaoJogadores() {
 
       <div>
         <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
-          <Users className="w-6 h-6 text-[var(--cor-primaria)]" />
+          <Users className="w-6 h-6 text-primaria" />
           Gestão de Jogadores
         </h2>
         <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
