@@ -9,7 +9,7 @@ interface EstadoPartida {
   selecionados: number[];
   jogadores: JogadorLista[];
   dataJogo: string;
-  horaJogo: string;
+  horaJogo?: string;
 }
 
 export function PartidaConfirma() {
@@ -49,14 +49,16 @@ export function PartidaConfirma() {
   const totalGoleiros = grupos.goleiros.length;
 
   // Data/hora para o resumo. dataJogo vem do input date (YYYY-MM-DD);
-  // juntamos com horaJogo (HH:mm) em ISO local para formatar amigavelmente.
+  // juntamos com horaJogo (HH:mm) padrão 19:00 em ISO local para formatar amigavelmente.
+  const horaJogo = estado.horaJogo || "19:00";
   const dataHoraIso =
-    estado.dataJogo && estado.horaJogo
-      ? `${estado.dataJogo}T${estado.horaJogo}`
+    estado.dataJogo
+      ? `${estado.dataJogo}T${horaJogo}`
       : estado.dataJogo;
   const dataHoraTexto = dataHoraIso
     ? formatarDataCompleta(dataHoraIso)
-    : `${estado.dataJogo} · ${estado.horaJogo}`;
+    : `${estado.dataJogo} · ${horaJogo}`;
+
 
   return (
     <div className="px-3 py-4 pb-40 sm:px-4 space-y-5 max-w-2xl mx-auto">

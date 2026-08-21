@@ -3,16 +3,17 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { listarJogadoresAtivos, type JogadorLista } from "../lib/jogadores";
 import { useAdmin } from "../hooks/useAdmin";
 import { Carregando, MensagemEstado } from "../components/Estado";
+import { obterProximaQuintaFeira } from "../lib/formatacao";
 
 const LIMITE_LINHA = 14;
 const LIMITE_GOLEIROS = 2;
 const TOTAL_PARTICIPANTES = LIMITE_LINHA + LIMITE_GOLEIROS; // 16
 const STORAGE_KEY = "racha_nova_partida";
+const HORA_PADRAO = "19:00";
 
 interface EstadoPersistido {
   selecionados: number[];
   dataJogo: string;
-  horaJogo: string;
 }
 
 export function PartidaNova() {
@@ -23,8 +24,7 @@ export function PartidaNova() {
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [selecionados, setSelecionados] = useState<number[]>([]);
-  const [dataJogo, setDataJogo] = useState("");
-  const [horaJogo, setHoraJogo] = useState("20:00");
+  const [dataJogo, setDataJogo] = useState(() => obterProximaQuintaFeira());
   const [busca, setBusca] = useState("");
   const [hidratado, setHidratado] = useState(false);
 
@@ -38,7 +38,7 @@ export function PartidaNova() {
         if (
           Array.isArray(parsed.selecionados) &&
           typeof parsed.dataJogo === "string" &&
-          typeof parsed.horaJogo === "string"
+          parsed.dataJogo.trim().length > 0
         ) {
           estadoInicial = parsed;
         }
@@ -49,7 +49,6 @@ export function PartidaNova() {
     if (estadoInicial) {
       setSelecionados(estadoInicial.selecionados);
       setDataJogo(estadoInicial.dataJogo);
-      setHoraJogo(estadoInicial.horaJogo);
     }
     listarJogadoresAtivos()
       .then(setJogadores)
@@ -66,12 +65,12 @@ export function PartidaNova() {
     try {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ selecionados, dataJogo, horaJogo }),
+        JSON.stringify({ selecionados, dataJogo }),
       );
     } catch {
       // Storage indisponível — ignora silenciosamente.
     }
-  }, [selecionados, dataJogo, horaJogo, hidratado]);
+  }, [selecionados, dataJogo, hidratado]);
 
   // Derivação dos 3 grupos (filtrados pela busca).
   const termo = busca.trim().toLowerCase();
@@ -166,8 +165,8 @@ export function PartidaNova() {
       </div>
 
       {/* Data */}
-      <div className="flex gap-3">
-        <label className="flex-1">
+      <div>
+        <label className="block">
           <span className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">
             Data
           </span>
@@ -175,18 +174,7 @@ export function PartidaNova() {
             type="date"
             value={dataJogo}
             onChange={(e) => setDataJogo(e.target.value)}
-            className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
-          />
-        </label>
-        <label className="w-28">
-          <span className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">
-            Hora
-          </span>
-          <input
-            type="time"
-            value={horaJogo}
-            onChange={(e) => setHoraJogo(e.target.value)}
-            className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
+            className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-[var(--cor-destaque)]"
           />
         </label>
       </div>
@@ -282,7 +270,7 @@ export function PartidaNova() {
           <button
             onClick={() =>
               navigate("/partida/nova/confirma", {
-                state: { selecionados, jogadores, dataJogo, horaJogo },
+                state: { selecionados, jogadores, dataJogo, horaJogo: HORA_PADRAO },
               })
             }
             disabled={!podeRevisar}

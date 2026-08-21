@@ -20,7 +20,7 @@ interface EstadoPartida {
   selecionados: number[];
   jogadores: JogadorLista[];
   dataJogo: string;
-  horaJogo: string;
+  horaJogo?: string;
 }
 
 const LIMITE_POR_TIME = 8;
@@ -75,7 +75,8 @@ export function PartidaNovaTimes() {
     return <Navigate to="/partida/nova" replace />;
   }
 
-  const { dataJogo, horaJogo } = estado;
+  const horaJogo = estado.horaJogo || "19:00";
+  const { dataJogo } = estado;
 
   // Apenas os 16 confirmados recebidos via state.
   const jogadoresConfirmados = estado.jogadores.filter((j) =>

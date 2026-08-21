@@ -67,3 +67,19 @@ export function formatarNome(nome: string) {
     )
     .join(" ");
 }
+
+/**
+ * Retorna a data no formato YYYY-MM-DD da próxima quinta-feira no calendário.
+ * Se a data informada já for uma quinta-feira, retorna ela mesma.
+ */
+export function obterProximaQuintaFeira(dataBase: Date = new Date()): string {
+  const data = new Date(dataBase);
+  const diaSemana = data.getDay(); // 0 = Dom, 1 = Seg, 2 = Ter, 3 = Qua, 4 = Qui, 5 = Sex, 6 = Sáb
+  const diasAteQuinta = (4 - diaSemana + 7) % 7;
+  data.setDate(data.getDate() + diasAteQuinta);
+
+  const ano = data.getFullYear();
+  const mes = String(data.getMonth() + 1).padStart(2, "0");
+  const dia = String(data.getDate()).padStart(2, "0");
+  return `${ano}-${mes}-${dia}`;
+}
