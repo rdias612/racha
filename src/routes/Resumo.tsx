@@ -8,7 +8,6 @@ import { PullToRefresh } from '../components/PullToRefresh';
 import { supabase } from '../lib/supabase';
 import { carregarParticipantes, vagasOcupadas, CAPACIDADE_PARTIDA } from '../lib/partidas';
 import { formatarDataCompleta, formatarDataMobile } from '../lib/formatacao';
-
 import { formatarMensagemErro } from '../lib/erros';
 
 interface ResumoAno {
@@ -121,29 +120,29 @@ export function Resumo() {
   const destaques: DestaqueProps[] = resumo
     ? [
         {
-          titulo: 'Artilheiro',
+          titulo: 'Artilheiro Oficial',
           badge: '⚽ GOLS',
           nome: resumo.artilheiro_nome,
-          valor: `${resumo.artilheiro_gols ?? 0} gols`,
-          detalhe: `${resumo.artilheiro_partidas ?? 0} partidas`,
+          valor: `${resumo.artilheiro_gols ?? 0} ${resumo.artilheiro_gols === 1 ? 'gol' : 'gols'}`,
+          detalhe: `${resumo.artilheiro_partidas ?? 0} ${resumo.artilheiro_partidas === 1 ? 'partida' : 'partidas'}`,
         },
         {
-          titulo: 'Maestro',
+          titulo: 'Maestro do Racha',
           badge: '🅰️ PASSES',
           nome: resumo.maestro_nome,
-          valor: `${resumo.maestro_assistencias ?? 0} assistências`,
-          detalhe: `${resumo.maestro_partidas ?? 0} partidas`,
+          valor: `${resumo.maestro_assistencias ?? 0} ${resumo.maestro_assistencias === 1 ? 'passe' : 'passes'}`,
+          detalhe: `${resumo.maestro_partidas ?? 0} ${resumo.maestro_partidas === 1 ? 'partida' : 'partidas'}`,
         },
         {
           titulo: 'Frequência Máxima',
           badge: '🛡️ PRESENÇA',
           nome: resumo.participante_nome,
-          valor: `${resumo.participante_partidas ?? 0} partidas`,
-          detalhe: 'O que importa é participar',
+          valor: `${resumo.participante_partidas ?? 0} ${resumo.participante_partidas === 1 ? 'partida' : 'partidas'}`,
+          detalhe: 'Presença garantida',
         },
         {
           titulo: 'Mais Eficiente',
-          badge: '📈 APROVEITAMENTO',
+          badge: '📈 % VITÓRIAS',
           nome: resumo.eficiente_nome,
           valor: `${Math.round((resumo.eficiente_percentual ?? 0) * 100)}% vitórias`,
           detalhe: `${resumo.eficiente_vitorias ?? 0}V em ${resumo.eficiente_partidas ?? 0} jogos`,
@@ -152,13 +151,14 @@ export function Resumo() {
           titulo: 'Maior Sequência',
           badge: '🔥 EMBALADO',
           nome: resumo.sequencia_vitorias_nome,
-          valor: `${resumo.sequencia_vitorias ?? 0} vitórias seguidas`,
+          valor: `${resumo.sequencia_vitorias ?? 0} ${resumo.sequencia_vitorias === 1 ? 'vitória' : 'vitórias'}`,
+          detalhe: 'Embalado na temporada',
         },
         {
           titulo: 'Maior Seca',
           badge: '🧊 JEJUM',
           nome: resumo.seca_vitorias_nome,
-          valor: `${resumo.seca_vitorias ?? 0} jogos sem vencer`,
+          valor: `${resumo.seca_vitorias ?? 0} ${resumo.seca_vitorias === 1 ? 'jogo' : 'jogos'}`,
           detalhe: 'A quinta não perdoa',
         },
       ]
@@ -167,15 +167,15 @@ export function Resumo() {
   return (
     <PullToRefresh onRefresh={carregar}>
       <div className="px-3 py-4 pb-20 sm:px-4 sm:mx-auto sm:max-w-2xl text-giz space-y-4">
-        {/* Cabeçalho do Boletim da Temporada */}
+        {/* Cabeçalho Editorial de Súmula */}
         <div className="flex items-end justify-between sumula-header pb-2">
           <div>
             <p className="text-[10px] font-mono uppercase tracking-widest text-destaque font-bold">
-              Boletim Oficial do Racha
+              BOLETIM OFICIAL DO RACHA
             </p>
-            <h2 className="font-display font-bold text-2xl uppercase tracking-wider text-giz">
-              Temporada {ano}
-            </h2>
+            <h1 className="font-display font-bold text-2xl uppercase tracking-wider text-giz">
+              TEMPORADA {ano}
+            </h1>
           </div>
           <p className="font-mono text-xs font-bold text-giz-fraco tabular-nums">
             {resumo?.total_partidas ?? 0} {resumo?.total_partidas === 1 ? 'partida' : 'partidas'}
@@ -187,12 +187,13 @@ export function Resumo() {
 
         <CardProximaPartida proxima={proxima} />
 
+        {/* Grade de Destaques ou Empty State Esportivo */}
         {semPartidas ? (
-          <div className="rounded-[4px] border border-borda bg-superficie p-5 text-center shadow-carimbo">
+          <div className="rounded-[4px] border border-borda bg-superficie p-5 text-center shadow-carimbo space-y-1">
             <p className="text-sm font-medium text-giz">
               Nenhuma partida na súmula ainda este ano.
             </p>
-            <p className="text-xs text-giz-fraco mt-1 font-mono">
+            <p className="text-xs text-giz-fraco font-mono">
               O primeiro jogo da temporada vai inaugurar os números oficiais.
             </p>
           </div>
@@ -204,7 +205,7 @@ export function Resumo() {
           </div>
         )}
 
-        {/* Footer do Boletim */}
+        {/* Rodapé Editorial do Boletim */}
         <div className="pt-4 text-center">
           <p className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
             Racha Gragoatá · desde 2024 · toda quinta, CBO
@@ -247,22 +248,22 @@ function CardProximaPartida({
   return (
     <Link
       to={`/partida/${proxima.id}`}
-      className="block rounded-[4px] border-2 border-destaque bg-superficie px-4 py-3 shadow-carimbo transition hover:bg-superficie-2"
+      className="block rounded-[4px] border-2 border-destaque bg-superficie px-4 py-3.5 shadow-carimbo transition active:scale-[0.99] hover:bg-superficie-2"
     >
-      <div className="flex items-center justify-between">
-        <span className="font-display font-black text-[10px] uppercase tracking-widest text-destaque bg-[#0d0d0e] px-2 py-0.5 rounded-[2px] border border-destaque/40">
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-display font-black text-[10px] uppercase tracking-widest text-destaque-tinta bg-destaque px-2 py-0.5 rounded-[2px] shadow-xs">
           PRÓXIMA QUINTA
         </span>
         <span className="font-mono text-xs font-bold text-destaque tabular-nums">
           {proxima.ocupadas}/{CAPACIDADE_PARTIDA} VAGAS
         </span>
       </div>
-      <p className="mt-1.5 font-display font-bold text-base uppercase tracking-wider text-giz capitalize">
+      <p className="mt-2 font-display font-bold text-lg uppercase tracking-wider text-giz capitalize">
         <span className="sm:hidden">{formatarDataMobile(proxima.data_jogo)}</span>
         <span className="hidden sm:inline">{formatarDataCompleta(proxima.data_jogo)}</span>
       </p>
       <p className="mt-0.5 text-xs text-giz-fraco font-mono">
-        Toque para confirmar ou consultar a lista de presença
+        Toque para confirmar presença ou consultar a súmula
       </p>
     </Link>
   );

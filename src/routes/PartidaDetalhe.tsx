@@ -32,6 +32,7 @@ import { SkeletonDetalhe } from '../components/Skeletons';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { formatarDataCompleta, formatarDataMobile, formatarFechamento } from '../lib/formatacao';
 import { Avatar } from '../components/Avatar';
+import { Badge } from '../components/Badge';
 import { voltar } from '../lib/navegacao';
 import { vibrateLight, vibrateSuccess } from '../lib/haptics';
 import { formatarMensagemErro } from '../lib/erros';
@@ -166,15 +167,6 @@ export function PartidaDetalhe() {
     !!jogadorLogado && participantes.some((p) => p.jogador_id === jogadorLogado.id);
   const isRandom = !!jogadorLogado && isRandomUsername(jogadorLogado.username);
 
-  const carimboStatusCls =
-    partida.status === 'live'
-      ? 'border-destaque text-destaque bg-destaque/10 -rotate-2'
-      : partida.status === 'closed'
-        ? 'border-perigo text-perigo bg-perigo/10 -rotate-2'
-        : partida.status === 'published'
-          ? 'border-ok text-ok bg-ok/10 -rotate-1'
-          : 'border-borda text-giz-fraco bg-superficie-2';
-
   return (
     <div className="px-3 py-4 pb-16 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
       <button
@@ -195,12 +187,10 @@ export function PartidaDetalhe() {
             <span className="hidden sm:inline">{formatarDataCompleta(partida.data_jogo)}</span>
           </p>
         </div>
-        <div className="text-right">
-          <span
-            className={`inline-block font-display font-black uppercase tracking-widest text-[10px] border px-2 py-0.5 rounded-[2px] shadow-xs ${carimboStatusCls}`}
-          >
+        <div className="text-right flex flex-col items-end">
+          <Badge variante="status" status={partida.status}>
             {STATUS_LABEL[partida.status]}
-          </span>
+          </Badge>
           {partida.status === 'published' && partida.voting_closes_at && (
             <p className="text-[10px] font-mono text-destaque mt-1">
               Urna fecha {formatarFechamento(partida.voting_closes_at)}
@@ -491,27 +481,6 @@ export function PartidaDetalhe() {
   );
 }
 
-function BadgeStatus({ status }: { status: StatusConfirmacao }) {
-  const cls: Record<StatusConfirmacao, string> = {
-    confirmado: 'border-ok/60 bg-ok/10 text-ok',
-    pendente: 'border-borda bg-superficie-2 text-giz-fraco',
-    recusado: 'border-perigo/60 bg-perigo/10 text-perigo',
-  };
-  const icon: Record<StatusConfirmacao, string> = {
-    confirmado: '✓ ',
-    pendente: '⏳ ',
-    recusado: '✗ ',
-  };
-  return (
-    <span
-      className={`inline-block rounded-[2px] border px-1.5 py-0.5 text-[9px] font-display font-bold uppercase tracking-wider ${cls[status]}`}
-    >
-      {icon[status]}
-      {STATUS_CONFIRMACAO_LABEL[status]}
-    </span>
-  );
-}
-
 type PropsBotoes = {
   status: StatusConfirmacao;
   podeConf: boolean;
@@ -774,7 +743,9 @@ function Confirmacoes({
                       <span className="ml-1 text-[10px] font-mono text-destaque">(você)</span>
                     )}
                   </p>
-                  <BadgeStatus status={p.status_confirmacao} />
+                  <Badge variante="status" status={p.status_confirmacao}>
+                    {STATUS_CONFIRMACAO_LABEL[p.status_confirmacao]}
+                  </Badge>
                 </div>
               </div>
 

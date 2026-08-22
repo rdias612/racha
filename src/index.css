@@ -156,6 +156,18 @@ textarea:focus-visible {
   }
 }
 
+@utility transition-fast {
+  transition: all 150ms ease-out;
+}
+
+@utility transition-normal {
+  transition: all 200ms ease-out;
+}
+
+@utility transition-slow {
+  transition: all 300ms ease-in-out;
+}
+
 @utility shadow-carimbo {
   box-shadow: 3px 3px 0 var(--cor-borda);
 }

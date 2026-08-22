@@ -85,7 +85,7 @@ export function Layout() {
                   : 'Mudar para modo escuro (refletor)'
               }
               title={tema === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
-              className="inline-flex min-h-[36px] min-w-[36px] items-center justify-center rounded-[4px] border border-borda bg-superficie p-2 text-giz shadow-carimbo hover:bg-superficie-2 hover:text-destaque transition active:translate-y-px"
+              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[4px] border border-borda bg-superficie p-2 text-giz shadow-carimbo hover:bg-superficie-2 hover:text-destaque transition-fast active:translate-y-px"
             >
               {tema === 'dark' ? (
                 <Sun className="size-4 text-destaque" />
@@ -100,43 +100,49 @@ export function Layout() {
                   type="button"
                   onClick={() => setMenuAberto((prev) => !prev)}
                   aria-expanded={menuAberto}
-                  className="inline-flex items-center gap-1.5 rounded-[4px] border border-borda bg-superficie px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-giz shadow-carimbo hover:bg-superficie-2 transition"
+                  className="inline-flex min-h-[44px] items-center gap-1.5 rounded-[4px] border border-borda bg-superficie px-3.5 py-2 text-xs font-semibold uppercase tracking-wider text-giz shadow-carimbo hover:bg-superficie-2 transition-fast"
                 >
-                  <span className="font-display tracking-wider">ADMIN</span>
+                  <span className="font-display tracking-wider font-bold">ADMIN</span>
                   <ChevronDown
-                    className={`size-3.5 text-destaque transition-transform ${menuAberto ? 'rotate-180' : ''}`}
+                    className={`size-3.5 text-destaque transition-transform duration-200 ${menuAberto ? 'rotate-180' : ''}`}
                   />
                 </button>
 
                 {menuAberto && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setMenuAberto(false)} />
-                    <div className="absolute right-0 top-full mt-1.5 z-50 w-52 rounded-[4px] border border-borda bg-superficie p-1.5 shadow-carimbo">
+                    <div className="absolute right-0 top-full mt-1.5 z-50 w-56 rounded-[4px] border border-borda bg-superficie p-1.5 shadow-carimbo">
                       <Link
                         to="/gestao-jogadores"
                         onClick={() => setMenuAberto(false)}
-                        className="flex items-center gap-2 rounded-[3px] px-2.5 py-2 text-xs font-medium text-giz hover:bg-superficie-2 hover:text-destaque transition"
+                        className="flex min-h-[44px] items-center gap-2.5 rounded-[3px] px-3 py-2 text-xs font-medium text-giz hover:bg-superficie-2 hover:text-destaque transition-fast"
                       >
-                        <Users className="size-3.5 text-destaque" />
-                        <span>Gestão de Jogadores</span>
+                        <Users className="size-4 text-destaque shrink-0" />
+                        <span className="font-display font-bold uppercase tracking-wider text-xs">
+                          Gestão de Jogadores
+                        </span>
                       </Link>
 
                       <Link
                         to="/jogador/novo"
                         onClick={() => setMenuAberto(false)}
-                        className="flex items-center gap-2 rounded-[3px] px-2.5 py-2 text-xs font-medium text-giz hover:bg-superficie-2 hover:text-destaque transition"
+                        className="flex min-h-[44px] items-center gap-2.5 rounded-[3px] px-3 py-2 text-xs font-medium text-giz hover:bg-superficie-2 hover:text-destaque transition-fast"
                       >
-                        <UserPlus className="size-3.5 text-destaque" />
-                        <span>+ Novo Jogador</span>
+                        <UserPlus className="size-4 text-destaque shrink-0" />
+                        <span className="font-display font-bold uppercase tracking-wider text-xs">
+                          + Novo Jogador
+                        </span>
                       </Link>
 
                       <Link
                         to="/administrador"
                         onClick={() => setMenuAberto(false)}
-                        className="flex items-center gap-2 rounded-[3px] px-2.5 py-2 text-xs font-medium text-giz hover:bg-superficie-2 hover:text-destaque transition"
+                        className="flex min-h-[44px] items-center gap-2.5 rounded-[3px] px-3 py-2 text-xs font-medium text-giz hover:bg-superficie-2 hover:text-destaque transition-fast"
                       >
-                        <Wallet className="size-3.5 text-destaque" />
-                        <span>Financeiro & Súmula</span>
+                        <Wallet className="size-4 text-destaque shrink-0" />
+                        <span className="font-display font-bold uppercase tracking-wider text-xs">
+                          Financeiro & Súmula
+                        </span>
                       </Link>
                     </div>
                   </>

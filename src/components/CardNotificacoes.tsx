@@ -3,6 +3,7 @@ import { Bell, BellRing, BellOff, Loader2 } from 'lucide-react';
 import { useSessao } from '../context/SessaoContext';
 import { ativarPush, desativarPush, statusPush, type StatusPush } from '../lib/pwa';
 import { formatarMensagemErro } from '../lib/erros';
+import { vibrateSuccess, vibrateError, vibrateLight } from '../lib/haptics';
 import { MensagemEstado } from './Estado';
 
 /**
@@ -43,13 +44,16 @@ export function CardNotificacoes() {
     setErroPush(null);
     try {
       if (pushStatus === 'ativado') {
+        vibrateLight();
         await desativarPush(jogador.id);
         setPushStatus('desativado');
       } else {
         await ativarPush(jogador.id);
         setPushStatus('ativado');
+        vibrateSuccess();
       }
     } catch (error) {
+      vibrateError();
       setErroPush(formatarMensagemErro(error));
     } finally {
       setAlterandoPush(false);
@@ -82,7 +86,7 @@ export function CardNotificacoes() {
         </h3>
 
         {pushStatus === 'ativado' && (
-          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-destaque bg-destaque/15 px-1.5 py-0.5 rounded-[2px]">
+          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-destaque bg-destaque/15 px-1.5 py-0.5 rounded-[2px] border border-destaque/30">
             Ativo
           </span>
         )}
@@ -116,10 +120,10 @@ export function CardNotificacoes() {
             type="button"
             onClick={alternarPush}
             disabled={alterandoPush}
-            className={`w-full min-h-[44px] rounded-[3px] border font-display font-bold uppercase tracking-wider text-xs shadow-carimbo transition active:translate-y-px disabled:opacity-50 flex items-center justify-center gap-2 ${
+            className={`w-full min-h-[44px] rounded-[4px] border font-display font-bold uppercase tracking-wider text-xs shadow-carimbo transition active:translate-y-px disabled:opacity-50 flex items-center justify-center gap-2 px-4 py-2.5 ${
               pushStatus === 'ativado'
                 ? 'border-borda bg-superficie-2 text-giz-fraco hover:text-giz hover:bg-superficie'
-                : 'border-destaque bg-destaque text-destaque-tinta hover:brightness-105'
+                : 'border-destaque bg-destaque text-destaque-tinta font-black shadow-carimbo-destaque hover:brightness-105'
             }`}
           >
             {alterandoPush && <Loader2 className="size-4 animate-spin" />}

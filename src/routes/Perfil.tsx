@@ -38,19 +38,21 @@ export function Perfil() {
   const [erroSenha, setErroSenha] = useState<string | null>(null);
   const [okSenha, setOkSenha] = useState<string | null>(null);
 
+  const jogadorId = jogador?.id;
+
   useEffect(() => {
     async function carregarStats() {
-      if (!jogador) return;
+      if (!jogadorId) return;
       const { data, error } = await supabase
         .from('stats_jogador')
         .select('jogador_id, partidas, gols, assistencias, gols_contra, vitorias')
-        .eq('jogador_id', jogador.id)
+        .eq('jogador_id', jogadorId)
         .maybeSingle();
       if (!error) setStats(data);
       setCarregandoStats(false);
     }
     carregarStats();
-  }, [jogador?.id]);
+  }, [jogadorId]);
 
   if (!jogador) return null;
 

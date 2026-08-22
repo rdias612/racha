@@ -154,7 +154,7 @@ export function PartidaVotar() {
     return () => {
       ativo = false;
     };
-  }, [id, jogador?.id, jogador?.username]);
+  }, [id, jogador]);
 
   if (!jogador) return <Navigate to="/login" replace />;
   if (carregando) return <Carregando>Carregando cédula de votação…</Carregando>;
@@ -347,7 +347,7 @@ export function PartidaVotar() {
                 ? 'Atualizar votos'
                 : todosAvaliados
                   ? 'Enviar todos os votos'
-                  : `Avalie todos (${alvos.length - Object.keys(notas).length} restantes)`}
+                  : `Avalie todos (${alvos.length - avaliadosCount} restantes)`}
           </button>
         </div>
       </div>

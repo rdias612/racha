@@ -76,9 +76,11 @@ export function Estatisticas() {
     activeTab: '/estatisticas/jogador',
   });
 
+  const jogadorId = jogador?.id;
+
   // Carrega lista de jogadores ativos uma vez, filtrando os "random".
   useEffect(() => {
-    if (!jogador) return;
+    if (!jogadorId) return;
     supabase
       .from('jogadores')
       .select('id, nome, username')
@@ -89,11 +91,9 @@ export function Estatisticas() {
         const filtrados = data.filter((j) => !isRandomUsername(j.username));
         setJogadores(filtrados);
         // default: o proprio jogador logado
-        if (jogadorSelecionadoId === null) {
-          setJogadorSelecionadoId(jogador.id);
-        }
+        setJogadorSelecionadoId((curr) => (curr === null ? jogadorId : curr));
       });
-  }, [jogador?.id]);
+  }, [jogadorId]);
 
   const carregar = useCallback(async () => {
     if (jogadorSelecionadoId === null) return;

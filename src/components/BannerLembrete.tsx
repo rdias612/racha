@@ -17,13 +17,14 @@ function formatarRestante(ms: number): string {
 
 export function BannerLembrete() {
   const jogador = useJogadorLogado();
+  const jogadorId = jogador?.id;
   const [pendentes, setPendentes] = useState<PartidaAberta[]>([]);
   const [agora, setAgora] = useState(Date.now());
 
   // Recarrega a cada 30s se houver pendentes, senão a cada 5min
   useEffect(() => {
     async function verificar() {
-      if (!jogador) return;
+      if (!jogadorId) return;
       // Busca partidas published com votação aberta
       const { data } = await supabase
         .from('partidas')
@@ -36,12 +37,11 @@ export function BannerLembrete() {
         return;
       }
 
-      // Filtra as que o usuário ainda não votou (LEFT JOIN virtual: pega
-      // os ids onde ele já votou e exclui)
+      // Filtra as que o usuário ainda não votou (LEFT JOIN virtual)
       const { data: votados } = await supabase
         .from('votes')
         .select('partida_id')
-        .eq('voter_id', jogador.id)
+        .eq('voter_id', jogadorId)
         .in(
           'partida_id',
           data.map((p) => p.id)
@@ -55,7 +55,7 @@ export function BannerLembrete() {
     const intervalo = temPendentes ? 30_000 : 5 * 60_000;
     const i = setInterval(verificar, intervalo);
     return () => clearInterval(i);
-  }, [jogador?.id, pendentes.length]);
+  }, [jogadorId, pendentes.length]);
 
   // Tick a cada 1min para atualizar o countdown
   useEffect(() => {
@@ -67,19 +67,19 @@ export function BannerLembrete() {
   if (pendentes.length === 0) return null;
 
   return (
-    <div className="border-b border-destaque/40 bg-destaque/10 px-3 py-2 sm:px-4 space-y-1">
+    <div className="border-b border-destaque/40 bg-destaque/10 px-3 py-1.5 sm:px-4 space-y-1">
       {pendentes.map((p) => {
         const restante = new Date(p.voting_closes_at).getTime() - agora;
         return (
           <Link
             key={p.id}
             to={`/partida/${p.id}/votar`}
-            className="flex items-center justify-between text-xs hover:opacity-80 transition"
+            className="flex min-h-[44px] items-center justify-between gap-2 text-xs hover:opacity-85 transition rounded-[4px] px-2 py-1 focus-visible:outline-2 focus-visible:outline-destaque"
           >
             <span className="font-display font-bold uppercase tracking-wider text-giz">
               ⚡ Urna Aberta — Partida #{p.id}
             </span>
-            <span className="font-mono text-[11px] font-bold text-destaque">
+            <span className="font-mono text-xs font-bold text-destaque tabular-nums">
               fecha em {formatarRestante(restante)}
             </span>
           </Link>

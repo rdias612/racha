@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { vibrateLight } from './haptics';
 
 export type Tema = 'light' | 'dark';
 
@@ -27,7 +28,10 @@ export function useTema() {
     localStorage.setItem(STORAGE_KEY, tema);
   }, [tema]);
 
-  const alternar = () => setTema((t) => (t === 'dark' ? 'light' : 'dark'));
+  const alternar = () => {
+    vibrateLight();
+    setTema((t) => (t === 'dark' ? 'light' : 'dark'));
+  };
 
   return { tema, alternar };
 }

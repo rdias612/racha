@@ -414,7 +414,7 @@ export function PartidaAoVivo() {
         onClose={() => setConfirmandoFim(false)}
         onConfirm={confirmarFinalizar}
         titulo="Finalizar partida?"
-        mensagem={`Placar ${placar.gols_time_b} × ${placar.gols_time_a}. Isso grava gols, assistências e gols contra e abre a votação por 24h.`}
+        mensagem={`Placar ${placar.gols_time_a} × ${placar.gols_time_b}. Isso grava gols, assistências e gols contra e abre a votação por 24h.`}
         textoConfirmar={finalizando ? 'Finalizando…' : 'Finalizar'}
       />
     </div>

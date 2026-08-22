@@ -4,7 +4,7 @@ import { vibrateSuccess, vibrateError } from '../lib/haptics';
 
 export type TipoSnackbar = 'sucesso' | 'erro' | 'info';
 
-interface SnackbarProps {
+export interface SnackbarProps {
   mensagem: string;
   tipo?: TipoSnackbar;
   visivel: boolean;
@@ -21,8 +21,11 @@ export function Snackbar({
 }: SnackbarProps) {
   useEffect(() => {
     if (visivel) {
-      if (tipo === 'sucesso') vibrateSuccess();
-      else if (tipo === 'erro') vibrateError();
+      if (tipo === 'sucesso') {
+        vibrateSuccess();
+      } else if (tipo === 'erro') {
+        vibrateError();
+      }
 
       const timer = setTimeout(() => {
         onFechar();
@@ -49,25 +52,27 @@ export function Snackbar({
 
   return (
     <div
-      className="fixed inset-x-3 z-50 mx-auto max-w-sm transition-all duration-300 ease-out"
+      className="fixed inset-x-3 z-50 mx-auto max-w-sm transition-normal animate-slide-up pointer-events-auto"
       style={{ bottom: 'calc(4.5rem + env(safe-area-inset-bottom, 0px))' }}
     >
       <div
-        className={`flex items-center justify-between gap-3 rounded-[4px] border px-4 py-3 shadow-carimbo-preto backdrop-blur-sm ${bgCores[tipo]}`}
+        className={`flex items-center justify-between gap-3 rounded-[4px] border px-4 py-3 shadow-carimbo-preto backdrop-blur-xs ${bgCores[tipo]}`}
         role="alert"
+        aria-live="assertive"
       >
         <div className="flex items-center gap-2.5 min-w-0">
-          <IconeComponente className="size-4 shrink-0" />
-          <span className="truncate text-xs font-semibold uppercase tracking-wide font-display">
+          <IconeComponente className="size-4 shrink-0" aria-hidden="true" />
+          <span className="truncate text-xs font-bold uppercase tracking-wider font-display">
             {mensagem}
           </span>
         </div>
         <button
+          type="button"
           onClick={onFechar}
           aria-label="Fechar notificação"
-          className="shrink-0 rounded-[2px] p-1 hover:bg-white/20 transition"
+          className="shrink-0 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-[2px] p-1.5 hover:bg-black/10 dark:hover:bg-white/20 transition-fast focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-1"
         >
-          <X className="size-4" />
+          <X className="size-4" aria-hidden="true" />
         </button>
       </div>
     </div>

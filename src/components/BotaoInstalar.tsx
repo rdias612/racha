@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useInstalacaoPWA } from '../lib/pwa';
+import { vibrateLight, vibrateSuccess } from '../lib/haptics';
 
 /**
  * Cartão de instalação do PWA.
@@ -16,44 +17,53 @@ export function BotaoInstalar() {
   if (!podeInstalar && !iosManual) return null;
 
   async function handleClick() {
+    vibrateLight();
     setInstalando(true);
     await instalar();
+    vibrateSuccess();
     setInstalando(false);
   }
 
+  function handleToggleManual() {
+    vibrateLight();
+    setExpandido((v) => !v);
+  }
+
   return (
-    <section className="rounded-[4px] border border-destaque/40 bg-destaque/10 p-3.5 shadow-carimbo">
+    <section className="rounded-[4px] border border-destaque/40 bg-destaque/10 p-3.5 shadow-carimbo space-y-2">
       <h3 className="text-xs font-display font-bold uppercase tracking-wider text-destaque flex items-center gap-1.5">
-        <span>📲</span> Instalar App na Tela Inicial
+        <span aria-hidden="true">📲</span> Instalar App na Tela Inicial
       </h3>
 
       {!iosManual ? (
         <>
-          <p className="mt-1.5 text-xs text-giz-fraco">
+          <p className="text-xs text-giz-fraco leading-relaxed">
             Adicione a Súmula de Quinta à tela inicial para acesso instantâneo em campo, sem barra
             do navegador.
           </p>
           <button
+            type="button"
             onClick={handleClick}
             disabled={instalando}
-            className="mt-3 w-full min-h-[44px] rounded-[3px] border border-destaque bg-destaque px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-50"
+            className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-2.5 font-display font-black uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo-destaque hover:brightness-105 active:translate-y-px transition disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {instalando ? 'Instalando…' : 'Instalar Aplicativo'}
           </button>
         </>
       ) : (
         <>
-          <p className="mt-1.5 text-xs text-giz-fraco">
+          <p className="text-xs text-giz-fraco leading-relaxed">
             No iPhone / iPad, a instalação é feita pelo Safari:
           </p>
           <button
-            onClick={() => setExpandido((v) => !v)}
-            className="mt-2.5 w-full min-h-[40px] rounded-[3px] border border-destaque/50 bg-superficie px-4 py-2 font-display font-bold uppercase tracking-wider text-xs text-destaque hover:bg-superficie-2 transition"
+            type="button"
+            onClick={handleToggleManual}
+            className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-giz shadow-carimbo hover:bg-superficie-2 active:translate-y-px transition flex items-center justify-center gap-1.5"
           >
             {expandido ? 'Ocultar passo a passo ▴' : 'Ver passo a passo ▾'}
           </button>
           {expandido && (
-            <ol className="mt-2.5 space-y-1.5 text-xs text-giz-fraco font-mono">
+            <ol className="space-y-1.5 text-xs text-giz-fraco font-mono pl-1 pt-1">
               <li>
                 <strong className="text-giz">1.</strong> Toque no botão{' '}
                 <strong className="text-giz">Compartilhar</strong> <span aria-hidden="true">⎋</span>{' '}

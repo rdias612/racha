@@ -11,6 +11,7 @@ import { Snackbar, type TipoSnackbar } from '../components/Snackbar';
 import { formatarDataLista } from '../lib/formatacao';
 import { STATUS_LABEL, excluirPartida, type StatusPartida } from '../lib/partidas';
 import { PullToRefresh } from '../components/PullToRefresh';
+import { Badge } from '../components/Badge';
 
 interface Partida {
   id: number;
@@ -142,14 +143,6 @@ export function Jogos() {
           <div className="space-y-3">
             {partidas.map((p) => {
               const pl = placares[p.id];
-              const carimboCls =
-                p.status === 'live'
-                  ? 'border-destaque text-destaque bg-destaque/10'
-                  : p.status === 'closed'
-                    ? 'border-perigo/60 text-perigo bg-perigo/10'
-                    : p.status === 'published'
-                      ? 'border-ok/60 text-ok bg-ok/10'
-                      : 'border-borda text-giz-fraco bg-superficie-2';
 
               return (
                 <div
@@ -162,11 +155,9 @@ export function Jogos() {
                       Partida #{p.id} · {formatarDataLista(p.data_jogo)}
                     </span>
                     <div className="flex items-center gap-2">
-                      <span
-                        className={`font-display font-bold uppercase tracking-wider text-[9px] border px-1.5 py-0.5 rounded-[2px] ${carimboCls}`}
-                      >
+                      <Badge variante="status" status={p.status}>
                         {STATUS_LABEL[p.status]}
-                      </span>
+                      </Badge>
                       {isAdmin && (
                         <button
                           type="button"

@@ -1,9 +1,10 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { Wallet, ChevronDown, Plus, Check } from 'lucide-react';
+import { Wallet, ChevronDown, Plus, Check, MessageSquare } from 'lucide-react';
 import { useAdmin } from '../hooks/useAdmin';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { Snackbar, type TipoSnackbar } from '../components/Snackbar';
 import { formatarReais, formatarDataLista } from '../lib/formatacao';
 import { listarJogadoresAtivos, type JogadorLista } from '../lib/jogadores';
 import { voltar } from '../lib/navegacao';
@@ -46,6 +47,11 @@ export function Administrador() {
   const [erro, setErro] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
   const [expandido, setExpandido] = useState<number | null>(null);
+  const [snackbar, setSnackbar] = useState<{
+    visivel: boolean;
+    tipo: TipoSnackbar;
+    mensagem: string;
+  }>({ visivel: false, tipo: 'sucesso', mensagem: '' });
   const [confirmacao, setConfirmacao] = useState<{
     open: boolean;
     titulo: string;
@@ -62,43 +68,46 @@ export function Administrador() {
   const [fDescricao, setFDescricao] = useState('');
   const [salvando, setSalvando] = useState(false);
 
-  async function carregar(isAtivo?: () => boolean) {
-    if (!isAdmin) return;
-    setCarregando(true);
-    setErro(null);
-    try {
-      const [resumo, dividas, jogs] = await Promise.all([
-        listarResumoDevedores(),
-        listarDividasEmAberto(),
-        jogadores.length ? Promise.resolve(jogadores) : listarJogadoresAtivos(),
-      ]);
-      if (isAtivo && !isAtivo()) return;
-      if (!jogadores.length) setJogadores(jogs);
+  const carregar = useCallback(
+    async (isAtivo?: () => boolean) => {
+      if (!isAdmin) return;
+      setCarregando(true);
+      setErro(null);
+      try {
+        const [resumo, dividas, jogs] = await Promise.all([
+          listarResumoDevedores(),
+          listarDividasEmAberto(),
+          jogadores.length ? Promise.resolve(jogadores) : listarJogadoresAtivos(),
+        ]);
+        if (isAtivo && !isAtivo()) return;
+        if (!jogadores.length) setJogadores(jogs);
 
-      // A view `dividas_resumo` dita totais e ordem; os itens (drill-down) casam pelo jogador_id.
-      const itensPorJogador = new Map<number, Divida[]>();
-      for (const d of dividas) {
-        const arr = itensPorJogador.get(d.jogador_id) ?? [];
-        arr.push(d);
-        itensPorJogador.set(d.jogador_id, arr);
+        // A view `dividas_resumo` dita totais e ordem; os itens (drill-down) casam pelo jogador_id.
+        const itensPorJogador = new Map<number, Divida[]>();
+        for (const d of dividas) {
+          const arr = itensPorJogador.get(d.jogador_id) ?? [];
+          arr.push(d);
+          itensPorJogador.set(d.jogador_id, arr);
+        }
+        setGrupos(
+          resumo.map((r) => ({
+            jogador_id: r.jogador_id,
+            nome: r.nome,
+            username: r.username,
+            is_mensalista: r.is_mensalista,
+            total_devido: Number(r.total_devido),
+            dividas: itensPorJogador.get(r.jogador_id) ?? [],
+          }))
+        );
+      } catch (e) {
+        if (isAtivo && !isAtivo()) return;
+        setErro(e instanceof Error ? e.message : 'Erro ao carregar dívidas.');
+      } finally {
+        if (!isAtivo || isAtivo()) setCarregando(false);
       }
-      setGrupos(
-        resumo.map((r) => ({
-          jogador_id: r.jogador_id,
-          nome: r.nome,
-          username: r.username,
-          is_mensalista: r.is_mensalista,
-          total_devido: Number(r.total_devido),
-          dividas: itensPorJogador.get(r.jogador_id) ?? [],
-        }))
-      );
-    } catch (e) {
-      if (isAtivo && !isAtivo()) return;
-      setErro(e instanceof Error ? e.message : 'Erro ao carregar dívidas.');
-    } finally {
-      if (!isAtivo || isAtivo()) setCarregando(false);
-    }
-  }
+    },
+    [isAdmin, jogadores]
+  );
 
   useEffect(() => {
     let ativo = true;
@@ -106,7 +115,7 @@ export function Administrador() {
     return () => {
       ativo = false;
     };
-  }, []);
+  }, [carregar]);
 
   if (!isAdmin) return <Navigate to="/" replace />;
 
@@ -180,6 +189,37 @@ export function Administrador() {
       setErro(e instanceof Error ? e.message : 'Erro ao registrar dívida.');
     } finally {
       setSalvando(false);
+    }
+  }
+
+  function copiarLembreteWhatsApp(e: React.MouseEvent, g: DividaPorJogador) {
+    e.stopPropagation();
+    const linhas = g.dividas
+      .map(
+        (d) =>
+          `• ${d.tipo === 'mensalidade' ? 'Mensalidade' : d.tipo === 'avulso' ? 'Avulso' : 'Taxa'} (${formatarDataLista(d.data_divida)}): ${formatarReais(Number(d.valor))}${d.descricao ? ` — ${d.descricao}` : ''}`
+      )
+      .join('\n');
+
+    const texto = `⚽ *Súmula Financeira — Racha Gragoatá*\n\nFala ${g.nome}! Segue o resumo das pendências em aberto:\n\n${linhas}\n\n*Total em aberto: ${formatarReais(g.total_devido)}*\n\nValeu pela força e nos vemos quinta! 👊`;
+
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard
+        .writeText(texto)
+        .then(() => {
+          setSnackbar({
+            visivel: true,
+            tipo: 'sucesso',
+            mensagem: `Lembrete para ${g.nome} copiado com sucesso!`,
+          });
+        })
+        .catch(() => {
+          setSnackbar({
+            visivel: true,
+            tipo: 'erro',
+            mensagem: 'Não foi possível copiar a mensagem.',
+          });
+        });
     }
   }
 
@@ -314,7 +354,7 @@ export function Administrador() {
         <button
           type="submit"
           disabled={salvando}
-          className="w-full flex items-center justify-center gap-1.5 rounded-[4px] border border-destaque bg-destaque px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo transition active:translate-y-px disabled:opacity-50"
+          className="w-full min-h-[44px] flex items-center justify-center gap-1.5 rounded-[4px] border border-destaque bg-destaque px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo transition active:translate-y-px disabled:opacity-50"
         >
           <Plus className="size-4" />
           {salvando ? 'Adicionando…' : 'Adicionar dívida'}
@@ -358,7 +398,7 @@ export function Administrador() {
                         setExpandido(aberto ? null : g.jogador_id);
                       }
                     }}
-                    className="flex min-h-[3.5rem] items-center gap-2 px-3 py-2 cursor-pointer hover:bg-superficie-2 transition"
+                    className="flex min-h-[44px] items-center gap-2 px-3 py-2 cursor-pointer hover:bg-superficie-2 transition"
                   >
                     <ChevronDown
                       className={`size-4 shrink-0 text-destaque transition-transform ${
@@ -381,13 +421,25 @@ export function Administrador() {
                     <span className="shrink-0 font-mono text-sm font-bold text-perigo tabular-nums">
                       {formatarReais(g.total_devido)}
                     </span>
-                    <button
-                      onClick={(e) => handleQuitarTodas(e, g.jogador_id, g.nome)}
-                      title="Quitar todas"
-                      className="shrink-0 rounded-[3px] border border-borda bg-superficie-2 px-2.5 py-1 text-xs font-display uppercase tracking-wider font-semibold text-giz hover:border-destaque transition"
-                    >
-                      Quitar todas
-                    </button>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={(e) => copiarLembreteWhatsApp(e, g)}
+                        title="Copiar lembrete WhatsApp"
+                        aria-label={`Copiar cobrança de ${g.nome} para WhatsApp`}
+                        className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-[3px] border border-borda bg-superficie-2 p-2 text-giz-fraco hover:text-destaque hover:border-destaque/50 transition"
+                      >
+                        <MessageSquare className="size-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => handleQuitarTodas(e, g.jogador_id, g.nome)}
+                        title="Quitar todas"
+                        className="min-h-[44px] rounded-[3px] border border-borda bg-superficie-2 px-2.5 py-1 text-xs font-display uppercase tracking-wider font-semibold text-giz hover:border-destaque transition"
+                      >
+                        Quitar todas
+                      </button>
+                    </div>
                   </div>
 
                   {/* Itens (drill-down) */}
@@ -427,8 +479,9 @@ export function Administrador() {
                               {formatarReais(Number(d.valor))}
                             </span>
                             <button
+                              type="button"
                               onClick={(e) => handleQuitar(e, d.id, g.nome)}
-                              className="flex items-center gap-1 rounded-[3px] border border-ok bg-ok px-2 py-1 text-xs font-display uppercase tracking-wider font-bold text-white shadow-xs hover:brightness-110"
+                              className="min-h-[44px] flex items-center gap-1 rounded-[3px] border border-ok bg-ok px-3 py-1.5 text-xs font-display uppercase tracking-wider font-bold text-white shadow-xs hover:brightness-110"
                             >
                               <Check className="size-3.5" />
                               Pagar
@@ -454,6 +507,13 @@ export function Administrador() {
           mensagem={confirmacao.mensagem}
         />
       )}
+
+      <Snackbar
+        mensagem={snackbar.mensagem}
+        tipo={snackbar.tipo}
+        visivel={snackbar.visivel}
+        onFechar={() => setSnackbar((s) => ({ ...s, visivel: false }))}
+      />
     </div>
   );
 }

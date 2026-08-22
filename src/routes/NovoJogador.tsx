@@ -255,7 +255,7 @@ export function NovoJogador() {
           <button
             type="button"
             onClick={copiarSenhaPadrao}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-[3px] border border-destaque bg-destaque text-destaque-tinta font-display font-bold uppercase tracking-wider text-xs shadow-xs hover:brightness-105 active:translate-y-px transition shrink-0"
+            className="flex min-h-[44px] items-center gap-1 px-3 py-1.5 rounded-[3px] border border-destaque bg-destaque text-destaque-tinta font-display font-bold uppercase tracking-wider text-xs shadow-xs hover:brightness-105 active:translate-y-px transition shrink-0"
           >
             {copiado ? (
               <>

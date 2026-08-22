@@ -41,12 +41,14 @@ export function DialogoEvento({
   salvandoRef.current = salvando;
   onCloseRef.current = onClose;
 
-  useEffect(() => {
-    setEtapa('tipo');
-  }, [jogador?.jogador_id, editando]);
+  const jogadorId = jogador?.jogador_id;
 
   useEffect(() => {
-    if (!jogador) return;
+    setEtapa('tipo');
+  }, [jogadorId, editando]);
+
+  useEffect(() => {
+    if (!jogadorId) return;
     setVisivel(false);
     const raf = requestAnimationFrame(() => setVisivel(true));
     const onKeyDown = (e: KeyboardEvent) => {
@@ -61,7 +63,7 @@ export function DialogoEvento({
       window.removeEventListener('keydown', onKeyDown);
       document.body.style.overflow = prevOverflow;
     };
-  }, [jogador?.jogador_id]);
+  }, [jogadorId]);
 
   if (!jogador) return null;
 

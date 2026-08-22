@@ -43,7 +43,7 @@ export function PartidaNovaTimes() {
       estado && Array.isArray(estado.jogadores) && Array.isArray(estado.selecionados)
         ? estado.jogadores.filter((j) => estado.selecionados.includes(j.id))
         : [],
-    [estado?.jogadores, estado?.selecionados]
+    [estado]
   );
 
   const { times, feedback, setFeedback, atribuirTime, autoEscalar } = useEscalacaoTimes({
