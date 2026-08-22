@@ -196,7 +196,7 @@ export function Jogos() {
                             p.status === 'live'
                               ? 'text-destaque [text-shadow:0_0_10px_rgba(255,179,0,0.5)]'
                               : p.status === 'closed'
-                                ? 'text-giz'
+                                ? 'text-branco-time'
                                 : 'text-destaque'
                           }`}
                         >
