@@ -140,49 +140,29 @@ racha/
 
 ## 4. Identidade Visual e Design System — "Súmula de Quinta"
 
-O projeto possui identidade visual proprietária: **Súmula de Quinta**.  
-🚫 **É TERMINANTEMENTE PROIBIDO criar interfaces com visual SaaS genérico de IA** (como `rounded-xl`, sombras difusas azuis, fundos brancos puros estéreis ou fontes corporativas genéricas).
+> 📖 **Fonte Canônica e Oficial do Design System**: [`design-system.md`](./design-system.md)  
+> Para detalhes aprofundados sobre tokens de cores, escala formal de espaçamento (_spacing tokens_), tipografia, anatomia de componentes, snippets de código, tom de voz em 3 níveis, glossário canônico e checklist de acessibilidade (a11y), **consulte e siga rigorosamente o [`design-system.md`](./design-system.md)**.
 
-### 4.1 Tokens CSS e Cores Semânticas (`src/index.css`)
+### 4.1 Diretriz Mandatória para Agentes e Modelos de IA
 
-Suporta nativamente tema **Claro (Papel de Súmula)** e **Escuro (Refletor Noturno)**:
+Antes de criar, estilizar ou refatorar qualquer componente, tela ou fluxo visual:
 
-| Token Tailwind              | Variável CSS           | Modo Claro                    | Modo Escuro                | Uso Semântico                                 |
-| --------------------------- | ---------------------- | ----------------------------- | -------------------------- | --------------------------------------------- |
-| `bg-fundo`                  | `--cor-fundo`          | `#f3efe4` (papel envelhecido) | `#12100d` (noturno escuro) | Fundo geral da aplicação                      |
-| `bg-superficie`             | `--cor-superficie`     | `#faf7ee`                     | `#1b1814`                  | Cards, modais, cabeçalhos                     |
-| `bg-superficie-2`           | `--cor-superficie-2`   | `#ece7d8`                     | `#242019`                  | Linhas alternadas, inputs                     |
-| `border-borda`              | `--cor-borda`          | `#d8d2c0`                     | `#35302a`                  | Bordas e divisórias sólidas                   |
-| `text-giz`                  | `--cor-giz`            | `#1e1c18`                     | `#f2efe6`                  | Texto principal / títulos                     |
-| `text-giz-fraco`            | `--cor-giz-fraco`      | `#6b6759`                     | `#a39f92`                  | Metadados, labels, subtítulos                 |
-| `bg-destaque`               | `--cor-destaque`       | `#ffb300` (âmbar refletor)    | `#ffb300` (âmbar refletor) | Ações primárias, 1º lugar, botões de destaque |
-| `text-destaque-tinta`       | `--cor-destaque-tinta` | `#1a1200`                     | `#1a1200`                  | Texto de alto contraste sobre fundo âmbar     |
-| `bg-ok` / `text-ok`         | `--cor-ok`             | `#58b368`                     | `#58b368`                  | Confirmações, vitórias, quitações             |
-| `bg-perigo` / `text-perigo` | `--cor-perigo`         | `#e4572e`                     | `#e4572e`                  | Exclusões, derrotas, débitos                  |
-| `bg-campo`                  | `--cor-campo`          | `#dfe8dc`                     | `#16281c`                  | Fundo do campo tático                         |
-| `border-campo-linha`        | `--cor-campo-linha`    | `#b9cbb6`                     | `#2c4433`                  | Linhas do gramado de futebol                  |
-| `bg-preto-time`             | `--cor-preto-time`     | `#0d0d0e`                     | `#0d0d0e`                  | Identificador do Time Preto                   |
-| `bg-branco-time`            | `--cor-branco-time`    | `#f4f1e8`                     | `#f4f1e8`                  | Identificador do Time Branco                  |
+1. **Consulte o [`design-system.md`](./design-system.md)** para garantir fidelidade aos tokens, espaçamentos, tipografia e padrões de interface.
+2. 🚫 **É TERMINANTEMENTE PROIBIDO criar interfaces com visual SaaS genérico de IA** (como `rounded-xl`, sombras difusas azuladas `shadow-lg`, gradientes desnecessários, fundos brancos puros estéreis ou fontes corporativas genéricas). A estética emula a súmula de mesa, placar de LED e o futebol amador noturno.
 
-### 4.2 Tipografia Estrita
+### 4.2 Resumo dos Pilares Invioláveis de Interface
 
-Configurada nas diretivas `@theme` de `src/index.css`:
-
-1. **`font-sans` (`Archivo`)**: Corpo de texto, formulários, alertas e mensagens normais.
-2. **`font-display` (`Barlow Condensed`)**: Títulos de seções, cabeçalhos de súmula, badges, crachás e botões. Quase sempre acompanhada de classes `uppercase tracking-wide` ou `tracking-wider`.
-3. **`font-mono` (`Chivo Mono`)**: Placares, notas, valores em Reais, contadores, posições no ranking e tabelas com a classe utilitária `tabular-nums`.
-
-### 4.3 Elementos Gráficos e Utilitários Tailwind v4
-
-- **Geometria / Cantos**: Usar bordas duras com cantos pequenos: `rounded-[2px]`, `rounded-[3px]`, `rounded-[4px]` e no máximo `rounded-[6px]` para modais.
-- **Sombras-Carimbo**:
-  - `shadow-carimbo`: `box-shadow: 3px 3px 0 var(--cor-borda);`
-  - `shadow-carimbo-destaque`: `box-shadow: 3px 3px 0 #b37d00;`
-  - `shadow-carimbo-preto`: `box-shadow: 3px 3px 0 #000000;`
-- **Cabeçalho Pontilhado de Súmula**: `sumula-header` (`border-bottom: 2px dotted var(--cor-borda);`).
-- **Texto Vazado**: `texto-vazado` (`-webkit-text-stroke: 1.5px var(--cor-giz); color: transparent;`).
-- **Textura Grain Global**: Injetada via pseudo-elemento em `body::after` usando SVG `feTurbulence` a 4% de opacidade com `mix-blend-mode: overlay`.
-- **Avatares Terrosos (`Avatar.tsx`)**: Formato quadrado chanfrado `rounded-[3px]`, hash de cores terrosas (`#2f4a33` campo, `#8a5a2b` couro, `#7a2e2b` tijolo, `#54552e` oliva, `#31424e` petróleo, `#5b4632` terra) e plaqueta com a sigla da posição estilo número de camisa.
+1. **Padrão Estrutural (Listas Contínuas vs. Cards)**: O padrão visual primário para rankings, histórico de jogos e listas de presença é a **lista contínua minimalista** (`divide-y divide-borda/40 border-y border-borda`). Cards com `shadow-carimbo` e borda são reservados **apenas para destaques semânticos reais** (ex: Próxima Partida, Craque da Partida, Banners Push/Offline, Pódio).
+2. **Tokens Semânticos**: Proibido hardcodar hexadecimais ou cores Tailwind genéricas (`bg-blue-600`, `text-gray-900`) no JSX. Utilize exclusivamente os tokens semânticos (`bg-fundo`, `bg-superficie`, `bg-superficie-2`, `border-borda`, `text-giz`, `text-giz-fraco`, `bg-destaque`, `text-destaque-tinta`, `bg-ok`, `bg-perigo`, `bg-campo`, `bg-preto-time`, `bg-branco-time`).
+3. **Tríade Tipográfica Estrita**:
+   - **`font-display` (`Barlow Condensed`)**: Títulos, nomes de jogadores, cabeçalhos de súmula, badges, crachás e botões (com `uppercase tracking-wider` ou `tracking-widest`).
+   - **`font-sans` (`Archivo`)**: Corpo de texto, formulários, alertas, modais e descrições.
+   - **`font-mono` (`Chivo Mono`)**: Placares, notas, percentuais, valores em R$, contadores e posições (com `tabular-nums`).
+4. **Geometria, Cantos e Sombras-Carimbo**:
+   - Cantos duros: `rounded-[2px]` (badges compactas), `rounded-[3px]` (avatares), `rounded-[4px]` (botões, inputs, cards e modais) e no máximo `rounded-[6px]` (diálogos tela cheia).
+   - Sombras secas sem blur: `shadow-carimbo`, `shadow-carimbo-destaque`, `shadow-carimbo-preto`.
+5. **Formulários e Foco Acessível**: Inputs e selects em `bg-superficie-2`, `rounded-[4px]`, `text-base` (previne zoom indesejado no iOS) e foco acessível visível (`focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2`).
+6. **Tom de Voz e Glossário Canônico**: Seguir os 3 níveis de comunicação definidos no `design-system.md` (1. Oficial/Administrativo, 2. Funcional/Amigável, 3. Resenha/Pós-Jogo) e os termos oficiais (_Boletim Oficial_, _Artilheiro Oficial_, _Maestro do Racha_, _Craque da Rodada_, _Quadro de Presença_).
 
 ---
 
@@ -452,9 +432,12 @@ O daemon do `pg_cron` no Supabase avalia expressões em **UTC**. O fuso de Bras�
 | **Permissões SQL**      | Esquecer `GRANT EXECUTE` na migration                          | `GRANT EXECUTE ON FUNCTION ... TO anon, authenticated;`             |
 | **Edição de Partida**   | Deletar e reinserir participantes em múltiplos steps do client | Usar a RPC atômica `salvar_edicao_partida(p_id, p_jsonb)`           |
 | **Consultas Agregadas** | Baixar a tabela `votes` inteira para calcular médias no front  | Usar a RPC `obter_medias_notas_jogadores()`                         |
+| **Layout / Estrutura**  | Empilhar dezenas de cards isolados com borda e sombra          | Listas contínuas com `divide-y` (cards só para destaque semântico)  |
 | **Design / Cores**      | Usar cores Tailwind padrão (`bg-blue-600`, `text-gray-900`)    | Usar tokens semânticos (`bg-destaque`, `text-giz`, `bg-superficie`) |
 | **Design / Cantos**     | `rounded-xl`, `rounded-2xl`, sombras suaves `shadow-lg`        | Cantos duros `rounded-[4px]`, `shadow-carimbo`, `border-borda`      |
 | **Tipografia**          | Usar fontes genéricas em tudo                                  | `font-display uppercase` em títulos/badges e `font-mono` em números |
+| **Tom de Voz / Nomes**  | Termos SaaS genéricos ("Dashboard", "MVP", "Winrate")          | Glossário canônico ("Boletim Oficial", "Craque", "Mais Eficiente")  |
+| **Inputs / Forms**      | Inputs sem anel de foco visível ou com texto menor que 16px    | `focus-visible:outline-destaque` e `text-base` (anti-zoom no iOS)   |
 | **Diálogos**            | `if (window.confirm('Excluir?'))`                              | `<ConfirmDialog open={...} onConfirm={...} />`                      |
 | **Feedback Rápido**     | `alert('Salvo com sucesso!')`                                  | `<Snackbar mensagem="..." tipo="sucesso" />` com haptics            |
 | **Rules of Hooks**      | Colocar `useEffect` ou `useMemo` após `if (!isAdmin) return`   | Declarar todos os hooks no topo e posicionar o guard no final       |
@@ -498,7 +481,7 @@ Antes de considerar qualquer modificação concluída, valide item por item:
 - [ ] **1. Verificação de Tipos e Linter**: Executou `npm run lint` e o resultado passou com **0 erros**?
 - [ ] **2. Formatação de Código**: Executou `npm run format` para alinhar com o Prettier?
 - [ ] **3. Build de Produção**: O comando `npm run build` gerou a pasta `dist/` sem falhas?
-- [ ] **4. Fidelidade ao Design System**: A interface respeita a estética "Súmula de Quinta" (cantos 4px, `shadow-carimbo`, tokens semânticos de cor, fontes `Archivo`, `Barlow Condensed` e `Chivo Mono`)?
+- [ ] **4. Fidelidade ao Design System (`design-system.md`)**: A interface respeita listas contínuas, cantos 4px, `shadow-carimbo`, tokens semânticos de cor, tom de voz e fontes `Archivo`, `Barlow Condensed` e `Chivo Mono`?
 - [ ] **5. Alvos de Toque e Safe Areas**: Todos os botões possuem no mínimo 44px (`min-h-[44px]`) e respeitam safe area insets do iOS/Android?
 - [ ] **6. Strict Rules of Hooks**: Todos os hooks estão no topo da função antes de qualquer retorno condicional?
 - [ ] **7. Race Conditions**: Todo `useEffect` de carregamento trata a flag `let ativo = true` no cleanup?
