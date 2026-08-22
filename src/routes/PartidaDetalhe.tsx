@@ -60,33 +60,40 @@ export function PartidaDetalhe() {
       setCarregando(true);
       setErro(null);
       try {
-        const p = await carregarPartida(Number(id));
+        const numeroId = Number(id);
+
+        // Todas as queries dependem apenas do id da rota: disparam em paralelo.
+        // Count de votos é tolerante a falhas (jaVotou = false) para não derrubar a tela.
+        const contarVotos = jogadorLogado
+          ? (async () => {
+              try {
+                const { count } = await supabase
+                  .from('votes')
+                  .select('*', { count: 'exact', head: true })
+                  .eq('partida_id', numeroId)
+                  .eq('voter_id', jogadorLogado.id);
+                return count ?? 0;
+              } catch {
+                return 0;
+              }
+            })()
+          : Promise.resolve(0);
+
+        const [p, pl, parts, ns, votos] = await Promise.all([
+          carregarPartida(numeroId),
+          carregarPlacar(numeroId),
+          carregarParticipantes(numeroId),
+          carregarNotas(numeroId),
+          contarVotos,
+        ]);
         if (isAtivo && !isAtivo()) return;
         setPartida(p);
         if (p) {
-          const [pl, parts, ns] = await Promise.all([
-            carregarPlacar(p.id),
-            carregarParticipantes(p.id),
-            carregarNotas(p.id),
-          ]);
-          if (isAtivo && !isAtivo()) return;
           setPlacar(pl);
           setParticipantes(parts);
           setNotas(ns);
-
-          // Verifica se o jogador logado já votou nesta partida
-          if (jogadorLogado && p.status === 'published') {
-            const { count } = await supabase
-              .from('votes')
-              .select('*', { count: 'exact', head: true })
-              .eq('partida_id', p.id)
-              .eq('voter_id', jogadorLogado.id);
-            if (isAtivo && !isAtivo()) return;
-            setJaVotou((count ?? 0) > 0);
-          } else {
-            if (isAtivo && !isAtivo()) return;
-            setJaVotou(false);
-          }
+          // O count só vira voto quando a partida está publicada e há jogador logado
+          setJaVotou(p.status === 'published' && !!jogadorLogado && votos > 0);
         }
       } catch (e) {
         if (isAtivo && !isAtivo()) return;

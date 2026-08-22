@@ -84,45 +84,53 @@ export function Ranking() {
     activeTab: `/ranking/${metrica}`,
   });
 
+  // Reset de filtros e ordenação ao trocar a métrica (o campo muda junto com a rota /ranking/:metrica)
   useEffect(() => {
     setPosicaoFiltro('todas');
-  }, [metrica]);
-
-  const carregar = useCallback(async () => {
-    let query = supabase
-      .from('ranking')
-      .select(
-        'jogador_id, nome, posicao, pontos, vitorias, empates, derrotas, partidas, gols, assistencias, gols_contra'
-      )
-      .order('pontos', { ascending: false })
-      .order('vitorias', { ascending: false })
-      .order('partidas', { ascending: false })
-      .order('gols', { ascending: false })
-      .order('assistencias', { ascending: false })
-      .order('nome', { ascending: true });
-
-    if (posicaoFiltro !== 'todas') {
-      query = query.eq('posicao', posicaoFiltro);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      setErro(error.message);
-    } else {
-      setLinhas(data ?? []);
-    }
-    setCarregando(false);
-  }, [posicaoFiltro]);
-
-  useEffect(() => {
-    carregar();
-  }, [carregar]);
-
-  useEffect(() => {
     setColunaOrdenacao(configuracao.campo);
     setDirecaoOrdenacao('desc');
   }, [configuracao.campo]);
+
+  const carregar = useCallback(
+    async (isAtivo?: () => boolean) => {
+      let query = supabase
+        .from('ranking')
+        .select(
+          'jogador_id, nome, posicao, pontos, vitorias, empates, derrotas, partidas, gols, assistencias, gols_contra'
+        )
+        .order('pontos', { ascending: false })
+        .order('vitorias', { ascending: false })
+        .order('partidas', { ascending: false })
+        .order('gols', { ascending: false })
+        .order('assistencias', { ascending: false })
+        .order('nome', { ascending: true });
+
+      if (posicaoFiltro !== 'todas') {
+        query = query.eq('posicao', posicaoFiltro);
+      }
+
+      const { data, error } = await query;
+
+      if (isAtivo && !isAtivo()) return;
+
+      if (error) {
+        setErro(error.message);
+      } else {
+        setLinhas(data ?? []);
+      }
+
+      if (!isAtivo || isAtivo()) setCarregando(false);
+    },
+    [posicaoFiltro]
+  );
+
+  useEffect(() => {
+    let ativo = true;
+    carregar(() => ativo);
+    return () => {
+      ativo = false;
+    };
+  }, [carregar]);
 
   const maximoPartidas = Math.max(6, ...linhas.map((linha) => linha.partidas));
 

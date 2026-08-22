@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState, type ComponentType } from 'react';
 import { NavLink, Outlet, Navigate, Link, useLocation } from 'react-router-dom';
 import {
   Home,
@@ -19,6 +19,53 @@ import { useAdmin } from '../hooks/useAdmin';
 import { useTema } from '../lib/tema';
 import { Logo } from '../components/Logo';
 import { BannerLembrete } from '../components/BannerLembrete';
+import {
+  CarregandoGeral,
+  SkeletonDetalhe,
+  SkeletonEstatisticas,
+  SkeletonGestao,
+  SkeletonJogos,
+  SkeletonPerfil,
+  SkeletonRanking,
+  SkeletonResumo,
+} from '../components/Skeletons';
+import { preCarregarRota } from '../lib/rotas';
+
+/**
+ * Skeleton de fallback do Suspense do Outlet por prefixo de pathname (CLS = 0
+ * durante o carregamento do chunk lazy da rota destino). Espelha as associações
+ * já usadas pelas próprias telas; rotas sem skeleton específico (fluxos focados
+ * de partida, formulários e painel financeiro) caem no CarregandoGeral padrão.
+ */
+const SKELETONS_POR_ROTA: Array<{ padrao: RegExp; Skeleton: ComponentType }> = [
+  { padrao: /^\/$/, Skeleton: SkeletonResumo },
+  { padrao: /^\/jogos/, Skeleton: SkeletonJogos },
+  { padrao: /^\/ranking/, Skeleton: SkeletonRanking },
+  { padrao: /^\/estatisticas/, Skeleton: SkeletonEstatisticas },
+  { padrao: /^\/perfil/, Skeleton: SkeletonPerfil },
+  { padrao: /^\/partida\/\d+\/?$/, Skeleton: SkeletonDetalhe },
+  { padrao: /^\/gestao-jogadores/, Skeleton: SkeletonGestao },
+];
+
+function obterSkeletonRota(pathname: string): ComponentType {
+  const entrada = SKELETONS_POR_ROTA.find((rota) => rota.padrao.test(pathname));
+  return entrada?.Skeleton ?? CarregandoGeral;
+}
+
+/** Handlers de prefetch de chunk da TabBar: toque, hover e foco (teclado). */
+function preCarregarAoInteragir(destino: string) {
+  return {
+    onTouchStart: () => preCarregarRota(destino),
+    onMouseEnter: () => preCarregarRota(destino),
+    onFocus: () => preCarregarRota(destino),
+  };
+}
+
+const preCarregarAbaResumo = preCarregarAoInteragir('/');
+const preCarregarAbaJogos = preCarregarAoInteragir('/jogos');
+const preCarregarAbaRanking = preCarregarAoInteragir('/ranking/pontos');
+const preCarregarAbaEstatisticas = preCarregarAoInteragir('/estatisticas/jogador');
+const preCarregarAbaPerfil = preCarregarAoInteragir('/perfil');
 
 export function Layout() {
   const { jogador } = useSessao();
@@ -49,6 +96,9 @@ export function Layout() {
   const estatisticasAtivo = pathname.startsWith('/estatisticas');
   const isFluxoFocado =
     /^\/partida\/(nova(\/times|\/confirma)?|\d+\/(votar|editar|ao-vivo|times))/.test(pathname);
+  // Fallback do boundary do Outlet: skeleton da rota DESTINO (o pathname já
+  // aponta para a nova rota no instante em que o chunk lazy suspende).
+  const SkeletonRota = obterSkeletonRota(pathname);
 
   if (!jogador) {
     return <Navigate to="/login" replace />;
@@ -158,7 +208,11 @@ export function Layout() {
       <main
         className={`min-h-0 min-w-0 flex-1 overflow-y-auto ${isFluxoFocado ? 'pb-24' : 'pb-16'}`}
       >
-        <Outlet />
+        {/* Boundary próprio do Outlet: Header e TabBar permanecem montados
+            enquanto o chunk lazy da rota destino carrega (sem piscar o shell). */}
+        <Suspense fallback={<SkeletonRota />}>
+          <Outlet />
+        </Suspense>
       </main>
 
       {/* Nav Inferior com indicador de barra âmbar no item ativo (oculta em fluxos focados) */}
@@ -175,6 +229,7 @@ export function Layout() {
               to="/"
               end
               aria-current={pathname === '/' ? 'page' : undefined}
+              {...preCarregarAbaResumo}
               className={({ isActive }) =>
                 `relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
                   isActive
@@ -189,6 +244,7 @@ export function Layout() {
             <NavLink
               to="/jogos"
               aria-current={pathname === '/jogos' ? 'page' : undefined}
+              {...preCarregarAbaJogos}
               className={({ isActive }) =>
                 `relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
                   isActive
@@ -203,6 +259,7 @@ export function Layout() {
             <NavLink
               to="/ranking/pontos"
               aria-current={rankingAtivo ? 'page' : undefined}
+              {...preCarregarAbaRanking}
               className={`relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
                 rankingAtivo
                   ? "text-destaque font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
@@ -215,6 +272,7 @@ export function Layout() {
             <NavLink
               to="/estatisticas/jogador"
               aria-current={estatisticasAtivo ? 'page' : undefined}
+              {...preCarregarAbaEstatisticas}
               className={`relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
                 estatisticasAtivo
                   ? "text-destaque font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
@@ -229,6 +287,7 @@ export function Layout() {
             <NavLink
               to="/perfil"
               aria-current={pathname === '/perfil' ? 'page' : undefined}
+              {...preCarregarAbaPerfil}
               className={({ isActive }) =>
                 `relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
                   isActive

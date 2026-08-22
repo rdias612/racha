@@ -1,4 +1,12 @@
-import { useEffect, createContext, useContext, useState, type ReactNode } from 'react';
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  createContext,
+  type ReactNode,
+} from 'react';
 import type { PosicaoId } from '../lib/times';
 import { supabase } from '../lib/supabase';
 import { isSuperAdmin } from '../lib/jogadores';
@@ -74,7 +82,9 @@ export function SessaoProvider({ children }: { children: ReactNode }) {
     sincronizarJogador();
   }, [jogador]);
 
-  const setJogador = (novoJogador: JogadorLogado | null) => {
+  // Referências estáveis: evitam que todo consumidor do contexto re-renderize
+  // quando o Provider re-renderiza sem mudança de sessão.
+  const setJogador = useCallback((novoJogador: JogadorLogado | null) => {
     if (novoJogador) {
       if (isSuperAdmin(novoJogador.username)) {
         novoJogador = { ...novoJogador, is_admin: true };
@@ -84,15 +94,13 @@ export function SessaoProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem(STORAGE_KEY);
     }
     setJogadorState(novoJogador);
-  };
+  }, []);
 
-  const logout = () => setJogador(null);
+  const logout = useCallback(() => setJogador(null), [setJogador]);
 
-  return (
-    <SessaoContext.Provider value={{ jogador, setJogador, logout }}>
-      {children}
-    </SessaoContext.Provider>
-  );
+  const value = useMemo(() => ({ jogador, setJogador, logout }), [jogador, setJogador, logout]);
+
+  return <SessaoContext.Provider value={value}>{children}</SessaoContext.Provider>;
 }
 
 export function useSessao() {
