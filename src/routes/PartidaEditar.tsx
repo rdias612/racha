@@ -8,8 +8,7 @@ import {
   X,
 } from "lucide-react";
 import { useAdmin } from "../hooks/useAdmin";
-import { useJogadorLogado } from "../hooks/useJogadorLogado";
-import { isSuperAdmin, listarJogadoresAtivos, type JogadorLista } from "../lib/jogadores";
+import { listarJogadoresAtivos, type JogadorLista } from "../lib/jogadores";
 import { TIMES, POSICOES, type TimeId } from "../lib/times";
 import {
   carregarPartida,
@@ -28,7 +27,6 @@ type FiltroModal = "todos" | "goleiros" | "linha" | "mensalistas" | "avulsos";
 
 export function PartidaEditar() {
   const isAdmin = useAdmin();
-  const jogadorLogado = useJogadorLogado();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const partidaId = Number(id);
@@ -156,8 +154,6 @@ export function PartidaEditar() {
       </MensagemEstado>
     );
 
-  const bloqueado =
-    partida.status === "closed" && !isSuperAdmin(jogadorLogado?.username);
   const primeiraVez = partida.status === "draft";
 
   function ajustar(
@@ -311,9 +307,9 @@ export function PartidaEditar() {
         </p>
       </div>
 
-      {bloqueado && (
+      {partida.status === "closed" && (
         <MensagemEstado tipo="info">
-          Partida encerrada — apenas superadministradores podem editar a escalação e o resultado.
+          Partida encerrada — você está editando a escalação e o resultado de uma partida já finalizada.
         </MensagemEstado>
       )}
 
@@ -351,24 +347,22 @@ export function PartidaEditar() {
                   </span>
                 </div>
 
-                {!bloqueado && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setBuscaJogador("");
-                      setFiltroModal("todos");
-                      setModalTime(t);
-                    }}
-                    className={`min-h-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-xs active:scale-95 transition cursor-pointer ${
-                      ehPreto
-                        ? "bg-neutral-800 hover:bg-neutral-700 text-white border border-neutral-700"
-                        : "bg-neutral-900 hover:bg-neutral-800 text-white border border-neutral-900"
-                    }`}
-                  >
-                    <UserPlus className="w-3.5 h-3.5" />
-                    <span>+ Adicionar</span>
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBuscaJogador("");
+                    setFiltroModal("todos");
+                    setModalTime(t);
+                  }}
+                  className={`min-h-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-xs active:scale-95 transition cursor-pointer ${
+                    ehPreto
+                      ? "bg-neutral-800 text-neutral-300 border border-neutral-700 hover:bg-neutral-700"
+                      : "bg-neutral-900 hover:bg-neutral-800 text-white border border-neutral-900"
+                  }`}
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>+ Adicionar</span>
+                </button>
               </div>
 
               {/* Lista de Cards de Jogadores */}
@@ -418,27 +412,25 @@ export function PartidaEditar() {
                         </div>
 
                         {/* Botões de Ação */}
-                        {!bloqueado && (
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => moverTime(p.jogador_id)}
-                              title={`Mover para o Time ${outroTimeNome}`}
-                              className="min-h-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-[11px] font-semibold text-neutral-700 dark:text-neutral-300 active:scale-95 transition cursor-pointer"
-                            >
-                              <ArrowLeftRight className="w-3 h-3 text-neutral-500" />
-                              <span>{outroTimeNome}</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => tentarRemover(p)}
-                              title="Remover jogador da partida"
-                              className="min-h-0 p-1.5 rounded-lg border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/60 active:scale-95 transition cursor-pointer"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => moverTime(p.jogador_id)}
+                            title={`Mover para o Time ${outroTimeNome}`}
+                            className="min-h-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-[11px] font-semibold text-neutral-700 dark:text-neutral-300 active:scale-95 transition cursor-pointer"
+                          >
+                            <ArrowLeftRight className="w-3 h-3 text-neutral-500" />
+                            <span>{outroTimeNome}</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => tentarRemover(p)}
+                            title="Remover jogador da partida"
+                            className="min-h-0 p-1.5 rounded-lg border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/60 active:scale-95 transition cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
 
                       {/* Linha 2: 3 Steppers Espaçosos (Gols, Assistências, Gols Contra) */}
@@ -448,7 +440,6 @@ export function PartidaEditar() {
                           label="Gols"
                           valor={p.gols}
                           corAtiva="destaque"
-                          disabled={bloqueado}
                           onMenos={() => ajustar(p.jogador_id, "gols", -1)}
                           onMais={() => ajustar(p.jogador_id, "gols", 1)}
                         />
@@ -457,7 +448,6 @@ export function PartidaEditar() {
                           label="Assists"
                           valor={p.assistencias}
                           corAtiva="azul"
-                          disabled={bloqueado}
                           onMenos={() => ajustar(p.jogador_id, "assistencias", -1)}
                           onMais={() => ajustar(p.jogador_id, "assistencias", 1)}
                         />
@@ -466,7 +456,6 @@ export function PartidaEditar() {
                           label="GC"
                           valor={p.gols_contra}
                           corAtiva="perigo"
-                          disabled={bloqueado}
                           onMenos={() => ajustar(p.jogador_id, "gols_contra", -1)}
                           onMais={() => ajustar(p.jogador_id, "gols_contra", 1)}
                         />
@@ -478,20 +467,18 @@ export function PartidaEditar() {
                 {lista.length === 0 && (
                   <div className="rounded-xl border border-dashed border-neutral-300 dark:border-neutral-800 p-6 text-center text-xs text-neutral-400 dark:text-neutral-500 bg-neutral-50/50 dark:bg-neutral-900/30">
                     <p className="mb-2">Nenhum jogador escalado no {TIMES[t].nome}.</p>
-                    {!bloqueado && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setBuscaJogador("");
-                          setFiltroModal("todos");
-                          setModalTime(t);
-                        }}
-                        className="min-h-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 shadow-xs cursor-pointer"
-                      >
-                        <UserPlus className="w-3.5 h-3.5" />
-                        <span>Adicionar primeiro jogador</span>
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBuscaJogador("");
+                        setFiltroModal("todos");
+                        setModalTime(t);
+                      }}
+                      className="min-h-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 shadow-xs cursor-pointer"
+                    >
+                      <UserPlus className="w-3.5 h-3.5" />
+                      <span>Adicionar primeiro jogador</span>
+                    </button>
                   </div>
                 )}
               </div>
@@ -504,31 +491,29 @@ export function PartidaEditar() {
       {feedback && <MensagemEstado tipo="sucesso">{feedback}</MensagemEstado>}
 
       {/* Barra Fixa Inferior de Salvar */}
-      {!bloqueado && (
-        <div
-          className="fixed inset-x-0 z-40 p-3 bg-white/90 dark:bg-neutral-950/90 backdrop-blur-md border-t border-neutral-200 dark:border-neutral-800 shadow-lg"
-          style={{ bottom: "calc(4rem + env(safe-area-inset-bottom))" }}
-        >
-          <div className="max-w-2xl mx-auto flex flex-col gap-1">
-            <button
-              onClick={() => setConfirmandoSalvar(true)}
-              disabled={salvando}
-              className="w-full rounded-xl bg-destaque hover:brightness-105 px-4 py-3.5 font-bold text-white shadow-sm disabled:opacity-40 active:scale-[.99] transition cursor-pointer text-sm"
-            >
-              {salvando
-                ? "Salvando alterações…"
-                : primeiraVez
-                  ? "Publicar resultado e escalação"
-                  : "Salvar alterações da partida"}
-            </button>
-            <p className="text-center text-[11px] text-neutral-500 dark:text-neutral-400">
-              {primeiraVez
-                ? "Publica o placar e abre a votação por 24 horas."
-                : "Atualiza escalação, participantes e placar imediatamente."}
-            </p>
-          </div>
+      <div
+        className="fixed inset-x-0 z-40 p-3 bg-white/90 dark:bg-neutral-950/90 backdrop-blur-md border-t border-neutral-200 dark:border-neutral-800 shadow-lg"
+        style={{ bottom: "calc(4rem + env(safe-area-inset-bottom))" }}
+      >
+        <div className="max-w-2xl mx-auto flex flex-col gap-1">
+          <button
+            onClick={() => setConfirmandoSalvar(true)}
+            disabled={salvando}
+            className="w-full rounded-xl bg-destaque hover:brightness-105 px-4 py-3.5 font-bold text-white shadow-sm disabled:opacity-40 active:scale-[.99] transition cursor-pointer text-sm"
+          >
+            {salvando
+              ? "Salvando alterações…"
+              : primeiraVez
+                ? "Publicar resultado e escalação"
+                : "Salvar alterações da partida"}
+          </button>
+          <p className="text-center text-[11px] text-neutral-500 dark:text-neutral-400">
+            {primeiraVez
+              ? "Publica o placar e abre a votação por 24 horas."
+              : "Atualiza escalação, participantes e placar imediatamente."}
+          </p>
         </div>
-      )}
+      </div>
 
       {/* Modal para Adicionar Jogador com Busca e Filtros Rápidos */}
       {modalTime && (
