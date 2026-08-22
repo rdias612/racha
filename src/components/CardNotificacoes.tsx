@@ -98,13 +98,15 @@ export function CardNotificacoes() {
 
       {pushStatus === 'indisponivel' && (
         <MensagemEstado tipo="info">
-          Seu navegador não suporta notificações Push ou precisa que o app seja adicionado à tela inicial.
+          Seu navegador não suporta notificações Push ou precisa que o app seja adicionado à tela
+          inicial.
         </MensagemEstado>
       )}
 
       {pushStatus === 'negado' && (
         <MensagemEstado tipo="info">
-          As notificações estão bloqueadas nas configurações do navegador. Permita o acesso para receber os lembretes.
+          As notificações estão bloqueadas nas configurações do navegador. Permita o acesso para
+          receber os lembretes.
         </MensagemEstado>
       )}
 
