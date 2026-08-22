@@ -47,6 +47,8 @@ export function Layout() {
 
   const rankingAtivo = pathname.startsWith('/ranking');
   const estatisticasAtivo = pathname.startsWith('/estatisticas');
+  const isFluxoFocado =
+    /^\/partida\/(nova(\/times|\/confirma)?|\d+\/(votar|editar|ao-vivo|times))/.test(pathname);
 
   if (!jogador) {
     return <Navigate to="/login" replace />;
@@ -147,88 +149,94 @@ export function Layout() {
 
       <BannerLembrete />
 
-      <main className="min-h-0 min-w-0 flex-1 overflow-y-auto pb-16">
+      <main
+        className={`min-h-0 min-w-0 flex-1 overflow-y-auto ${isFluxoFocado ? 'pb-24' : 'pb-16'}`}
+      >
         <Outlet />
       </main>
 
-      {/* Nav Inferior com indicador de barra âmbar no item ativo */}
-      <nav
-        aria-label="Navegação principal"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-borda bg-superficie/95 backdrop-blur"
-      >
-        <div
-          className="mx-auto flex max-w-2xl items-stretch justify-around"
-          style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      {/* Nav Inferior com indicador de barra âmbar no item ativo (oculta em fluxos focados) */}
+      {!isFluxoFocado && (
+        <nav
+          aria-label="Navegação principal"
+          className="fixed inset-x-0 bottom-0 z-40 border-t border-borda bg-superficie/95 backdrop-blur"
         >
-          <NavLink
-            to="/"
-            end
-            aria-current={pathname === '/' ? 'page' : undefined}
-            className={({ isActive }) =>
-              `relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
-                isActive
+          <div
+            className="mx-auto flex max-w-2xl items-stretch justify-around"
+            style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+          >
+            <NavLink
+              to="/"
+              end
+              aria-current={pathname === '/' ? 'page' : undefined}
+              className={({ isActive }) =>
+                `relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
+                  isActive
+                    ? "text-destaque font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
+                    : 'text-giz-fraco hover:text-giz'
+                }`
+              }
+            >
+              <Home className="size-5" aria-hidden="true" />
+              <span className="text-[10px] font-display uppercase tracking-wider">Resumo</span>
+            </NavLink>
+            <NavLink
+              to="/jogos"
+              aria-current={pathname === '/jogos' ? 'page' : undefined}
+              className={({ isActive }) =>
+                `relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
+                  isActive
+                    ? "text-destaque font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
+                    : 'text-giz-fraco hover:text-giz'
+                }`
+              }
+            >
+              <Shield className="size-5" aria-hidden="true" />
+              <span className="text-[10px] font-display uppercase tracking-wider">Jogos</span>
+            </NavLink>
+            <NavLink
+              to="/ranking/pontos"
+              aria-current={rankingAtivo ? 'page' : undefined}
+              className={`relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
+                rankingAtivo
                   ? "text-destaque font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
                   : 'text-giz-fraco hover:text-giz'
-              }`
-            }
-          >
-            <Home className="size-5" aria-hidden="true" />
-            <span className="text-[10px] font-display uppercase tracking-wider">Resumo</span>
-          </NavLink>
-          <NavLink
-            to="/jogos"
-            aria-current={pathname === '/jogos' ? 'page' : undefined}
-            className={({ isActive }) =>
-              `relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
-                isActive
+              }`}
+            >
+              <Medal className="size-5" aria-hidden="true" />
+              <span className="text-[10px] font-display uppercase tracking-wider">Ranking</span>
+            </NavLink>
+            <NavLink
+              to="/estatisticas/jogador"
+              aria-current={estatisticasAtivo ? 'page' : undefined}
+              className={`relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
+                estatisticasAtivo
                   ? "text-destaque font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
                   : 'text-giz-fraco hover:text-giz'
-              }`
-            }
-          >
-            <Shield className="size-5" aria-hidden="true" />
-            <span className="text-[10px] font-display uppercase tracking-wider">Jogos</span>
-          </NavLink>
-          <NavLink
-            to="/ranking/pontos"
-            aria-current={rankingAtivo ? 'page' : undefined}
-            className={`relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
-              rankingAtivo
-                ? "text-destaque font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
-                : 'text-giz-fraco hover:text-giz'
-            }`}
-          >
-            <Medal className="size-5" aria-hidden="true" />
-            <span className="text-[10px] font-display uppercase tracking-wider">Ranking</span>
-          </NavLink>
-          <NavLink
-            to="/estatisticas/jogador"
-            aria-current={estatisticasAtivo ? 'page' : undefined}
-            className={`relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
-              estatisticasAtivo
-                ? "text-destaque font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
-                : 'text-giz-fraco hover:text-giz'
-            }`}
-          >
-            <TrendingUp className="size-5" aria-hidden="true" />
-            <span className="text-[10px] font-display uppercase tracking-wider">Estatísticas</span>
-          </NavLink>
-          <NavLink
-            to="/perfil"
-            aria-current={pathname === '/perfil' ? 'page' : undefined}
-            className={({ isActive }) =>
-              `relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
-                isActive
-                  ? "text-destaque font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
-                  : 'text-giz-fraco hover:text-giz'
-              }`
-            }
-          >
-            <User className="size-5" aria-hidden="true" />
-            <span className="text-[10px] font-display uppercase tracking-wider">Perfil</span>
-          </NavLink>
-        </div>
-      </nav>
+              }`}
+            >
+              <TrendingUp className="size-5" aria-hidden="true" />
+              <span className="text-[10px] font-display uppercase tracking-wider">
+                Estatísticas
+              </span>
+            </NavLink>
+            <NavLink
+              to="/perfil"
+              aria-current={pathname === '/perfil' ? 'page' : undefined}
+              className={({ isActive }) =>
+                `relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
+                  isActive
+                    ? "text-destaque font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
+                    : 'text-giz-fraco hover:text-giz'
+                }`
+              }
+            >
+              <User className="size-5" aria-hidden="true" />
+              <span className="text-[10px] font-display uppercase tracking-wider">Perfil</span>
+            </NavLink>
+          </div>
+        </nav>
+      )}
     </div>
   );
 }

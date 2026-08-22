@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1290" height="2796" viewBox="0 0 1290 2796">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@700&amp;family=Barlow+Condensed:ital,wght@0,700;0,800;0,900&amp;family=Chivo+Mono:wght@600&amp;display=swap');
+      .bg { fill: #f3efe4; }
+      .brand-title { font-family: 'Barlow Condensed', -apple-system, sans-serif; font-weight: 900; font-size: 54px; fill: #1b1814; letter-spacing: 0.12em; text-anchor: middle; text-transform: uppercase; }
+      .brand-sub { font-family: 'Chivo Mono', monospace; font-weight: 600; font-size: 22px; fill: #6b6357; letter-spacing: 0.25em; text-anchor: middle; text-transform: uppercase; }
+      .badge-text { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 18px; fill: #9e6f00; letter-spacing: 0.15em; text-anchor: middle; }
+    </style>
+  </defs>
+
+  <!-- Fundo Súmula Papel Claro -->
+  <rect width="1290" height="2796" class="bg"/>
+
+  <!-- Centro de Marca -->
+  <g transform="translate(645, 1280)">
+    <!-- Escudo Duotônico Preto vs Giz com Estrela Âmbar -->
+    <g transform="translate(-160, -260) scale(0.625)">
+      <!-- Escudo base com borda dura -->
+      <path d="M256 50 L100 110 V250 C100 360 170 440 256 465 C342 440 412 360 412 250 V110 Z" fill="#ffffff" stroke="#b8860b" stroke-width="12"/>
+      <!-- Metade esquerda preta -->
+      <path d="M256 50 L100 110 V250 C100 360 170 440 256 465 Z" fill="#1b1814"/>
+      <!-- Metade direita branca/giz -->
+      <path d="M256 50 L412 110 V250 C412 360 342 440 256 465 Z" fill="#ffffff"/>
+      <!-- Linha divisória vertical -->
+      <line x1="256" y1="50" x2="256" y2="465" stroke="#d5cebe" stroke-width="6"/>
+      <!-- Círculo central -->
+      <circle cx="256" cy="250" r="70" fill="#1b1814" stroke="#b8860b" stroke-width="8"/>
+      <!-- Estrela âmbar -->
+      <polygon points="256,205 271,238 307,243 280,268 287,304 256,286 225,304 232,268 205,243 241,238" fill="#ffb300"/>
+    </g>
+
+    <!-- Tipografia Oficial Súmula -->
+    <text y="130" class="brand-title">RACHA GRAGOATÁ</text>
+    <text y="180" class="brand-sub">SÚMULA OFICIAL · CBO</text>
+
+    <!-- Plaqueta de Temporada -->
+    <rect x="-85" y="215" width="170" height="32" rx="3" fill="#ffffff" stroke="#b8860b" stroke-width="1.5"/>
+    <text y="237" class="badge-text">TEMPORADA 2026</text>
+  </g>
+</svg>

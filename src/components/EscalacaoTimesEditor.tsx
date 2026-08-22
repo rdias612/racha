@@ -240,8 +240,8 @@ export function EscalacaoTimesEditor({
       {feedback && <MensagemEstado tipo="sucesso">{feedback}</MensagemEstado>}
 
       <div
-        className="fixed inset-x-0 z-40 p-3 bg-superficie/95 backdrop-blur border-t border-borda shadow-carimbo-preto"
-        style={{ bottom: 'calc(3.5rem + env(safe-area-inset-bottom))' }}
+        className="fixed inset-x-0 bottom-0 z-40 p-3 bg-superficie/95 backdrop-blur border-t border-borda shadow-carimbo-preto"
+        style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}
       >
         <div className="max-w-2xl mx-auto">
           <button

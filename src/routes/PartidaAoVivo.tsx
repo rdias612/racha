@@ -345,8 +345,8 @@ export function PartidaAoVivo() {
 
       {isAdmin && partida.status === 'draft' && (
         <div
-          className="fixed inset-x-0 z-40 border-t border-borda bg-superficie/95 p-3 backdrop-blur shadow-carimbo-preto"
-          style={{ bottom: 'calc(3.5rem + env(safe-area-inset-bottom))' }}
+          className="fixed inset-x-0 bottom-0 z-40 border-t border-borda bg-superficie/95 p-3 backdrop-blur shadow-carimbo-preto"
+          style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}
         >
           <div className="mx-auto max-w-2xl">
             <button
@@ -363,8 +363,8 @@ export function PartidaAoVivo() {
 
       {isAdmin && aoVivo && (
         <div
-          className="fixed inset-x-0 z-40 border-t border-borda bg-superficie/95 p-3 backdrop-blur shadow-carimbo-preto"
-          style={{ bottom: 'calc(3.5rem + env(safe-area-inset-bottom))' }}
+          className="fixed inset-x-0 bottom-0 z-40 border-t border-borda bg-superficie/95 p-3 backdrop-blur shadow-carimbo-preto"
+          style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}
         >
           <div className="mx-auto max-w-2xl space-y-1">
             <button

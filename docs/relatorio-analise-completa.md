@@ -115,11 +115,11 @@ npm i -D prettier eslint @eslint/js typescript-eslint eslint-plugin-react-hooks 
 6. ✅ **[CONCLUÍDO] Alvos de toque >= 44px**
    - Padronização de 44px aplicada em botões admin (`✓⏳✗✕`), botões self de presença, gatilho do `SeletorNota`, lixeira de partidas nos Jogos e cabeçalhos de ordenação.
 
-7. 🔄 **[PARCIAL] Offline e erros amigáveis**
+7. ✅ **[CONCLUÍDO] Offline e erros amigáveis**
    - ✅ Mapper central de erros amigáveis criado em `src/lib/erros.ts`.
    - ✅ Banner global offline adicionado no `Layout.tsx`.
    - ✅ Tela `public/offline.html` repaginada na identidade Súmula de Quinta.
-   - ⏳ _Pendente opcional:_ Cache Stale-While-Revalidate no Service Worker para requisições GET do Supabase.
+   - ✅ Cache Stale-While-Revalidate no Service Worker para requisições GET do Supabase (`racha-api-v1`), permitindo leitura offline imediata de dados já consultados.
 
 8. ✅ **[CONCLUÍDO] Troca de window.confirm por ConfirmDialog**
    - Todos os diálogos nativos substituídos pelo modal customizado `ConfirmDialog.tsx`.
@@ -128,13 +128,13 @@ npm i -D prettier eslint @eslint/js typescript-eslint eslint-plugin-react-hooks 
    - Haptics ativos no seletor de notas (`vibrateLight`), registro de gols (`vibrateGoal`), bloqueios de escalação (`vibrateWarning`) e confirmação de presença (`vibrateSuccess`).
    - Atualização otimista imediata implementada na lista de presença em `PartidaDetalhe.tsx` com rollback em caso de erro.
 
-10. 🔄 **[PARCIAL] Polimento nativo**
+10. ✅ **[CONCLUÍDO] Polimento nativo**
     - ✅ Resumo envolvido em `<PullToRefresh>`.
     - ✅ Header do `Layout.tsx` tornado `sticky top-0`.
     - ✅ `Snackbar.tsx` respeitando `env(safe-area-inset-bottom)`.
     - ✅ Screenshots e ícones ajustados no `manifest.webmanifest`.
-    - ⏳ _Pendente:_ Ocultar Tab Bar inferior em fluxos focados (votação, edição e partida ao vivo).
-    - ⏳ _Pendente:_ Splash screens dedicadas para iOS (`apple-touch-startup-image`).
+    - ✅ Tab Bar inferior ocultada em fluxos focados (votação, edição, partida ao vivo, escalação e nova partida) com barras de ação assentadas na base (`bottom-0` + safe-area).
+    - ✅ Splash screens dedicadas para iOS (`apple-touch-startup-image` em temas claro e escuro).
 
 ## Quick Wins (<1h cada) — Status
 
@@ -220,14 +220,14 @@ Abaixo está a lista objetiva dos itens pendentes para conclusão total:
   - Instalar dependências de desenvolvimento.
   - Criar `.prettierrc`, `.editorconfig`, `.prettierignore` e `eslint.config.js`.
   - Adicionar scripts no `package.json` e executar formatação em lote no repositório.
-- [ ] ⏳ **Ocultar Tab Bar em fluxos focados**:
-  - Em telas como `/partida/:id/votar`, `/partida/:id/editar` e `/partida/:id/ao-vivo`, esconder a barra inferior para maximizar a área útil da tela mobile.
-- [ ] ⏳ **Ajuste de tipo no `DuplaCard.tsx`**:
+- [x] ✅ **Ocultar Tab Bar em fluxos focados**:
+  - Em telas como `/partida/:id/votar`, `/partida/:id/editar`, `/partida/:id/ao-vivo`, `/partida/:id/times` e `/partida/nova/*`, esconder a barra inferior para maximizar a área útil da tela mobile e assentar as barras de ação na base.
+- [x] ✅ **Ajuste de tipo no `DuplaCard.tsx`**:
   - Importar `ColunaOrdenacaoDuplas` de `EstatisticasRacha.tsx` em vez de redeclarar tipo inline.
 
 ### 🟢 Prioridade Baixa (Cache e PWA)
 
-- [ ] ⏳ **Cache Stale-While-Revalidate no SW (Opcional)**:
-  - Permitir carregamento offline de leitura para rotas do Supabase já visitadas.
-- [ ] ⏳ **Splash screens iOS (Opcional)**:
-  - Gerar meta tags de startup images para evitar tela branca momentânea no carregamento PWA em iPhones antigos.
+- [x] ✅ **Cache Stale-While-Revalidate no SW**:
+  - Permitir carregamento offline instantâneo de leitura para rotas do Supabase (`racha-api-v1`) já visitadas.
+- [x] ✅ **Splash screens iOS**:
+  - Gerar meta tags de startup images e assets dedicados (`apple-splash-dark.svg`, `apple-splash-light.svg`) para evitar tela branca momentânea no carregamento PWA em iPhones.

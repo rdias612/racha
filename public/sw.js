@@ -1,19 +1,41 @@
-// Service worker com estratégia NetworkFirst e App-Shell offline-first.
-const CACHE = 'racha-v2';
+// Service Worker - Súmula de Quinta (Racha Gragoatá CBO)
+// Estratégias: Stale-While-Revalidate para API Supabase (GET) e NetworkFirst/CacheFirst para App Shell e Assets.
+
+const CACHE_STATIC = 'racha-static-v3';
+const CACHE_API = 'racha-api-v1';
 const OFFLINE_URL = '/offline.html';
+
+const ASSETS_PRECACHE = [
+  OFFLINE_URL,
+  '/manifest.webmanifest',
+  '/icon.svg',
+  '/icon-maskable.svg',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/splash/apple-splash-dark.svg',
+  '/splash/apple-splash-light.svg',
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll([OFFLINE_URL, '/manifest.webmanifest']))
+    caches
+      .open(CACHE_STATIC)
+      .then((cache) => cache.addAll(ASSETS_PRECACHE))
+      .catch((err) => {
+        console.warn('[SW] Falha no precache parcial:', err);
+      })
   );
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
+  const cachesPermitidos = [CACHE_STATIC, CACHE_API];
   event.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) =>
+        Promise.all(keys.filter((k) => !cachesPermitidos.includes(k)).map((k) => caches.delete(k)))
+      )
       .then(() => self.clients.claim())
   );
 });
@@ -56,27 +78,88 @@ self.addEventListener('notificationclick', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-  if (request.method !== 'GET' || !request.url.startsWith(self.location.origin)) {
+
+  // Apenas requisições GET são cacheadas. POST, PATCH, PUT, DELETE passam direto.
+  if (request.method !== 'GET') {
     return;
   }
 
-  event.respondWith(
-    caches.open(CACHE).then(async (cache) => {
-      try {
-        const network = await fetch(request);
-        if (network && network.status === 200 && network.type === 'basic') {
-          cache.put(request, network.clone());
-        }
-        return network;
-      } catch {
+  const url = new URL(request.url);
+
+  // 1. Requisições da API REST do Supabase (GET /rest/v1/...)
+  // Estratégia: Stale-While-Revalidate com fallback seguro offline
+  const isSupabaseGet =
+    url.pathname.startsWith('/rest/v1/') ||
+    (url.hostname.endsWith('.supabase.co') && url.pathname.includes('/rest/v1/'));
+
+  if (isSupabaseGet) {
+    event.respondWith(
+      caches.open(CACHE_API).then(async (cache) => {
+        const cached = await cache.match(request);
+
+        const fetchPromise = fetch(request)
+          .then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200) {
+              cache.put(request, networkResponse.clone());
+            }
+            return networkResponse;
+          })
+          .catch((err) => {
+            if (cached) return cached;
+            throw err;
+          });
+
+        // Se já existe cache, retorna imediatamente (0ms / offline) enquanto revalida em background
+        return cached || fetchPromise;
+      })
+    );
+    return;
+  }
+
+  // 2. Fontes Google (Google Fonts CSS e arquivos WOFF2)
+  if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
+    event.respondWith(
+      caches.open(CACHE_STATIC).then(async (cache) => {
         const cached = await cache.match(request);
         if (cached) return cached;
-        if (request.mode === 'navigate') {
-          const offlinePage = await cache.match(OFFLINE_URL);
-          if (offlinePage) return offlinePage;
+
+        try {
+          const networkResponse = await fetch(request);
+          if (networkResponse && networkResponse.status === 200) {
+            cache.put(request, networkResponse.clone());
+          }
+          return networkResponse;
+        } catch {
+          return cached || new Response('', { status: 503, statusText: 'Offline' });
         }
-        throw new Error('Offline e sem cache disponível');
-      }
-    })
-  );
+      })
+    );
+    return;
+  }
+
+  // 3. Assets da mesma origem (HTML, JS, CSS, Imagens)
+  if (url.origin === self.location.origin) {
+    event.respondWith(
+      caches.open(CACHE_STATIC).then(async (cache) => {
+        try {
+          const network = await fetch(request);
+          if (network && network.status === 200 && network.type === 'basic') {
+            cache.put(request, network.clone());
+          }
+          return network;
+        } catch {
+          const cached = await cache.match(request);
+          if (cached) return cached;
+
+          // Se for navegação de página e falhar sem cache, entrega a tela offline
+          if (request.mode === 'navigate') {
+            const offlinePage = await cache.match(OFFLINE_URL);
+            if (offlinePage) return offlinePage;
+          }
+
+          throw new Error('Recurso indisponível offline');
+        }
+      })
+    );
+  }
 });
