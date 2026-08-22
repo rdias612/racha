@@ -7,8 +7,6 @@ import { atualizarNomeJogador } from '../lib/jogadores';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { Avatar } from '../components/Avatar';
 import { SkeletonPerfil } from '../components/Skeletons';
-import { formatarMensagemErro } from '../lib/erros';
-import { ativarPush, desativarPush, statusPush, type StatusPush } from '../lib/pwa';
 
 interface Stats {
   jogador_id: number;
@@ -39,10 +37,6 @@ export function Perfil() {
   const [trocando, setTrocando] = useState(false);
   const [erroSenha, setErroSenha] = useState<string | null>(null);
   const [okSenha, setOkSenha] = useState<string | null>(null);
-  const [pushStatus, setPushStatus] = useState<StatusPush>('desativado');
-  const [carregandoPush, setCarregandoPush] = useState(true);
-  const [alterandoPush, setAlterandoPush] = useState(false);
-  const [erroPush, setErroPush] = useState<string | null>(null);
 
   useEffect(() => {
     async function carregarStats() {
@@ -56,25 +50,6 @@ export function Perfil() {
       setCarregandoStats(false);
     }
     carregarStats();
-  }, [jogador?.id]);
-
-  useEffect(() => {
-    let ativo = true;
-    async function carregarPush() {
-      if (!jogador) return;
-      try {
-        const status = await statusPush(jogador.id);
-        if (ativo) setPushStatus(status);
-      } catch {
-        if (ativo) setPushStatus('desativado');
-      } finally {
-        if (ativo) setCarregandoPush(false);
-      }
-    }
-    carregarPush();
-    return () => {
-      ativo = false;
-    };
   }, [jogador?.id]);
 
   if (!jogador) return null;
@@ -153,24 +128,6 @@ export function Perfil() {
     navigate('/login', { replace: true });
   }
 
-  async function alternarPush() {
-    setAlterandoPush(true);
-    setErroPush(null);
-    try {
-      if (pushStatus === 'ativado') {
-        await desativarPush(jogador!.id);
-        setPushStatus('desativado');
-      } else {
-        await ativarPush(jogador!.id);
-        setPushStatus('ativado');
-      }
-    } catch (error) {
-      setErroPush(formatarMensagemErro(error));
-    } finally {
-      setAlterandoPush(false);
-    }
-  }
-
   if (carregandoStats && !stats) {
     return <SkeletonPerfil />;
   }
@@ -226,43 +183,6 @@ export function Perfil() {
             <StatBox label="Assists" value={stats?.assistencias ?? 0} />
             <StatBox label="Gols contra" value={stats?.gols_contra ?? 0} />
           </div>
-        )}
-      </section>
-
-      {/* Notificações Push */}
-      <section className="rounded-[4px] border border-borda bg-superficie p-3.5 shadow-carimbo space-y-2">
-        <h3 className="text-xs font-display font-bold uppercase tracking-wider text-giz">
-          Lembretes da Quinta (Notificações Push)
-        </h3>
-        <p className="text-xs text-giz-fraco">
-          Receba convocação de presença e aviso de abertura da votação neste aparelho.
-        </p>
-        {erroPush && <MensagemEstado>{erroPush}</MensagemEstado>}
-        {pushStatus === 'indisponivel' && (
-          <MensagemEstado tipo="info">Seu navegador não quer saber dos lembretes.</MensagemEstado>
-        )}
-        {pushStatus === 'negado' && (
-          <MensagemEstado tipo="info">
-            As notificações estão bloqueadas nas configurações do navegador.
-          </MensagemEstado>
-        )}
-        {pushStatus !== 'indisponivel' && pushStatus !== 'negado' && (
-          <button
-            type="button"
-            onClick={alternarPush}
-            disabled={carregandoPush || alterandoPush}
-            className={`w-full min-h-[44px] rounded-[4px] border font-display font-bold uppercase tracking-wider text-xs shadow-carimbo transition active:translate-y-px disabled:opacity-50 ${
-              pushStatus === 'ativado'
-                ? 'border-borda bg-superficie-2 text-giz hover:bg-superficie'
-                : 'border-destaque bg-destaque text-destaque-tinta hover:brightness-105'
-            }`}
-          >
-            {carregandoPush || alterandoPush
-              ? 'Atualizando…'
-              : pushStatus === 'ativado'
-                ? 'Desativar notificações'
-                : 'Ativar lembretes do racha'}
-          </button>
         )}
       </section>
 

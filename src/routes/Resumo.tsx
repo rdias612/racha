@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { MensagemEstado } from '../components/Estado';
 import { SkeletonResumo } from '../components/Skeletons';
 import { BotaoInstalar } from '../components/BotaoInstalar';
+import { CardNotificacoes } from '../components/CardNotificacoes';
 import { PullToRefresh } from '../components/PullToRefresh';
 import { supabase } from '../lib/supabase';
 import { carregarParticipantes, vagasOcupadas, CAPACIDADE_PARTIDA } from '../lib/partidas';
@@ -182,6 +183,7 @@ export function Resumo() {
         </div>
 
         <BotaoInstalar />
+        <CardNotificacoes />
 
         <CardProximaPartida proxima={proxima} />
 
