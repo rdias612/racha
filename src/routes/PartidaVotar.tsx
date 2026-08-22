@@ -49,10 +49,12 @@ export function PartidaVotar() {
   }, [temModificacoes]);
 
   useEffect(() => {
+    let ativo = true;
     async function carregar() {
       if (!id || !jogador) return;
       try {
         const p = await carregarPartida(Number(id));
+        if (!ativo) return;
         if (!p) {
           setErro("Partida não encontrada.");
           setCarregando(false);
@@ -66,26 +68,33 @@ export function PartidaVotar() {
           p.voting_closes_at &&
           new Date(p.voting_closes_at) > new Date();
         if (!aberta) {
-          setErro("A votação para esta partida não está aberta.");
-          setCarregando(false);
+          if (ativo) {
+            setErro("A votação para esta partida não está aberta.");
+            setCarregando(false);
+          }
           return;
         }
 
         // Jogadores 'random' (placeholders do sorteio) nunca votam.
         if (isRandomUsername(jogador.username)) {
-          setErro("Jogadores random não podem votar.");
-          setCarregando(false);
+          if (ativo) {
+            setErro("Jogadores random não podem votar.");
+            setCarregando(false);
+          }
           return;
         }
 
         const participantes = await carregarParticipantes(p.id);
+        if (!ativo) return;
         // Só quem jogou a partida pode votar.
         const ehParticipante = participantes.some(
           (part) => part.jogador_id === jogador.id,
         );
         if (!ehParticipante) {
-          setErro("Você não participou desta partida.");
-          setCarregando(false);
+          if (ativo) {
+            setErro("Você não participou desta partida.");
+            setCarregando(false);
+          }
           return;
         }
         // esconde o próprio votante (não vota em si)
@@ -108,6 +117,8 @@ export function PartidaVotar() {
           .eq("partida_id", p.id)
           .eq("voter_id", jogador.id);
 
+        if (!ativo) return;
+
         const notasIniciais: Record<number, number> = {};
         // default 6 para todos os alvos; o usuário ajusta a partir daí.
         // Votos já existentes (modo edição) sobrescrevem o default abaixo.
@@ -122,14 +133,16 @@ export function PartidaVotar() {
         setNotas(notasIniciais);
         setVotosOriginais(originais);
       } catch (e) {
-        setErro(e instanceof Error ? e.message : String(e));
+        if (ativo) setErro(e instanceof Error ? e.message : String(e));
       } finally {
-        setCarregando(false);
+        if (ativo) setCarregando(false);
       }
     }
     carregar();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, jogador?.id]);
+    return () => {
+      ativo = false;
+    };
+  }, [id, jogador?.id, jogador?.username]);
 
   if (!jogador) return <Navigate to="/login" replace />;
   if (carregando) return <Carregando>Carregando votação</Carregando>;

@@ -63,7 +63,7 @@ export function Administrador() {
   const [fDescricao, setFDescricao] = useState("");
   const [salvando, setSalvando] = useState(false);
 
-  async function carregar() {
+  async function carregar(isAtivo?: () => boolean) {
     if (!isAdmin) return;
     setCarregando(true);
     setErro(null);
@@ -73,6 +73,7 @@ export function Administrador() {
         listarDividasEmAberto(),
         jogadores.length ? Promise.resolve(jogadores) : listarJogadoresAtivos(),
       ]);
+      if (isAtivo && !isAtivo()) return;
       if (!jogadores.length) setJogadores(jogs);
 
       // A view `dividas_resumo` dita totais e ordem; os itens (drill-down) casam pelo jogador_id.
@@ -93,14 +94,19 @@ export function Administrador() {
         })),
       );
     } catch (e) {
+      if (isAtivo && !isAtivo()) return;
       setErro(e instanceof Error ? e.message : "Erro ao carregar dívidas.");
     } finally {
-      setCarregando(false);
+      if (!isAtivo || isAtivo()) setCarregando(false);
     }
   }
 
   useEffect(() => {
-    carregar();
+    let ativo = true;
+    carregar(() => ativo);
+    return () => {
+      ativo = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -57,11 +57,13 @@ export function Resumo() {
   } | null>(null);
 
   useEffect(() => {
+    let ativo = true;
     async function carregar() {
       const { data, error } = await supabase.rpc("resumo_ano", {
         p_ano: ano,
       });
 
+      if (!ativo) return;
       if (error) {
         setErro(error.message);
       } else {
@@ -70,9 +72,13 @@ export function Resumo() {
       setCarregando(false);
     }
     carregar();
+    return () => {
+      ativo = false;
+    };
   }, [ano]);
 
   useEffect(() => {
+    let ativo = true;
     async function carregarProxima() {
       try {
         const { data } = await supabase
@@ -82,18 +88,23 @@ export function Resumo() {
           .order("data_jogo", { ascending: true })
           .limit(1)
           .maybeSingle();
+        if (!ativo) return;
         if (!data) {
           setProxima(null);
           return;
         }
         const parts = await carregarParticipantes(data.id);
+        if (!ativo) return;
         const ocupadas = vagasOcupadas(parts, data.confirmacao_closes_at);
         setProxima({ id: data.id, data_jogo: data.data_jogo, ocupadas });
       } catch {
-        setProxima(null);
+        if (ativo) setProxima(null);
       }
     }
     carregarProxima();
+    return () => {
+      ativo = false;
+    };
   }, []);
 
   if (carregando) return <SkeletonResumo />;

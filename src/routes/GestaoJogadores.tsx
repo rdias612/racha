@@ -64,19 +64,25 @@ export function GestaoJogadores() {
   }>({ visivel: false, tipo: "sucesso", mensagem: "" });
 
   useEffect(() => {
+    let ativo = true;
     async function carregar() {
       try {
         const lista = await listarTodosJogadores();
-        setJogadores(lista);
+        if (ativo) setJogadores(lista);
       } catch (err) {
-        setMensagemErro(
-          err instanceof Error ? err.message : "Erro ao carregar jogadores."
-        );
+        if (ativo) {
+          setMensagemErro(
+            err instanceof Error ? err.message : "Erro ao carregar jogadores."
+          );
+        }
       } finally {
-        setCarregando(false);
+        if (ativo) setCarregando(false);
       }
     }
     carregar();
+    return () => {
+      ativo = false;
+    };
   }, []);
 
   if (!isAdmin) return <Navigate to="/" replace />;
@@ -676,7 +682,7 @@ export function GestaoJogadores() {
 
       {/* Floating Action Bar / Action Confirmation Footer */}
       {temAlteracoes && (
-        <div className="fixed bottom-20 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-md z-50 animate-in fade-in slide-in-from-bottom-4 duration-200">
+        <div className="fixed bottom-20 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-md z-50 animate-slide-up">
           <div className="bg-neutral-900/95 dark:bg-neutral-900/95 text-white backdrop-blur-md border border-neutral-800 shadow-2xl rounded-2xl p-3 flex items-center justify-between gap-3 max-w-lg mx-auto">
             <div className="flex items-center gap-2 min-w-0">
               <span className="size-6 rounded-full bg-green-500 text-neutral-950 font-bold text-xs flex items-center justify-center shrink-0">

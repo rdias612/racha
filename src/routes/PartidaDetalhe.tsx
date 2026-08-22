@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAdmin } from '../hooks/useAdmin'
@@ -55,41 +55,49 @@ export function PartidaDetalhe() {
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
 
-  async function carregar() {
-    if (!id) return
-    setCarregando(true)
-    setErro(null)
-    try {
-      const p = await carregarPartida(Number(id))
-      setPartida(p)
-      if (p) {
-        const [pl, parts, ns] = await Promise.all([
-          carregarPlacar(p.id),
-          carregarParticipantes(p.id),
-          carregarNotas(p.id),
-        ])
-        setPlacar(pl)
-        setParticipantes(parts)
-        setNotas(ns)
+  const carregar = useCallback(
+    async (isAtivo?: () => boolean) => {
+      if (!id) return
+      setCarregando(true)
+      setErro(null)
+      try {
+        const p = await carregarPartida(Number(id))
+        if (isAtivo && !isAtivo()) return
+        setPartida(p)
+        if (p) {
+          const [pl, parts, ns] = await Promise.all([
+            carregarPlacar(p.id),
+            carregarParticipantes(p.id),
+            carregarNotas(p.id),
+          ])
+          if (isAtivo && !isAtivo()) return
+          setPlacar(pl)
+          setParticipantes(parts)
+          setNotas(ns)
 
-        // Verifica se o jogador logado já votou nesta partida
-        if (jogadorLogado && p.status === 'published') {
-          const { count } = await supabase
-            .from('votes')
-            .select('*', { count: 'exact', head: true })
-            .eq('partida_id', p.id)
-            .eq('voter_id', jogadorLogado.id)
-          setJaVotou((count ?? 0) > 0)
-        } else {
-          setJaVotou(false)
+          // Verifica se o jogador logado já votou nesta partida
+          if (jogadorLogado && p.status === 'published') {
+            const { count } = await supabase
+              .from('votes')
+              .select('*', { count: 'exact', head: true })
+              .eq('partida_id', p.id)
+              .eq('voter_id', jogadorLogado.id)
+            if (isAtivo && !isAtivo()) return
+            setJaVotou((count ?? 0) > 0)
+          } else {
+            if (isAtivo && !isAtivo()) return
+            setJaVotou(false)
+          }
         }
+      } catch (e) {
+        if (isAtivo && !isAtivo()) return
+        setErro(e instanceof Error ? e.message : String(e))
+      } finally {
+        if (!isAtivo || isAtivo()) setCarregando(false)
       }
-    } catch (e) {
-      setErro(e instanceof Error ? e.message : String(e))
-    } finally {
-      setCarregando(false)
-    }
-  }
+    },
+    [id, jogadorLogado],
+  )
 
   async function confirmarDescarte() {
     if (!partida || !jogadorLogado) return
@@ -113,9 +121,12 @@ export function PartidaDetalhe() {
   }
 
   useEffect(() => {
-    carregar()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id])
+    let ativo = true
+    carregar(() => ativo)
+    return () => {
+      ativo = false
+    }
+  }, [carregar])
 
   if (carregando) return <SkeletonDetalhe />
   if (!partida)

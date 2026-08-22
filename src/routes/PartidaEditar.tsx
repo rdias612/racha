@@ -49,6 +49,7 @@ export function PartidaEditar() {
 
   useEffect(() => {
     if (!partidaId) return;
+    let ativo = true;
     setCarregando(true);
     setErro(null);
     Promise.all([
@@ -57,6 +58,7 @@ export function PartidaEditar() {
       listarJogadoresAtivos(),
     ])
       .then(([p, parts, ativos]) => {
+        if (!ativo) return;
         setPartida(p);
         setParticipantesOriginais(parts);
         setJogadoresAtivos(ativos);
@@ -75,8 +77,15 @@ export function PartidaEditar() {
           })),
         );
       })
-      .catch((e) => setErro(e.message ?? String(e)))
-      .finally(() => setCarregando(false));
+      .catch((e) => {
+        if (ativo) setErro(e.message ?? String(e));
+      })
+      .finally(() => {
+        if (ativo) setCarregando(false);
+      });
+    return () => {
+      ativo = false;
+    };
   }, [partidaId]);
 
   const participantesPorTime = useMemo(() => {
@@ -517,7 +526,7 @@ export function PartidaEditar() {
 
       {/* Modal para Adicionar Jogador com Busca e Filtros Rápidos */}
       {modalTime && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/65 backdrop-blur-xs animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/65 backdrop-blur-xs animate-fade-in">
           <div className="w-full max-w-md max-h-[85vh] flex flex-col rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-2xl overflow-hidden">
             {/* Cabeçalho do Modal */}
             <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between bg-neutral-50 dark:bg-neutral-950">

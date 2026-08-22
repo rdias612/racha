@@ -43,12 +43,15 @@ export function Jogos() {
     setSnackbar({ visivel: true, tipo, mensagem })
   }
 
-  const carregar = useCallback(async () => {
+  const carregar = useCallback(async (isAtivo?: () => boolean) => {
+    setCarregando(true)
+    setErro(null)
     const { data: ps, error } = await supabase
       .from('partidas')
       .select('id, data_jogo, status')
       .order('data_jogo', { ascending: false })
 
+    if (isAtivo && !isAtivo()) return
     if (error) {
       setErro(error.message)
       setCarregando(false)
@@ -62,15 +65,20 @@ export function Jogos() {
         .from('partida_placar')
         .select('partida_id, gols_time_a, gols_time_b')
         .in('partida_id', ids)
+      if (isAtivo && !isAtivo()) return
       const mapa: Record<number, Placar> = {}
       for (const pl of pls ?? []) mapa[pl.partida_id] = pl
       setPlacares(mapa)
     }
-    setCarregando(false)
+    if (!isAtivo || isAtivo()) setCarregando(false)
   }, [])
 
   useEffect(() => {
-    carregar()
+    let ativo = true
+    carregar(() => ativo)
+    return () => {
+      ativo = false
+    }
   }, [carregar])
 
   async function confirmarExclusao() {
