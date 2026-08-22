@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useAdmin } from "../hooks/useAdmin";
+import { useEscalacaoTimes } from "../hooks/useEscalacaoTimes";
 import {
   carregarPartida,
   carregarParticipantes,
@@ -13,7 +14,6 @@ import {
   obterMediasNotasJogadores,
   type JogadorLista,
 } from "../lib/jogadores";
-import { gerarEscalacaoAutomatica } from "../lib/escalacao";
 import { type TimeId } from "../lib/times";
 import { formatarDataCompleta, formatarDataMobile } from "../lib/formatacao";
 import { Carregando, MensagemEstado } from "../components/Estado";
@@ -32,11 +32,40 @@ export function PartidaTimes() {
   const [participantes, setParticipantes] = useState<Participante[]>([]);
   const [jogadoresAtivos, setJogadoresAtivos] = useState<JogadorLista[]>([]);
   const [mediasNotas, setMediasNotas] = useState<Record<number, number>>({});
-  const [times, setTimes] = useState<Record<number, TimeId>>({});
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<string | null>(null);
+
+  // Só os confirmados entram na escalação.
+  const confirmadosIds = useMemo(
+    () =>
+      new Set(
+        participantes
+          .filter((p) => p.status_confirmacao === "confirmado")
+          .map((p) => p.jogador_id),
+      ),
+    [participantes],
+  );
+
+  const confirmadosJogadores = useMemo(
+    () =>
+      jogadoresAtivos
+        .filter((j) => confirmadosIds.has(j.id))
+        .sort((a, b) => (a.nome ?? "").localeCompare(b.nome ?? "")),
+    [jogadoresAtivos, confirmadosIds],
+  );
+
+  const {
+    times,
+    setTimes,
+    feedback,
+    setFeedback,
+    atribuirTime,
+    autoEscalar,
+  } = useEscalacaoTimes({
+    jogadores: confirmadosJogadores,
+    mediasNotas,
+  });
 
   useEffect(() => {
     if (!partidaId) return;
@@ -64,26 +93,7 @@ export function PartidaTimes() {
       })
       .catch((e) => setErro(e.message ?? String(e)))
       .finally(() => setCarregando(false));
-  }, [partidaId]);
-
-  // Só os confirmados entram na escalação.
-  const confirmadosIds = useMemo(
-    () =>
-      new Set(
-        participantes
-          .filter((p) => p.status_confirmacao === "confirmado")
-          .map((p) => p.jogador_id)
-      ),
-    [participantes]
-  );
-
-  const confirmadosJogadores = useMemo(
-    () =>
-      jogadoresAtivos
-        .filter((j) => confirmadosIds.has(j.id))
-        .sort((a, b) => (a.nome ?? "").localeCompare(b.nome ?? "")),
-    [jogadoresAtivos, confirmadosIds]
-  );
+  }, [partidaId, setTimes]);
 
   if (!isAdmin) return <Navigate to="/" replace />;
   if (carregando) return <Carregando>Carregando partida</Carregando>;
@@ -96,68 +106,9 @@ export function PartidaTimes() {
   if (partida.status !== "draft")
     return <Navigate to={`/partida/${partidaId}`} replace />;
 
-  function atribuirTime(id: number, time: TimeId) {
-    setFeedback(null);
-    const jogador = confirmadosJogadores.find((j) => j.id === id);
-    const ehGoleiro = jogador?.posicao === "goleiro";
-    const atual = times[id];
-
-    // Já está nesse time -> remove (sem time).
-    if (atual && atual === time) {
-      setTimes((prev) => {
-        const n = { ...prev };
-        delete n[id];
-        return n;
-      });
-      return;
-    }
-
-    // Goleiro não pode entrar num time que já tem outro goleiro.
-    const destinoTemGoleiro = Object.entries(times).some(
-      ([jid, tm]) =>
-        tm === time &&
-        Number(jid) !== id &&
-        confirmadosJogadores.find((x) => x.id === Number(jid))?.posicao === "goleiro"
-    );
-    if (ehGoleiro && destinoTemGoleiro) {
-      setFeedback(
-        `Cada time só pode ter 1 goleiro. ${jogador?.nome ?? ""} não pode ir para o ${
-          time === "a" ? "Preto" : "Branco"
-        }.`
-      );
-      return;
-    }
-
-    // Bloqueia se o time alvo já está cheio.
-    const destinoCheio =
-      Object.values(times).filter((tm) => tm === time).length >= LIMITE_POR_TIME;
-    if (destinoCheio) return;
-
-    setTimes((prev) => ({ ...prev, [id]: time }));
-  }
-
-  function autoEscalar() {
+  function handleAutoEscalar() {
     setErro(null);
-    setFeedback(null);
-    if (confirmadosJogadores.length < LIMITE_POR_TIME * 2) {
-      setFeedback(
-        `Precisa de ${LIMITE_POR_TIME * 2} confirmados para gerar os times automaticamente.`
-      );
-      return;
-    }
-    const proposta = gerarEscalacaoAutomatica(confirmadosJogadores, mediasNotas);
-    const novos: Record<number, TimeId> = {};
-    for (const p of proposta) novos[p.jogador.id] = p.time;
-    setTimes(novos);
-    const a = proposta.filter((p) => p.time === "a");
-    const b = proposta.filter((p) => p.time === "b");
-    const avgA = a.length
-      ? (a.reduce((s, p) => s + (p.media_nota ?? 6.0), 0) / a.length).toFixed(1)
-      : "0.0";
-    const avgB = b.length
-      ? (b.reduce((s, p) => s + (p.media_nota ?? 6.0), 0) / b.length).toFixed(1)
-      : "0.0";
-    setFeedback(`Times equilibrados! (Preto ${avgA}★ vs Branco ${avgB}★)`);
+    autoEscalar();
   }
 
   const faltamConfirmados =
@@ -223,7 +174,7 @@ export function PartidaTimes() {
       times={times}
       mediasNotas={mediasNotas}
       onAtribuirTime={atribuirTime}
-      onAutoEscalar={autoEscalar}
+      onAutoEscalar={handleAutoEscalar}
       onSalvar={salvar}
       salvando={salvando}
       erro={erro}

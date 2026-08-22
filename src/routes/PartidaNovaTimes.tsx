@@ -7,13 +7,9 @@ import {
 } from "../lib/jogadores";
 import { useAdmin } from "../hooks/useAdmin";
 import { useJogadorLogado } from "../hooks/useJogadorLogado";
-import { type TimeId } from "../lib/times";
+import { useEscalacaoTimes } from "../hooks/useEscalacaoTimes";
 import { formatarDataCompleta } from "../lib/formatacao";
-import { gerarEscalacaoAutomatica } from "../lib/escalacao";
-import {
-  EscalacaoTimesEditor,
-  LIMITE_POR_TIME,
-} from "../components/EscalacaoTimesEditor";
+import { EscalacaoTimesEditor } from "../components/EscalacaoTimesEditor";
 
 interface EstadoPartida {
   selecionados: number[];
@@ -31,11 +27,9 @@ export function PartidaNovaTimes() {
   const location = useLocation();
   const estado = location.state as EstadoPartida | null;
 
-  const [times, setTimes] = useState<Record<number, TimeId>>({});
   const [mediasNotas, setMediasNotas] = useState<Record<number, number>>({});
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<string | null>(null);
 
   useEffect(() => {
     obterMediasNotasJogadores()
@@ -56,6 +50,17 @@ export function PartidaNovaTimes() {
     [estado?.jogadores, estado?.selecionados],
   );
 
+  const {
+    times,
+    feedback,
+    setFeedback,
+    atribuirTime,
+    autoEscalar,
+  } = useEscalacaoTimes({
+    jogadores: jogadoresConfirmados,
+    mediasNotas,
+  });
+
   // Guard admin.
   if (!isAdmin) return <Navigate to="/" replace />;
 
@@ -71,62 +76,9 @@ export function PartidaNovaTimes() {
   const horaJogo = estado.horaJogo || "19:00";
   const { dataJogo } = estado;
 
-  function autoEscalar() {
+  function handleAutoEscalar() {
     setErro(null);
-    const proposta = gerarEscalacaoAutomatica(jogadoresConfirmados, mediasNotas);
-    const novos: Record<number, TimeId> = {};
-    for (const p of proposta) novos[p.jogador.id] = p.time;
-    setTimes(novos);
-
-    const timeAPart = proposta.filter((p) => p.time === "a");
-    const timeBPart = proposta.filter((p) => p.time === "b");
-    const avgA = timeAPart.length
-      ? (timeAPart.reduce((s, p) => s + (p.media_nota ?? 6.0), 0) / timeAPart.length).toFixed(1)
-      : "0.0";
-    const avgB = timeBPart.length
-      ? (timeBPart.reduce((s, p) => s + (p.media_nota ?? 6.0), 0) / timeBPart.length).toFixed(1)
-      : "0.0";
-    setFeedback(`Times equilibrados! (Preto ${avgA}★ vs Branco ${avgB}★)`);
-  }
-
-  function atribuirTime(id: number, time: TimeId) {
-    setFeedback(null);
-    const jogador = jogadoresConfirmados.find((j) => j.id === id);
-    if (!jogador) return;
-
-    const ehGoleiro = jogador.posicao === "goleiro";
-    const atual = times[id];
-
-    // Já está nesse time -> remove (sem time)
-    if (atual && atual === time) {
-      setTimes((prev) => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-      return;
-    }
-
-    // Regra: cada time pode ter no máximo 1 goleiro.
-    const destinoTemGoleiro = Object.entries(times).some(
-      ([jidStr, tm]) =>
-        tm === time &&
-        Number(jidStr) !== id &&
-        jogadoresConfirmados.find((x) => x.id === Number(jidStr))?.posicao === "goleiro"
-    );
-    if (ehGoleiro && destinoTemGoleiro) {
-      setFeedback(
-        `Cada time só pode ter 1 goleiro. ${jogador.nome} não pode ir para o ${time === "a" ? "Preto" : "Branco"}.`
-      );
-      return;
-    }
-
-    // Bloqueia se o time alvo já está cheio.
-    const destinoCheio =
-      Object.values(times).filter((tm) => tm === time).length >= LIMITE_POR_TIME;
-    if (destinoCheio) return;
-
-    setTimes((prev) => ({ ...prev, [id]: time }));
+    autoEscalar();
   }
 
   async function salvarComoDraft() {
@@ -199,7 +151,7 @@ export function PartidaNovaTimes() {
       times={times}
       mediasNotas={mediasNotas}
       onAtribuirTime={atribuirTime}
-      onAutoEscalar={autoEscalar}
+      onAutoEscalar={handleAutoEscalar}
       onSalvar={salvarComoDraft}
       salvando={salvando}
       erro={erro}
