@@ -1,1 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><rect width="512" height="512" fill="#2563eb"/><defs><clipPath id="clip-mask"><circle cx="256" cy="256" r="115"/></clipPath></defs><g clip-path="url(#clip-mask)"><circle cx="256" cy="256" r="115" fill="#ffffff"/><line x1="256" y1="222" x2="256" y2="141" stroke="#111827" stroke-width="5" stroke-linecap="round"/><line x1="288.34" y1="245.49" x2="365.37" y2="220.46" stroke="#111827" stroke-width="5" stroke-linecap="round"/><line x1="275.98" y1="283.51" x2="323.6" y2="349.04" stroke="#111827" stroke-width="5" stroke-linecap="round"/><line x1="236.02" y1="283.51" x2="188.4" y2="349.04" stroke="#111827" stroke-width="5" stroke-linecap="round"/><line x1="223.66" y1="245.49" x2="146.63" y2="220.46" stroke="#111827" stroke-width="5" stroke-linecap="round"/><polygon points="256,222 288.34,245.49 275.98,283.51 236.02,283.51 223.66,245.49" fill="#111827"/><polygon points="302.44,192.09 294.45,167.49 315.37,152.29 336.29,167.49 328.3,192.09" fill="#111827"/><polygon points="331.14,280.41 352.06,265.21 372.98,280.41 364.99,305.01 339.13,305.01" fill="#111827"/><polygon points="256,335 276.92,350.2 268.93,374.8 243.07,374.8 235.08,350.2" fill="#111827"/><polygon points="180.86,280.41 172.87,305.01 147.01,305.01 139.02,280.41 159.94,265.21" fill="#111827"/><polygon points="209.56,192.09 183.7,192.09 175.71,167.49 196.63,152.29 217.55,167.49" fill="#111827"/></g><circle cx="256" cy="256" r="115" fill="none" stroke="#111827" stroke-width="5"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#0d0d0e"/>
+  <!-- Escudo partido duotônico Preto vs Branco proporcional à safe area -->
+  <g transform="translate(0, 5) scale(0.85) transform-origin(256 256)">
+    <!-- Escudo base -->
+    <path d="M256 50 L100 110 V250 C100 360 170 440 256 465 C342 440 412 360 412 250 V110 Z" fill="#1b1814" stroke="#ffb300" stroke-width="8"/>
+    <!-- Metade esquerda preta -->
+    <path d="M256 50 L100 110 V250 C100 360 170 440 256 465 Z" fill="#0d0d0e"/>
+    <!-- Metade direita branca/giz -->
+    <path d="M256 50 L412 110 V250 C412 360 342 440 256 465 Z" fill="#f4f1e8"/>
+    <!-- Linha divisória vertical -->
+    <line x1="256" y1="50" x2="256" y2="465" stroke="#35302a" stroke-width="4"/>
+    
+    <!-- Bola clássica central com estrela âmbar -->
+    <circle cx="256" cy="250" r="70" fill="#12100d" stroke="#ffb300" stroke-width="6"/>
+    <!-- Estrela âmbar de craque / vitória -->
+    <polygon points="256,205 271,238 307,243 280,268 287,304 256,286 225,304 232,268 205,243 241,238" fill="#ffb300"/>
+  </g>
+</svg>

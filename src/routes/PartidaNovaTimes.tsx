@@ -10,6 +10,7 @@ import { useJogadorLogado } from "../hooks/useJogadorLogado";
 import { useEscalacaoTimes } from "../hooks/useEscalacaoTimes";
 import { formatarDataCompleta } from "../lib/formatacao";
 import { EscalacaoTimesEditor } from "../components/EscalacaoTimesEditor";
+import { voltar } from "../lib/navegacao";
 
 interface EstadoPartida {
   selecionados: number[];
@@ -146,7 +147,7 @@ export function PartidaNovaTimes() {
       rotuloListaJogadores="Jogadores"
       salvarRotulo="Criar partida"
       salvandoRotulo="Criando…"
-      onVoltar={() => navigate(-1)}
+      onVoltar={() => voltar(navigate, '/partida/nova')}
       jogadores={jogadoresConfirmados}
       times={times}
       mediasNotas={mediasNotas}

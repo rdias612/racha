@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { MensagemEstado } from "../components/Estado";
 import { SkeletonResumo } from "../components/Skeletons";
 import { BotaoInstalar } from "../components/BotaoInstalar";
+import { PullToRefresh } from "../components/PullToRefresh";
 import { supabase } from "../lib/supabase";
 import {
   carregarParticipantes,
@@ -40,6 +41,7 @@ interface ResumoAno {
 
 interface DestaqueProps {
   titulo: string;
+  badge?: string;
   nome: string | null;
   valor: string;
   detalhe?: string;
@@ -56,56 +58,56 @@ export function Resumo() {
     ocupadas: number;
   } | null>(null);
 
-  useEffect(() => {
-    let ativo = true;
-    async function carregar() {
-      const { data, error } = await supabase.rpc("resumo_ano", {
-        p_ano: ano,
-      });
-
-      if (!ativo) return;
-      if (error) {
-        setErro(error.message);
-      } else {
-        setResumo(data?.[0] ?? null);
-      }
-      setCarregando(false);
-    }
-    carregar();
-    return () => {
-      ativo = false;
-    };
-  }, [ano]);
-
-  useEffect(() => {
-    let ativo = true;
-    async function carregarProxima() {
-      try {
-        const { data } = await supabase
+  const carregar = useCallback(async (isAtivo?: () => boolean) => {
+    setCarregando(true);
+    setErro(null);
+    try {
+      const [respResumo, respProx] = await Promise.all([
+        supabase.rpc("resumo_ano", { p_ano: ano }),
+        supabase
           .from("partidas")
           .select("id, data_jogo, confirmacao_closes_at")
           .eq("status", "draft")
           .order("data_jogo", { ascending: true })
           .limit(1)
-          .maybeSingle();
-        if (!ativo) return;
-        if (!data) {
-          setProxima(null);
-          return;
-        }
-        const parts = await carregarParticipantes(data.id);
-        if (!ativo) return;
-        const ocupadas = vagasOcupadas(parts, data.confirmacao_closes_at);
-        setProxima({ id: data.id, data_jogo: data.data_jogo, ocupadas });
-      } catch {
-        if (ativo) setProxima(null);
+          .maybeSingle(),
+      ]);
+
+      if (isAtivo && !isAtivo()) return;
+
+      if (respResumo.error) {
+        setErro(respResumo.error.message);
+      } else {
+        setResumo(respResumo.data?.[0] ?? null);
       }
+
+      if (respProx.data) {
+        const parts = await carregarParticipantes(respProx.data.id);
+        if (isAtivo && !isAtivo()) return;
+        const ocupadas = vagasOcupadas(parts, respProx.data.confirmacao_closes_at);
+        setProxima({
+          id: respProx.data.id,
+          data_jogo: respProx.data.data_jogo,
+          ocupadas,
+        });
+      } else {
+        setProxima(null);
+      }
+    } catch (e) {
+      if (isAtivo && !isAtivo()) return;
+      setErro(e instanceof Error ? e.message : String(e));
+    } finally {
+      if (!isAtivo || isAtivo()) setCarregando(false);
     }
-    carregarProxima();
+  }, [ano]);
+
+  useEffect(() => {
+    let ativo = true;
+    carregar(() => ativo);
     return () => {
       ativo = false;
     };
-  }, []);
+  }, [carregar]);
 
   if (carregando) return <SkeletonResumo />;
   if (erro) {
@@ -115,100 +117,126 @@ export function Resumo() {
       </MensagemEstado>
     );
   }
-  if (!resumo || resumo.total_partidas === 0) {
-    return (
-      <div className="px-3 py-4 sm:px-4 sm:mx-auto sm:max-w-2xl">
-        <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-          Resumo de {ano}
-        </h2>
-        <CardProximaPartida proxima={proxima} />
-        <MensagemEstado tipo="info" className="mt-3">
-          Nenhuma partida publicada ainda neste ano.
-        </MensagemEstado>
-      </div>
-    );
-  }
 
-  const destaques: DestaqueProps[] = [
-    {
-      titulo: "Artilheiro",
-      nome: resumo.artilheiro_nome,
-      valor: `${resumo.artilheiro_gols ?? 0} gols`,
-      detalhe: `${resumo.artilheiro_partidas ?? 0} partidas`,
-    },
-    {
-      titulo: "Maestro",
-      nome: resumo.maestro_nome,
-      valor: `${resumo.maestro_assistencias ?? 0} assistências`,
-      detalhe: `${resumo.maestro_partidas ?? 0} partidas`,
-    },
-    {
-      titulo: "O que importa é participar",
-      nome: resumo.participante_nome,
-      valor: `${resumo.participante_partidas ?? 0} partidas`,
-    },
-    {
-      titulo: "Eficiente",
-      nome: resumo.eficiente_nome,
-      valor: `${Math.round((resumo.eficiente_percentual ?? 0) * 100)}% de vitórias`,
-      detalhe: `${resumo.eficiente_vitorias ?? 0} vitórias em ${resumo.eficiente_partidas ?? 0} partidas`,
-    },
-    {
-      titulo: "Maior sequência de vitórias",
-      nome: resumo.sequencia_vitorias_nome,
-      valor: `${resumo.sequencia_vitorias ?? 0} vitórias seguidas`,
-    },
-    {
-      titulo: "Maior seca de vitórias",
-      nome: resumo.seca_vitorias_nome,
-      valor: `${resumo.seca_vitorias ?? 0} partidas sem vencer`,
-    },
-  ];
+  const semPartidas = !resumo || resumo.total_partidas === 0;
+
+  const destaques: DestaqueProps[] = resumo
+    ? [
+        {
+          titulo: "Artilheiro",
+          badge: "⚽ GOLS",
+          nome: resumo.artilheiro_nome,
+          valor: `${resumo.artilheiro_gols ?? 0} gols`,
+          detalhe: `${resumo.artilheiro_partidas ?? 0} partidas`,
+        },
+        {
+          titulo: "Maestro",
+          badge: "🅰️ PASSES",
+          nome: resumo.maestro_nome,
+          valor: `${resumo.maestro_assistencias ?? 0} assistências`,
+          detalhe: `${resumo.maestro_partidas ?? 0} partidas`,
+        },
+        {
+          titulo: "Frequência Máxima",
+          badge: "🛡️ PRESENÇA",
+          nome: resumo.participante_nome,
+          valor: `${resumo.participante_partidas ?? 0} partidas`,
+          detalhe: "O que importa é participar",
+        },
+        {
+          titulo: "Mais Eficiente",
+          badge: "📈 APROVEITAMENTO",
+          nome: resumo.eficiente_nome,
+          valor: `${Math.round((resumo.eficiente_percentual ?? 0) * 100)}% vitórias`,
+          detalhe: `${resumo.eficiente_vitorias ?? 0}V em ${resumo.eficiente_partidas ?? 0} jogos`,
+        },
+        {
+          titulo: "Maior Sequência",
+          badge: "🔥 EMBALADO",
+          nome: resumo.sequencia_vitorias_nome,
+          valor: `${resumo.sequencia_vitorias ?? 0} vitórias seguidas`,
+        },
+        {
+          titulo: "Maior Seca",
+          badge: "🧊 JEJUM",
+          nome: resumo.seca_vitorias_nome,
+          valor: `${resumo.seca_vitorias ?? 0} jogos sem vencer`,
+          detalhe: "A quinta não perdoa",
+        },
+      ]
+    : [];
 
   return (
-    <div className="px-3 py-4 pb-20 sm:px-4 sm:mx-auto sm:max-w-2xl">
-      <div className="mb-4 flex items-end justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-destaque">
-            Racha do ano
+    <PullToRefresh onRefresh={carregar}>
+      <div className="px-3 py-4 pb-20 sm:px-4 sm:mx-auto sm:max-w-2xl text-giz space-y-4">
+        {/* Cabeçalho do Boletim da Temporada */}
+        <div className="flex items-end justify-between sumula-header pb-2">
+          <div>
+            <p className="text-[10px] font-mono uppercase tracking-widest text-destaque font-bold">
+              Boletim Oficial do Racha
+            </p>
+            <h2 className="font-display font-bold text-2xl uppercase tracking-wider text-giz">
+              Temporada {ano}
+            </h2>
+          </div>
+          <p className="font-mono text-xs font-bold text-giz-fraco tabular-nums">
+            {resumo?.total_partidas ?? 0} {resumo?.total_partidas === 1 ? "partida" : "partidas"}
           </p>
-          <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-            Resumo de {ano}
-          </h2>
         </div>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          {resumo.total_partidas} partidas
-        </p>
+
+        <BotaoInstalar />
+
+        <CardProximaPartida proxima={proxima} />
+
+        {semPartidas ? (
+          <div className="rounded-[4px] border border-borda bg-superficie p-5 text-center shadow-carimbo">
+            <p className="text-sm font-medium text-giz">
+              Nenhuma partida na súmula ainda este ano.
+            </p>
+            <p className="text-xs text-giz-fraco mt-1 font-mono">
+              O primeiro jogo da temporada vai inaugurar os números oficiais.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {destaques.map((destaque) => (
+              <Destaque key={destaque.titulo} {...destaque} />
+            ))}
+          </div>
+        )}
+
+        {/* Footer do Boletim */}
+        <div className="pt-4 text-center">
+          <p className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
+            Racha Gragoatá · desde 2024 · toda quinta, CBO
+          </p>
+        </div>
       </div>
-
-      <BotaoInstalar />
-
-      <CardProximaPartida proxima={proxima} />
-
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {destaques.map((destaque) => (
-          <Destaque key={destaque.titulo} {...destaque} />
-        ))}
-      </div>
-    </div>
+    </PullToRefresh>
   );
 }
 
-function Destaque({ titulo, nome, valor, detalhe }: DestaqueProps) {
+function Destaque({ titulo, badge, nome, valor, detalhe }: DestaqueProps) {
   return (
-    <section className="rounded-lg border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-950">
-      <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
-        {titulo}
-      </h3>
-      <p className="mt-3 text-lg font-bold text-neutral-900 dark:text-neutral-100">
-        {nome ?? "Sem vencedor"}
-      </p>
-      <p className="mt-1 text-sm font-medium text-destaque">{valor}</p>
-      {detalhe && (
-        <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-          {detalhe}
+    <section className="rounded-[4px] border border-borda bg-superficie p-3.5 shadow-carimbo flex flex-col justify-between transition hover:border-destaque/60">
+      <div>
+        <div className="flex items-center justify-between gap-1 mb-2">
+          <span className="text-[9px] font-mono uppercase tracking-wider text-giz-fraco font-bold">
+            {badge ?? titulo}
+          </span>
+        </div>
+        <p className="font-display font-black text-base uppercase tracking-wide text-giz truncate">
+          {nome ?? "Sem registro"}
         </p>
-      )}
+      </div>
+      <div className="mt-2 pt-2 border-t border-borda">
+        <p className="font-mono text-sm font-bold text-destaque tabular-nums">{valor}</p>
+        {detalhe && (
+          <p className="font-mono text-[10px] text-giz-fraco mt-0.5 truncate">
+            {detalhe}
+          </p>
+        )}
+      </div>
     </section>
   );
 }
@@ -222,19 +250,24 @@ function CardProximaPartida({
   return (
     <Link
       to={`/partida/${proxima.id}`}
-      className="mb-4 block rounded-lg border border-destaque/30 bg-destaque/5 px-4 py-3"
+      className="block rounded-[4px] border-2 border-destaque bg-superficie px-4 py-3 shadow-carimbo transition hover:bg-superficie-2"
     >
-      <p className="text-xs font-semibold uppercase tracking-wide text-destaque">
-        Próxima partida
-      </p>
-      <p className="mt-1 text-sm font-bold text-neutral-900 dark:text-neutral-100 capitalize">
+      <div className="flex items-center justify-between">
+        <span className="font-display font-black text-[10px] uppercase tracking-widest text-destaque bg-[#0d0d0e] px-2 py-0.5 rounded-[2px] border border-destaque/40">
+          PRÓXIMA QUINTA
+        </span>
+        <span className="font-mono text-xs font-bold text-destaque tabular-nums">
+          {proxima.ocupadas}/{CAPACIDADE_PARTIDA} VAGAS
+        </span>
+      </div>
+      <p className="mt-1.5 font-display font-bold text-base uppercase tracking-wider text-giz capitalize">
         <span className="sm:hidden">{formatarDataMobile(proxima.data_jogo)}</span>
         <span className="hidden sm:inline">
           {formatarDataCompleta(proxima.data_jogo)}
         </span>
       </p>
-      <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
-        {proxima.ocupadas}/{CAPACIDADE_PARTIDA} confirmados — toque para confirmar
+      <p className="mt-0.5 text-xs text-giz-fraco font-mono">
+        Toque para confirmar ou consultar a lista de presença
       </p>
     </Link>
   );

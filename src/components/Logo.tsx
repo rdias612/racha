@@ -11,9 +11,9 @@ const ICON_SIZES = {
 };
 
 const TEXT_SIZES = {
-  sm: "text-sm font-bold",
-  md: "text-base font-extrabold",
-  lg: "text-xl sm:text-2xl font-black",
+  sm: "text-sm font-black",
+  md: "text-base font-black",
+  lg: "text-2xl font-black",
 };
 
 export function Logo({
@@ -22,44 +22,66 @@ export function Logo({
   className = "",
 }: LogoProps) {
   return (
-    <div className={`inline-flex items-center gap-2 select-none ${className}`}>
-      {/* Escudo / Marca Vetorial */}
+    <div className={`inline-flex items-center gap-2.5 select-none ${className}`}>
+      {/* Escudo Partido Duotônico Preto vs Branco com Estrela Âmbar */}
       <svg
         viewBox="0 0 36 36"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         className={`${ICON_SIZES[size]} shrink-0`}
       >
-        {/* Escudo de fundo */}
+        {/* Base do Escudo */}
         <path
-          d="M18 2L4 7V17C4 25.5 10 32.5 18 34C26 32.5 32 25.5 32 17V7L18 2Z"
-          className="fill-green-600 dark:fill-green-500 stroke-green-700 dark:stroke-green-400"
+          d="M18 3L5 7.5V17.5C5 25.5 10.5 31.5 18 33.5C25.5 31.5 31 25.5 31 17.5V7.5L18 3Z"
+          fill="#1b1814"
+          stroke="#ffb300"
           strokeWidth="1.5"
         />
-        {/* Detalhe de campo / linhas diagonais */}
+        {/* Metade Esquerda: Preto */}
         <path
-          d="M18 6V30M9 13.5H27"
-          stroke="white"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          opacity="0.8"
+          d="M18 3.5L5.5 7.8V17.5C5.5 25 10.7 30.7 18 32.7V3.5Z"
+          fill="#0d0d0e"
         />
-        {/* Círculo central (bola) */}
+        {/* Metade Direita: Branco / Giz */}
+        <path
+          d="M18 3.5L30.5 7.8V17.5C30.5 25 25.3 30.7 18 32.7V3.5Z"
+          fill="#f4f1e8"
+        />
+        {/* Divisória central */}
+        <line
+          x1="18"
+          y1="3"
+          x2="18"
+          y2="33"
+          stroke="#35302a"
+          strokeWidth="1"
+        />
+        {/* Círculo central com estrela âmbar */}
         <circle
           cx="18"
           cy="18"
-          r="4.5"
-          className="fill-amber-400 stroke-amber-500"
+          r="5"
+          fill="#12100d"
+          stroke="#ffb300"
           strokeWidth="1"
+        />
+        <polygon
+          points="18,14.8 19.1,17.2 21.6,17.5 19.8,19.3 20.3,21.8 18,20.6 15.7,21.8 16.2,19.3 14.4,17.5 16.9,17.2"
+          fill="#ffb300"
         />
       </svg>
 
       {mostrarTexto && (
-        <span
-          className={`tracking-tight text-neutral-900 dark:text-neutral-100 ${TEXT_SIZES[size]}`}
-        >
-          Racha <span className="text-green-600 dark:text-green-400">Gragoatá</span>
-        </span>
+        <div className="flex flex-col leading-none">
+          <span
+            className={`font-display uppercase tracking-[0.08em] text-giz ${TEXT_SIZES[size]}`}
+          >
+            RACHA <span className="text-destaque">GRAGOATÁ</span>
+          </span>
+          <span className="text-[9px] font-mono uppercase tracking-widest text-giz-fraco">
+            Súmula CBO
+          </span>
+        </div>
       )}
     </div>
   );

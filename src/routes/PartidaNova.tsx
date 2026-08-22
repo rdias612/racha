@@ -4,6 +4,7 @@ import { listarJogadoresAtivos, type JogadorLista } from "../lib/jogadores";
 import { useAdmin } from "../hooks/useAdmin";
 import { Carregando, MensagemEstado } from "../components/Estado";
 import { obterProximaQuintaFeira } from "../lib/formatacao";
+import { voltar } from "../lib/navegacao";
 
 const LIMITE_LINHA = 14;
 const LIMITE_GOLEIROS = 2;
@@ -154,8 +155,8 @@ export function PartidaNova() {
     <div className="px-3 py-4 pb-40 sm:px-4 space-y-5 max-w-2xl mx-auto">
       <div>
         <button
-          onClick={() => navigate(-1)}
-          className="text-xs text-neutral-500 dark:text-neutral-400 mb-2"
+          onClick={() => voltar(navigate, '/jogos')}
+          className="text-xs font-mono text-giz-fraco hover:text-giz mb-2 transition"
         >
           ← voltar
         </button>

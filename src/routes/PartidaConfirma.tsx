@@ -4,6 +4,7 @@ import { useAdmin } from "../hooks/useAdmin";
 import type { JogadorLista } from "../lib/jogadores";
 import { POSICOES } from "../lib/times";
 import { formatarDataCompleta } from "../lib/formatacao";
+import { voltar } from "../lib/navegacao";
 
 interface EstadoPartida {
   selecionados: number[];
@@ -75,8 +76,8 @@ export function PartidaConfirma() {
     <div className="px-3 py-4 pb-40 sm:px-4 space-y-5 max-w-2xl mx-auto">
       <div>
         <button
-          onClick={() => navigate(-1)}
-          className="text-xs text-neutral-500 dark:text-neutral-400 mb-2"
+          onClick={() => voltar(navigate, '/partida/nova')}
+          className="text-xs font-mono text-giz-fraco hover:text-giz mb-2 transition"
         >
           ← voltar
         </button>

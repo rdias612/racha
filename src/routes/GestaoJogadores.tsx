@@ -15,6 +15,7 @@ import { MensagemEstado } from "../components/Estado";
 import { SkeletonGestao } from "../components/Skeletons";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { Snackbar, type TipoSnackbar } from "../components/Snackbar";
+import { voltar } from "../lib/navegacao";
 import {
   ArrowLeft,
   Users,
@@ -295,8 +296,8 @@ export function GestaoJogadores() {
   return (
     <div className="px-3 py-4 pb-32 sm:px-4 max-w-3xl mx-auto space-y-5 relative">
       <button
-        onClick={() => navigate(-1)}
-        className="inline-flex items-center gap-1 text-xs text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 transition"
+        onClick={() => voltar(navigate, '/administrador')}
+        className="inline-flex items-center gap-1 text-xs font-mono text-giz-fraco hover:text-giz transition"
       >
         <ArrowLeft className="w-3.5 h-3.5" />
         Voltar

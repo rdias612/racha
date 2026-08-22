@@ -12,8 +12,6 @@ import {
   Medal,
   TrendingUp,
   User,
-  Sun,
-  Moon,
   UserPlus,
   Wallet,
   ChevronDown,
@@ -21,15 +19,12 @@ import {
 } from "lucide-react";
 import { useSessao } from "../context/SessaoContext";
 import { useAdmin } from "../hooks/useAdmin";
-import { useTema } from "../lib/tema";
 import { Logo } from "../components/Logo";
 import { BannerLembrete } from "../components/BannerLembrete";
-
 
 export function Layout() {
   const { jogador } = useSessao();
   const isAdmin = useAdmin();
-  const { tema, alternar } = useTema();
   const { pathname } = useLocation();
   const [menuAberto, setMenuAberto] = useState(false);
 
@@ -41,38 +36,25 @@ export function Layout() {
   }
 
   return (
-    <div className="min-h-full flex flex-col bg-neutral-50 dark:bg-neutral-950">
-      <header className="shrink-0 border-b border-neutral-200 px-3 py-2.5 sm:px-4 dark:border-neutral-800">
-        <div className="flex items-center justify-between gap-x-4">
-          <Link to="/" className="hover:opacity-90 transition">
+    <div className="min-h-full flex flex-col bg-fundo text-giz">
+      {/* Header Sticky com Súmula Wordmark */}
+      <header className="sticky top-0 z-40 shrink-0 border-b border-borda bg-fundo/95 backdrop-blur px-3 py-2 sm:px-4">
+        <div className="flex items-center justify-between gap-x-4 max-w-2xl mx-auto">
+          <Link to="/" className="hover:opacity-90 transition active:scale-[0.98]">
             <Logo size="sm" />
           </Link>
 
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={alternar}
-              aria-label={tema === "dark" ? "Modo Claro" : "Modo Escuro"}
-              title={tema === "dark" ? "Modo Claro" : "Modo Escuro"}
-              className="inline-flex items-center justify-center p-1.5 rounded-full border border-neutral-300 bg-white text-neutral-700 shadow-xs hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800 transition"
-            >
-              {tema === "dark" ? (
-                <Sun className="size-4 text-amber-400" />
-              ) : (
-                <Moon className="size-4 text-neutral-600 dark:text-neutral-400" />
-              )}
-            </button>
-
             {isAdmin && (
               <div className="relative">
                 <button
                   type="button"
                   onClick={() => setMenuAberto((prev) => !prev)}
                   aria-expanded={menuAberto}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-neutral-300 bg-white px-3 py-1 text-xs font-medium text-neutral-700 shadow-xs hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800 transition"
+                  className="inline-flex items-center gap-1.5 rounded-[4px] border border-borda bg-superficie px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-giz shadow-carimbo hover:bg-superficie-2 transition"
                 >
-                  <span>Admin</span>
-                  <ChevronDown className={`size-3.5 transition-transform ${menuAberto ? "rotate-180" : ""}`} />
+                  <span className="font-display tracking-wider">ADMIN</span>
+                  <ChevronDown className={`size-3.5 text-destaque transition-transform ${menuAberto ? "rotate-180" : ""}`} />
                 </button>
 
                 {menuAberto && (
@@ -81,32 +63,32 @@ export function Layout() {
                       className="fixed inset-0 z-40"
                       onClick={() => setMenuAberto(false)}
                     />
-                    <div className="absolute right-0 top-full mt-1 z-50 w-48 rounded-xl border border-neutral-200 bg-white p-1.5 shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
+                    <div className="absolute right-0 top-full mt-1.5 z-50 w-52 rounded-[4px] border border-borda bg-superficie p-1.5 shadow-carimbo">
                       <Link
                         to="/gestao-jogadores"
                         onClick={() => setMenuAberto(false)}
-                        className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                        className="flex items-center gap-2 rounded-[3px] px-2.5 py-2 text-xs font-medium text-giz hover:bg-superficie-2 hover:text-destaque transition"
                       >
-                        <Users className="size-3.5 text-primaria" />
+                        <Users className="size-3.5 text-destaque" />
                         <span>Gestão de Jogadores</span>
                       </Link>
 
                       <Link
                         to="/jogador/novo"
                         onClick={() => setMenuAberto(false)}
-                        className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                        className="flex items-center gap-2 rounded-[3px] px-2.5 py-2 text-xs font-medium text-giz hover:bg-superficie-2 hover:text-destaque transition"
                       >
-                        <UserPlus className="size-3.5 text-primaria" />
+                        <UserPlus className="size-3.5 text-destaque" />
                         <span>+ Novo Jogador</span>
                       </Link>
 
                       <Link
                         to="/administrador"
                         onClick={() => setMenuAberto(false)}
-                        className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                        className="flex items-center gap-2 rounded-[3px] px-2.5 py-2 text-xs font-medium text-giz hover:bg-superficie-2 hover:text-destaque transition"
                       >
-                        <Wallet className="size-3.5 text-primaria" />
-                        <span>Financeiro</span>
+                        <Wallet className="size-3.5 text-destaque" />
+                        <span>Financeiro & Súmula</span>
                       </Link>
                     </div>
                   </>
@@ -123,71 +105,81 @@ export function Layout() {
         <Outlet />
       </main>
 
+      {/* Nav Inferior com indicador de barra âmbar no item ativo */}
       <nav
         aria-label="Navegação principal"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-neutral-200 bg-neutral-50/95 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/95"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-borda bg-superficie/95 backdrop-blur"
       >
-        <div className="mx-auto flex max-w-2xl items-stretch justify-around pb-[env(safe-area-inset-bottom)]">
+        <div
+          className="mx-auto flex max-w-2xl items-stretch justify-around"
+          style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+        >
           <NavLink
             to="/"
             end
             aria-current={pathname === "/" ? "page" : undefined}
-            className={`flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-2 ${
-              pathname === "/"
-                ? "text-destaque font-medium"
-                : "text-neutral-500 dark:text-neutral-400"
-            }`}
+            className={({ isActive }) =>
+              `relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
+                isActive
+                  ? "text-destaque font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
+                  : "text-giz-fraco hover:text-giz"
+              }`
+            }
           >
             <Home className="size-5" aria-hidden="true" />
-            <span className="text-[10px]">Resumo</span>
+            <span className="text-[10px] font-display uppercase tracking-wider">Resumo</span>
           </NavLink>
           <NavLink
             to="/jogos"
             aria-current={pathname === "/jogos" ? "page" : undefined}
-            className={`flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-2 ${
-              pathname === "/jogos"
-                ? "text-destaque font-medium"
-                : "text-neutral-500 dark:text-neutral-400"
-            }`}
+            className={({ isActive }) =>
+              `relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
+                isActive
+                  ? "text-destaque font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
+                  : "text-giz-fraco hover:text-giz"
+              }`
+            }
           >
             <Shield className="size-5" aria-hidden="true" />
-            <span className="text-[10px]">Jogos</span>
+            <span className="text-[10px] font-display uppercase tracking-wider">Jogos</span>
           </NavLink>
           <NavLink
             to="/ranking/pontos"
             aria-current={rankingAtivo ? "page" : undefined}
-            className={`flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-2 ${
+            className={`relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
               rankingAtivo
-                ? "text-destaque font-medium"
-                : "text-neutral-500 dark:text-neutral-400"
+                ? "text-destaque font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
+                : "text-giz-fraco hover:text-giz"
             }`}
           >
             <Medal className="size-5" aria-hidden="true" />
-            <span className="text-[10px]">Ranking</span>
+            <span className="text-[10px] font-display uppercase tracking-wider">Ranking</span>
           </NavLink>
           <NavLink
             to="/estatisticas/jogador"
             aria-current={estatisticasAtivo ? "page" : undefined}
-            className={`flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-2 ${
+            className={`relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
               estatisticasAtivo
-                ? "text-destaque font-medium"
-                : "text-neutral-500 dark:text-neutral-400"
+                ? "text-destaque font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
+                : "text-giz-fraco hover:text-giz"
             }`}
           >
             <TrendingUp className="size-5" aria-hidden="true" />
-            <span className="text-[10px]">Estatísticas</span>
+            <span className="text-[10px] font-display uppercase tracking-wider">Estatísticas</span>
           </NavLink>
           <NavLink
             to="/perfil"
             aria-current={pathname === "/perfil" ? "page" : undefined}
-            className={`flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-2 ${
-              pathname === "/perfil"
-                ? "text-destaque font-medium"
-                : "text-neutral-500 dark:text-neutral-400"
-            }`}
+            className={({ isActive }) =>
+              `relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
+                isActive
+                  ? "text-destaque font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
+                  : "text-giz-fraco hover:text-giz"
+              }`
+            }
           >
             <User className="size-5" aria-hidden="true" />
-            <span className="text-[10px]">Perfil</span>
+            <span className="text-[10px] font-display uppercase tracking-wider">Perfil</span>
           </NavLink>
         </div>
       </nav>

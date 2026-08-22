@@ -75,12 +75,12 @@ export function Login() {
     setCarregando(false);
 
     if (error) {
-      setErro("Erro ao conectar. Tente novamente.");
+      setErro("A rede falhou — nem aqui nem no campo. Tenta de novo.");
       return;
     }
 
     if (!data || data.length === 0) {
-      setErro("Usuário ou senha inválidos.");
+      setErro("Não bateu. Confere o usuário e tenta de novo.");
       return;
     }
 
@@ -89,20 +89,20 @@ export function Login() {
   }
 
   return (
-    <div className="min-h-full flex items-center justify-center p-3 sm:p-4 bg-neutral-50 dark:bg-neutral-950">
-      <div className="w-full max-w-sm flex flex-col items-center">
+    <div className="min-h-full flex items-center justify-center p-3 sm:p-4 bg-fundo text-giz">
+      <div className="w-full max-w-sm rounded-[6px] border-2 border-borda bg-superficie p-6 shadow-carimbo-preto flex flex-col items-center">
         <div className="mb-2">
           <Logo size="lg" />
         </div>
-        <p className="text-center text-sm text-neutral-500 dark:text-neutral-400 mb-6">
-          Entre com seu usuário e senha
+        <p className="text-center text-xs font-mono text-giz-fraco mb-6">
+          Acesso à súmula de quinta · CBO
         </p>
 
-        <form onSubmit={submeter} className="space-y-4">
+        <form onSubmit={submeter} className="w-full space-y-4">
           <div>
             <label
               htmlFor="username"
-              className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+              className="block text-xs font-display font-bold uppercase tracking-wider text-giz-fraco mb-1"
             >
               Usuário
             </label>
@@ -118,7 +118,7 @@ export function Login() {
                 autoCorrect="off"
                 placeholder={
                   carregandoUsernames
-                    ? "Carregando usuários..."
+                    ? "Carregando convocados..."
                     : "Selecione ou digite seu usuário"
                 }
                 value={username}
@@ -129,7 +129,7 @@ export function Login() {
                 onFocus={() => setAberto(true)}
                 onBlur={fecharComAtraso}
                 onKeyDown={navegarTeclado}
-                className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 pr-10 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-destaque"
+                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2.5 pr-10 text-sm text-giz shadow-xs focus:outline-none focus:border-destaque"
                 required
                 disabled={carregandoUsernames || !!erroUsernames}
               />
@@ -142,10 +142,10 @@ export function Login() {
                   setAberto((a) => !a);
                   refInput.current?.focus();
                 }}
-                className="absolute right-1 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
+                className="absolute right-1 top-1/2 -translate-y-1/2 rounded-[2px] p-1.5 text-giz-fraco hover:text-giz"
               >
                 <svg
-                  className={`w-5 h-5 transition-transform ${aberto ? "rotate-180" : ""}`}
+                  className={`w-4 h-4 text-destaque transition-transform ${aberto ? "rotate-180" : ""}`}
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -160,7 +160,7 @@ export function Login() {
                 <ul
                   id="lista-usernames"
                   role="listbox"
-                  className="absolute z-20 left-0 right-0 mt-1 max-h-56 overflow-auto rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-lg"
+                  className="absolute z-20 left-0 right-0 mt-1 max-h-56 overflow-auto rounded-[4px] border border-borda bg-superficie shadow-carimbo-preto p-1"
                 >
                   {usernamesFiltrados.map((nome, i) => (
                     <li key={nome} role="option" aria-selected={nome === username}>
@@ -169,11 +169,11 @@ export function Login() {
                         tabIndex={-1}
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => selecionar(nome)}
-                        className={`w-full text-left px-3 py-2 text-neutral-900 dark:text-neutral-100 ${
+                        className={`w-full text-left px-3 py-2 text-sm rounded-[3px] transition ${
                           i === indiceAtivo
-                            ? "bg-neutral-100 dark:bg-neutral-800"
-                            : ""
-                        } ${nome === username ? "font-medium" : ""}`}
+                            ? "bg-superficie-2 text-destaque font-bold"
+                            : "text-giz hover:bg-superficie-2"
+                        } ${nome === username ? "font-bold text-destaque" : ""}`}
                       >
                         {nome}
                       </button>
@@ -187,7 +187,7 @@ export function Login() {
           <div>
             <label
               htmlFor="senha"
-              className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+              className="block text-xs font-display font-bold uppercase tracking-wider text-giz-fraco mb-1"
             >
               Senha
             </label>
@@ -198,7 +198,7 @@ export function Login() {
               enterKeyHint="go"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
-              className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-destaque"
+              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2.5 text-sm text-giz shadow-xs focus:outline-none focus:border-destaque font-mono"
               required
             />
           </div>
@@ -212,9 +212,9 @@ export function Login() {
             disabled={
               carregando || carregandoUsernames || !!erroUsernames || !username
             }
-            className="w-full rounded-lg bg-destaque px-4 py-2 font-medium text-white disabled:opacity-50 hover:opacity-90 transition"
+            className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-50"
           >
-            {carregando ? "Entrando..." : "Entrar"}
+            {carregando ? "Acessando súmula…" : "Entrar no Racha"}
           </button>
         </form>
       </div>

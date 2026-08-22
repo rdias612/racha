@@ -18,8 +18,8 @@ const AREA_GOL_L = 18.32;
 const AREA_GOL_P = 5.5;
 const RAIO_CENTRO = 9.15;
 const MARCA_PENALTI = 11;
-const VERDE_ESCURO = "#1f7a3d";
-const VERDE_CLARO = "#259348";
+const VERDE_ESCURO = "#16281c";
+const VERDE_CLARO = "#1b3323";
 
 function ChipJogador({
   jogador,
@@ -32,11 +32,11 @@ function ChipJogador({
 }) {
   const preto = jogador.time === "a";
   const nome = formatarNome(jogador.nome ?? `#${jogador.jogador_id}`);
-  const classe = `inline-flex max-w-[9.5rem] items-center justify-center truncate rounded-sm border px-2.5 text-[11px] font-semibold leading-none shadow-md sm:text-xs ${
+  const classe = `inline-flex max-w-[9.5rem] items-center justify-center truncate rounded-[3px] border px-2.5 text-[11px] font-display font-bold uppercase tracking-wider leading-none shadow-carimbo sm:text-xs ${
     preto
-      ? "border-neutral-700 text-neutral-50"
-      : "border-neutral-300 text-neutral-900"
-  } ${destaque ? "ring-2 ring-yellow-300 ring-offset-1 ring-offset-transparent" : ""}`;
+      ? "border-[#35302a] text-[#f4f1e8]"
+      : "border-[#35302a] text-[#0d0d0e]"
+  } ${destaque ? "ring-2 ring-destaque ring-offset-2 ring-offset-[#16281c]" : ""}`;
 
   const estilo = {
     backgroundColor: TIMES[jogador.time ?? "a"].cor,
@@ -55,7 +55,7 @@ function ChipJogador({
     <button
       type="button"
       onClick={() => onClick(jogador)}
-      className={`${classe} cursor-pointer transition active:scale-95`}
+      className={`${classe} cursor-pointer transition active:translate-y-px`}
       style={estilo}
     >
       {nome}
@@ -99,64 +99,124 @@ function MarcacoesCampo() {
   const xPen2 = xPen + AREA_PENALTI_L;
   const xGol = (LARGURA - AREA_GOL_L) / 2;
   const xGol2 = xGol + AREA_GOL_L;
-  const meio = COMPRIMENTO / 2;
-  const cx = LARGURA / 2;
+  const xMeio = LARGURA / 2;
+  const yMeio = COMPRIMENTO / 2;
 
-  const linha = {
-    fill: "none",
-    stroke: "rgba(255,255,255,0.9)",
-    strokeWidth: 0.32,
-    strokeLinecap: "butt" as const,
-    strokeLinejoin: "miter" as const,
-    strokeMiterlimit: 4,
-  };
+  const faixas = 10;
+  const hFaixa = COMPRIMENTO / faixas;
 
   return (
     <svg
-      aria-hidden="true"
       viewBox={`0 0 ${LARGURA} ${COMPRIMENTO}`}
-      className="pointer-events-none absolute inset-0 h-full w-full"
-      preserveAspectRatio="xMidYMid meet"
+      className="absolute inset-0 h-full w-full"
+      preserveAspectRatio="none"
+      aria-hidden="true"
     >
-      <rect x={x1} y={y1} width={x2 - x1} height={y2 - y1} {...linha} />
+      {/* Faixas de grama contextual */}
+      {Array.from({ length: faixas }).map((_, i) => (
+        <rect
+          key={i}
+          x={0}
+          y={i * hFaixa}
+          width={LARGURA}
+          height={hFaixa}
+          fill={i % 2 === 0 ? VERDE_ESCURO : VERDE_CLARO}
+        />
+      ))}
 
-      <line x1={x1} y1={meio} x2={x2} y2={meio} {...linha} />
-      <circle cx={cx} cy={meio} r={RAIO_CENTRO} {...linha} />
-      <circle cx={cx} cy={meio} r="0.38" fill="white" stroke="none" />
+      {/* Linhas de marcação com cor campo-linha */}
+      <g
+        fill="none"
+        stroke="#2c4433"
+        strokeWidth="0.8"
+        strokeLinecap="square"
+        strokeLinejoin="miter"
+      >
+        {/* Linha externa */}
+        <rect x={x1} y={y1} width={x2 - x1} height={y2 - y1} />
 
-      {/* Áreas em U: encostam na linha de fundo, sem redesenhar o fundo. */}
-      <path
-        d={`M ${xPen} ${y1} L ${xPen} ${y1 + AREA_PENALTI_P} L ${xPen2} ${y1 + AREA_PENALTI_P} L ${xPen2} ${y1}`}
-        {...linha}
-      />
-      <path
-        d={`M ${xGol} ${y1} L ${xGol} ${y1 + AREA_GOL_P} L ${xGol2} ${y1 + AREA_GOL_P} L ${xGol2} ${y1}`}
-        {...linha}
-      />
-      <circle cx={cx} cy={y1 + MARCA_PENALTI} r="0.35" fill="white" stroke="none" />
+        {/* Linha de meio de campo */}
+        <line x1={x1} y1={yMeio} x2={x2} y2={yMeio} />
 
-      <path
-        d={`M ${xPen} ${y2} L ${xPen} ${y2 - AREA_PENALTI_P} L ${xPen2} ${y2 - AREA_PENALTI_P} L ${xPen2} ${y2}`}
-        {...linha}
-      />
-      <path
-        d={`M ${xGol} ${y2} L ${xGol} ${y2 - AREA_GOL_P} L ${xGol2} ${y2 - AREA_GOL_P} L ${xGol2} ${y2}`}
-        {...linha}
-      />
-      <circle cx={cx} cy={y2 - MARCA_PENALTI} r="0.35" fill="white" stroke="none" />
+        {/* Círculo central */}
+        <circle cx={xMeio} cy={yMeio} r={RAIO_CENTRO} />
+        <circle cx={xMeio} cy={yMeio} r={0.7} fill="#2c4433" />
+
+        {/* Grande área superior (Time Preto) */}
+        <path
+          d={`M ${xPen} ${y1} V ${y1 + AREA_PENALTI_P} H ${xPen2} V ${y1}`}
+        />
+        {/* Pequena área superior */}
+        <path d={`M ${xGol} ${y1} V ${y1 + AREA_GOL_P} H ${xGol2} V ${y1}`} />
+        {/* Ponto penal superior */}
+        <circle cx={xMeio} cy={y1 + MARCA_PENALTI} r={0.7} fill="#2c4433" />
+        {/* Meia-lua superior */}
+        <path
+          d={`M ${xMeio - 7.3} ${y1 + AREA_PENALTI_P} A ${RAIO_CENTRO} ${RAIO_CENTRO} 0 0 0 ${xMeio + 7.3} ${y1 + AREA_PENALTI_P}`}
+        />
+
+        {/* Grande área inferior (Time Branco) */}
+        <path
+          d={`M ${xPen} ${y2} V ${y2 - AREA_PENALTI_P} H ${xPen2} V ${y2}`}
+        />
+        {/* Pequena área inferior */}
+        <path d={`M ${xGol} ${y2} V ${y2 - AREA_GOL_P} H ${xGol2} V ${y2}`} />
+        {/* Ponto penal inferior */}
+        <circle cx={xMeio} cy={y2 - MARCA_PENALTI} r={0.7} fill="#2c4433" />
+        {/* Meia-lua inferior */}
+        <path
+          d={`M ${xMeio - 7.3} ${y2 - AREA_PENALTI_P} A ${RAIO_CENTRO} ${RAIO_CENTRO} 0 0 1 ${xMeio + 7.3} ${y2 - AREA_PENALTI_P}`}
+        />
+      </g>
     </svg>
   );
 }
 
-function metade(participantes: Participante[], time: TimeId) {
+function MetadeCampo({
+  time,
+  participantes,
+  onJogadorClick,
+  jogadorDestaqueId,
+  invertido,
+}: {
+  time: TimeId;
+  participantes: Participante[];
+  onJogadorClick?: (jogador: Participante) => void;
+  jogadorDestaqueId?: number | null;
+  invertido?: boolean;
+}) {
   const doTime = participantes.filter((p) => p.time === time);
-  const goleiros = doTime
-    .filter((p) => p.posicao === "goleiro")
-    .sort((a, b) => (a.nome ?? "").localeCompare(b.nome ?? "", "pt-BR"));
-  const linha = doTime
-    .filter((p) => p.posicao !== "goleiro")
-    .sort((a, b) => (a.nome ?? "").localeCompare(b.nome ?? "", "pt-BR"));
-  return { goleiros, linha };
+  const goleiros = doTime.filter((p) => p.posicao === "goleiro");
+  const defensores = doTime.filter(
+    (p) => p.posicao === "zagueiro" || p.posicao === "lateral",
+  );
+  const meias = doTime.filter((p) => p.posicao === "meia");
+  const atacantes = doTime.filter(
+    (p) => p.posicao === "atacante" || p.posicao === "random",
+  );
+
+  const linhas = [
+    { key: "gol", jogs: goleiros },
+    { key: "def", jogs: defensores },
+    { key: "mei", jogs: meias },
+    { key: "ata", jogs: atacantes },
+  ];
+
+  const ordem = invertido ? [...linhas].reverse() : linhas;
+
+  return (
+    <div className="relative flex flex-1 flex-col justify-around py-3">
+      {ordem.map(({ key, jogs }) => (
+        <GrupoJogadores
+          key={key}
+          jogadores={jogs}
+          onClick={onJogadorClick}
+          destaqueId={jogadorDestaqueId}
+          className="relative z-10 flex flex-wrap items-center justify-center gap-1.5 px-2"
+        />
+      ))}
+    </div>
+  );
 }
 
 export function CampoPartida({
@@ -165,78 +225,41 @@ export function CampoPartida({
   onJogadorClick,
   jogadorDestaqueId,
 }: CampoPartidaProps) {
-  const branco = metade(participantes, "b");
-  const preto = metade(participantes, "a");
-
-  const areaGoleiro =
-    "absolute left-[20.35%] z-10 flex w-[59.3%] items-center justify-center px-1";
-  const areaLinha =
-    "absolute inset-x-1 z-10 flex flex-wrap content-center justify-center gap-1.5";
-
   return (
-    <div className="mx-auto w-full max-w-[22.5rem] sm:max-w-[24rem]">
-      <div
-        className="relative w-full overflow-hidden rounded-lg border-2 border-green-950 shadow-inner"
-        style={{
-          aspectRatio: `${LARGURA} / ${COMPRIMENTO}`,
-          backgroundColor: VERDE_ESCURO,
-          backgroundImage: `repeating-linear-gradient(180deg, ${VERDE_ESCURO} 0%, ${VERDE_ESCURO} 9.09%, ${VERDE_CLARO} 9.09%, ${VERDE_CLARO} 18.18%)`,
-        }}
-      >
+    <div className="relative mx-auto w-full max-w-md overflow-hidden rounded-[4px] border-2 border-borda shadow-carimbo-preto">
+      {/* Campo com proporção realista 68:105 (aspect-[68/105]) */}
+      <div className="relative aspect-[68/105] w-full">
         <MarcacoesCampo />
 
-        <GrupoJogadores
-          jogadores={branco.goleiros}
-          onClick={onJogadorClick}
-          destaqueId={jogadorDestaqueId}
-          className={`${areaGoleiro} top-[7.5%] h-[7.5%]`}
-        />
-        <GrupoJogadores
-          jogadores={branco.linha}
-          onClick={onJogadorClick}
-          destaqueId={jogadorDestaqueId}
-          className={`${areaLinha} top-[16.5%] h-[23.5%]`}
-        />
+        <div className="absolute inset-0 flex flex-col">
+          {/* Metade Superior: Time Preto */}
+          <MetadeCampo
+            time="a"
+            participantes={participantes}
+            onJogadorClick={onJogadorClick}
+            jogadorDestaqueId={jogadorDestaqueId}
+          />
 
-        <div className="pointer-events-none absolute left-1/2 top-1/2 z-20 w-[7.5rem] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-sm shadow-md sm:w-[8.5rem]">
-          <div className="grid grid-cols-2">
-            <div
-              className="flex items-center justify-end py-1 pr-3.5 pl-2"
-              style={{ backgroundColor: "rgba(249,250,251,0.72)" }}
-            >
-              <span className="text-base font-bold tabular-nums text-neutral-900 sm:text-lg">
-                {placar.gols_time_b}
+          {/* Faixa central de placar LED */}
+          <div className="relative z-10 flex items-center justify-center py-1">
+            <div className="flex items-center gap-3 rounded-[3px] border border-borda bg-[#000000] px-4 py-1 font-display font-black text-white shadow-carimbo-preto">
+              <span className="text-xs uppercase tracking-wider text-[#f4f1e8]">Preto</span>
+              <span className="font-mono text-base font-black text-destaque tabular-nums">
+                {placar.gols_time_a} × {placar.gols_time_b}
               </span>
-            </div>
-            <div
-              className="flex items-center justify-start py-1 pl-3.5 pr-2"
-              style={{ backgroundColor: "rgba(17,24,39,0.72)" }}
-            >
-              <span className="text-base font-bold tabular-nums text-white sm:text-lg">
-                {placar.gols_time_a}
-              </span>
+              <span className="text-xs uppercase tracking-wider text-[#f4f1e8]">Branco</span>
             </div>
           </div>
-          <span
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-sm font-black text-white"
-            style={{ WebkitTextStroke: "0.7px #111827" }}
-          >
-            ×
-          </span>
-        </div>
 
-        <GrupoJogadores
-          jogadores={preto.linha}
-          onClick={onJogadorClick}
-          destaqueId={jogadorDestaqueId}
-          className={`${areaLinha} bottom-[16.5%] h-[23.5%]`}
-        />
-        <GrupoJogadores
-          jogadores={preto.goleiros}
-          onClick={onJogadorClick}
-          destaqueId={jogadorDestaqueId}
-          className={`${areaGoleiro} bottom-[7.5%] h-[7.5%]`}
-        />
+          {/* Metade Inferior: Time Branco (invertido para gol ficar embaixo) */}
+          <MetadeCampo
+            time="b"
+            participantes={participantes}
+            onJogadorClick={onJogadorClick}
+            jogadorDestaqueId={jogadorDestaqueId}
+            invertido
+          />
+        </div>
       </div>
     </div>
   );

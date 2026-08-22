@@ -7,15 +7,14 @@ interface AvatarProps {
   className?: string;
 }
 
-const COLOR_PALETTE = [
-  "bg-emerald-600 text-white",
-  "bg-green-600 text-white",
-  "bg-amber-600 text-white",
-  "bg-teal-600 text-white",
-  "bg-indigo-600 text-white",
-  "bg-blue-600 text-white",
-  "bg-violet-600 text-white",
-  "bg-rose-600 text-white",
+// 6 tons terrosos noturnos da Súmula de Quinta
+const COLOR_HEXES = [
+  "#2f4a33", // campo
+  "#8a5a2b", // couro
+  "#7a2e2b", // tijolo
+  "#54552e", // oliva
+  "#31424e", // petróleo
+  "#5b4632", // terra
 ];
 
 function getHashColor(str: string): string {
@@ -23,8 +22,8 @@ function getHashColor(str: string): string {
   for (let i = 0; i < str.length; i++) {
     hash = str.charCodeAt(i) + ((hash << 5) - hash);
   }
-  const index = Math.abs(hash) % COLOR_PALETTE.length;
-  return COLOR_PALETTE[index] ?? COLOR_PALETTE[0] ?? "bg-neutral-600 text-white";
+  const index = Math.abs(hash) % COLOR_HEXES.length;
+  return COLOR_HEXES[index] ?? COLOR_HEXES[0] ?? "#2f4a33";
 }
 
 function getIniciais(nome: string): string {
@@ -39,10 +38,10 @@ function getIniciais(nome: string): string {
 }
 
 const SIZE_CLASSES = {
-  xs: "w-6 h-6 text-[10px]",
-  sm: "w-8 h-8 text-xs",
-  md: "w-10 h-10 text-sm",
-  lg: "w-12 h-12 text-base",
+  xs: "w-6 h-6 text-xs",
+  sm: "w-8 h-8 text-sm",
+  md: "w-10 h-10 text-base",
+  lg: "w-12 h-12 text-lg",
 };
 
 export function Avatar({
@@ -62,14 +61,15 @@ export function Avatar({
   return (
     <div className={`relative inline-flex items-center justify-center shrink-0 ${className}`}>
       <div
-        className={`rounded-full font-bold flex items-center justify-center shadow-sm ${sizeClass} ${corBg}`}
+        className={`rounded-[3px] border border-borda/60 font-display font-bold flex items-center justify-center text-white shadow-sm tracking-tight ${sizeClass}`}
+        style={{ backgroundColor: corBg }}
         title={nome}
       >
         {iniciais}
       </div>
       {siglaPosicao && posicao && (
         <span
-          className="absolute -bottom-0.5 -right-0.5 rounded-full bg-neutral-900 dark:bg-neutral-100 text-neutral-100 dark:text-neutral-900 font-bold px-1 text-[8px] leading-tight border border-white dark:border-neutral-900"
+          className="absolute -bottom-1 -right-1 rounded-[2px] bg-[#f4f1e8] text-[#0d0d0e] font-display font-bold px-1 py-0 text-[8px] leading-tight border border-[#35302a] shadow-xs"
           title={POSICOES[posicao]}
         >
           {siglaPosicao}

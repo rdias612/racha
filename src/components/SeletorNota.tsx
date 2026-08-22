@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
+import { vibrateLight } from "../lib/haptics";
 
 interface SeletorNotaProps {
   /** Nota atual (1-10). `undefined` = ainda não avaliado. */
@@ -20,15 +21,7 @@ const NOTAS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 /**
  * Dropdown acessível (combobox + listbox) para escolher nota de 1 a 10.
- * Estilizado com Tailwind + `var(--cor-destaque)` para acompanhar o tema.
- * Sem dependências externas.
- *
- * Teclado:
- *  - Enter / Espaço / ↓: abrir
- *  - ↑ / ↓: navegar entre opções
- *  - Home / End: primeira / última opção
- *  - Enter: selecionar
- *  - Esc: fechar sem selecionar
+ * Estilizado com tokens da Súmula de Quinta e feedback tátil (haptics).
  */
 export function SeletorNota({
   value,
@@ -73,10 +66,12 @@ export function SeletorNota({
 
   function abrirSeFechado() {
     if (disabled || aberto) return;
+    vibrateLight();
     setAberto(true);
   }
 
   function selecionar(n: number) {
+    vibrateLight();
     onChange(n);
     setAberto(false);
   }
@@ -137,25 +132,25 @@ export function SeletorNota({
         disabled={disabled}
         onClick={() => (aberto ? setAberto(false) : abrirSeFechado())}
         onKeyDown={onKeyDownTrigger}
-        className={`flex items-center justify-between rounded-lg border border-neutral-300 bg-white text-left text-sm dark:border-neutral-700 dark:bg-neutral-900 disabled:opacity-40 ${
+        className={`flex items-center justify-between rounded-[4px] border border-borda bg-superficie text-left text-sm disabled:opacity-40 shadow-xs transition ${
           compact
-            ? "min-h-[2.5rem] w-24 px-2.5"
-            : "min-h-[2.75rem] w-full px-3"
+            ? "min-h-[44px] w-24 px-3"
+            : "min-h-[44px] w-full px-3"
         }`}
       >
         <span
           className={
             definido
-              ? "font-bold text-destaque"
-              : "text-neutral-400 dark:text-neutral-500"
+              ? "font-mono font-bold text-destaque text-base"
+              : "text-giz-fraco text-xs"
           }
         >
-          {definido ? value : "Selecionar nota"}
+          {definido ? value : "Nota"}
         </span>
         <svg
           aria-hidden="true"
           viewBox="0 0 20 20"
-          className={`h-4 w-4 text-neutral-400 transition-transform ${aberto ? "rotate-180" : ""}`}
+          className={`h-4 w-4 text-giz-fraco transition-transform ${aberto ? "rotate-180" : ""}`}
         >
           <path
             fill="currentColor"
@@ -171,7 +166,7 @@ export function SeletorNota({
           tabIndex={-1}
           aria-label="Notas de 1 a 10"
           onKeyDown={onKeyDownLista}
-          className={`absolute z-30 mt-1 max-h-64 overflow-auto rounded-lg border border-neutral-200 bg-white p-1 shadow-lg dark:border-neutral-700 dark:bg-neutral-900 ${
+          className={`absolute z-30 mt-1 max-h-64 overflow-auto rounded-[4px] border border-borda bg-superficie p-1 shadow-carimbo-preto ${
             compact
               ? "right-0 min-w-[11rem] sm:left-0 sm:right-auto"
               : "w-full"
@@ -193,17 +188,17 @@ export function SeletorNota({
                   selecionar(n);
                 }}
                 onMouseEnter={() => setDestaque(n)}
-                className={`flex min-h-[2.75rem] cursor-pointer items-center justify-between rounded-md px-3 py-2 text-sm ${
-                  emDestaque ? "bg-neutral-100 dark:bg-neutral-800" : ""
+                className={`flex min-h-[44px] cursor-pointer items-center justify-between rounded-[3px] px-3 py-2 text-sm font-mono ${
+                  emDestaque ? "bg-superficie-2 text-giz" : ""
                 } ${
                   selecionado
-                    ? "font-bold text-destaque"
-                    : "text-neutral-700 dark:text-neutral-300"
+                    ? "font-bold text-destaque bg-destaque/10"
+                    : "text-giz-fraco"
                 }`}
               >
                 <span>{n}</span>
                 {selecionado && (
-                  <span aria-hidden="true" className="text-xs">
+                  <span aria-hidden="true" className="text-xs font-bold text-destaque">
                     ✓
                   </span>
                 )}

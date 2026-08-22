@@ -19,12 +19,12 @@ export function Carregando({
     >
       <span className="sr-only">{children}</span>
       {compacto ? (
-        <div className="h-5 w-32 animate-pulse rounded bg-neutral-200 dark:bg-neutral-800" />
+        <div className="h-5 w-32 animate-pulse rounded-[4px] bg-superficie-2 border border-borda" />
       ) : (
         <>
-          <div className="h-6 w-2/5 animate-pulse rounded bg-neutral-200 dark:bg-neutral-800" />
-          <div className="h-20 animate-pulse rounded-lg bg-neutral-200 dark:bg-neutral-800" />
-          <div className="h-20 animate-pulse rounded-lg bg-neutral-200 dark:bg-neutral-800" />
+          <div className="h-6 w-2/5 animate-pulse rounded-[4px] bg-superficie-2 border border-borda" />
+          <div className="h-20 animate-pulse rounded-[4px] bg-superficie border border-borda" />
+          <div className="h-20 animate-pulse rounded-[4px] bg-superficie border border-borda" />
         </>
       )}
     </div>
@@ -49,12 +49,12 @@ export function MensagemEstado({
     <div
       role={sucesso || informativa ? "status" : "alert"}
       aria-live="polite"
-      className={`rounded-lg border px-3 py-2.5 text-sm ${
+      className={`rounded-[4px] border px-3.5 py-2.5 text-xs font-medium shadow-carimbo ${
         sucesso
-          ? "border-green-600/30 bg-green-500/10 text-green-700 dark:border-green-400/30 dark:text-green-300"
+          ? "border-ok/40 bg-ok/10 text-ok"
           : informativa
-            ? "border-neutral-300 bg-neutral-100 text-neutral-700 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300"
-            : "border-red-600/30 bg-red-500/10 text-red-700 dark:border-red-400/30 dark:text-red-300"
+            ? "border-borda bg-superficie text-giz-fraco"
+            : "border-perigo/40 bg-perigo/10 text-perigo"
       } ${className}`}
     >
       {children}

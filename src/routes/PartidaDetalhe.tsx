@@ -24,7 +24,6 @@ import {
   podeConfirmar,
   CAPACIDADE_PARTIDA,
   STATUS_CONFIRMACAO_LABEL,
-  STATUS_COR,
   STATUS_LABEL,
   type Partida,
   type Placar,
@@ -37,6 +36,7 @@ import { SkeletonDetalhe } from '../components/Skeletons'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { formatarDataCompleta, formatarDataMobile, formatarFechamento } from '../lib/formatacao'
 import { Avatar } from '../components/Avatar'
+import { voltar } from '../lib/navegacao'
 
 export function PartidaDetalhe() {
   const { id } = useParams<{ id: string }>()
@@ -172,80 +172,127 @@ export function PartidaDetalhe() {
     participantes.some((p) => p.jogador_id === jogadorLogado.id)
   const isRandom = !!jogadorLogado && isRandomUsername(jogadorLogado.username)
 
+  const carimboStatusCls =
+    partida.status === 'live'
+      ? 'border-destaque text-destaque bg-destaque/10 -rotate-2'
+      : partida.status === 'closed'
+        ? 'border-perigo text-perigo bg-perigo/10 -rotate-2'
+        : partida.status === 'published'
+          ? 'border-ok text-ok bg-ok/10 -rotate-1'
+          : 'border-borda text-giz-fraco bg-superficie-2'
+
   return (
-    <div className="px-3 py-4 pb-10 sm:px-4 max-w-2xl mx-auto space-y-4">
+    <div className="px-3 py-4 pb-16 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
       <button
-        onClick={() => navigate(-1)}
-        className="text-xs text-neutral-500 dark:text-neutral-400"
+        onClick={() => voltar(navigate, '/jogos')}
+        className="text-xs font-mono text-giz-fraco hover:text-giz transition"
       >
         ← voltar
       </button>
 
-      {/* Cabeçalho */}
-      <div>
-        <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-          Partida #{partida.id}
-        </h2>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400 capitalize">
-          <span className="sm:hidden">{formatarDataMobile(partida.data_jogo)}</span>
-          <span className="hidden sm:inline">{formatarDataCompleta(partida.data_jogo)}</span>
-        </p>
-        <p className={`text-xs font-medium ${STATUS_COR[partida.status]}`}>
-          {STATUS_LABEL[partida.status]}
+      {/* Cabeçalho da Súmula */}
+      <div className="sumula-header pb-2 flex items-start justify-between">
+        <div>
+          <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
+            Partida #{partida.id}
+          </h2>
+          <p className="text-xs text-giz-fraco capitalize font-mono mt-0.5">
+            <span className="sm:hidden">{formatarDataMobile(partida.data_jogo)}</span>
+            <span className="hidden sm:inline">{formatarDataCompleta(partida.data_jogo)}</span>
+          </p>
+        </div>
+        <div className="text-right">
+          <span className={`inline-block font-display font-black uppercase tracking-widest text-[10px] border px-2 py-0.5 rounded-[2px] shadow-xs ${carimboStatusCls}`}>
+            {STATUS_LABEL[partida.status]}
+          </span>
           {partida.status === 'published' && partida.voting_closes_at && (
-            <> — fecha {formatarFechamento(partida.voting_closes_at)}</>
+            <p className="text-[10px] font-mono text-destaque mt-1">
+              Urna fecha {formatarFechamento(partida.voting_closes_at)}
+            </p>
           )}
-        </p>
+        </div>
       </div>
 
-      {/* Placar: some no draft (ainda nao comecou). Em live vem dos eventos sincronizados. */}
+      {/* Placar: Painel de LED — Barra horizontal única em preto absoluto com blocos sólidos */}
       {placar && partida.status !== 'draft' && (
-        <div className="flex items-stretch rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-800">
-          <div
-            className="flex-1 py-4 text-center text-sm font-medium"
-            style={{ backgroundColor: TIMES.a.cor, color: '#f9fafb' }}
-          >
-            <span className="sm:hidden">Preto</span>
-            <span className="hidden sm:inline">Time Preto</span>
-          </div>
-          <div className="px-5 sm:px-8 py-4 flex items-center justify-center bg-neutral-50 dark:bg-neutral-900">
-            <span className="text-5xl sm:text-6xl font-black tabular-nums tracking-tight text-neutral-900 dark:text-neutral-100">
-              {placar.gols_time_a} × {placar.gols_time_b}
-            </span>
-          </div>
-          <div
-            className="flex-1 py-4 text-center text-sm font-medium border-l border-neutral-200 dark:border-neutral-800"
-            style={{ backgroundColor: TIMES.b.cor, color: '#111827' }}
-          >
-            <span className="sm:hidden">Branco</span>
-            <span className="hidden sm:inline">Time Branco</span>
+        <div className="rounded-[4px] overflow-hidden border-2 border-borda bg-[#000000] shadow-carimbo-preto">
+          <div className="flex items-stretch">
+            {/* Bloco Lateral: Time Preto */}
+            <div
+              className="flex-1 py-3 px-2.5 text-center border-r border-[#35302a] flex flex-col items-center justify-center bg-[#0d0d0e] text-[#f4f1e8]"
+            >
+              <span className="font-display font-bold text-[10px] uppercase tracking-wider text-giz-fraco">TIME</span>
+              <span className="font-display font-black text-sm sm:text-base uppercase tracking-widest text-[#f4f1e8]">PRETO</span>
+            </div>
+
+            {/* Centro: LED Placar */}
+            <div className="px-4 sm:px-8 py-3 flex flex-col items-center justify-center bg-[#000000] min-w-[130px]">
+              <span
+                className={`text-5xl sm:text-6xl font-display font-black tabular-nums tracking-tight leading-none ${
+                  partida.status === 'live'
+                    ? 'text-destaque [text-shadow:0_0_14px_rgba(255,179,0,0.55)]'
+                    : partida.status === 'closed'
+                      ? 'text-giz'
+                      : 'text-destaque'
+                }`}
+              >
+                {placar.gols_time_a} <span className="text-giz-fraco/50 font-normal">×</span> {placar.gols_time_b}
+              </span>
+              {partida.status === 'live' && (
+                <span className="flex items-center gap-1.5 text-[9px] font-display font-bold uppercase tracking-widest text-destaque animate-pulse mt-1">
+                  <span className="size-1.5 rounded-full bg-destaque" /> AO VIVO
+                </span>
+              )}
+            </div>
+
+            {/* Bloco Lateral: Time Branco */}
+            <div
+              className="flex-1 py-3 px-2.5 text-center border-l border-[#35302a] flex flex-col items-center justify-center bg-[#f4f1e8] text-[#0d0d0e]"
+            >
+              <span className="font-display font-bold text-[10px] uppercase tracking-wider text-neutral-600">TIME</span>
+              <span className="font-display font-black text-sm sm:text-base uppercase tracking-widest text-[#0d0d0e]">BRANCO</span>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Craque da partida (só quando closed) */}
+      {/* Card do Craque da Partida (quando closed) */}
       {partida.status === 'closed' && craque && (
-        <div className="rounded-lg border border-destaque bg-destaque/10 px-4 py-3 text-center flex flex-col items-center gap-1.5">
-          <p className="text-xs uppercase tracking-wide text-destaque font-semibold">
-            ⭐ Craque da partida
-          </p>
-          <Avatar nome={craque.nome} size="lg" />
-          <p className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
+        <div className="relative rounded-[4px] border-2 border-destaque bg-superficie p-4 text-center flex flex-col items-center gap-2 shadow-carimbo -rotate-1">
+          {/* Fita adesiva translúcida no canto */}
+          <div className="absolute -top-2.5 -right-2.5 w-10 h-3.5 bg-destaque/30 rotate-45 pointer-events-none rounded-xs border border-destaque/40" />
+
+          <div className="bg-[#0d0d0e] border border-destaque/40 text-destaque font-display font-black text-xs uppercase tracking-[0.2em] px-4 py-0.5 rounded-[2px] shadow-xs">
+            CRAQUE DA PARTIDA
+          </div>
+
+          <div className="flex items-center justify-center gap-4 my-1">
+            <div className="text-right">
+              <span className="block font-mono text-3xl sm:text-4xl font-black text-destaque tabular-nums leading-none">
+                {Number(craque.avg_rating).toFixed(1)}
+              </span>
+              <span className="text-[10px] font-mono text-giz-fraco uppercase">
+                {craque.vote_count} votos
+              </span>
+            </div>
+            <div className="ring-2 ring-destaque ring-offset-2 ring-offset-superficie rounded-[3px]">
+              <Avatar nome={craque.nome} size="lg" />
+            </div>
+          </div>
+
+          <p className="font-display font-bold text-lg uppercase tracking-wide text-giz">
             {craque.nome}
-          </p>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            nota {Number(craque.avg_rating).toFixed(1)} ({craque.vote_count} votos)
           </p>
         </div>
       )}
 
       {/* Notas reveladas quando closed */}
       {partida.status === 'closed' && notas.length > 0 && (
-        <div className="rounded-lg border border-neutral-200 dark:border-neutral-800 overflow-hidden">
-          <div className="px-3 py-2 bg-neutral-100 dark:bg-neutral-900 text-xs font-semibold text-neutral-700 dark:text-neutral-300">
-            Notas da partida
+        <div className="rounded-[4px] border border-borda bg-superficie shadow-carimbo overflow-hidden">
+          <div className="px-3 py-2 bg-superficie-2 border-b border-borda text-xs font-display font-bold uppercase tracking-wider text-giz">
+            Notas da Partida (Súmula)
           </div>
-          <div className="divide-y divide-neutral-200 dark:divide-neutral-800">
+          <div className="divide-y divide-borda">
             {[...notas]
               .sort(
                 (a, b) =>
@@ -255,18 +302,18 @@ export function PartidaDetalhe() {
               .map((n) => (
                 <div
                   key={n.target_id}
-                  className="flex items-center justify-between px-3 py-2 text-sm"
+                  className="flex items-center justify-between px-3 py-2 text-sm hover:bg-superficie-2 transition"
                 >
-                  <div className="flex items-center gap-2 text-neutral-900 dark:text-neutral-100">
+                  <div className="flex items-center gap-2 text-giz">
                     <Avatar nome={n.nome} size="xs" />
-                    <span>
+                    <span className="font-medium">
                       {n.is_craque ? '⭐ ' : ''}
                       {n.nome}
                     </span>
                   </div>
-                  <span className="text-neutral-600 dark:text-neutral-400">
+                  <span className="font-mono text-sm font-bold text-destaque tabular-nums">
                     {Number(n.avg_rating).toFixed(1)}{' '}
-                    <span className="text-xs">({n.vote_count})</span>
+                    <span className="text-xs font-normal text-giz-fraco font-mono">({n.vote_count}v)</span>
                   </span>
                 </div>
               ))}
@@ -289,105 +336,83 @@ export function PartidaDetalhe() {
         <>
           {/* Times com gols/assists/gols contra */}
           <div className="grid grid-cols-2 gap-3">
-        {(['a', 'b'] as TimeId[]).map((t) => {
-          const jogadoresDoTime = participantesDoTime(t)
-          return (
-            <div
-              key={t}
-              className="rounded-lg border border-neutral-200 dark:border-neutral-800 overflow-hidden"
-            >
-              <div
-                className="px-3 py-2 text-xs font-semibold border-b border-neutral-200 dark:border-neutral-800"
-                style={{
-                  backgroundColor: TIMES[t].cor,
-                  color: t === 'a' ? '#f9fafb' : '#111827',
-                }}
-              >
-                {TIMES[t].nome}
-              </div>
-              <div className="divide-y divide-neutral-200 dark:divide-neutral-800">
-                {jogadoresDoTime.map((p) => (
+            {(['a', 'b'] as TimeId[]).map((t) => {
+              const jogadoresDoTime = participantesDoTime(t)
+              return (
+                <div
+                  key={t}
+                  className="rounded-[4px] border border-borda bg-superficie overflow-hidden shadow-carimbo"
+                >
                   <div
-                    key={p.jogador_id}
-                    className="flex items-center justify-between gap-1.5 px-3 py-2 text-xs min-h-[36px]"
+                    className="px-3 py-2 text-xs font-display font-bold uppercase tracking-wider border-b border-borda"
+                    style={{
+                      backgroundColor: TIMES[t].cor,
+                      color: t === 'a' ? '#f4f1e8' : '#0d0d0e',
+                    }}
                   >
-                    <div className="flex items-center gap-1.5 min-w-0 truncate">
-                      <span className="font-medium text-neutral-900 dark:text-neutral-100 truncate">
-                        {p.nome}
-                      </span>
-                      {(p.gols > 0 || p.assistencias > 0 || p.gols_contra > 0) && (
-                        <span className="inline-flex items-center gap-1 text-[11px] text-neutral-500 dark:text-neutral-400 shrink-0">
-                          {p.gols > 0 && <span>⚽ {p.gols}</span>}
-                          {p.assistencias > 0 && <span>🅰️ {p.assistencias}</span>}
-                          {p.gols_contra > 0 && <span>GC {p.gols_contra}</span>}
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-[10px] uppercase text-neutral-400 dark:text-neutral-500 shrink-0">
-                      {POSICOES[p.posicao]}
-                    </span>
+                    {TIMES[t].nome} ({jogadoresDoTime.length})
                   </div>
-                ))}
-                {jogadoresDoTime.length === 0 && (
-                  <div className="px-3 py-2 text-xs text-neutral-400">—</div>
-                )}
-              </div>
-            </div>
-          )
-        })}
+                  <div className="divide-y divide-borda">
+                    {jogadoresDoTime.map((p) => (
+                      <div
+                        key={p.jogador_id}
+                        className="flex items-center justify-between px-2.5 py-2 text-xs hover:bg-superficie-2 transition"
+                      >
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <Avatar nome={p.nome ?? ''} posicao={p.posicao} size="xs" />
+                          <span className="truncate font-medium text-giz">
+                            {p.nome ?? `#${p.jogador_id}`}
+                          </span>
+                        </div>
+                        <div className="shrink-0 flex items-center gap-1 font-mono text-[11px]">
+                          {p.gols > 0 && (
+                            <span className="font-bold text-destaque" title="Gols">
+                              ⚽{p.gols}
+                            </span>
+                          )}
+                          {p.assistencias > 0 && (
+                            <span className="font-medium text-giz-fraco" title="Assistências">
+                              🅰️{p.assistencias}
+                            </span>
+                          )}
+                          {p.gols_contra > 0 && (
+                            <span className="font-bold text-perigo" title="Gol contra">
+                              GC:{p.gols_contra}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    {jogadoresDoTime.length === 0 && (
+                      <div className="px-3 py-3 text-xs font-mono text-giz-fraco text-center">
+                        Sem jogadores escalados
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </>
       )}
 
-      {/* Botões de Ação por Status */}
-      {isAdmin && (
-        <div className="flex gap-2">
-          {partida.status !== 'live' && (
-            <Link
-              to={`/partida/${partida.id}/editar`}
-              className="flex-1 text-center rounded-lg border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-xs font-medium text-neutral-700 dark:text-neutral-300"
-            >
-              Editar partida
-            </Link>
-          )}
-          {partida.status === 'draft' && (
-            <Link
-              to={`/partida/${partida.id}/times`}
-              className="flex-1 text-center rounded-lg border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-xs font-medium text-neutral-700 dark:text-neutral-300"
-            >
-              Escalar times
-            </Link>
-          )}
-        </div>
-      )}
-
-      {erro && <MensagemEstado>{erro}</MensagemEstado>}
-
+      {/* Ações principais por status */}
       {partida.status === 'draft' && isAdmin && (
         <div className="space-y-2">
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            Escale os times (8 por time, 1 goleiro cada) e depois abra a partida para registrar os gols no campo.
-          </p>
           <Link
             to={`/partida/${partida.id}/times`}
-            className="block text-center rounded-lg bg-destaque px-4 py-3 font-medium text-white"
+            className="block text-center rounded-[4px] border border-borda bg-superficie-2 px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-giz shadow-carimbo hover:bg-superficie transition active:translate-y-px"
           >
-            Escalar times
+            Escalar Times
           </Link>
           <button
             type="button"
-            onClick={confirmarAbrir}
             disabled={abrindo}
-            className="block w-full text-center rounded-lg border border-destaque px-4 py-3 font-medium text-destaque disabled:opacity-40"
+            onClick={confirmarAbrir}
+            className="w-full rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 transition active:translate-y-px disabled:opacity-40"
           >
-            {abrindo ? 'Abrindo…' : 'Abrir partida'}
+            {abrindo ? 'Iniciando partida…' : 'Iniciar Modo Ao Vivo'}
           </button>
-          <Link
-            to={`/partida/${partida.id}/editar`}
-            className="block text-center rounded-lg border border-neutral-300 dark:border-neutral-700 px-4 py-3 font-medium text-neutral-700 dark:text-neutral-300"
-          >
-            Lançar resultado / editar escalação
-          </Link>
         </div>
       )}
 
@@ -395,9 +420,9 @@ export function PartidaDetalhe() {
         <div className="space-y-2">
           <Link
             to={`/partida/${partida.id}/ao-vivo`}
-            className="block text-center rounded-lg bg-destaque px-4 py-3 font-medium text-white"
+            className="block text-center rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 transition active:translate-y-px"
           >
-            {isAdmin ? 'Registrar eventos' : 'Acompanhar ao vivo'}
+            {isAdmin ? 'Registrar Eventos na Súmula' : 'Acompanhar Ao Vivo'}
           </Link>
         </div>
       )}
@@ -406,13 +431,9 @@ export function PartidaDetalhe() {
         <div className="space-y-2">
           <Link
             to={`/partida/${partida.id}/editar`}
-            className={
-              partida.status === 'closed'
-                ? 'block text-center rounded-lg bg-amber-500 dark:bg-amber-600 px-4 py-3 font-medium text-white'
-                : 'block text-center rounded-lg border border-neutral-300 dark:border-neutral-700 px-4 py-3 font-medium text-neutral-700 dark:text-neutral-300'
-            }
+            className="block text-center rounded-[4px] border border-borda bg-superficie-2 px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-giz shadow-carimbo hover:bg-superficie transition active:translate-y-px"
           >
-            Editar partida e resultado
+            Editar partida e súmula
           </Link>
         </div>
       )}
@@ -421,20 +442,20 @@ export function PartidaDetalhe() {
         <div className="space-y-2">
           {jaVotou ? (
             <>
-              <p className="text-center text-xs text-green-600 dark:text-green-400">
-                ✓ Você já votou. Pode editar ou descartar até a votação fechar.
+              <p className="text-center text-xs font-mono text-ok">
+                Seu voto tá garantido. Dá pra mudar até as urnas fecharem.
               </p>
               <div className="grid grid-cols-2 gap-2">
                 <Link
                   to={`/partida/${partida.id}/votar`}
-                  className="block text-center rounded-lg bg-destaque px-4 py-3 font-medium text-white"
+                  className="block text-center rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo transition active:translate-y-px"
                 >
                   Editar votos
                 </Link>
                 <button
                   type="button"
                   onClick={() => setConfirmandoDescarte(true)}
-                  className="block text-center rounded-lg border border-red-300 dark:border-red-900 px-4 py-3 font-medium text-red-600 dark:text-red-400"
+                  className="block text-center rounded-[4px] border border-perigo/50 bg-superficie-2 px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-perigo shadow-carimbo hover:bg-perigo/10 transition active:translate-y-px"
                 >
                   Descartar votos
                 </button>
@@ -443,9 +464,9 @@ export function PartidaDetalhe() {
           ) : (
             <Link
               to={`/partida/${partida.id}/votar`}
-              className="block text-center rounded-lg bg-destaque px-4 py-3 font-medium text-white"
+              className="block text-center rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 transition active:translate-y-px"
             >
-              Votar
+              Votar nos Jogadores (Craque da Quinta)
             </Link>
           )}
         </div>
@@ -462,8 +483,8 @@ export function PartidaDetalhe() {
       />
 
       {partida.status === 'published' && !votacaoAberta && (
-        <p className="text-center text-xs text-amber-600 dark:text-amber-400">
-          Votação encerrada — aguardando resultado.
+        <p className="text-center text-xs font-mono text-destaque">
+          As urnas fecharam. O craque está sendo apurado.
         </p>
       )}
     </div>
@@ -472,9 +493,9 @@ export function PartidaDetalhe() {
 
 function BadgeStatus({ status }: { status: StatusConfirmacao }) {
   const cls: Record<StatusConfirmacao, string> = {
-    confirmado: 'text-green-600 dark:text-green-400',
-    pendente: 'text-neutral-500 dark:text-neutral-400',
-    recusado: 'text-red-600 dark:text-red-400',
+    confirmado: 'border-ok/60 bg-ok/10 text-ok',
+    pendente: 'border-borda bg-superficie-2 text-giz-fraco',
+    recusado: 'border-perigo/60 bg-perigo/10 text-perigo',
   }
   const icon: Record<StatusConfirmacao, string> = {
     confirmado: '✓ ',
@@ -482,7 +503,7 @@ function BadgeStatus({ status }: { status: StatusConfirmacao }) {
     recusado: '✗ ',
   }
   return (
-    <span className={`text-[11px] font-medium ${cls[status]}`}>
+    <span className={`inline-block rounded-[2px] border px-1.5 py-0.5 text-[9px] font-display font-bold uppercase tracking-wider ${cls[status]}`}>
       {icon[status]}
       {STATUS_CONFIRMACAO_LABEL[status]}
     </span>
@@ -500,7 +521,7 @@ type PropsBotoes = {
 // Botões do próprio jogador (confirma/desconfirma/recusa a própria presença).
 function BotoesSelf({ status, podeConf, ocupadas, processando, onAtualizar }: PropsBotoes) {
   const btn =
-    'min-h-[32px] rounded-md border px-2 text-[11px] font-medium active:scale-95 transition disabled:opacity-40'
+    'min-h-[44px] rounded-[3px] border px-3 text-xs font-display font-bold uppercase tracking-wider active:translate-y-px transition disabled:opacity-40'
   const lotado = ocupadas >= CAPACIDADE_PARTIDA
   return (
     <>
@@ -510,7 +531,7 @@ function BotoesSelf({ status, podeConf, ocupadas, processando, onAtualizar }: Pr
           disabled={processando || !podeConf}
           onClick={() => onAtualizar('confirmado')}
           title={lotado ? 'Vagas esgotadas' : undefined}
-          className={`${btn} border-destaque text-destaque`}
+          className={`${btn} border-destaque bg-destaque/15 text-destaque shadow-xs hover:bg-destaque hover:text-destaque-tinta`}
         >
           Vou jogar
         </button>
@@ -520,7 +541,7 @@ function BotoesSelf({ status, podeConf, ocupadas, processando, onAtualizar }: Pr
           type="button"
           disabled={processando}
           onClick={() => onAtualizar('pendente')}
-          className={`${btn} border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300`}
+          className={`${btn} border-borda bg-superficie-2 text-giz-fraco hover:text-giz`}
         >
           Desconfirmar
         </button>
@@ -530,9 +551,9 @@ function BotoesSelf({ status, podeConf, ocupadas, processando, onAtualizar }: Pr
           type="button"
           disabled={processando}
           onClick={() => onAtualizar('recusado')}
-          className={`${btn} border-red-300 dark:border-red-800 text-red-600 dark:text-red-400`}
+          className={`${btn} border-perigo/40 text-perigo hover:bg-perigo/10`}
         >
-          Não vou
+          Essa quinta não rola
         </button>
       )}
     </>
@@ -548,10 +569,10 @@ function BotoesAdmin({
   onRemover,
 }: PropsBotoes & { onRemover?: () => void }) {
   const mini =
-    'min-h-[30px] min-w-[30px] rounded-md border text-xs font-bold active:scale-95 transition disabled:opacity-30'
-  const off = 'border-neutral-300 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400'
+    'min-h-[34px] min-w-[34px] rounded-[3px] border text-xs font-display font-bold uppercase active:translate-y-px transition disabled:opacity-30'
+  const off = 'border-borda bg-superficie-2 text-giz-fraco hover:text-giz'
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1.5">
       <button
         type="button"
         disabled={processando || (status !== 'confirmado' && !podeConf)}
@@ -559,7 +580,7 @@ function BotoesAdmin({
         title="Confirmar"
         className={`${mini} ${
           status === 'confirmado'
-            ? 'border-green-500 text-green-600 dark:text-green-400'
+            ? 'border-ok bg-ok/20 text-ok font-bold'
             : off
         }`}
       >
@@ -572,7 +593,7 @@ function BotoesAdmin({
         title="Pendente"
         className={`${mini} ${
           status === 'pendente'
-            ? 'border-destaque text-destaque'
+            ? 'border-destaque bg-destaque/20 text-destaque font-bold'
             : off
         }`}
       >
@@ -585,7 +606,7 @@ function BotoesAdmin({
         title="Não vai"
         className={`${mini} ${
           status === 'recusado'
-            ? 'border-red-500 text-red-600 dark:text-red-400'
+            ? 'border-perigo bg-perigo/20 text-perigo font-bold'
             : off
         }`}
       >
@@ -597,7 +618,7 @@ function BotoesAdmin({
           disabled={processando}
           onClick={onRemover}
           title="Remover convite"
-          className={`${mini} ${off} hover:text-red-600 dark:hover:text-red-400`}
+          className={`${mini} ${off} hover:border-perigo hover:text-perigo`}
         >
           ✕
         </button>
@@ -706,40 +727,40 @@ function Confirmacoes({
   const candidatosAvulso = todosAtivos.filter((j) => !idsNoElenco.has(j.id))
 
   return (
-    <section className="rounded-lg border border-neutral-200 dark:border-neutral-800 overflow-hidden">
-      <div className="px-3 py-2 bg-neutral-100 dark:bg-neutral-900 flex items-center justify-between">
-        <h3 className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
-          Confirmações
+    <section className="rounded-[4px] border border-borda bg-superficie overflow-hidden shadow-carimbo">
+      <div className="px-3 py-2 bg-superficie-2 border-b border-borda flex items-center justify-between">
+        <h3 className="text-xs font-display font-bold uppercase tracking-wider text-giz">
+          Confirmações de Presença
         </h3>
-        <span className="text-xs font-medium text-destaque">
+        <span className="font-mono text-xs font-bold text-destaque tabular-nums">
           {ocupadas}/{CAPACIDADE_PARTIDA} vagas
         </span>
       </div>
 
       {closesAt && (
-        <p className="px-3 pt-2 text-[11px] text-neutral-500 dark:text-neutral-400">
+        <p className="px-3 pt-2 text-[11px] font-mono text-giz-fraco">
           {prazoPassou
-            ? 'Prazo encerrado — as vagas remanescentes estão liberadas (primeiro a confirmar leva).'
+            ? 'Prazo encerrado — vagas remanescentes liberadas (primeiro a confirmar leva).'
             : `Reservas liberadas ${formatarFechamento(closesAt)}.`}
         </p>
       )}
 
-      <div className="divide-y divide-neutral-200 dark:divide-neutral-800">
+      <div className="divide-y divide-borda">
         {ordenados.map((p) => {
           const ehSelf = p.jogador_id === jogadorLogadoId
           const podeConf = podeConfirmar(p, 'confirmado', participantes, closesAt, agora)
           return (
             <div
               key={p.jogador_id}
-              className="flex items-center justify-between gap-2 px-3 py-2"
+              className="flex items-center justify-between gap-2 px-3 py-2 hover:bg-superficie-2 transition"
             >
               <div className="flex items-center gap-2 min-w-0">
                 <Avatar nome={p.nome ?? ""} size="xs" />
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                  <p className="truncate text-sm font-bold text-giz">
                     {p.nome ?? `#${p.jogador_id}`}
                     {ehSelf && (
-                      <span className="ml-1 text-[10px] text-neutral-400">(você)</span>
+                      <span className="ml-1 text-[10px] font-mono text-destaque">(você)</span>
                     )}
                   </p>
                   <BadgeStatus status={p.status_confirmacao} />
@@ -770,42 +791,42 @@ function Confirmacoes({
           )
         })}
         {ordenados.length === 0 && (
-          <div className="px-3 py-3 text-xs text-neutral-400">Nenhum convite ainda.</div>
+          <div className="px-3 py-3 text-xs font-mono text-giz-fraco">Nenhum convite ainda.</div>
         )}
       </div>
 
       {isAdmin && livres > 0 && (
-        <div className="border-t border-neutral-200 dark:border-neutral-800">
+        <div className="border-t border-borda">
           <button
             type="button"
             onClick={abrirAvulso}
-            className="w-full px-3 py-2 text-xs font-medium text-destaque"
+            className="w-full px-3 py-2 text-xs font-display font-bold uppercase tracking-wider text-destaque hover:bg-superficie-2 transition"
           >
             {mostrandoAvulso
-              ? 'Fechar'
-              : `+ Avulso (${livres} vaga${livres > 1 ? 's' : ''})`}
+              ? 'Fechar seleção'
+              : `+ Adicionar Avulso (${livres} vaga${livres > 1 ? 's' : ''})`}
           </button>
           {mostrandoAvulso && (
-            <div className="max-h-52 overflow-y-auto divide-y divide-neutral-200 dark:divide-neutral-800">
+            <div className="max-h-52 overflow-y-auto divide-y divide-borda">
               {candidatosAvulso.map((j) => (
                 <button
                   key={j.id}
                   type="button"
                   disabled={processando !== null}
                   onClick={() => adicionar(j.id)}
-                  className="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-neutral-700 dark:text-neutral-300 active:scale-[.99]"
+                  className="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-giz hover:bg-superficie-2 active:translate-y-px transition"
                 >
                   <span className="flex items-center gap-2 min-w-0">
                     <Avatar nome={j.nome} size="xs" />
-                    <span className="truncate">{j.nome}</span>
+                    <span className="truncate font-medium">{j.nome}</span>
                   </span>
-                  <span className="text-[10px] uppercase text-neutral-400">
+                  <span className="text-[10px] font-display uppercase tracking-wider text-giz-fraco">
                     {POSICOES[j.posicao]}
                   </span>
                 </button>
               ))}
               {candidatosAvulso.length === 0 && (
-                <div className="px-3 py-3 text-xs text-neutral-400">
+                <div className="px-3 py-3 text-xs font-mono text-giz-fraco">
                   Nenhum jogador disponível.
                 </div>
               )}
@@ -815,7 +836,7 @@ function Confirmacoes({
       )}
 
       {erroLocal && (
-        <p className="px-3 py-2 text-xs text-red-600 dark:text-red-400 border-t border-neutral-200 dark:border-neutral-800">
+        <p className="px-3 py-2 text-xs font-mono text-perigo border-t border-borda bg-perigo/10">
           {erroLocal}
         </p>
       )}

@@ -3,6 +3,7 @@ import { LIMITE_POR_TIME } from "../components/EscalacaoTimesEditor";
 import { gerarEscalacaoAutomatica } from "../lib/escalacao";
 import type { JogadorLista } from "../lib/jogadores";
 import type { TimeId } from "../lib/times";
+import { vibrateWarning, vibrateSuccess } from "../lib/haptics";
 
 export interface UseEscalacaoTimesOptions {
   jogadores: JogadorLista[];
@@ -47,6 +48,7 @@ export function useEscalacaoTimes({
           jogadores.find((x) => x.id === Number(jidStr))?.posicao === "goleiro",
       );
       if (ehGoleiro && destinoTemGoleiro) {
+        vibrateWarning();
         setFeedback(
           `Cada time só pode ter 1 goleiro. ${jogador.nome} não pode ir para o ${
             time === "a" ? "Preto" : "Branco"
@@ -58,7 +60,10 @@ export function useEscalacaoTimes({
       // Bloqueia se o time alvo já está cheio.
       const destinoCheio =
         Object.values(times).filter((tm) => tm === time).length >= limitePorTime;
-      if (destinoCheio) return;
+      if (destinoCheio) {
+        vibrateWarning();
+        return;
+      }
 
       setTimes((prev) => ({ ...prev, [id]: time }));
     },
@@ -68,6 +73,7 @@ export function useEscalacaoTimes({
   const autoEscalar = useCallback(() => {
     setFeedback(null);
     if (jogadores.length < limitePorTime * 2) {
+      vibrateWarning();
       setFeedback(
         `Precisa de ${limitePorTime * 2} confirmados para gerar os times automaticamente.`,
       );
@@ -94,6 +100,7 @@ export function useEscalacaoTimes({
           timeBPart.length
         ).toFixed(1)
       : "0.0";
+    vibrateSuccess();
     setFeedback(`Times equilibrados! (Preto ${avgA}★ vs Branco ${avgB}★)`);
   }, [jogadores, mediasNotas, limitePorTime]);
 

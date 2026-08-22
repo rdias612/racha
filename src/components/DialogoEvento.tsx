@@ -3,6 +3,7 @@ import type { MouseEvent } from "react";
 import { createPortal } from "react-dom";
 import type { Participante, TipoEvento } from "../lib/partidas";
 import { formatarNome } from "../lib/formatacao";
+import { vibrateGoal } from "../lib/haptics";
 
 interface DialogoEventoProps {
   jogador: Participante | null;
@@ -64,6 +65,11 @@ export function DialogoEvento({
 
   if (!jogador) return null;
 
+  function handleConfirmar(tipo: TipoEvento, assistenciaId: number | null) {
+    vibrateGoal();
+    onConfirmar(tipo, assistenciaId);
+  }
+
   const nome = formatarNome(jogador.nome ?? `#${jogador.jogador_id}`);
   const pretos = jogadores.filter((j) => j.time === "a");
   const brancos = jogadores.filter((j) => j.time === "b");
@@ -73,7 +79,7 @@ export function DialogoEvento({
       onMouseDown={(e: MouseEvent<HTMLDivElement>) => {
         if (e.target === e.currentTarget && !salvando) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 backdrop-blur-sm sm:items-center sm:p-4"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-0 backdrop-blur-xs sm:items-center sm:p-4 text-giz"
     >
       <div
         ref={cardRef}
@@ -81,7 +87,7 @@ export function DialogoEvento({
         aria-modal="true"
         aria-labelledby={tituloId}
         tabIndex={-1}
-        className={`w-full max-w-sm rounded-t-2xl border border-neutral-200 bg-white p-5 shadow-xl transition sm:rounded-xl dark:border-neutral-800 dark:bg-neutral-900 ${
+        className={`w-full max-w-sm rounded-t-[8px] border-t-2 border-x-2 sm:border-2 border-borda bg-superficie p-5 shadow-carimbo-preto transition sm:rounded-[6px] ${
           visivel ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
         }`}
       >
@@ -89,19 +95,19 @@ export function DialogoEvento({
           <>
             <h2
               id={tituloId}
-              className="text-base font-semibold text-neutral-900 dark:text-neutral-100"
+              className="font-display font-bold text-lg uppercase tracking-wide text-giz"
             >
-              {editando ? "Editar evento" : `Evento de ${nome}`}
+              {editando ? "Editar evento" : `Evento: ${nome}`}
             </h2>
-            <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+            <p className="mt-1 text-xs text-giz-fraco">
               {editando
                 ? "Altere o jogador, o tipo ou a assistência."
-                : "O que aconteceu?"}
+                : "O que rolou na jogada?"}
             </p>
 
             {editando && onTrocarJogador && jogadores.length > 0 && (
               <label className="mt-3 block">
-                <span className="mb-1 block text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                <span className="mb-1 block text-xs font-semibold uppercase font-display tracking-wider text-giz-fraco">
                   Jogador
                 </span>
                 <select
@@ -111,7 +117,7 @@ export function DialogoEvento({
                     const escolhido = jogadores.find((j) => j.jogador_id === id);
                     if (escolhido) onTrocarJogador(escolhido);
                   }}
-                  className="w-full cursor-pointer rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-sm text-neutral-900 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
+                  className="w-full cursor-pointer rounded-[4px] border border-borda bg-superficie-2 px-3 py-2.5 text-sm text-giz shadow-xs"
                 >
                   {pretos.length > 0 && (
                     <optgroup label="Time Preto">
@@ -140,10 +146,10 @@ export function DialogoEvento({
                 type="button"
                 disabled={salvando}
                 onClick={() => setEtapa("assistencia")}
-                className={`cursor-pointer rounded-lg px-3 py-3 text-sm font-medium active:scale-95 disabled:opacity-40 ${
+                className={`cursor-pointer rounded-[4px] border border-destaque px-3 py-3 text-xs font-display font-bold uppercase tracking-wider shadow-carimbo transition active:translate-y-px disabled:opacity-40 ${
                   editando && tipoAtual === "gol"
-                    ? "bg-destaque text-white ring-2 ring-destaque ring-offset-2 ring-offset-white dark:ring-offset-neutral-900"
-                    : "bg-destaque text-white"
+                    ? "bg-destaque text-destaque-tinta ring-2 ring-destaque ring-offset-2 ring-offset-superficie"
+                    : "bg-destaque text-destaque-tinta"
                 }`}
               >
                 ⚽ Gol
@@ -151,11 +157,11 @@ export function DialogoEvento({
               <button
                 type="button"
                 disabled={salvando}
-                onClick={() => onConfirmar("gol_contra", null)}
-                className={`cursor-pointer rounded-lg border px-3 py-3 text-sm font-medium active:scale-95 disabled:opacity-40 ${
+                onClick={() => handleConfirmar("gol_contra", null)}
+                className={`cursor-pointer rounded-[4px] border px-3 py-3 text-xs font-display font-bold uppercase tracking-wider shadow-carimbo transition active:translate-y-px disabled:opacity-40 ${
                   editando && tipoAtual === "gol_contra"
-                    ? "border-red-600 bg-red-600 text-white"
-                    : "border-red-300 text-red-600 dark:border-red-900 dark:text-red-400"
+                    ? "border-perigo bg-perigo text-white"
+                    : "border-perigo/50 bg-superficie-2 text-perigo hover:bg-perigo/10"
                 }`}
               >
                 Gol contra
@@ -165,7 +171,7 @@ export function DialogoEvento({
               type="button"
               disabled={salvando}
               onClick={onClose}
-              className="mt-3 w-full cursor-pointer rounded-lg bg-neutral-100 px-3 py-2 text-sm font-medium text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
+              className="mt-3 w-full cursor-pointer rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-xs font-display uppercase tracking-wider font-semibold text-giz-fraco hover:text-giz"
             >
               Cancelar
             </button>
@@ -174,26 +180,26 @@ export function DialogoEvento({
           <>
             <h2
               id={tituloId}
-              className="text-base font-semibold text-neutral-900 dark:text-neutral-100"
+              className="font-display font-bold text-lg uppercase tracking-wide text-giz"
             >
               Assistência no gol de {nome}
             </h2>
-            <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-              Quem deu o passe? Pode ficar sem assistência.
+            <p className="mt-1 text-xs text-giz-fraco">
+              Quem deu o passe pro gol?
             </p>
             <button
               type="button"
               disabled={salvando}
-              onClick={() => onConfirmar("gol", null)}
-              className={`mt-4 w-full cursor-pointer rounded-lg border px-3 py-3 text-sm font-medium active:scale-95 disabled:opacity-40 ${
+              onClick={() => handleConfirmar("gol", null)}
+              className={`mt-4 w-full cursor-pointer rounded-[4px] border px-3 py-2.5 text-xs font-display font-bold uppercase tracking-wider shadow-carimbo transition active:translate-y-px disabled:opacity-40 ${
                 editando && assistenciaAtual == null && tipoAtual === "gol"
-                  ? "border-destaque bg-destaque/10 text-neutral-900 dark:text-neutral-100"
-                  : "border-neutral-300 text-neutral-800 dark:border-neutral-700 dark:text-neutral-200"
+                  ? "border-destaque bg-destaque/15 text-destaque font-bold"
+                  : "border-borda bg-superficie-2 text-giz hover:bg-superficie"
               }`}
             >
-              Sem assistência
+              Sem assistência (Gol Individual)
             </button>
-            <div className="mt-3 max-h-56 space-y-1 overflow-y-auto">
+            <div className="mt-3 max-h-56 space-y-1.5 overflow-y-auto">
               {companheiros.map((c) => {
                 const ativo =
                   editando && assistenciaAtual === c.jogador_id;
@@ -202,11 +208,11 @@ export function DialogoEvento({
                     key={c.jogador_id}
                     type="button"
                     disabled={salvando}
-                    onClick={() => onConfirmar("gol", c.jogador_id)}
-                    className={`w-full cursor-pointer rounded-lg px-3 py-2.5 text-left text-sm font-medium active:scale-[0.99] disabled:opacity-40 ${
+                    onClick={() => handleConfirmar("gol", c.jogador_id)}
+                    className={`w-full cursor-pointer rounded-[4px] border px-3 py-2.5 text-left text-xs font-semibold uppercase font-display tracking-wider transition active:translate-y-px disabled:opacity-40 ${
                       ativo
-                        ? "bg-destaque text-white"
-                        : "bg-neutral-100 text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100"
+                        ? "border-destaque bg-destaque text-destaque-tinta shadow-carimbo"
+                        : "border-borda bg-superficie-2 text-giz hover:border-destaque hover:bg-superficie"
                     }`}
                   >
                     {formatarNome(c.nome ?? `#${c.jogador_id}`)}
@@ -218,9 +224,9 @@ export function DialogoEvento({
               type="button"
               disabled={salvando}
               onClick={() => setEtapa("tipo")}
-              className="mt-3 w-full cursor-pointer rounded-lg px-3 py-2 text-sm text-neutral-500 dark:text-neutral-400"
+              className="mt-3 w-full cursor-pointer rounded-[4px] px-3 py-2 text-xs font-display uppercase tracking-wider text-giz-fraco hover:text-giz"
             >
-              ← voltar
+              ← Voltar ao tipo de evento
             </button>
           </>
         )}

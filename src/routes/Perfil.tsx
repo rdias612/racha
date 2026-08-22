@@ -5,6 +5,7 @@ import { useSessao } from '../context/SessaoContext'
 import { POSICOES } from '../lib/times'
 import { atualizarNomeJogador } from '../lib/jogadores'
 import { Carregando, MensagemEstado } from '../components/Estado'
+import { Avatar } from '../components/Avatar'
 import { ativarPush, desativarPush, statusPush, type StatusPush } from '../lib/pwa'
 
 interface Stats {
@@ -99,7 +100,7 @@ export function Perfil() {
     try {
       await atualizarNomeJogador(jogador!.id, nome)
       setJogador({ ...jogador!, nome })
-      setOkNome('Nome alterado com sucesso!')
+      setOkNome('Nome atualizado. Respeita a camisa nova.')
       setNomeNovo('')
     } catch (error) {
       setErroNome('Erro: ' + (error instanceof Error ? error.message : 'falha ao salvar.'))
@@ -169,35 +170,45 @@ export function Perfil() {
   }
 
   return (
-    <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-5">
-      <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-        Perfil
-      </h2>
+    <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-5 text-giz">
+      {/* Cabeçalho da Súmula */}
+      <div className="sumula-header pb-2 flex items-baseline justify-between">
+        <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
+          Ficha do Jogador
+        </h2>
+        <span className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
+          Súmula CBO
+        </span>
+      </div>
 
-      {/* Dados */}
-      <section className="space-y-1">
-        <div className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
-          {jogador.nome}
+      {/* Cartão de Identidade do Jogador */}
+      <section className="flex items-center gap-3.5 p-4 rounded-[4px] border-2 border-borda bg-superficie shadow-carimbo">
+        <Avatar nome={jogador.nome} posicao={jogador.posicao} size="lg" />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <h3 className="font-display font-black text-xl uppercase tracking-wide text-giz truncate">
+              {jogador.nome}
+            </h3>
+            {jogador.is_admin && (
+              <span className="shrink-0 text-[9px] font-display font-bold uppercase tracking-wider bg-destaque text-destaque-tinta px-1.5 py-0.5 rounded-[2px] shadow-xs">
+                Admin
+              </span>
+            )}
+          </div>
+          <p className="text-xs font-mono text-giz-fraco mt-0.5">
+            @{jogador.username} · {POSICOES[jogador.posicao]}
+            {jogador.posicao_b && ` / 2ª ${POSICOES[jogador.posicao_b]}`}
+            {jogador.is_mensalista && (
+              <span className="text-destaque font-bold"> · Mensalista</span>
+            )}
+          </p>
         </div>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          @{jogador.username} · {POSICOES[jogador.posicao]}
-          {jogador.posicao_b && (
-            <span className="text-neutral-400 dark:text-neutral-500">
-              {" · "}2ª {POSICOES[jogador.posicao_b]}
-            </span>
-          )}
-          {jogador.is_admin && (
-            <span className="ml-2 text-[10px] uppercase bg-destaque text-white px-1.5 py-0.5 rounded">
-              Admin
-            </span>
-          )}
-        </p>
       </section>
 
-      {/* Stats */}
-      <section>
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400 mb-2">
-          Estatísticas
+      {/* Estatísticas */}
+      <section className="space-y-2">
+        <h3 className="text-xs font-display font-bold uppercase tracking-wider text-giz-fraco">
+          Números na Temporada
         </h3>
         {carregandoStats ? (
           <Carregando compacto>Carregando estatísticas</Carregando>
@@ -212,41 +223,45 @@ export function Perfil() {
         )}
       </section>
 
-      {/* Notificações */}
-      <section>
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400 mb-2">
-          Notificações de votação
+      {/* Notificações Push */}
+      <section className="rounded-[4px] border border-borda bg-superficie p-3.5 shadow-carimbo space-y-2">
+        <h3 className="text-xs font-display font-bold uppercase tracking-wider text-giz">
+          Lembretes da Quinta (Notificações Push)
         </h3>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-3">
-          Receba um lembrete quando houver uma votação pendente neste dispositivo.
+        <p className="text-xs text-giz-fraco">
+          Receba convocação de presença e aviso de abertura da votação neste aparelho.
         </p>
         {erroPush && <MensagemEstado>{erroPush}</MensagemEstado>}
         {pushStatus === 'indisponivel' && (
-          <MensagemEstado tipo="info">Web Push não está disponível neste navegador.</MensagemEstado>
+          <MensagemEstado tipo="info">Seu navegador não quer saber dos lembretes.</MensagemEstado>
         )}
         {pushStatus === 'negado' && (
-          <MensagemEstado tipo="info">As notificações estão bloqueadas no navegador.</MensagemEstado>
+          <MensagemEstado tipo="info">As notificações estão bloqueadas nas configurações do navegador.</MensagemEstado>
         )}
         {pushStatus !== 'indisponivel' && pushStatus !== 'negado' && (
           <button
             type="button"
             onClick={alternarPush}
             disabled={carregandoPush || alterandoPush}
-            className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 disabled:opacity-50"
+            className={`w-full min-h-[44px] rounded-[4px] border font-display font-bold uppercase tracking-wider text-xs shadow-carimbo transition active:translate-y-px disabled:opacity-50 ${
+              pushStatus === 'ativado'
+                ? 'border-borda bg-superficie-2 text-giz hover:bg-superficie'
+                : 'border-destaque bg-destaque text-destaque-tinta hover:brightness-105'
+            }`}
           >
             {carregandoPush || alterandoPush
               ? 'Atualizando…'
               : pushStatus === 'ativado'
                 ? 'Desativar notificações'
-                : 'Ativar notificações'}
+                : 'Ativar lembretes do racha'}
           </button>
         )}
       </section>
 
       {/* Alterar nome */}
-      <section>
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400 mb-2">
-          Alterar nome
+      <section className="rounded-[4px] border border-borda bg-superficie p-3.5 shadow-carimbo space-y-3">
+        <h3 className="text-xs font-display font-bold uppercase tracking-wider text-giz">
+          Alterar Nome na Súmula
         </h3>
         <form onSubmit={alterarNome} className="space-y-3">
           <input
@@ -257,7 +272,7 @@ export function Perfil() {
             maxLength={60}
             value={nomeNovo}
             onChange={(e) => setNomeNovo(e.target.value)}
-            className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
+            className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz shadow-xs focus:outline-none focus:border-destaque"
             required
           />
           {erroNome && (
@@ -269,17 +284,17 @@ export function Perfil() {
           <button
             type="submit"
             disabled={salvandoNome}
-            className="w-full rounded-lg bg-destaque px-4 py-2.5 font-medium text-white disabled:opacity-50"
+            className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-50"
           >
-            {salvandoNome ? 'Salvando…' : 'Salvar nome'}
+            {salvandoNome ? 'Salvando…' : 'Atualizar camisa'}
           </button>
         </form>
       </section>
 
       {/* Trocar senha */}
-      <section>
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400 mb-2">
-          Alterar senha
+      <section className="rounded-[4px] border border-borda bg-superficie p-3.5 shadow-carimbo space-y-3">
+        <h3 className="text-xs font-display font-bold uppercase tracking-wider text-giz">
+          Alterar Senha de Acesso
         </h3>
         <form onSubmit={trocarSenha} className="space-y-3">
           <input
@@ -288,7 +303,7 @@ export function Perfil() {
             autoComplete="current-password"
             value={senhaAtual}
             onChange={(e) => setSenhaAtual(e.target.value)}
-            className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
+            className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz font-mono shadow-xs focus:outline-none focus:border-destaque"
             required
           />
           <input
@@ -297,7 +312,7 @@ export function Perfil() {
             autoComplete="new-password"
             value={senhaNova}
             onChange={(e) => setSenhaNova(e.target.value)}
-            className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
+            className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz font-mono shadow-xs focus:outline-none focus:border-destaque"
             required
           />
           <input
@@ -306,7 +321,7 @@ export function Perfil() {
             autoComplete="new-password"
             value={senhaConfirma}
             onChange={(e) => setSenhaConfirma(e.target.value)}
-            className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
+            className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz font-mono shadow-xs focus:outline-none focus:border-destaque"
             required
           />
           {erroSenha && (
@@ -318,31 +333,38 @@ export function Perfil() {
           <button
             type="submit"
             disabled={trocando}
-            className="w-full rounded-lg bg-destaque px-4 py-2.5 font-medium text-white disabled:opacity-50"
+            className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-50"
           >
-            {trocando ? 'Alterando…' : 'Alterar senha'}
+            {trocando ? 'Alterando…' : 'Salvar nova senha'}
           </button>
         </form>
       </section>
 
       {/* Logout */}
-      <section className="pt-4 border-t border-neutral-200 dark:border-neutral-800">
+      <section className="pt-2">
         <button
           onClick={fazerLogout}
-          className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 px-4 py-2.5 text-sm text-neutral-600 dark:text-neutral-400"
+          className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-giz-fraco hover:text-perigo hover:border-perigo/50 shadow-xs active:translate-y-px transition"
         >
-          Sair
+          Encerrar sessão
         </button>
       </section>
+
+      {/* Footer de Boletim */}
+      <div className="pt-2 text-center">
+        <p className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
+          Racha Gragoatá · desde 2024 · toda quinta, CBO
+        </p>
+      </div>
     </div>
   )
 }
 
 function StatBox({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/60 px-2 py-2.5 text-center shadow-xs">
-      <div className="text-xl sm:text-2xl font-extrabold text-destaque">{value}</div>
-      <div className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+    <div className="rounded-[4px] border border-borda bg-superficie px-2 py-2.5 text-center shadow-carimbo">
+      <div className="font-mono text-xl sm:text-2xl font-black text-destaque tabular-nums">{value}</div>
+      <div className="font-display text-[10px] font-bold uppercase tracking-wider text-giz-fraco">
         {label}
       </div>
     </div>

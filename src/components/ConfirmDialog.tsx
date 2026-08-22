@@ -58,33 +58,33 @@ export function ConfirmDialog({
       onMouseDown={(e: MouseEvent<HTMLDivElement>) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4"
     >
       <div
         ref={cardRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={tituloId}
-        className={`w-full max-w-sm rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-xl transition ${
+        className={`w-full max-w-sm rounded-[6px] border-2 border-borda bg-superficie p-5 shadow-carimbo-preto transition text-giz ${
           visivel ? "opacity-100 scale-100" : "opacity-0 scale-95"
         }`}
       >
         <h2
           id={tituloId}
-          className="text-base font-semibold text-neutral-900 dark:text-neutral-100"
+          className="font-display font-bold text-lg uppercase tracking-wide text-giz"
         >
           {titulo}
         </h2>
         {mensagem ? (
-          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
+          <p className="text-xs text-giz-fraco mt-1.5 leading-relaxed">
             {mensagem}
           </p>
         ) : null}
-        <div className="flex gap-3 mt-5">
+        <div className="flex gap-2.5 mt-5">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 min-h-[44px] cursor-pointer rounded-lg font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 active:scale-95 transition"
+            className="flex-1 min-h-[44px] cursor-pointer rounded-[4px] border border-borda bg-superficie-2 font-display uppercase tracking-wider text-xs font-bold text-giz shadow-carimbo hover:bg-superficie transition active:translate-y-px"
           >
             {textoCancelar}
           </button>
@@ -92,10 +92,10 @@ export function ConfirmDialog({
             ref={confirmRef}
             type="button"
             onClick={onConfirm}
-            className={`flex-1 min-h-[44px] cursor-pointer rounded-lg font-medium text-white active:scale-95 transition ${
+            className={`flex-1 min-h-[44px] cursor-pointer rounded-[4px] border font-display uppercase tracking-wider text-xs font-bold shadow-carimbo transition active:translate-y-px ${
               tomConfirmar === "perigo"
-                ? "bg-red-600 hover:bg-red-700"
-                : "bg-destaque hover:brightness-110"
+                ? "border-perigo bg-perigo text-white hover:brightness-110"
+                : "border-destaque bg-destaque text-destaque-tinta hover:brightness-105"
             }`}
           >
             {textoConfirmar}

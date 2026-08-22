@@ -34,9 +34,9 @@ export function Snackbar({
   if (!visivel) return null;
 
   const bgCores: Record<TipoSnackbar, string> = {
-    sucesso: "bg-emerald-600 text-white dark:bg-emerald-500",
-    erro: "bg-red-600 text-white dark:bg-red-500",
-    info: "bg-neutral-800 text-white dark:bg-neutral-900 border border-neutral-700",
+    sucesso: "bg-ok text-white border-ok/80",
+    erro: "bg-perigo text-white border-perigo/80",
+    info: "bg-superficie text-giz border-borda",
   };
 
   const Icones: Record<TipoSnackbar, typeof CheckCircle2> = {
@@ -48,19 +48,22 @@ export function Snackbar({
   const IconeComponente = Icones[tipo];
 
   return (
-    <div className="fixed inset-x-3 bottom-20 z-50 mx-auto max-w-sm transition-all duration-300 ease-out sm:bottom-6">
+    <div
+      className="fixed inset-x-3 z-50 mx-auto max-w-sm transition-all duration-300 ease-out"
+      style={{ bottom: "calc(4.5rem + env(safe-area-inset-bottom, 0px))" }}
+    >
       <div
-        className={`flex items-center justify-between gap-3 rounded-xl px-4 py-3 shadow-lg ${bgCores[tipo]}`}
+        className={`flex items-center justify-between gap-3 rounded-[4px] border px-4 py-3 shadow-carimbo-preto backdrop-blur-sm ${bgCores[tipo]}`}
         role="alert"
       >
         <div className="flex items-center gap-2.5 min-w-0">
-          <IconeComponente className="size-5 shrink-0" />
-          <span className="truncate text-xs font-medium">{mensagem}</span>
+          <IconeComponente className="size-4 shrink-0" />
+          <span className="truncate text-xs font-semibold uppercase tracking-wide font-display">{mensagem}</span>
         </div>
         <button
           onClick={onFechar}
           aria-label="Fechar notificação"
-          className="shrink-0 rounded-md p-1 hover:bg-white/20 transition"
+          className="shrink-0 rounded-[2px] p-1 hover:bg-white/20 transition"
         >
           <X className="size-4" />
         </button>

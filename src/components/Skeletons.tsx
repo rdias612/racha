@@ -1,6 +1,6 @@
 /**
  * Skeletons estruturais com Cumulative Layout Shift (CLS) = 0.
- * Espelham exatamente a hierarquia, espaçamento e dimensões dos componentes reais.
+ * Espelham fielmente a geometria Súmula de Quinta (cantos retos 4px, bordas duras, placares LED).
  */
 
 export function SkeletonResumo() {
@@ -9,39 +9,35 @@ export function SkeletonResumo() {
       role="status"
       aria-busy="true"
       aria-label="Carregando resumo..."
-      className="px-3 py-4 pb-20 sm:px-4 sm:mx-auto sm:max-w-2xl animate-pulse space-y-4"
+      className="px-3 py-4 pb-20 sm:px-4 sm:mx-auto sm:max-w-2xl animate-pulse space-y-4 text-giz"
     >
-      <span className="sr-only">Carregando a resenha do ano...</span>
+      <span className="sr-only">Carregando boletim oficial do racha...</span>
 
       {/* Cabeçalho */}
-      <div className="flex items-end justify-between gap-3">
+      <div className="flex items-end justify-between gap-3 sumula-header pb-2">
         <div className="space-y-1.5">
-          <div className="h-3.5 w-32 bg-neutral-200 dark:bg-neutral-800 rounded" />
-          <div className="h-6 w-48 bg-neutral-200 dark:bg-neutral-800 rounded-md" />
+          <div className="h-3 w-28 bg-superficie-2 border border-borda rounded-[2px]" />
+          <div className="h-6 w-44 bg-superficie-2 border border-borda rounded-[3px]" />
         </div>
-        <div className="h-4 w-24 bg-neutral-200 dark:bg-neutral-800 rounded" />
+        <div className="h-4 w-20 bg-superficie-2 border border-borda rounded-[2px]" />
       </div>
 
       {/* Card Próxima Partida */}
-      <div className="h-24 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900/40 p-4 flex flex-col justify-between" />
+      <div className="h-24 rounded-[4px] border-2 border-borda bg-superficie p-4 flex flex-col justify-between shadow-carimbo" />
 
       {/* Grid de Destaques (6 cards) */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {Array.from({ length: 6 }).map((_, i) => (
           <div
             key={i}
-            className="h-32 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/60 p-3.5 flex flex-col justify-between"
+            className="h-28 rounded-[4px] border border-borda bg-superficie p-3 flex flex-col justify-between shadow-carimbo"
           >
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <div className="h-3 w-20 bg-neutral-200 dark:bg-neutral-800 rounded" />
-                <div className="size-4 bg-neutral-200 dark:bg-neutral-800 rounded" />
-              </div>
-              <div className="h-2.5 w-16 bg-neutral-200 dark:bg-neutral-800 rounded" />
-              <div className="h-4 w-24 bg-neutral-200 dark:bg-neutral-800 rounded mt-2" />
+              <div className="h-3 w-16 bg-superficie-2 border border-borda rounded-[2px]" />
+              <div className="h-4 w-24 bg-superficie-2 border border-borda rounded-[2px]" />
             </div>
-            <div className="pt-2 border-t border-neutral-100 dark:border-neutral-800/80">
-              <div className="h-3 w-16 bg-neutral-200 dark:bg-neutral-800 rounded" />
+            <div className="pt-2 border-t border-borda">
+              <div className="h-4 w-14 bg-superficie-2 border border-borda rounded-[2px]" />
             </div>
           </div>
         ))}
@@ -56,44 +52,32 @@ export function SkeletonJogos() {
       role="status"
       aria-busy="true"
       aria-label="Carregando jogos..."
-      className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-4 animate-pulse"
+      className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-4 animate-pulse text-giz"
     >
-      <span className="sr-only">Carregando lista de partidas...</span>
+      <span className="sr-only">Carregando mural de placares...</span>
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between sumula-header pb-2">
         <div className="space-y-1">
-          <div className="h-6 w-24 bg-neutral-200 dark:bg-neutral-800 rounded-md" />
-          <div className="h-3 w-32 bg-neutral-200 dark:bg-neutral-800 rounded" />
+          <div className="h-6 w-32 bg-superficie-2 border border-borda rounded-[3px]" />
+          <div className="h-3 w-24 bg-superficie-2 border border-borda rounded-[2px]" />
         </div>
-        <div className="h-8 w-24 bg-neutral-200 dark:bg-neutral-800 rounded-lg" />
+        <div className="h-7 w-28 bg-superficie-2 border border-borda rounded-[3px]" />
       </div>
 
-      {/* Filtro de Temporada */}
-      <div className="h-9 w-40 bg-neutral-200 dark:bg-neutral-800 rounded-lg" />
-
-      {/* Lista de Jogos */}
-      <div className="space-y-3 pt-2">
+      {/* Lista de Jogos (Mini-placares LED) */}
+      <div className="space-y-3 pt-1">
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/60 p-3.5 space-y-3"
+            className="rounded-[4px] border-2 border-borda bg-superficie shadow-carimbo overflow-hidden"
           >
-            <div className="flex items-center justify-between">
-              <div className="h-3.5 w-24 bg-neutral-200 dark:bg-neutral-800 rounded" />
-              <div className="h-4 w-16 bg-neutral-200 dark:bg-neutral-800 rounded-full" />
+            <div className="flex items-center justify-between px-3 py-2 bg-superficie-2 border-b border-borda">
+              <div className="h-3.5 w-28 bg-borda rounded-[2px]" />
+              <div className="h-4 w-16 bg-borda rounded-[2px]" />
             </div>
-
-            <div className="flex items-center justify-center gap-4 py-1">
-              <div className="flex items-center gap-1.5">
-                <div className="size-2.5 rounded-full bg-neutral-300 dark:bg-neutral-700" />
-                <div className="h-3.5 w-10 bg-neutral-200 dark:bg-neutral-800 rounded" />
-              </div>
-              <div className="h-10 w-24 rounded-xl bg-neutral-100 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800" />
-              <div className="flex items-center gap-1.5">
-                <div className="h-3.5 w-10 bg-neutral-200 dark:bg-neutral-800 rounded" />
-                <div className="size-2.5 rounded-full bg-neutral-300 dark:bg-neutral-700" />
-              </div>
+            <div className="h-16 bg-[#000000] flex items-center justify-center p-3">
+              <div className="h-8 w-44 bg-superficie-2 border border-borda rounded-[2px]" />
             </div>
           </div>
         ))}
@@ -108,48 +92,43 @@ export function SkeletonRanking() {
       role="status"
       aria-busy="true"
       aria-label="Carregando ranking..."
-      className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-4 animate-pulse"
+      className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-4 animate-pulse text-giz"
     >
       <span className="sr-only">Carregando classificação dos atletas...</span>
 
       {/* Header */}
-      <div className="space-y-1">
-        <div className="h-6 w-32 bg-neutral-200 dark:bg-neutral-800 rounded-md" />
-        <div className="h-3 w-48 bg-neutral-200 dark:bg-neutral-800 rounded" />
+      <div className="sumula-header pb-2 flex justify-between items-baseline">
+        <div className="h-6 w-44 bg-superficie-2 border border-borda rounded-[3px]" />
+        <div className="h-3 w-20 bg-superficie-2 border border-borda rounded-[2px]" />
       </div>
 
       {/* Abas de métricas */}
-      <div className="flex gap-1 overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 p-1">
+      <div className="flex gap-1 overflow-x-auto rounded-[4px] border border-borda bg-superficie p-1">
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className="flex-1 h-8 rounded-lg bg-neutral-200 dark:bg-neutral-800"
+            className="flex-1 h-7 rounded-[3px] bg-superficie-2 border border-borda"
           />
         ))}
       </div>
 
-      {/* Slider de partidas mínimas */}
-      <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/60 p-3 space-y-2">
-        <div className="flex justify-between">
-          <div className="h-3 w-32 bg-neutral-200 dark:bg-neutral-800 rounded" />
-          <div className="h-3 w-8 bg-neutral-200 dark:bg-neutral-800 rounded" />
-        </div>
-        <div className="h-2 w-full bg-neutral-200 dark:bg-neutral-800 rounded-full" />
+      {/* Pódio Top 3 */}
+      <div className="grid grid-cols-3 gap-2 items-end pt-2">
+        <div className="h-32 rounded-[4px] border border-borda bg-superficie p-2.5 shadow-carimbo" />
+        <div className="h-40 rounded-[4px] border-2 border-destaque/50 bg-superficie p-3 shadow-carimbo -translate-y-1" />
+        <div className="h-28 rounded-[4px] border border-borda bg-superficie p-2.5 shadow-carimbo" />
       </div>
 
-      {/* Linhas de Jogadores */}
-      <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/60 divide-y divide-neutral-100 dark:divide-neutral-800 overflow-hidden">
-        {Array.from({ length: 8 }).map((_, i) => (
+      {/* Tabela de Classificação */}
+      <div className="rounded-[4px] border border-borda bg-superficie shadow-carimbo divide-y divide-borda overflow-hidden">
+        {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="p-3 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="size-6 rounded-full bg-neutral-200 dark:bg-neutral-800" />
-              <div className="size-8 rounded-full bg-neutral-200 dark:bg-neutral-800" />
-              <div className="space-y-1">
-                <div className="h-3.5 w-24 bg-neutral-200 dark:bg-neutral-800 rounded" />
-                <div className="h-2.5 w-16 bg-neutral-200 dark:bg-neutral-800 rounded" />
-              </div>
+              <div className="size-4 bg-superficie-2 rounded-[2px]" />
+              <div className="size-6 bg-superficie-2 rounded-[3px]" />
+              <div className="h-3.5 w-24 bg-superficie-2 rounded-[2px]" />
             </div>
-            <div className="h-6 w-12 bg-neutral-200 dark:bg-neutral-800 rounded-md" />
+            <div className="h-4 w-12 bg-superficie-2 rounded-[2px]" />
           </div>
         ))}
       </div>
@@ -163,20 +142,20 @@ export function SkeletonEstatisticas() {
       role="status"
       aria-busy="true"
       aria-label="Carregando estatísticas..."
-      className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-5 animate-pulse"
+      className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-4 animate-pulse text-giz"
     >
       <span className="sr-only">Carregando estatísticas e parcerias...</span>
 
       {/* Header */}
-      <div className="space-y-1.5">
-        <div className="h-6 w-48 bg-neutral-200 dark:bg-neutral-800 rounded-md" />
-        <div className="h-3.5 w-64 bg-neutral-200 dark:bg-neutral-800 rounded" />
+      <div className="sumula-header pb-2 flex justify-between items-baseline">
+        <div className="h-6 w-44 bg-superficie-2 border border-borda rounded-[3px]" />
+        <div className="h-3 w-20 bg-superficie-2 border border-borda rounded-[2px]" />
       </div>
 
       {/* Abas */}
-      <div className="flex gap-1 overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 p-1">
-        <div className="flex-1 h-8 rounded-lg bg-neutral-200 dark:bg-neutral-800" />
-        <div className="flex-1 h-8 rounded-lg bg-neutral-200 dark:bg-neutral-800" />
+      <div className="flex gap-1 rounded-[4px] border border-borda bg-superficie p-1">
+        <div className="flex-1 h-7 rounded-[3px] bg-superficie-2 border border-borda" />
+        <div className="flex-1 h-7 rounded-[3px] bg-superficie-2 border border-borda" />
       </div>
 
       {/* Stat Boxes */}
@@ -184,18 +163,18 @@ export function SkeletonEstatisticas() {
         {Array.from({ length: 5 }).map((_, i) => (
           <div
             key={i}
-            className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/60 p-2.5 flex flex-col items-center justify-center gap-1.5 h-18"
+            className="rounded-[4px] border border-borda bg-superficie p-2.5 flex flex-col items-center justify-center gap-1.5 h-16 shadow-carimbo"
           >
-            <div className="h-6 w-8 bg-neutral-200 dark:bg-neutral-800 rounded" />
-            <div className="h-2.5 w-12 bg-neutral-200 dark:bg-neutral-800 rounded" />
+            <div className="h-5 w-8 bg-superficie-2 rounded-[2px]" />
+            <div className="h-2.5 w-12 bg-superficie-2 rounded-[2px]" />
           </div>
         ))}
       </div>
 
       {/* Cards de Parcerias */}
       <div className="grid grid-cols-2 gap-2">
-        <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/60 p-3 h-28" />
-        <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/60 p-3 h-28" />
+        <div className="rounded-[4px] border border-borda bg-superficie p-3 h-28 shadow-carimbo" />
+        <div className="rounded-[4px] border border-borda bg-superficie p-3 h-28 shadow-carimbo" />
       </div>
     </div>
   );
@@ -207,16 +186,16 @@ export function SkeletonPerfil() {
       role="status"
       aria-busy="true"
       aria-label="Carregando perfil..."
-      className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-5 animate-pulse"
+      className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-4 animate-pulse text-giz"
     >
-      <span className="sr-only">Carregando dados do atleta...</span>
+      <span className="sr-only">Carregando perfil do jogador...</span>
 
-      {/* Header do perfil com avatar */}
-      <div className="flex items-center gap-4 p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/60">
-        <div className="size-16 rounded-full bg-neutral-200 dark:bg-neutral-800" />
+      {/* Header com avatar */}
+      <div className="flex items-center gap-4 p-4 rounded-[4px] border border-borda bg-superficie shadow-carimbo">
+        <div className="size-14 rounded-[4px] bg-superficie-2 border border-borda" />
         <div className="space-y-2 flex-1">
-          <div className="h-5 w-36 bg-neutral-200 dark:bg-neutral-800 rounded" />
-          <div className="h-3 w-24 bg-neutral-200 dark:bg-neutral-800 rounded" />
+          <div className="h-5 w-36 bg-superficie-2 rounded-[2px]" />
+          <div className="h-3 w-24 bg-superficie-2 rounded-[2px]" />
         </div>
       </div>
 
@@ -225,16 +204,16 @@ export function SkeletonPerfil() {
         {Array.from({ length: 5 }).map((_, i) => (
           <div
             key={i}
-            className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/60 p-2.5 flex flex-col items-center justify-center gap-1.5 h-18"
+            className="rounded-[4px] border border-borda bg-superficie p-2.5 flex flex-col items-center justify-center gap-1.5 h-16 shadow-carimbo"
           >
-            <div className="h-6 w-8 bg-neutral-200 dark:bg-neutral-800 rounded" />
-            <div className="h-2.5 w-12 bg-neutral-200 dark:bg-neutral-800 rounded" />
+            <div className="h-5 w-8 bg-superficie-2 rounded-[2px]" />
+            <div className="h-2.5 w-12 bg-superficie-2 rounded-[2px]" />
           </div>
         ))}
       </div>
 
-      {/* Seção de notificações e ações */}
-      <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/60 p-4 h-32" />
+      {/* Seção */}
+      <div className="rounded-[4px] border border-borda bg-superficie p-4 h-32 shadow-carimbo" />
     </div>
   );
 }
@@ -245,20 +224,20 @@ export function SkeletonDetalhe() {
       role="status"
       aria-busy="true"
       aria-label="Carregando partida..."
-      className="px-3 py-4 pb-28 sm:px-4 max-w-2xl mx-auto space-y-4 animate-pulse"
+      className="px-3 py-4 pb-24 sm:px-4 max-w-2xl mx-auto space-y-4 animate-pulse text-giz"
     >
-      <span className="sr-only">Carregando detalhes da partida...</span>
+      <span className="sr-only">Carregando detalhes da súmula...</span>
 
       {/* Header */}
-      <div className="h-4 w-20 bg-neutral-200 dark:bg-neutral-800 rounded" />
+      <div className="h-4 w-20 bg-superficie-2 rounded-[2px]" />
 
-      {/* Placar estilo estádio */}
-      <div className="h-36 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/60 p-4 flex flex-col justify-between" />
+      {/* Placar LED */}
+      <div className="h-24 rounded-[4px] border-2 border-borda bg-[#000000] shadow-carimbo-preto p-3 flex items-center justify-center" />
 
       {/* Times */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="h-64 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/60 p-3" />
-        <div className="h-64 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/60 p-3" />
+        <div className="h-56 rounded-[4px] border border-borda bg-superficie p-3 shadow-carimbo" />
+        <div className="h-56 rounded-[4px] border border-borda bg-superficie p-3 shadow-carimbo" />
       </div>
     </div>
   );
@@ -270,20 +249,20 @@ export function SkeletonGestao() {
       role="status"
       aria-busy="true"
       aria-label="Carregando gestão de jogadores..."
-      className="px-3 py-4 pb-28 sm:px-4 max-w-2xl mx-auto space-y-4 animate-pulse"
+      className="px-3 py-4 pb-28 sm:px-4 max-w-2xl mx-auto space-y-4 animate-pulse text-giz"
     >
       <span className="sr-only">Carregando gestão de jogadores...</span>
-      <div className="h-6 w-44 bg-neutral-200 dark:bg-neutral-800 rounded-md" />
+      <div className="h-6 w-44 bg-superficie-2 border border-borda rounded-[3px]" />
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className="h-20 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/60 p-3"
+            className="h-20 rounded-[4px] border border-borda bg-superficie p-3 shadow-carimbo"
           />
         ))}
       </div>
-      <div className="h-10 w-full rounded-xl bg-neutral-200 dark:bg-neutral-800" />
-      <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/60 divide-y divide-neutral-100 dark:divide-neutral-800 overflow-hidden">
+      <div className="h-10 w-full rounded-[4px] bg-superficie-2 border border-borda" />
+      <div className="rounded-[4px] border border-borda bg-superficie shadow-carimbo divide-y divide-borda overflow-hidden">
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="p-3 h-14" />
         ))}
@@ -297,13 +276,13 @@ export function SkeletonGestao() {
  */
 export function CarregandoGeral() {
   return (
-    <div className="px-3 py-6 max-w-2xl mx-auto space-y-4 animate-pulse">
-      <div className="h-6 w-36 bg-neutral-200 dark:bg-neutral-800 rounded-md" />
-      <div className="h-32 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900/60 p-4" />
+    <div className="px-3 py-6 max-w-2xl mx-auto space-y-4 animate-pulse text-giz">
+      <div className="h-6 w-36 bg-superficie-2 border border-borda rounded-[3px]" />
+      <div className="h-32 rounded-[4px] border border-borda bg-superficie p-4 shadow-carimbo" />
       <div className="space-y-2">
-        <div className="h-12 rounded-xl bg-neutral-100 dark:bg-neutral-900" />
-        <div className="h-12 rounded-xl bg-neutral-100 dark:bg-neutral-900" />
-        <div className="h-12 rounded-xl bg-neutral-100 dark:bg-neutral-900" />
+        <div className="h-12 rounded-[4px] bg-superficie border border-borda" />
+        <div className="h-12 rounded-[4px] bg-superficie border border-borda" />
+        <div className="h-12 rounded-[4px] bg-superficie border border-borda" />
       </div>
     </div>
   );

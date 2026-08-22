@@ -29,19 +29,21 @@ const numero2casas = new Intl.NumberFormat("pt-BR", {
 
 const metricas: Record<
   Metrica,
-  { titulo: string; coluna: string; campo: CampoMetrica }
+  { titulo: string; coluna: string; campo: CampoMetrica; unidade: string }
 > = {
-  pontos: { titulo: "Ranking de pontuação", coluna: "Pontos", campo: "pontos" },
-  gols: { titulo: "Ranking de gols", coluna: "Gols", campo: "gols" },
+  pontos: { titulo: "Ranking de Pontuação", coluna: "Pts", campo: "pontos", unidade: "pts" },
+  gols: { titulo: "Ranking de Artilharia", coluna: "Gols", campo: "gols", unidade: "gols" },
   assistencias: {
-    titulo: "Ranking de assistências",
-    coluna: "Assistências",
+    titulo: "Ranking de Assistências (Maestros)",
+    coluna: "Assists",
     campo: "assistencias",
+    unidade: "assists",
   },
   "gols-contra": {
-    titulo: "Ranking de gols contra",
-    coluna: "Gols contra",
+    titulo: "Ranking de Gols Contra (Zoeira)",
+    coluna: "GC",
     campo: "gols_contra",
+    unidade: "GC",
   },
 };
 
@@ -169,10 +171,10 @@ export function Ranking() {
     { key: "nome", label: "Nome" },
     { key: configuracao.campo, label: configuracao.coluna },
     ...(metrica === "gols"
-      ? [{ key: "media_gols" as const, label: "Média/partida" }]
+      ? [{ key: "media_gols" as const, label: "Média" }]
       : []),
-    { key: "percentual_vitorias", label: "% vitórias" },
-    { key: "partidas", label: "P" },
+    { key: "percentual_vitorias", label: "%V" },
+    { key: "partidas", label: "J" },
     { key: "vitorias", label: "V" },
     { key: "empates", label: "E" },
     { key: "derrotas", label: "D" },
@@ -196,125 +198,218 @@ export function Ranking() {
   return (
     <PullToRefresh onRefresh={carregar}>
       <div
-        className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto touch-pan-y"
+        className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto touch-pan-y text-giz"
         {...swipeHandlers}
       >
-        <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-3">
-          {configuracao.titulo}
-        </h2>
+        {/* Cabeçalho de Súmula */}
+        <div className="sumula-header pb-2 mb-3 flex items-baseline justify-between">
+          <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
+            {configuracao.titulo}
+          </h2>
+          <span className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
+            Oficial CBO
+          </span>
+        </div>
 
-      <div className="mb-3 flex gap-1 overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 p-1">
-        <NavLink
-          to="/ranking/pontos"
-          className={({ isActive }) =>
-            `flex-1 min-w-max rounded-md px-3 py-1.5 text-center text-xs font-medium whitespace-nowrap ${
-              isActive
-                ? "bg-destaque text-white"
-                : "text-neutral-600 dark:text-neutral-400"
-            }`
-          }
-        >
-          Pontuação
-        </NavLink>
-        <NavLink
-          to="/ranking/gols"
-          className={({ isActive }) =>
-            `flex-1 min-w-max rounded-md px-3 py-1.5 text-center text-xs font-medium whitespace-nowrap ${
-              isActive
-                ? "bg-destaque text-white"
-                : "text-neutral-600 dark:text-neutral-400"
-            }`
-          }
-        >
-          Gols
-        </NavLink>
-        <NavLink
-          to="/ranking/assistencias"
-          className={({ isActive }) =>
-            `flex-1 min-w-max rounded-md px-3 py-1.5 text-center text-xs font-medium whitespace-nowrap ${
-              isActive
-                ? "bg-destaque text-white"
-                : "text-neutral-600 dark:text-neutral-400"
-            }`
-          }
-        >
-          Assistências
-        </NavLink>
-        <NavLink
-          to="/ranking/gols-contra"
-          className={({ isActive }) =>
-            `flex-1 min-w-max rounded-md px-3 py-1.5 text-center text-xs font-medium whitespace-nowrap ${
-              isActive
-                ? "bg-destaque text-white"
-                : "text-neutral-600 dark:text-neutral-400"
-            }`
-          }
-        >
-          Gols contra
-        </NavLink>
+        {/* Abas de métricas */}
+        <div className="mb-4 flex gap-1 overflow-x-auto rounded-[4px] border border-borda bg-superficie p-1 shadow-xs no-scrollbar">
+          <NavLink
+            to="/ranking/pontos"
+            className={({ isActive }) =>
+              `flex-1 min-w-max rounded-[3px] px-3 py-1.5 text-center font-display uppercase tracking-wider text-xs font-bold whitespace-nowrap transition ${
+                isActive
+                  ? "bg-destaque text-destaque-tinta shadow-xs"
+                  : "text-giz-fraco hover:text-giz hover:bg-superficie-2"
+              }`
+            }
+          >
+            Pontuação
+          </NavLink>
+          <NavLink
+            to="/ranking/gols"
+            className={({ isActive }) =>
+              `flex-1 min-w-max rounded-[3px] px-3 py-1.5 text-center font-display uppercase tracking-wider text-xs font-bold whitespace-nowrap transition ${
+                isActive
+                  ? "bg-destaque text-destaque-tinta shadow-xs"
+                  : "text-giz-fraco hover:text-giz hover:bg-superficie-2"
+              }`
+            }
+          >
+            Gols
+          </NavLink>
+          <NavLink
+            to="/ranking/assistencias"
+            className={({ isActive }) =>
+              `flex-1 min-w-max rounded-[3px] px-3 py-1.5 text-center font-display uppercase tracking-wider text-xs font-bold whitespace-nowrap transition ${
+                isActive
+                  ? "bg-destaque text-destaque-tinta shadow-xs"
+                  : "text-giz-fraco hover:text-giz hover:bg-superficie-2"
+              }`
+            }
+          >
+            Assistências
+          </NavLink>
+          <NavLink
+            to="/ranking/gols-contra"
+            className={({ isActive }) =>
+              `flex-1 min-w-max rounded-[3px] px-3 py-1.5 text-center font-display uppercase tracking-wider text-xs font-bold whitespace-nowrap transition ${
+                isActive
+                  ? "bg-destaque text-destaque-tinta shadow-xs"
+                  : "text-giz-fraco hover:text-giz hover:bg-superficie-2"
+              }`
+            }
+          >
+            Gols Contra
+          </NavLink>
+        </div>
+
+        {/* Filtros */}
+        <div className="mb-4 space-y-3 rounded-[4px] border border-borda bg-superficie p-3 shadow-carimbo">
+          <div>
+            <span className="block text-xs font-display font-bold uppercase tracking-wider text-giz-fraco mb-1.5">
+              Posição
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                type="button"
+                onClick={() => setPosicaoFiltro("todas")}
+                className={`rounded-[3px] px-2.5 py-1 text-xs font-display font-bold uppercase tracking-wider transition ${
+                  posicaoFiltro === "todas"
+                    ? "bg-destaque text-destaque-tinta shadow-xs"
+                    : "border border-borda bg-superficie-2 text-giz-fraco hover:text-giz"
+                }`}
+              >
+                Todas
+              </button>
+              {(Object.keys(POSICOES) as PosicaoId[]).map((pos) => (
+                <button
+                  key={pos}
+                  type="button"
+                  onClick={() => setPosicaoFiltro(pos)}
+                  className={`rounded-[3px] px-2.5 py-1 text-xs font-display font-bold uppercase tracking-wider transition ${
+                    posicaoFiltro === pos
+                      ? "bg-destaque text-destaque-tinta shadow-xs"
+                      : "border border-borda bg-superficie-2 text-giz-fraco hover:text-giz"
+                  }`}
+                >
+                  {POSICOES[pos]}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between text-xs font-display font-bold uppercase tracking-wider text-giz-fraco mb-1">
+              <span>Mínimo de partidas</span>
+              <span className="font-mono text-destaque">{minimoPartidas} jogos</span>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={maximoPartidas}
+              value={minimoPartidas}
+              onChange={(e) => setMinimoPartidas(Number(e.target.value))}
+              className="w-full accent-[#ffb300]"
+            />
+          </div>
+        </div>
+
+        {linhasFiltradas.length === 0 ? (
+          <MensagemEstado tipo="info">
+            O ranking nasce no primeiro apito. Nada publicado com esses filtros ainda.
+          </MensagemEstado>
+        ) : (
+          <>
+            {/* Pódio Top 3 */}
+            {linhasFiltradas.length >= 3 && (
+              <PodioTop3
+                linhas={linhasFiltradas.slice(0, 3)}
+                campoMetrica={configuracao.campo}
+                unidade={configuracao.unidade}
+              />
+            )}
+
+            {/* Tabela com data-no-swipe para não travar scroll horizontal */}
+            <TabelaRanking
+              linhas={linhasFiltradas}
+              colunasOrdenacao={colunasOrdenacao}
+              colunaOrdenacao={colunaOrdenacao}
+              direcaoOrdenacao={direcaoOrdenacao}
+              selecionarOrdenacao={selecionarOrdenacao}
+              valorOrdenacao={valorOrdenacao}
+              jogadorLogadoId={jogadorLogado?.id}
+            />
+          </>
+        )}
       </div>
-
-      <div className="mb-3">
-        <label htmlFor="filtro-posicao" className="sr-only">
-          Filtrar por posição
-        </label>
-        <select
-          id="filtro-posicao"
-          value={posicaoFiltro}
-          onChange={(e) =>
-            setPosicaoFiltro(e.target.value as PosicaoId | "todas")
-          }
-          className="rounded-md border border-neutral-300 bg-white px-2 py-1 text-sm text-neutral-700 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200"
-        >
-          <option value="todas">Todas as posições</option>
-          {Object.entries(POSICOES)
-            .filter(([chave]) => chave !== "random")
-            .map(([chave, rotulo]) => (
-              <option key={chave} value={chave}>
-                {rotulo}
-              </option>
-            ))}
-        </select>
-      </div>
-
-      <div className="mb-4">
-        <label
-          htmlFor="filtro-minimo-partidas"
-          className="flex items-center justify-between text-sm text-neutral-700 dark:text-neutral-300"
-        >
-          <span>Mínimo de partidas</span>
-          <strong>{minimoPartidas}</strong>
-        </label>
-        <input
-          id="filtro-minimo-partidas"
-          type="range"
-          min="1"
-          max={maximoPartidas}
-          value={minimoPartidas}
-          onChange={(e) => setMinimoPartidas(Number(e.target.value))}
-          className="w-full accent-destaque"
-        />
-      </div>
-
-      {linhasFiltradas.length === 0 ? (
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          {linhas.length === 0
-            ? "Nenhuma partida publicada ainda. O ranking aparece quando houver partidas."
-            : "Nenhum jogador atende ao mínimo de partidas selecionado."}
-        </p>
-      ) : (
-        <TabelaRanking
-          linhas={linhasFiltradas}
-          colunasOrdenacao={colunasOrdenacao}
-          colunaOrdenacao={colunaOrdenacao}
-          direcaoOrdenacao={direcaoOrdenacao}
-          selecionarOrdenacao={selecionarOrdenacao}
-          valorOrdenacao={valorOrdenacao}
-          jogadorLogadoId={jogadorLogado?.id}
-        />
-      )}
-    </div>
     </PullToRefresh>
+  );
+}
+
+function PodioTop3({
+  linhas,
+  campoMetrica,
+  unidade,
+}: {
+  linhas: LinhaRanking[];
+  campoMetrica: CampoMetrica;
+  unidade: string;
+}) {
+  const primeiro = linhas[0];
+  const segundo = linhas[1];
+  const terceiro = linhas[2];
+
+  if (!primeiro || !segundo || !terceiro) return null;
+
+  return (
+    <div className="mb-4">
+      <div className="grid grid-cols-3 gap-2 items-end pt-2">
+        {/* 2º Lugar (Esquerda) */}
+        <div className="rounded-[4px] border border-borda bg-superficie p-2.5 text-center shadow-carimbo flex flex-col items-center justify-between min-h-[140px]">
+          <span className="texto-vazado font-display font-black text-3xl leading-none">2</span>
+          <Avatar nome={segundo.nome} posicao={segundo.posicao} size="sm" />
+          <div className="w-full truncate mt-1">
+            <span className="block truncate text-xs font-bold text-giz">{segundo.nome}</span>
+            <span className="block font-mono text-xs font-bold text-giz-fraco tabular-nums">
+              {segundo[campoMetrica]} {unidade}
+            </span>
+          </div>
+        </div>
+
+        {/* 1º Lugar (Centro - Maior e em Destaque Âmbar) */}
+        <div className="rounded-[4px] border-2 border-destaque bg-destaque text-destaque-tinta p-3 text-center shadow-carimbo-destaque flex flex-col items-center justify-between min-h-[165px] -translate-y-1">
+          <div className="flex items-center justify-center gap-1">
+            <span className="font-display font-black text-4xl leading-none text-destaque-tinta">1</span>
+            <span className="text-xs">👑</span>
+          </div>
+          <Avatar nome={primeiro.nome} posicao={primeiro.posicao} size="md" />
+          <div className="w-full truncate mt-1">
+            <span className="block truncate text-xs font-black uppercase tracking-wider">{primeiro.nome}</span>
+            <span className="block font-mono text-sm font-black tabular-nums">
+              {primeiro[campoMetrica]} {unidade}
+            </span>
+          </div>
+        </div>
+
+        {/* 3º Lugar (Direita) */}
+        <div className="rounded-[4px] border border-borda bg-superficie p-2.5 text-center shadow-carimbo flex flex-col items-center justify-between min-h-[130px]">
+          <span className="texto-vazado font-display font-black text-2xl leading-none">3</span>
+          <Avatar nome={terceiro.nome} posicao={terceiro.posicao} size="sm" />
+          <div className="w-full truncate mt-1">
+            <span className="block truncate text-xs font-bold text-giz">{terceiro.nome}</span>
+            <span className="block font-mono text-xs font-bold text-giz-fraco tabular-nums">
+              {terceiro[campoMetrica]} {unidade}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 my-3 text-[10px] font-mono uppercase tracking-widest text-giz-fraco justify-center">
+        <span className="h-px bg-borda flex-1" />
+        <span>— classificação geral —</span>
+        <span className="h-px bg-borda flex-1" />
+      </div>
+    </div>
   );
 }
 
@@ -336,11 +431,14 @@ function TabelaRanking({
   jogadorLogadoId?: number;
 }) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-800">
+    <div
+      data-no-swipe
+      className="overflow-x-auto rounded-[4px] border border-borda bg-superficie shadow-carimbo"
+    >
       <table className="w-full min-w-120 text-sm">
-        <thead className="bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400">
+        <thead className="bg-superficie-2 border-b border-borda text-giz-fraco">
           <tr>
-            <th className="px-1.5 py-1.5 text-left font-medium w-8">#</th>
+            <th className="px-2 py-2 text-left font-display font-bold uppercase tracking-wider text-xs w-8">#</th>
             {colunasOrdenacao.map((coluna) => {
               const ativa = colunaOrdenacao === coluna.key;
               const direcao = ativa ? direcaoOrdenacao : null;
@@ -354,23 +452,23 @@ function TabelaRanking({
                         ? "descending"
                         : "none"
                   }
-                  className={`px-1.5 py-1.5 font-medium ${
+                  className={`px-2 py-2 font-display font-bold uppercase tracking-wider text-xs ${
                     coluna.key === "nome"
-                      ? "w-px whitespace-nowrap text-left sm:min-w-48"
+                      ? "w-px whitespace-nowrap text-left sm:min-w-44"
                       : "text-right"
                   }`}
                 >
                   <button
                     type="button"
                     onClick={() => selecionarOrdenacao(coluna.key)}
-                    className="inline-flex items-center gap-1"
+                    className={`inline-flex items-center gap-1 min-h-0 ${ativa ? "text-destaque font-black" : "hover:text-giz"}`}
                   >
-                    {coluna.label}
-                    <span aria-hidden="true">
+                    <span>{coluna.label}</span>
+                    <span aria-hidden="true" className="font-mono text-[10px]">
                       {direcao === "asc"
-                        ? "↑"
+                        ? "▲"
                         : direcao === "desc"
-                          ? "↓"
+                          ? "▼"
                           : "↕"}
                     </span>
                   </button>
@@ -379,35 +477,35 @@ function TabelaRanking({
             })}
           </tr>
         </thead>
-        <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+        <tbody className="divide-y divide-borda">
           {linhas.map((l, i) => {
             const primeiro = i === 0;
             const ehLogado = l.jogador_id === jogadorLogadoId;
             return (
               <tr
                 key={l.jogador_id}
-                className={
+                className={`transition hover:bg-superficie-2 ${
                   ehLogado
-                    ? "bg-destaque/10"
-                    : "bg-white dark:bg-neutral-950"
-                }
+                    ? "border-l-2 border-destaque bg-destaque/10"
+                    : "bg-superficie"
+                }`}
               >
-                <td className="px-1.5 py-1.5 text-neutral-500 dark:text-neutral-400">
+                <td className="px-2 py-2 font-mono text-xs font-bold text-giz-fraco">
                   {primeiro ? "🏆" : i + 1}
                 </td>
                 {colunasOrdenacao.map((coluna) => (
                   <td
                     key={coluna.key}
-                    className={`px-1.5 py-1.5 text-neutral-600 dark:text-neutral-400 ${
+                    className={`px-2 py-2 ${
                       coluna.key === "nome"
-                        ? "whitespace-nowrap"
-                        : "text-right"
+                        ? "whitespace-nowrap text-giz font-medium text-xs"
+                        : "text-right font-mono text-xs text-giz tabular-nums font-semibold"
                     }`}
                   >
                     {coluna.key === "nome" ? (
                       <div className="flex items-center gap-2">
                         <Avatar nome={l.nome} posicao={l.posicao} size="xs" />
-                        <span>{l.nome}</span>
+                        <span className="font-bold">{l.nome}</span>
                       </div>
                     ) : coluna.key === "media_gols"
                         ? numero2casas.format(

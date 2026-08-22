@@ -3,8 +3,10 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import { Wallet, ChevronDown, Plus, Check } from "lucide-react";
 import { useAdmin } from "../hooks/useAdmin";
 import { Carregando, MensagemEstado } from "../components/Estado";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 import { formatarReais, formatarDataLista } from "../lib/formatacao";
 import { listarJogadoresAtivos, type JogadorLista } from "../lib/jogadores";
+import { voltar } from "../lib/navegacao";
 import {
   TIPOS_DIVIDA,
   listarDividasEmAberto,
@@ -36,11 +38,11 @@ const ROTULO_TIPO: Record<TipoDivida, string> = {
 
 const COR_TIPO: Record<TipoDivida, string> = {
   mensalidade:
-    "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30",
+    "bg-destaque/15 text-destaque border-destaque/40",
   avulso:
-    "bg-green-500/15 text-green-700 dark:text-green-300 border-green-500/30",
+    "bg-ok/15 text-ok border-ok/40",
   outro:
-    "bg-neutral-500/15 text-neutral-700 dark:text-neutral-300 border-neutral-500/30",
+    "bg-superficie-2 text-giz-fraco border-borda",
 };
 
 export function Administrador() {
@@ -53,6 +55,12 @@ export function Administrador() {
   const [erro, setErro] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
   const [expandido, setExpandido] = useState<number | null>(null);
+  const [confirmacao, setConfirmacao] = useState<{
+    open: boolean;
+    titulo: string;
+    mensagem: string;
+    onConfirm: () => void;
+  } | null>(null);
 
   // formulário "adicionar dívida"
   const [fJogador, setFJogador] = useState("");
@@ -107,33 +115,46 @@ export function Administrador() {
     return () => {
       ativo = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!isAdmin) return <Navigate to="/" replace />;
 
-  async function handleQuitar(e: React.MouseEvent, dividaId: number, nome: string) {
+  function handleQuitar(e: React.MouseEvent, dividaId: number, nome: string) {
     e.stopPropagation();
-    if (!window.confirm(`Marcar a dívida de ${nome} como paga?`)) return;
-    try {
-      await quitarDivida(dividaId);
-      setOk("Dívida marcada como paga.");
-      await carregar();
-    } catch (e) {
-      setErro(e instanceof Error ? e.message : "Erro ao quitar dívida.");
-    }
+    setConfirmacao({
+      open: true,
+      titulo: "Quitar dívida?",
+      mensagem: `Marcar a dívida de ${nome} como paga na súmula financeira?`,
+      onConfirm: async () => {
+        setConfirmacao(null);
+        try {
+          await quitarDivida(dividaId);
+          setOk("Dívida marcada como paga.");
+          await carregar();
+        } catch (e) {
+          setErro(e instanceof Error ? e.message : "Erro ao quitar dívida.");
+        }
+      },
+    });
   }
 
-  async function handleQuitarTodas(e: React.MouseEvent, jogadorId: number, nome: string) {
+  function handleQuitarTodas(e: React.MouseEvent, jogadorId: number, nome: string) {
     e.stopPropagation();
-    if (!window.confirm(`Quitar TODAS as dívidas em aberto de ${nome}?`)) return;
-    try {
-      await quitarDividasJogador(jogadorId);
-      setOk(`Dívidas de ${nome} quitadas.`);
-      await carregar();
-    } catch (e) {
-      setErro(e instanceof Error ? e.message : "Erro ao quitar dívidas.");
-    }
+    setConfirmacao({
+      open: true,
+      titulo: "Quitar todas as dívidas?",
+      mensagem: `Quitar TODAS as pendências em aberto de ${nome}?`,
+      onConfirm: async () => {
+        setConfirmacao(null);
+        try {
+          await quitarDividasJogador(jogadorId);
+          setOk(`Dívidas de ${nome} quitadas.`);
+          await carregar();
+        } catch (e) {
+          setErro(e instanceof Error ? e.message : "Erro ao quitar dívidas.");
+        }
+      },
+    });
   }
 
   async function handleAdicionar(e: FormEvent) {
@@ -157,44 +178,42 @@ export function Administrador() {
         jogador_id: Number(fJogador),
         tipo: fTipo,
         valor,
-        data_divida: fData || hojeStr(),
-        descricao: fDescricao.trim() || undefined,
-        referencia: fReferencia.trim() || undefined,
+        data_divida: fData,
+        referencia: fReferencia ? fReferencia.trim() : undefined,
+        descricao: fDescricao ? fDescricao.trim() : undefined,
       });
-      setOk("Dívida adicionada.");
-      setFValor("90");
-      setFData(hojeStr());
-      setFReferencia(mesAtualStr());
+      setOk("Dívida registrada com sucesso.");
       setFDescricao("");
       await carregar();
-    } catch (err) {
-      setErro(err instanceof Error ? err.message : "Erro ao adicionar dívida.");
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Erro ao registrar dívida.");
     } finally {
       setSalvando(false);
     }
   }
 
-  const totalGeral = grupos.reduce((s, g) => s + g.total_devido, 0);
+  const totalGeral = grupos.reduce((acc, g) => acc + g.total_devido, 0);
 
   return (
-    <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-5">
+    <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
       <button
-        onClick={() => navigate(-1)}
-        className="text-xs text-neutral-500 dark:text-neutral-400"
+        onClick={() => voltar(navigate, "/")}
+        className="text-xs font-mono text-giz-fraco hover:text-giz transition"
       >
         ← voltar
       </button>
 
-      <div className="flex items-center gap-2">
-        <Wallet className="size-5 text-primaria" />
-        <div>
-          <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-            Administrador
+      {/* Cabeçalho da Súmula Financeira */}
+      <div className="flex items-center justify-between sumula-header pb-2">
+        <div className="flex items-center gap-2">
+          <Wallet className="size-5 text-destaque" />
+          <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
+            Controle Financeiro
           </h2>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            Controle de dívidas dos jogadores
-          </p>
         </div>
+        <span className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
+          Súmula CBO
+        </span>
       </div>
 
       {erro && <MensagemEstado>{erro}</MensagemEstado>}
@@ -203,21 +222,21 @@ export function Administrador() {
       {/* Adicionar dívida */}
       <form
         onSubmit={handleAdicionar}
-        className="space-y-3 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-3"
+        className="space-y-3 rounded-[4px] border border-borda bg-superficie p-3.5 shadow-carimbo"
       >
-        <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-          Adicionar dívida
+        <h3 className="font-display font-bold text-sm uppercase tracking-wider text-giz">
+          Adicionar Dívida / Mensalidade
         </h3>
 
         <div className="grid grid-cols-2 gap-3">
           <label className="block col-span-2">
-            <span className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">
+            <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
               Jogador
             </span>
             <select
               value={fJogador}
               onChange={(e) => setFJogador(e.target.value)}
-              className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
+              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz shadow-xs"
             >
               <option value="">Selecione…</option>
               {jogadores.map((j) => (
@@ -230,13 +249,13 @@ export function Administrador() {
           </label>
 
           <label className="block">
-            <span className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">
+            <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
               Tipo
             </span>
             <select
               value={fTipo}
               onChange={(e) => setFTipo(e.target.value as TipoDivida)}
-              className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
+              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz shadow-xs"
             >
               {TIPOS_DIVIDA.map((t) => (
                 <option key={t.value} value={t.value}>
@@ -247,7 +266,7 @@ export function Administrador() {
           </label>
 
           <label className="block">
-            <span className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">
+            <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
               Valor (R$)
             </span>
             <input
@@ -257,25 +276,25 @@ export function Administrador() {
               inputMode="decimal"
               value={fValor}
               onChange={(e) => setFValor(e.target.value)}
-              className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
+              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz font-mono shadow-xs"
               required
             />
           </label>
 
           <label className="block">
-            <span className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">
+            <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
               Data
             </span>
             <input
               type="date"
               value={fData}
               onChange={(e) => setFData(e.target.value)}
-              className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
+              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz font-mono shadow-xs"
             />
           </label>
 
           <label className="block">
-            <span className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">
+            <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
               Referência {fTipo === "mensalidade" ? "(mês)" : "(opcional)"}
             </span>
             <input
@@ -283,12 +302,12 @@ export function Administrador() {
               value={fReferencia}
               onChange={(e) => setFReferencia(e.target.value)}
               placeholder="ex.: 2026-08"
-              className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
+              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz font-mono shadow-xs"
             />
           </label>
 
           <label className="block col-span-2">
-            <span className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">
+            <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
               Descrição (opcional)
             </span>
             <input
@@ -296,7 +315,7 @@ export function Administrador() {
               value={fDescricao}
               onChange={(e) => setFDescricao(e.target.value)}
               placeholder="ex.: Mensalidade Agosto/2026"
-              className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100"
+              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz shadow-xs"
             />
           </label>
         </div>
@@ -304,7 +323,7 @@ export function Administrador() {
         <button
           type="submit"
           disabled={salvando}
-          className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-green-600 hover:bg-green-700 dark:bg-green-600 px-4 py-2.5 font-medium text-white disabled:opacity-50 transition"
+          className="w-full flex items-center justify-center gap-1.5 rounded-[4px] border border-destaque bg-destaque px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo transition active:translate-y-px disabled:opacity-50"
         >
           <Plus className="size-4" />
           {salvando ? "Adicionando…" : "Adicionar dívida"}
@@ -313,11 +332,11 @@ export function Administrador() {
 
       {/* Dívidas em aberto */}
       <div className="space-y-3">
-        <div className="flex items-baseline justify-between">
-          <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+        <div className="flex items-baseline justify-between sumula-header pb-1.5">
+          <h3 className="font-display font-bold text-sm uppercase tracking-wider text-giz">
             Dívidas em aberto
           </h3>
-          <span className="text-sm font-semibold text-destaque">
+          <span className="font-mono text-base font-bold text-destaque tabular-nums">
             {formatarReais(totalGeral)}
           </span>
         </div>
@@ -325,7 +344,7 @@ export function Administrador() {
         {carregando ? (
           <Carregando>Carregando dívidas…</Carregando>
         ) : grupos.length === 0 ? (
-          <MensagemEstado tipo="info">Ninguém devendo 🎉</MensagemEstado>
+          <MensagemEstado tipo="info">Ninguém devendo 🎉 Todo mundo em dia com a quinta.</MensagemEstado>
         ) : (
           <ul className="space-y-2">
             {grupos.map((g) => {
@@ -333,7 +352,7 @@ export function Administrador() {
               return (
                 <li
                   key={g.jogador_id}
-                  className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden"
+                  className="rounded-[4px] border border-borda bg-superficie overflow-hidden shadow-carimbo"
                 >
                   {/* Cabeçalho do acordeão */}
                   <div
@@ -346,36 +365,36 @@ export function Administrador() {
                         setExpandido(aberto ? null : g.jogador_id);
                       }
                     }}
-                    className="flex min-h-[3.5rem] items-center gap-2 px-3 py-2 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800/60"
+                    className="flex min-h-[3.5rem] items-center gap-2 px-3 py-2 cursor-pointer hover:bg-superficie-2 transition"
                   >
                     <ChevronDown
-                      className={`size-4 shrink-0 text-neutral-400 transition-transform ${
+                      className={`size-4 shrink-0 text-destaque transition-transform ${
                         aberto ? "rotate-180" : ""
                       }`}
                     />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
-                        <span className="truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                        <span className="truncate text-sm font-bold text-giz">
                           {g.nome}
                         </span>
                         {g.is_mensalista && (
-                          <span className="shrink-0 rounded bg-destaque/15 px-1.5 py-0.5 text-[10px] font-medium text-destaque">
+                          <span className="shrink-0 rounded-[2px] border border-destaque/40 bg-destaque/15 px-1.5 py-0.5 text-[9px] font-display uppercase tracking-wider font-bold text-destaque">
                             mensalista
                           </span>
                         )}
                       </div>
-                      <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                      <span className="text-xs font-mono text-giz-fraco">
                         {g.dividas.length}{" "}
                         {g.dividas.length === 1 ? "dívida" : "dívidas"}
                       </span>
                     </div>
-                    <span className="shrink-0 text-sm font-semibold text-red-600 dark:text-red-400">
+                    <span className="shrink-0 font-mono text-sm font-bold text-perigo tabular-nums">
                       {formatarReais(g.total_devido)}
                     </span>
                     <button
                       onClick={(e) => handleQuitarTodas(e, g.jogador_id, g.nome)}
                       title="Quitar todas"
-                      className="shrink-0 rounded-lg border border-neutral-300 dark:border-neutral-700 px-2 py-1 text-xs text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                      className="shrink-0 rounded-[3px] border border-borda bg-superficie-2 px-2.5 py-1 text-xs font-display uppercase tracking-wider font-semibold text-giz hover:border-destaque transition"
                     >
                       Quitar todas
                     </button>
@@ -383,7 +402,7 @@ export function Administrador() {
 
                   {/* Itens (drill-down) */}
                   {aberto && (
-                    <ul className="divide-y divide-neutral-100 dark:divide-neutral-800 border-t border-neutral-100 dark:border-neutral-800">
+                    <ul className="divide-y divide-borda border-t border-borda bg-fundo/40">
                       {g.dividas.map((d) => (
                         <li
                           key={d.id}
@@ -392,40 +411,40 @@ export function Administrador() {
                           <div className="min-w-0 flex-1 space-y-1">
                             <div className="flex flex-wrap items-center gap-1.5">
                               <span
-                                className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${COR_TIPO[d.tipo]}`}
+                                className={`rounded-[2px] border px-1.5 py-0.5 text-[9px] font-display uppercase tracking-wider font-bold ${COR_TIPO[d.tipo]}`}
                               >
                                 {ROTULO_TIPO[d.tipo]}
                               </span>
                               {d.referencia && (
-                                <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                                <span className="text-[11px] font-mono text-giz-fraco">
                                   ref. {d.referencia}
                                 </span>
                               )}
-                              <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                              <span className="text-[11px] font-mono text-giz-fraco">
                                 {formatarDataLista(d.data_divida)}
                               </span>
                             </div>
                             {d.descricao && (
-                              <p className="text-xs text-neutral-700 dark:text-neutral-300">
+                              <p className="text-xs text-giz">
                                 {d.descricao}
                               </p>
                             )}
                             {d.partida_id && (
                               <Link
                                 to={`/partida/${d.partida_id}`}
-                                className="inline-block text-[11px] text-primaria hover:underline"
+                                className="inline-block text-[11px] font-mono text-destaque hover:underline"
                               >
                                 ver partida →
                               </Link>
                             )}
                           </div>
                           <div className="flex shrink-0 flex-col items-end gap-1.5">
-                            <span className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+                            <span className="font-mono text-sm font-bold text-giz tabular-nums">
                               {formatarReais(Number(d.valor))}
                             </span>
                             <button
                               onClick={(e) => handleQuitar(e, d.id, g.nome)}
-                              className="flex items-center gap-1 rounded-lg bg-green-600 hover:bg-green-700 px-2 py-1 text-xs font-medium text-white"
+                              className="flex items-center gap-1 rounded-[3px] border border-ok bg-ok px-2 py-1 text-xs font-display uppercase tracking-wider font-bold text-white shadow-xs hover:brightness-110"
                             >
                               <Check className="size-3.5" />
                               Pagar
@@ -441,6 +460,16 @@ export function Administrador() {
           </ul>
         )}
       </div>
+
+      {confirmacao && (
+        <ConfirmDialog
+          open={confirmacao.open}
+          onClose={() => setConfirmacao(null)}
+          onConfirm={confirmacao.onConfirm}
+          titulo={confirmacao.titulo}
+          mensagem={confirmacao.mensagem}
+        />
+      )}
     </div>
   );
 }

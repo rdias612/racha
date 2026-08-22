@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Plus } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAdmin } from '../hooks/useAdmin'
 import { useSessao } from '../context/SessaoContext'
@@ -9,7 +9,7 @@ import { SkeletonJogos } from '../components/Skeletons'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { Snackbar, type TipoSnackbar } from '../components/Snackbar'
 import { formatarDataLista } from '../lib/formatacao'
-import { STATUS_COR, STATUS_LABEL, excluirPartida, type StatusPartida } from '../lib/partidas'
+import { STATUS_LABEL, excluirPartida, type StatusPartida } from '../lib/partidas'
 import { PullToRefresh } from '../components/PullToRefresh'
 
 interface Partida {
@@ -89,7 +89,7 @@ export function Jogos() {
       const ok = await excluirPartida(alvo.id, jogador.id)
       if (ok) {
         setPartidas((prev) => prev.filter((p) => p.id !== alvo.id))
-        mostrarSnackbar('sucesso', 'Partida excluída')
+        mostrarSnackbar('sucesso', 'Partida excluída da súmula')
       } else {
         mostrarSnackbar('erro', 'Não foi possível excluir a partida')
       }
@@ -106,41 +106,64 @@ export function Jogos() {
 
   return (
     <PullToRefresh onRefresh={carregar}>
-      <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Jogos</h2>
+      <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
+        {/* Cabeçalho de Súmula */}
+        <div className="flex items-center justify-between sumula-header pb-2">
+          <div>
+            <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
+              Mural de Jogos
+            </h2>
+            <p className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
+              Temporada Oficial
+            </p>
+          </div>
           {isAdmin && (
             <Link
               to="/partida/nova"
-              className="text-xs rounded-lg bg-destaque text-white px-3 py-1.5"
+              className="inline-flex items-center gap-1 text-xs font-display font-bold uppercase tracking-wider rounded-[3px] border border-destaque bg-destaque text-destaque-tinta px-3 py-1.5 shadow-carimbo hover:brightness-105 transition active:translate-y-px"
             >
-              + Nova partida
+              <Plus className="size-3.5" />
+              <span>Nova partida</span>
             </Link>
           )}
         </div>
 
         {partidas.length === 0 ? (
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">
-            {isAdmin
-              ? 'Nenhuma partida ainda. Crie a primeira com "Nova partida".'
-              : 'Nenhuma partida ainda.'}
-          </p>
+          <div className="rounded-[4px] border border-borda bg-superficie p-5 text-center shadow-carimbo">
+            <p className="text-sm font-medium text-giz">
+              Ainda não tem jogo na ficha.
+            </p>
+            <p className="text-xs text-giz-fraco mt-1 font-mono">
+              {isAdmin
+                ? 'Cria a primeira partida e convoca a galera para a quinta.'
+                : 'A quinta cobra o preço do esquecimento.'}
+            </p>
+          </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {partidas.map((p) => {
               const pl = placares[p.id]
+              const carimboCls =
+                p.status === 'live'
+                  ? 'border-destaque text-destaque bg-destaque/10'
+                  : p.status === 'closed'
+                    ? 'border-perigo/60 text-perigo bg-perigo/10'
+                    : p.status === 'published'
+                      ? 'border-ok/60 text-ok bg-ok/10'
+                      : 'border-borda text-giz-fraco bg-superficie-2'
+
               return (
-                <Link
+                <div
                   key={p.id}
-                  to={p.status === 'live' ? `/partida/${p.id}/ao-vivo` : `/partida/${p.id}`}
-                  className="block rounded-lg border border-neutral-200 dark:border-neutral-800 px-3 py-3 hover:border-destaque transition"
+                  className="rounded-[4px] border-2 border-borda bg-superficie shadow-carimbo overflow-hidden transition hover:border-destaque/70"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-neutral-500 dark:text-neutral-400">
-                      {formatarDataLista(p.data_jogo)}
+                  {/* Topo do Card: Data e Status */}
+                  <div className="flex items-center justify-between px-3 py-1.5 bg-superficie-2 border-b border-borda">
+                    <span className="font-mono text-xs font-semibold text-giz">
+                      Partida #{p.id} · {formatarDataLista(p.data_jogo)}
                     </span>
                     <div className="flex items-center gap-2">
-                      <span className={`text-[10px] font-medium ${STATUS_COR[p.status]}`}>
+                      <span className={`font-display font-bold uppercase tracking-wider text-[9px] border px-1.5 py-0.5 rounded-[2px] ${carimboCls}`}>
                         {STATUS_LABEL[p.status]}
                       </span>
                       {isAdmin && (
@@ -152,23 +175,55 @@ export function Jogos() {
                             e.stopPropagation()
                             setPartidaParaExcluir(p)
                           }}
-                          className="text-neutral-400 hover:text-red-600 dark:text-neutral-500 dark:hover:text-red-500 transition"
+                          className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-[3px] text-giz-fraco hover:text-perigo hover:bg-perigo/10 transition"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="size-4" />
                         </button>
                       )}
                     </div>
                   </div>
-                  <div className="mt-1 flex items-center justify-center gap-3">
-                    <span className="text-xs text-neutral-500">Preto</span>
-                    <span className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
-                      {p.status === 'draft' || !pl
-                        ? '— × —'
-                        : `${pl.gols_time_a} × ${pl.gols_time_b}`}
-                    </span>
-                    <span className="text-xs text-neutral-500">Branco</span>
-                  </div>
-                </Link>
+
+                  {/* Mini-Painel de LED de Placar */}
+                  <Link
+                    to={p.status === 'live' ? `/partida/${p.id}/ao-vivo` : `/partida/${p.id}`}
+                    className="block bg-[#000000] p-3 text-center transition hover:bg-[#080808]"
+                  >
+                    <div className="flex items-center justify-between gap-2 max-w-sm mx-auto">
+                      {/* Time Preto */}
+                      <div className="flex-1 flex items-center justify-end gap-2 text-right">
+                        <span className="font-display font-black text-sm uppercase tracking-wider text-[#f4f1e8]">
+                          PRETO
+                        </span>
+                        <span className="size-2 rounded-full bg-[#0d0d0e] border border-[#35302a]" />
+                      </div>
+
+                      {/* Dígitos de LED */}
+                      <div className="px-3 py-1 min-w-[90px]">
+                        <span
+                          className={`font-display font-black text-3xl tabular-nums tracking-tight ${
+                            p.status === 'live'
+                              ? 'text-destaque [text-shadow:0_0_10px_rgba(255,179,0,0.5)]'
+                              : p.status === 'closed'
+                                ? 'text-giz'
+                                : 'text-destaque'
+                          }`}
+                        >
+                          {p.status === 'draft' || !pl
+                            ? '— × —'
+                            : `${pl.gols_time_a} × ${pl.gols_time_b}`}
+                        </span>
+                      </div>
+
+                      {/* Time Branco */}
+                      <div className="flex-1 flex items-center justify-start gap-2 text-left">
+                        <span className="size-2 rounded-full bg-[#f4f1e8] border border-[#35302a]" />
+                        <span className="font-display font-black text-sm uppercase tracking-wider text-[#f4f1e8]">
+                          BRANCO
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                </div>
               )
             })}
           </div>
@@ -180,9 +235,9 @@ export function Jogos() {
           open={partidaParaExcluir != null}
           onClose={() => setPartidaParaExcluir(null)}
           onConfirm={confirmarExclusao}
-          titulo="Excluir partida?"
-          mensagem={`A partida de ${formatarDataLista(partidaParaExcluir.data_jogo)} será removida permanentemente, junto com placar, votos, eventos e dívidas vinculados.`}
-          textoConfirmar={excluindo ? 'Excluindo...' : 'Excluir'}
+          titulo="Excluir partida da súmula?"
+          mensagem={`A partida de ${formatarDataLista(partidaParaExcluir.data_jogo)} será removida permanentemente, junto com histórico de placar, votos e gols.`}
+          textoConfirmar={excluindo ? 'Excluindo…' : 'Excluir'}
           tomConfirmar="perigo"
         />
       )}

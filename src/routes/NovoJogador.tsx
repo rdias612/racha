@@ -5,6 +5,7 @@ import { useAdmin } from "../hooks/useAdmin";
 import { POSICOES, POSICOES_B, type PosicaoId } from "../lib/times";
 import { MensagemEstado } from "../components/Estado";
 import { User, Shield, Star, Copy, Check, ArrowLeft, UserPlus } from "lucide-react";
+import { voltar } from "../lib/navegacao";
 
 export function NovoJogador() {
   const isAdmin = useAdmin();
@@ -75,8 +76,8 @@ export function NovoJogador() {
   return (
     <div className="px-3 py-4 pb-24 sm:px-4 max-w-2xl mx-auto space-y-5">
       <button
-        onClick={() => navigate(-1)}
-        className="inline-flex items-center gap-1 text-xs text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 transition"
+        onClick={() => voltar(navigate, '/administrador/jogadores')}
+        className="inline-flex items-center gap-1 text-xs font-mono text-giz-fraco hover:text-giz transition"
       >
         <ArrowLeft className="w-3.5 h-3.5" />
         Voltar
