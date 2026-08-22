@@ -6,6 +6,15 @@ interface PullToRefreshProps {
   threshold?: number;
 }
 
+function getScrollTop(el: HTMLElement | null): number {
+  let current: HTMLElement | null = el;
+  while (current && current !== document.body && current !== document.documentElement) {
+    if (current.scrollTop > 0) return current.scrollTop;
+    current = current.parentElement;
+  }
+  return (typeof window !== "undefined" ? window.scrollY : 0) || document.documentElement?.scrollTop || 0;
+}
+
 export function PullToRefresh({
   onRefresh,
   children,
@@ -16,16 +25,19 @@ export function PullToRefresh({
   const startY = useRef<number | null>(null);
 
   function handleTouchStart(e: TouchEvent<HTMLDivElement>) {
+    const scrollPos = getScrollTop(e.currentTarget);
     const touch = e.touches[0];
-    if (window.scrollY === 0 && e.touches.length === 1 && touch) {
+    if (scrollPos === 0 && e.touches.length === 1 && touch) {
       startY.current = touch.clientY;
     }
   }
 
   function handleTouchMove(e: TouchEvent<HTMLDivElement>) {
     if (startY.current === null || refreshing) return;
-    if (window.scrollY > 0) {
+    const scrollPos = getScrollTop(e.currentTarget);
+    if (scrollPos > 0) {
       setPullDistance(0);
+      startY.current = null;
       return;
     }
 
@@ -72,9 +84,9 @@ export function PullToRefresh({
           style={{ height: `${pullDistance}px` }}
           className="flex items-center justify-center transition-all duration-150 ease-out overflow-hidden"
         >
-          <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400 py-2">
+          <div className="flex items-center gap-2 text-xs font-mono text-giz-fraco py-2">
             <div
-              className={`w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full ${
+              className={`w-4 h-4 border-2 border-destaque border-t-transparent rounded-full ${
                 refreshing ? "animate-spin" : ""
               }`}
               style={{
@@ -85,7 +97,7 @@ export function PullToRefresh({
             />
             <span>
               {refreshing
-                ? "Atualizando..."
+                ? "Atualizando súmula..."
                 : pullDistance >= threshold
                 ? "Solte para atualizar"
                 : "Puxe para atualizar"}

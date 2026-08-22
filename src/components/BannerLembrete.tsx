@@ -51,12 +51,13 @@ export function BannerLembrete() {
       setPendentes(pendentesLista)
     }
     verificar()
-    const temPendentes = pendentes.length > 0
-    const intervalo = temPendentes ? 30_000 : 5 * 60_000
-    const i = setInterval(verificar, intervalo)
-    return () => clearInterval(i)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [jogador?.id, pendentes.length])
+    const temPendentes = pendentes.length > 0;
+    const intervalo = temPendentes ? 30_000 : 5 * 60_000;
+    const i = setInterval(verificar, intervalo);
+    return () => clearInterval(i);
+  }, [jogador?.id, pendentes.length]);
+
+
 
   // Tick a cada 1min para atualizar o countdown
   useEffect(() => {

@@ -95,8 +95,8 @@ export function Estatisticas() {
           setJogadorSelecionadoId(jogador.id);
         }
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jogador?.id]);
+
 
   const carregar = useCallback(async () => {
     if (jogadorSelecionadoId === null) return;

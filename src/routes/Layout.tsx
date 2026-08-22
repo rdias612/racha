@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   NavLink,
   Outlet,
@@ -16,6 +16,7 @@ import {
   Wallet,
   ChevronDown,
   Users,
+  WifiOff,
 } from "lucide-react";
 import { useSessao } from "../context/SessaoContext";
 import { useAdmin } from "../hooks/useAdmin";
@@ -27,6 +28,24 @@ export function Layout() {
   const isAdmin = useAdmin();
   const { pathname } = useLocation();
   const [menuAberto, setMenuAberto] = useState(false);
+  const [isOffline, setIsOffline] = useState(() =>
+    typeof navigator !== "undefined" ? !navigator.onLine : false,
+  );
+
+  useEffect(() => {
+    function handleOnline() {
+      setIsOffline(false);
+    }
+    function handleOffline() {
+      setIsOffline(true);
+    }
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
 
   const rankingAtivo = pathname.startsWith("/ranking");
   const estatisticasAtivo = pathname.startsWith("/estatisticas");
@@ -37,6 +56,18 @@ export function Layout() {
 
   return (
     <div className="min-h-full flex flex-col bg-fundo text-giz">
+      {/* Banner Global Offline */}
+      {isOffline && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex items-center justify-center gap-2 bg-perigo px-3 py-1.5 text-xs font-mono font-bold uppercase tracking-wider text-white shadow-xs"
+        >
+          <WifiOff className="size-3.5 shrink-0" />
+          <span>Modo offline — exibindo dados locais salvos</span>
+        </div>
+      )}
+
       {/* Header Sticky com Súmula Wordmark */}
       <header className="sticky top-0 z-40 shrink-0 border-b border-borda bg-fundo/95 backdrop-blur px-3 py-2 sm:px-4">
         <div className="flex items-center justify-between gap-x-4 max-w-2xl mx-auto">

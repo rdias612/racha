@@ -30,12 +30,6 @@ function mesAtualStr() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
 
-const ROTULO_TIPO: Record<TipoDivida, string> = {
-  mensalidade: "Mensalidade",
-  avulso: "Avulso",
-  outro: "Outro",
-};
-
 const COR_TIPO: Record<TipoDivida, string> = {
   mensalidade:
     "bg-destaque/15 text-destaque border-destaque/40",
@@ -44,6 +38,7 @@ const COR_TIPO: Record<TipoDivida, string> = {
   outro:
     "bg-superficie-2 text-giz-fraco border-borda",
 };
+
 
 export function Administrador() {
   const isAdmin = useAdmin();
@@ -413,8 +408,9 @@ export function Administrador() {
                               <span
                                 className={`rounded-[2px] border px-1.5 py-0.5 text-[9px] font-display uppercase tracking-wider font-bold ${COR_TIPO[d.tipo]}`}
                               >
-                                {ROTULO_TIPO[d.tipo]}
+                                {TIPOS_DIVIDA.find((t) => t.value === d.tipo)?.label ?? d.tipo}
                               </span>
+
                               {d.referencia && (
                                 <span className="text-[11px] font-mono text-giz-fraco">
                                   ref. {d.referencia}

@@ -142,6 +142,23 @@ export async function resetarSenhaJogador(id: number): Promise<void> {
 }
 
 export async function obterMediasNotasJogadores(): Promise<Record<number, number>> {
+  // 1) Tenta obter médias já agregadas no servidor via RPC
+  try {
+    const { data: rpcData, error: rpcError } = await supabase.rpc("obter_medias_notas_jogadores");
+    if (!rpcError && Array.isArray(rpcData)) {
+      const mapa: Record<number, number> = {};
+      for (const item of rpcData) {
+        if (item.jogador_id && item.media_nota != null) {
+          mapa[Number(item.jogador_id)] = Number(item.media_nota);
+        }
+      }
+      return mapa;
+    }
+  } catch {
+    // Continua para fallback caso a RPC ainda não esteja instalada
+  }
+
+  // 2) Fallback para cálculo direto
   const { data, error } = await supabase
     .from("votes")
     .select("target_id, rating");
@@ -178,4 +195,5 @@ export async function obterMediasNotasJogadores(): Promise<Record<number, number
   }
   return medias;
 }
+
 

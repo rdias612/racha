@@ -51,6 +51,8 @@ export function PartidaVotar() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [temModificacoes]);
 
+  const draftKey = partida && jogador ? `racha_voto_draft_${partida.id}_${jogador.id}` : null;
+
   useEffect(() => {
     let ativo = true;
     async function carregar() {
@@ -123,13 +125,27 @@ export function PartidaVotar() {
 
         if (!ativo) return;
 
-        const mapaNotas: Record<number, number> = {};
+        let mapaNotas: Record<number, number> = {};
         const mapaOriginais = new Map<number, number>();
 
         if (meusVotos && meusVotos.length > 0) {
           for (const v of meusVotos) {
             mapaNotas[v.target_id] = v.rating;
             mapaOriginais.set(v.target_id, v.rating);
+          }
+        } else {
+          // Tenta restaurar rascunho prévio do localStorage
+          const storageKey = `racha_voto_draft_${partidaId}_${jogador.id}`;
+          try {
+            const rawDraft = localStorage.getItem(storageKey);
+            if (rawDraft) {
+              const draftObj = JSON.parse(rawDraft);
+              if (draftObj && typeof draftObj === "object") {
+                mapaNotas = draftObj;
+              }
+            }
+          } catch {
+            // Ignora falha de localStorage
           }
         }
 
@@ -163,10 +179,21 @@ export function PartidaVotar() {
 
   function setNota(targetId: number, rating: number) {
     setFeedback(null);
-    setNotas((prev) => ({ ...prev, [targetId]: rating }));
+    setNotas((prev) => {
+      const atualizado = { ...prev, [targetId]: rating };
+      if (draftKey && votosOriginais.size === 0) {
+        try {
+          localStorage.setItem(draftKey, JSON.stringify(atualizado));
+        } catch {
+          // Ignora silenciosamente
+        }
+      }
+      return atualizado;
+    });
   }
 
-  const todosAvaliados = alvos.every((a) => notas[a.jogador_id] !== undefined);
+  const avaliadosCount = alvos.filter((a) => notas[a.jogador_id] !== undefined).length;
+  const todosAvaliados = alvos.length > 0 && avaliadosCount === alvos.length;
   const editando = votosOriginais.size > 0;
 
   function handleVoltar() {
@@ -205,6 +232,14 @@ export function PartidaVotar() {
         "Não foi possível registrar (a votação pode ter fechado ou há voto inválido).",
       );
       return;
+    }
+
+    if (draftKey) {
+      try {
+        localStorage.removeItem(draftKey);
+      } catch {
+        // Ignora
+      }
     }
 
     setVotosEnviados(true);
@@ -247,6 +282,22 @@ export function PartidaVotar() {
         <p className="mt-1 text-xs text-giz-fraco">
           Dê uma nota de 1 a 10 para cada parceiro e adversário. O craque nasce da média da galera.
         </p>
+
+        {/* Barra de Progresso Real */}
+        <div className="mt-3 space-y-1">
+          <div className="flex items-center justify-between text-xs font-mono">
+            <span className="text-giz-fraco">Progresso da cédula:</span>
+            <span className={todosAvaliados ? "text-ok font-bold" : "text-destaque font-bold"}>
+              {avaliadosCount}/{alvos.length} avaliados
+            </span>
+          </div>
+          <div className="h-2 w-full bg-superficie-2 rounded-[2px] overflow-hidden border border-borda">
+            <div
+              className={`h-full transition-all duration-200 ease-out ${todosAvaliados ? "bg-ok" : "bg-destaque"}`}
+              style={{ width: `${alvos.length ? (avaliadosCount / alvos.length) * 100 : 0}%` }}
+            />
+          </div>
+        </div>
       </div>
 
       <div className="space-y-4">

@@ -21,6 +21,9 @@ import {
   EscalacaoTimesEditor,
   LIMITE_POR_TIME,
 } from "../components/EscalacaoTimesEditor";
+import { voltar } from "../lib/navegacao";
+
+
 
 export function PartidaTimes() {
   const isAdmin = useAdmin();
@@ -69,6 +72,7 @@ export function PartidaTimes() {
 
   useEffect(() => {
     if (!partidaId) return;
+    let ativo = true;
     setCarregando(true);
     setErro(null);
     Promise.all([
@@ -78,6 +82,7 @@ export function PartidaTimes() {
       obterMediasNotasJogadores(),
     ])
       .then(([p, parts, ativos, medias]) => {
+        if (!ativo) return;
         setPartida(p);
         setParticipantes(parts);
         setJogadoresAtivos(ativos);
@@ -91,8 +96,15 @@ export function PartidaTimes() {
         }
         setTimes(init);
       })
-      .catch((e) => setErro(e.message ?? String(e)))
-      .finally(() => setCarregando(false));
+      .catch((e) => {
+        if (ativo) setErro(e.message ?? String(e));
+      })
+      .finally(() => {
+        if (ativo) setCarregando(false);
+      });
+    return () => {
+      ativo = false;
+    };
   }, [partidaId, setTimes]);
 
   if (!isAdmin) return <Navigate to="/" replace />;
@@ -169,7 +181,7 @@ export function PartidaTimes() {
       rotuloListaJogadores={`Confirmados (${confirmadosJogadores.length})`}
       salvarRotulo="Salvar times"
       salvandoRotulo="Salvando…"
-      onVoltar={() => navigate(`/partida/${partidaId}`)}
+      onVoltar={() => voltar(navigate, `/partida/${partidaId}`)}
       jogadores={confirmadosJogadores}
       times={times}
       mediasNotas={mediasNotas}

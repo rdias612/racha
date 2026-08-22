@@ -73,7 +73,7 @@ export function PartidaConfirma() {
 
 
   return (
-    <div className="px-3 py-4 pb-40 sm:px-4 space-y-5 max-w-2xl mx-auto">
+    <div className="px-3 py-4 pb-40 sm:px-4 space-y-5 max-w-2xl mx-auto text-giz">
       <div>
         <button
           onClick={() => voltar(navigate, '/partida/nova')}
@@ -81,21 +81,21 @@ export function PartidaConfirma() {
         >
           ← voltar
         </button>
-        <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-          Confirmar escalação
+        <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz sumula-header pb-2">
+          Confirmar escalação da súmula
         </h2>
       </div>
 
       {/* Resumo: data/hora + totais */}
-      <section className="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-3 space-y-3">
-        <p className="text-sm text-neutral-700 dark:text-neutral-300 capitalize">
+      <section className="rounded-[4px] border border-borda bg-superficie p-3 space-y-3 shadow-carimbo">
+        <p className="text-sm font-bold text-giz capitalize">
           {dataHoraTexto}
         </p>
         <div className="flex flex-wrap gap-2">
-          <span className="inline-flex items-center gap-1 rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 text-xs font-medium text-green-600 dark:text-green-400">
+          <span className="inline-flex items-center gap-1 rounded-[2px] border border-ok/40 bg-ok/10 px-2.5 py-1 text-xs font-display font-bold uppercase tracking-wider text-ok">
             ✓ {totalLinha} de linha
           </span>
-          <span className="inline-flex items-center gap-1 rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 text-xs font-medium text-green-600 dark:text-green-400">
+          <span className="inline-flex items-center gap-1 rounded-[2px] border border-ok/40 bg-ok/10 px-2.5 py-1 text-xs font-display font-bold uppercase tracking-wider text-ok">
             ✓ {totalGoleiros} goleiros
           </span>
         </div>
@@ -108,8 +108,8 @@ export function PartidaConfirma() {
 
       {/* CTA fixo inferior */}
       <div
-        className="fixed inset-x-0 z-40 p-3 bg-neutral-50/90 dark:bg-neutral-950/90 backdrop-blur border-t border-neutral-200 dark:border-neutral-800"
-        style={{ bottom: "calc(4rem + env(safe-area-inset-bottom))" }}
+        className="fixed inset-x-0 z-40 p-3 bg-superficie/95 backdrop-blur border-t border-borda shadow-carimbo-preto"
+        style={{ bottom: "calc(3.5rem + env(safe-area-inset-bottom))" }}
       >
         <div className="max-w-2xl mx-auto">
           <button
@@ -123,7 +123,7 @@ export function PartidaConfirma() {
                 },
               })
             }
-            className="w-full min-h-[44px] rounded-lg bg-destaque px-4 py-3 font-medium text-white active:scale-95 transition"
+            className="w-full min-h-[44px] rounded-[4px] bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo active:translate-y-px transition cursor-pointer"
           >
             Confirmar e ir para times
           </button>
@@ -140,29 +140,29 @@ interface GrupoConfirmaProps {
 
 function GrupoConfirma({ titulo, jogadores }: GrupoConfirmaProps) {
   return (
-    <section className="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden">
-      <div className="flex items-baseline justify-between px-3 py-2 border-b border-neutral-200 dark:border-neutral-800">
-        <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+    <section className="rounded-[4px] border border-borda bg-superficie overflow-hidden shadow-carimbo">
+      <div className="flex items-baseline justify-between px-3 py-2 border-b border-borda bg-superficie-2">
+        <span className="text-xs font-display font-bold uppercase tracking-wider text-giz">
           {titulo}
         </span>
-        <span className="text-xs text-neutral-500 dark:text-neutral-400 tabular-nums">
+        <span className="text-xs font-mono font-bold text-giz-fraco tabular-nums">
           {jogadores.length}
         </span>
       </div>
       <div className="px-3 py-3">
         {jogadores.length === 0 ? (
-          <p className="text-sm text-neutral-400 dark:text-neutral-600">
-            Nenhum
+          <p className="text-xs font-mono text-giz-fraco">
+            Nenhum jogador
           </p>
         ) : (
           <div className="flex flex-wrap gap-2">
             {jogadores.map((j) => (
               <span
                 key={j.id}
-                className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 dark:bg-neutral-800 px-3 py-1 text-sm text-neutral-800 dark:text-neutral-200"
+                className="inline-flex items-center gap-1.5 rounded-[2px] bg-superficie-2 border border-borda px-2.5 py-1 text-xs text-giz"
               >
-                <span className="font-medium">{j.nome}</span>
-                <span className="text-neutral-500 dark:text-neutral-400">
+                <span className="font-bold">{j.nome}</span>
+                <span className="text-[10px] font-display uppercase tracking-wider text-giz-fraco">
                   {POSICOES[j.posicao]}
                 </span>
               </span>
@@ -173,3 +173,4 @@ function GrupoConfirma({ titulo, jogadores }: GrupoConfirmaProps) {
     </section>
   );
 }
+

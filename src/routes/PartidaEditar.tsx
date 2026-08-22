@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import {
   UserPlus,
   Trash2,
@@ -22,6 +22,8 @@ import { Carregando, MensagemEstado } from "../components/Estado";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { Avatar } from "../components/Avatar";
 import { formatarDataCompleta } from "../lib/formatacao";
+import { voltar } from "../lib/navegacao";
+
 
 type FiltroModal = "todos" | "goleiros" | "linha" | "mensalistas" | "avulsos";
 
@@ -257,61 +259,61 @@ export function PartidaEditar() {
   return (
     <div className="px-3 py-4 pb-48 sm:px-4 max-w-2xl mx-auto space-y-5">
       {/* Navegação de retorno */}
-      <Link
-        to={`/partida/${partidaId}`}
-        className="inline-flex items-center gap-1 text-xs font-medium text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100 transition"
+      <button
+        onClick={() => voltar(navigate, `/partida/${partidaId}`)}
+        className="text-xs font-mono text-giz-fraco hover:text-giz transition"
       >
         ← Voltar para a partida
-      </Link>
+      </button>
 
       {/* Placar & Cabeçalho Hero */}
-      <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 shadow-sm space-y-3">
+      <div className="rounded-[4px] border border-borda bg-superficie p-4 shadow-carimbo space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
+          <span className="text-xs font-display font-bold uppercase tracking-wider text-giz-fraco">
             {primeiraVez ? "Lançamento de Resultado" : "Edição da Partida"} · #{partidaId}
           </span>
-          <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400 capitalize">
+          <span className="text-xs font-mono text-giz-fraco capitalize">
             {formatarDataCompleta(partida.data_jogo)}
           </span>
         </div>
 
         {/* Display do Placar ao Vivo */}
-        <div className="flex items-center justify-between rounded-xl bg-neutral-100 dark:bg-neutral-950 p-3">
+        <div className="flex items-center justify-between rounded-[4px] bg-[#000000] border border-borda p-3">
           {/* Time Preto */}
           <div className="flex items-center gap-2 flex-1">
-            <span className="w-3.5 h-3.5 rounded-full bg-neutral-950 border border-neutral-600 shadow-xs shrink-0" />
+            <span className="w-3.5 h-3.5 rounded-[2px] bg-[#0d0d0e] border border-[#35302a] shadow-xs shrink-0" />
             <div className="min-w-0">
-              <p className="text-xs font-bold text-neutral-900 dark:text-neutral-100 truncate">
+              <p className="text-xs font-display font-bold uppercase tracking-wider text-[#f4f1e8] truncate">
                 Preto
               </p>
-              <p className="text-[10px] text-neutral-500 dark:text-neutral-400">
+              <p className="text-[10px] font-mono text-giz-fraco">
                 {participantesPorTime.a.length} jogadores
               </p>
             </div>
           </div>
 
           {/* Números do Placar */}
-          <div className="px-4 py-1 flex items-center gap-2 text-2xl sm:text-3xl font-black tabular-nums text-neutral-900 dark:text-neutral-100">
+          <div className="px-4 py-1 flex items-center gap-2 text-2xl sm:text-3xl font-display font-black tabular-nums text-destaque">
             <span>{placarAoVivo.placarA}</span>
-            <span className="text-sm font-normal text-neutral-400">×</span>
+            <span className="text-sm font-normal text-giz-fraco">×</span>
             <span>{placarAoVivo.placarB}</span>
           </div>
 
           {/* Time Branco */}
           <div className="flex items-center justify-end gap-2 flex-1 text-right">
             <div className="min-w-0">
-              <p className="text-xs font-bold text-neutral-900 dark:text-neutral-100 truncate">
+              <p className="text-xs font-display font-bold uppercase tracking-wider text-[#f4f1e8] truncate">
                 Branco
               </p>
-              <p className="text-[10px] text-neutral-500 dark:text-neutral-400">
+              <p className="text-[10px] font-mono text-giz-fraco">
                 {participantesPorTime.b.length} jogadores
               </p>
             </div>
-            <span className="w-3.5 h-3.5 rounded-full bg-white border border-neutral-300 shadow-xs shrink-0" />
+            <span className="w-3.5 h-3.5 rounded-[2px] bg-[#f4f1e8] border border-[#d8d2c0] shadow-xs shrink-0" />
           </div>
         </div>
 
-        <p className="text-center text-[11px] text-neutral-400 dark:text-neutral-500">
+        <p className="text-center text-[11px] font-mono text-giz-fraco">
           Adicione/remova jogadores e ajuste os gols abaixo. O placar atualiza automaticamente.
         </p>
       </div>
@@ -334,22 +336,21 @@ export function PartidaEditar() {
             <section key={t} className="space-y-2.5">
               {/* Header do Time */}
               <div
-                className="rounded-xl px-3.5 py-2.5 flex items-center justify-between shadow-xs"
+                className="rounded-[4px] px-3.5 py-2.5 flex items-center justify-between shadow-carimbo border border-borda"
                 style={{
                   backgroundColor: TIMES[t].cor,
-                  color: ehPreto ? "#f9fafb" : "#111827",
-                  border: ehPreto ? "1px solid #374151" : "1px solid #e5e7eb",
+                  color: ehPreto ? "#f4f1e8" : "#0d0d0e",
                 }}
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold tracking-tight">
+                  <span className="text-sm font-display font-bold uppercase tracking-wider">
                     {TIMES[t].nome}
                   </span>
                   <span
-                    className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                    className={`text-xs px-2 py-0.5 rounded-[2px] font-mono font-medium ${
                       ehPreto
-                        ? "bg-neutral-800 text-neutral-300 border border-neutral-700"
-                        : "bg-neutral-200 text-neutral-800 border border-neutral-300"
+                        ? "bg-superficie text-giz border border-borda"
+                        : "bg-superficie-2 text-giz border border-borda"
                     }`}
                   >
                     {lista.length} jogadores {goleiros > 0 && `· 🧤 ${goleiros}`}
@@ -363,13 +364,13 @@ export function PartidaEditar() {
                     setFiltroModal("todos");
                     setModalTime(t);
                   }}
-                  className={`min-h-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-xs active:scale-95 transition cursor-pointer ${
+                  className={`min-h-[44px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-xs font-display font-bold uppercase tracking-wider shadow-carimbo active:translate-y-px transition cursor-pointer ${
                     ehPreto
-                      ? "bg-neutral-800 text-neutral-300 border border-neutral-700 hover:bg-neutral-700"
-                      : "bg-neutral-900 hover:bg-neutral-800 text-white border border-neutral-900"
+                      ? "bg-superficie text-giz border border-borda hover:bg-superficie-2"
+                      : "bg-[#0d0d0e] hover:bg-[#1b1814] text-[#f4f1e8] border border-[#0d0d0e]"
                   }`}
                 >
-                  <UserPlus className="w-3.5 h-3.5" />
+                  <UserPlus className="size-3.5 text-destaque" />
                   <span>+ Adicionar</span>
                 </button>
               </div>
@@ -384,10 +385,10 @@ export function PartidaEditar() {
                   return (
                     <div
                       key={p.jogador_id}
-                      className={`rounded-xl border p-3 bg-white dark:bg-neutral-900 transition shadow-2xs space-y-2.5 ${
+                      className={`rounded-[4px] border p-3 bg-superficie transition shadow-carimbo space-y-2.5 ${
                         temEstatisticas
-                          ? "border-amber-500/40 bg-amber-500/5 dark:bg-amber-500/5 dark:border-amber-500/30"
-                          : "border-neutral-200 dark:border-neutral-800"
+                          ? "border-destaque/60 bg-destaque/5"
+                          : "border-borda"
                       }`}
                     >
                       {/* Linha 1: Perfil do Jogador + Ações (Mover / Excluir) */}
@@ -397,20 +398,20 @@ export function PartidaEditar() {
                           <Avatar nome={p.nome ?? ""} size="sm" />
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <span className="font-bold text-sm text-neutral-900 dark:text-neutral-100 truncate">
+                              <span className="font-bold text-sm text-giz truncate">
                                 {p.nome ?? `#${p.jogador_id}`}
                               </span>
                               {temEstatisticas && (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/60 px-1.5 py-0.2 rounded shrink-0">
+                                <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-destaque bg-destaque/10 border border-destaque/30 px-1.5 py-0.2 rounded-[2px] shrink-0">
                                   {p.gols > 0 && `⚽ ${p.gols}`}
                                   {p.assistencias > 0 && `🅰️ ${p.assistencias}`}
                                   {p.gols_contra > 0 && `GC ${p.gols_contra}`}
                                 </span>
                               )}
                             </div>
-                            <span className="text-[11px] font-medium text-neutral-400 dark:text-neutral-500 flex items-center gap-1">
+                            <span className="text-[11px] font-display uppercase tracking-wider text-giz-fraco flex items-center gap-1">
                               {ehGoleiro ? (
-                                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                                <span className="text-ok font-bold">
                                   🧤 Goleiro
                                 </span>
                               ) : (
@@ -426,24 +427,24 @@ export function PartidaEditar() {
                             type="button"
                             onClick={() => moverTime(p.jogador_id)}
                             title={`Mover para o Time ${outroTimeNome}`}
-                            className="min-h-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-[11px] font-semibold text-neutral-700 dark:text-neutral-300 active:scale-95 transition cursor-pointer"
+                            className="min-h-[44px] inline-flex items-center gap-1 px-3 py-1.5 rounded-[3px] border border-borda bg-superficie-2 text-[11px] font-display font-bold uppercase tracking-wider text-giz hover:text-destaque active:translate-y-px transition cursor-pointer shadow-carimbo"
                           >
-                            <ArrowLeftRight className="w-3 h-3 text-neutral-500" />
+                            <ArrowLeftRight className="size-3.5 text-destaque" />
                             <span>{outroTimeNome}</span>
                           </button>
                           <button
                             type="button"
                             onClick={() => tentarRemover(p)}
                             title="Remover jogador da partida"
-                            className="min-h-0 p-1.5 rounded-lg border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/60 active:scale-95 transition cursor-pointer"
+                            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-[3px] border border-perigo/40 bg-superficie-2 text-perigo hover:bg-perigo/10 active:translate-y-px transition cursor-pointer shadow-carimbo"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 className="size-4" />
                           </button>
                         </div>
                       </div>
 
                       {/* Linha 2: 3 Steppers Espaçosos (Gols, Assistências, Gols Contra) */}
-                      <div className="pt-2 border-t border-neutral-100 dark:border-neutral-800/80 grid grid-cols-3 gap-2">
+                      <div className="pt-2 border-t border-borda grid grid-cols-3 gap-2">
                         <StepperBox
                           icone="⚽"
                           label="Gols"
@@ -474,8 +475,8 @@ export function PartidaEditar() {
                 })}
 
                 {lista.length === 0 && (
-                  <div className="rounded-xl border border-dashed border-neutral-300 dark:border-neutral-800 p-6 text-center text-xs text-neutral-400 dark:text-neutral-500 bg-neutral-50/50 dark:bg-neutral-900/30">
-                    <p className="mb-2">Nenhum jogador escalado no {TIMES[t].nome}.</p>
+                  <div className="rounded-[4px] border border-dashed border-borda p-6 text-center text-xs text-giz-fraco bg-superficie-2">
+                    <p className="mb-2 font-mono">Nenhum jogador escalado no {TIMES[t].nome}.</p>
                     <button
                       type="button"
                       onClick={() => {
@@ -483,9 +484,9 @@ export function PartidaEditar() {
                         setFiltroModal("todos");
                         setModalTime(t);
                       }}
-                      className="min-h-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 shadow-xs cursor-pointer"
+                      className="min-h-[44px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-xs font-display font-bold uppercase tracking-wider bg-destaque text-destaque-tinta shadow-carimbo cursor-pointer"
                     >
-                      <UserPlus className="w-3.5 h-3.5" />
+                      <UserPlus className="size-3.5" />
                       <span>Adicionar primeiro jogador</span>
                     </button>
                   </div>
@@ -501,14 +502,14 @@ export function PartidaEditar() {
 
       {/* Barra Fixa Inferior de Salvar */}
       <div
-        className="fixed inset-x-0 z-40 p-3 bg-white/90 dark:bg-neutral-950/90 backdrop-blur-md border-t border-neutral-200 dark:border-neutral-800 shadow-lg"
-        style={{ bottom: "calc(4rem + env(safe-area-inset-bottom))" }}
+        className="fixed inset-x-0 z-40 p-3 bg-superficie/95 backdrop-blur border-t border-borda shadow-carimbo-preto"
+        style={{ bottom: "calc(3.5rem + env(safe-area-inset-bottom))" }}
       >
         <div className="max-w-2xl mx-auto flex flex-col gap-1">
           <button
             onClick={() => setConfirmandoSalvar(true)}
             disabled={salvando}
-            className="w-full rounded-xl bg-destaque hover:brightness-105 px-4 py-3.5 font-bold text-white shadow-sm disabled:opacity-40 active:scale-[.99] transition cursor-pointer text-sm"
+            className="w-full min-h-[44px] rounded-[4px] bg-destaque hover:brightness-105 px-4 py-3 font-display font-bold uppercase tracking-wider text-destaque-tinta shadow-carimbo disabled:opacity-40 active:translate-y-px transition cursor-pointer text-xs"
           >
             {salvando
               ? "Salvando alterações…"
@@ -516,7 +517,7 @@ export function PartidaEditar() {
                 ? "Publicar resultado e escalação"
                 : "Salvar alterações da partida"}
           </button>
-          <p className="text-center text-[11px] text-neutral-500 dark:text-neutral-400">
+          <p className="text-center text-[10px] font-mono text-giz-fraco">
             {primeiraVez
               ? "Publica o placar e abre a votação por 24 horas."
               : "Atualiza escalação, participantes e placar imediatamente."}
@@ -526,42 +527,44 @@ export function PartidaEditar() {
 
       {/* Modal para Adicionar Jogador com Busca e Filtros Rápidos */}
       {modalTime && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/65 backdrop-blur-xs animate-fade-in">
-          <div className="w-full max-w-md max-h-[85vh] flex flex-col rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-2xl overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/75 backdrop-blur-xs animate-fade-in">
+          <div className="w-full max-w-md max-h-[85vh] flex flex-col rounded-[4px] border border-borda bg-superficie shadow-carimbo-preto overflow-hidden text-giz">
             {/* Cabeçalho do Modal */}
-            <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between bg-neutral-50 dark:bg-neutral-950">
+            <div className="p-4 border-b border-borda flex items-center justify-between bg-superficie-2">
               <div className="flex items-center gap-2">
-                <UserPlus className="w-4 h-4 text-destaque" />
-                <h3 className="text-sm font-bold text-neutral-900 dark:text-neutral-100">
+                <UserPlus className="size-4 text-destaque" />
+                <h3 className="text-sm font-display font-bold uppercase tracking-wider text-giz">
                   Adicionar ao {TIMES[modalTime].nome}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setModalTime(null)}
-                className="min-h-0 p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 cursor-pointer"
+                aria-label="Fechar"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-[3px] text-giz-fraco hover:text-giz cursor-pointer"
               >
-                <X className="w-4 h-4" />
+                <X className="size-4" />
               </button>
             </div>
 
             {/* Busca & Filtros */}
-            <div className="p-3 border-b border-neutral-200 dark:border-neutral-800 space-y-2 bg-white dark:bg-neutral-900">
+            <div className="p-3 border-b border-borda space-y-2 bg-superficie">
               <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-giz-fraco" />
                 <input
                   type="text"
                   autoFocus
                   placeholder="Buscar por nome ou apelido..."
                   value={buscaJogador}
                   onChange={(e) => setBuscaJogador(e.target.value)}
-                  className="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 pl-9 pr-8 py-2 text-sm text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-destaque"
+                  className="w-full rounded-[4px] border border-borda bg-superficie-2 pl-9 pr-8 py-2 text-sm text-giz placeholder-giz-fraco focus:outline-none focus:border-destaque"
                 />
                 {buscaJogador && (
                   <button
                     type="button"
                     onClick={() => setBuscaJogador("")}
-                    className="min-h-0 absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-neutral-400 hover:text-neutral-600"
+                    aria-label="Limpar busca"
+                    className="min-h-[44px] min-w-[44px] flex items-center justify-center absolute right-0 top-1/2 -translate-y-1/2 text-xs text-giz-fraco hover:text-giz"
                   >
                     ✕
                   </button>
@@ -583,10 +586,10 @@ export function PartidaEditar() {
                     key={f.id}
                     type="button"
                     onClick={() => setFiltroModal(f.id)}
-                    className={`min-h-0 px-2.5 py-1 rounded-full font-medium whitespace-nowrap transition cursor-pointer ${
+                    className={`min-h-[36px] px-2.5 py-1 rounded-[3px] font-display font-bold uppercase tracking-wider whitespace-nowrap transition cursor-pointer ${
                       filtroModal === f.id
-                        ? "bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900"
-                        : "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200"
+                        ? "bg-destaque text-destaque-tinta shadow-carimbo"
+                        : "bg-superficie-2 border border-borda text-giz-fraco hover:text-giz"
                     }`}
                   >
                     {f.label}
@@ -596,30 +599,30 @@ export function PartidaEditar() {
             </div>
 
             {/* Lista com scroll otimizado */}
-            <div className="flex-1 overflow-y-auto divide-y divide-neutral-100 dark:divide-neutral-800/80 p-2 space-y-1">
+            <div className="flex-1 overflow-y-auto divide-y divide-borda p-2 space-y-1">
               {candidatosAdicionar.map((j) => (
                 <button
                   key={j.id}
                   type="button"
                   onClick={() => adicionarJogador(j, modalTime)}
-                  className="w-full p-2.5 rounded-xl flex items-center justify-between gap-3 text-left hover:bg-neutral-100 dark:hover:bg-neutral-800/60 active:scale-[.99] transition cursor-pointer"
+                  className="w-full p-2.5 rounded-[3px] flex items-center justify-between gap-3 text-left hover:bg-superficie-2 active:translate-y-px transition cursor-pointer"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <Avatar nome={j.nome} size="sm" />
                     <div className="min-w-0">
-                      <p className="text-sm font-bold text-neutral-900 dark:text-neutral-100 truncate">
+                      <p className="text-sm font-bold text-giz truncate">
                         {j.nome}
                       </p>
-                      <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                      <p className="text-[10px] font-mono text-giz-fraco">
                         {j.is_mensalista ? "Mensalista" : "Avulso"}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
+                    <span className="text-[10px] font-display uppercase tracking-wider text-giz-fraco">
                       {j.posicao === "goleiro" ? "🧤 Goleiro" : POSICOES[j.posicao] ?? "Linha"}
                     </span>
-                    <span className="min-h-0 px-2 py-1 rounded-md bg-destaque/15 text-destaque text-xs font-bold">
+                    <span className="min-h-[32px] inline-flex items-center px-2.5 py-1 rounded-[2px] bg-destaque/15 text-destaque text-xs font-display font-bold uppercase tracking-wider">
                       + Escalar
                     </span>
                   </div>
@@ -627,7 +630,7 @@ export function PartidaEditar() {
               ))}
 
               {candidatosAdicionar.length === 0 && (
-                <div className="py-12 text-center text-xs text-neutral-400">
+                <div className="py-12 text-center text-xs font-mono text-giz-fraco">
                   {buscaJogador
                     ? "Nenhum jogador encontrado com essa busca."
                     : "Nenhum jogador disponível neste filtro."}
@@ -636,11 +639,11 @@ export function PartidaEditar() {
             </div>
 
             {/* Rodapé do Modal */}
-            <div className="p-3 border-t border-neutral-200 dark:border-neutral-800 flex justify-end bg-neutral-50 dark:bg-neutral-950">
+            <div className="p-3 border-t border-borda flex justify-end bg-superficie-2">
               <button
                 type="button"
                 onClick={() => setModalTime(null)}
-                className="min-h-0 px-4 py-2 rounded-xl border border-neutral-300 dark:border-neutral-700 text-xs font-semibold text-neutral-700 dark:text-neutral-300 cursor-pointer"
+                className="min-h-[44px] px-4 py-2 rounded-[3px] border border-borda text-xs font-display font-bold uppercase tracking-wider text-giz hover:bg-superficie cursor-pointer"
               >
                 Fechar
               </button>
@@ -677,7 +680,7 @@ export function PartidaEditar() {
   );
 }
 
-// Componente Stepper em formato de Card para excelente UX Mobile
+// Componente Stepper em formato de Card para excelente UX Mobile com alvos de 44px
 function StepperBox({
   icone,
   label,
@@ -699,25 +702,25 @@ function StepperBox({
 
   const bgStyle = ativo
     ? corAtiva === "destaque"
-      ? "bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700/60"
+      ? "bg-destaque/10 border-destaque/60 text-destaque"
       : corAtiva === "azul"
-        ? "bg-blue-50 dark:bg-blue-950/40 border-blue-300 dark:border-blue-700/60"
-        : "bg-red-50 dark:bg-red-950/40 border-red-300 dark:border-red-700/60"
-    : "bg-neutral-50 dark:bg-neutral-950/50 border-neutral-200 dark:border-neutral-800";
+        ? "bg-superficie-2 border-destaque text-giz"
+        : "bg-perigo/10 border-perigo/60 text-perigo"
+    : "bg-superficie-2 border-borda text-giz-fraco";
 
   const numColor = ativo
     ? corAtiva === "destaque"
-      ? "text-amber-700 dark:text-amber-300"
+      ? "text-destaque font-bold"
       : corAtiva === "azul"
-        ? "text-blue-700 dark:text-blue-300"
-        : "text-red-700 dark:text-red-300"
-    : "text-neutral-700 dark:text-neutral-300";
+        ? "text-giz font-bold"
+        : "text-perigo font-bold"
+    : "text-giz";
 
   return (
     <div
-      className={`rounded-xl border p-2 flex flex-col items-center justify-between transition ${bgStyle}`}
+      className={`rounded-[4px] border p-2 flex flex-col items-center justify-between transition ${bgStyle}`}
     >
-      <div className="flex items-center gap-1 text-[11px] font-bold text-neutral-500 dark:text-neutral-400 mb-1">
+      <div className="flex items-center gap-1 text-[11px] font-display font-bold uppercase tracking-wider text-giz-fraco mb-1">
         <span>{icone}</span>
         <span>{label}</span>
       </div>
@@ -728,12 +731,12 @@ function StepperBox({
           onClick={onMenos}
           disabled={disabled || valor === 0}
           aria-label={`Diminuir ${label}`}
-          className="min-h-0 h-8 w-8 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 text-sm font-bold flex items-center justify-center disabled:opacity-20 active:scale-95 transition shadow-2xs cursor-pointer"
+          className="min-h-[44px] min-w-[44px] rounded-[3px] border border-borda bg-superficie text-giz text-sm font-bold flex items-center justify-center disabled:opacity-20 active:translate-y-px transition shadow-carimbo cursor-pointer"
         >
           −
         </button>
 
-        <span className={`text-base font-black tabular-nums ${numColor}`}>
+        <span className={`text-base font-mono font-black tabular-nums ${numColor}`}>
           {valor}
         </span>
 
@@ -742,12 +745,12 @@ function StepperBox({
           onClick={onMais}
           disabled={disabled}
           aria-label={`Aumentar ${label}`}
-          className={`min-h-0 h-8 w-8 rounded-lg text-sm font-bold flex items-center justify-center active:scale-95 transition shadow-2xs cursor-pointer ${
+          className={`min-h-[44px] min-w-[44px] rounded-[3px] text-sm font-bold flex items-center justify-center active:translate-y-px transition shadow-carimbo cursor-pointer ${
             corAtiva === "destaque"
-              ? "bg-destaque text-white hover:brightness-105"
+              ? "bg-destaque text-destaque-tinta hover:brightness-105 border border-destaque"
               : corAtiva === "azul"
-                ? "bg-blue-600 text-white hover:bg-blue-500"
-                : "bg-red-600 text-white hover:bg-red-500"
+                ? "bg-superficie text-giz hover:bg-superficie-2 border border-borda"
+                : "bg-perigo text-white hover:bg-perigo/90 border border-perigo"
           } disabled:opacity-30`}
         >
           +
@@ -756,3 +759,4 @@ function StepperBox({
     </div>
   );
 }
+

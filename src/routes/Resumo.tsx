@@ -12,6 +12,8 @@ import {
 } from "../lib/partidas";
 import { formatarDataCompleta, formatarDataMobile } from "../lib/formatacao";
 
+import { formatarMensagemErro } from "../lib/erros";
+
 interface ResumoAno {
   ano: number;
   total_partidas: number;
@@ -76,7 +78,7 @@ export function Resumo() {
       if (isAtivo && !isAtivo()) return;
 
       if (respResumo.error) {
-        setErro(respResumo.error.message);
+        setErro(formatarMensagemErro(respResumo.error));
       } else {
         setResumo(respResumo.data?.[0] ?? null);
       }
@@ -95,7 +97,7 @@ export function Resumo() {
       }
     } catch (e) {
       if (isAtivo && !isAtivo()) return;
-      setErro(e instanceof Error ? e.message : String(e));
+      setErro(formatarMensagemErro(e));
     } finally {
       if (!isAtivo || isAtivo()) setCarregando(false);
     }

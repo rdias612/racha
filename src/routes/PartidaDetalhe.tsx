@@ -37,6 +37,9 @@ import { ConfirmDialog } from '../components/ConfirmDialog'
 import { formatarDataCompleta, formatarDataMobile, formatarFechamento } from '../lib/formatacao'
 import { Avatar } from '../components/Avatar'
 import { voltar } from '../lib/navegacao'
+import { vibrateLight, vibrateSuccess } from '../lib/haptics'
+import { formatarMensagemErro } from '../lib/erros'
+
 
 export function PartidaDetalhe() {
   const { id } = useParams<{ id: string }>()
@@ -560,7 +563,7 @@ function BotoesSelf({ status, podeConf, ocupadas, processando, onAtualizar }: Pr
   )
 }
 
-// Controles do admin (pode mexer em qualquer jogador).
+// Controles do admin (pode mexer em qualquer jogador com alvos de 44px).
 function BotoesAdmin({
   status,
   podeConf,
@@ -569,7 +572,7 @@ function BotoesAdmin({
   onRemover,
 }: PropsBotoes & { onRemover?: () => void }) {
   const mini =
-    'min-h-[34px] min-w-[34px] rounded-[3px] border text-xs font-display font-bold uppercase active:translate-y-px transition disabled:opacity-30'
+    'min-h-[44px] min-w-[44px] rounded-[3px] border text-xs font-display font-bold uppercase active:translate-y-px transition disabled:opacity-30 flex items-center justify-center'
   const off = 'border-borda bg-superficie-2 text-giz-fraco hover:text-giz'
   return (
     <div className="flex items-center gap-1.5">
@@ -640,18 +643,23 @@ function Confirmacoes({
   isAdmin: boolean
   onAtualizar: () => Promise<void> | void
 }) {
+  const [participantesLocais, setParticipantesLocais] = useState<Participante[]>(participantes)
   const [processando, setProcessando] = useState<number | null>(null)
   const [erroLocal, setErroLocal] = useState<string | null>(null)
   const [mostrandoAvulso, setMostrandoAvulso] = useState(false)
   const [todosAtivos, setTodosAtivos] = useState<JogadorLista[]>([])
 
+  useEffect(() => {
+    setParticipantesLocais(participantes)
+  }, [participantes])
+
   const closesAt = partida.confirmacao_closes_at
   const agora = new Date()
   const prazoPassou = !!closesAt && agora.getTime() >= new Date(closesAt).getTime()
-  const ocupadas = vagasOcupadas(participantes, closesAt, agora)
+  const ocupadas = vagasOcupadas(participantesLocais, closesAt, agora)
   const livres = Math.max(0, CAPACIDADE_PARTIDA - ocupadas)
 
-  const ordenados = [...participantes].sort((a, b) => {
+  const ordenados = [...participantesLocais].sort((a, b) => {
     const peso = (s: StatusConfirmacao) =>
       s === 'confirmado' ? 0 : s === 'pendente' ? 1 : 2
     return (
@@ -663,6 +671,15 @@ function Confirmacoes({
   async function atualizar(jogadorId: number, alvo: StatusConfirmacao) {
     setErroLocal(null)
     setProcessando(jogadorId)
+    if (alvo === 'confirmado') vibrateSuccess()
+    else vibrateLight()
+
+    // Atualização otimista imediata
+    const anterior = participantesLocais
+    setParticipantesLocais((prev) =>
+      prev.map((p) => (p.jogador_id === jogadorId ? { ...p, status_confirmacao: alvo } : p))
+    )
+
     try {
       const ehSelf = jogadorId === jogadorLogadoId
       const ok =
@@ -670,12 +687,14 @@ function Confirmacoes({
           ? await adminDefinirConfirmacao(partida.id, jogadorId, alvo, jogadorLogadoId)
           : await confirmarPresenca(partida.id, jogadorId, alvo)
       if (!ok) {
+        setParticipantesLocais(anterior) // Rollback
         setErroLocal('Não foi possível atualizar — confira as vagas disponíveis.')
       } else {
         await onAtualizar()
       }
     } catch (e) {
-      setErroLocal(e instanceof Error ? e.message : String(e))
+      setParticipantesLocais(anterior) // Rollback
+      setErroLocal(formatarMensagemErro(e))
     } finally {
       setProcessando(null)
     }
@@ -688,7 +707,7 @@ function Confirmacoes({
       await removerParticipanteDraft(partida.id, jogadorId)
       await onAtualizar()
     } catch (e) {
-      setErroLocal(e instanceof Error ? e.message : String(e))
+      setErroLocal(formatarMensagemErro(e))
     } finally {
       setProcessando(null)
     }

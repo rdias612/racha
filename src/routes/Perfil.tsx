@@ -6,7 +6,10 @@ import { POSICOES } from '../lib/times'
 import { atualizarNomeJogador } from '../lib/jogadores'
 import { Carregando, MensagemEstado } from '../components/Estado'
 import { Avatar } from '../components/Avatar'
+import { SkeletonPerfil } from '../components/Skeletons'
+import { formatarMensagemErro } from '../lib/erros'
 import { ativarPush, desativarPush, statusPush, type StatusPush } from '../lib/pwa'
+
 
 interface Stats {
   jogador_id: number
@@ -163,10 +166,14 @@ export function Perfil() {
         setPushStatus('ativado')
       }
     } catch (error) {
-      setErroPush(error instanceof Error ? error.message : 'Erro ao alterar notificações.')
+      setErroPush(formatarMensagemErro(error))
     } finally {
       setAlterandoPush(false)
     }
+  }
+
+  if (carregandoStats && !stats) {
+    return <SkeletonPerfil />
   }
 
   return (
