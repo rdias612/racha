@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2, Plus } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAdmin } from '../hooks/useAdmin';
+import { useCache, invalidarCache } from '../hooks/useCache';
 import { useSessao } from '../context/SessaoContext';
 import { MensagemEstado } from '../components/Estado';
 import { SkeletonJogos } from '../components/Skeletons';
@@ -25,13 +26,15 @@ interface Placar {
   gols_time_b: number;
 }
 
+interface DadosJogos {
+  partidas: Partida[];
+  placares: Record<number, Placar>;
+}
+
 export function Jogos() {
   const isAdmin = useAdmin();
   const { jogador } = useSessao();
-  const [partidas, setPartidas] = useState<Partida[]>([]);
-  const [placares, setPlacares] = useState<Record<number, Placar>>({});
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState<string | null>(null);
+  const [idsExcluidos, setIdsExcluidos] = useState<Set<number>>(new Set());
   const [partidaParaExcluir, setPartidaParaExcluir] = useState<Partida | null>(null);
   const [excluindo, setExcluindo] = useState(false);
   const [snackbar, setSnackbar] = useState<{
@@ -44,43 +47,33 @@ export function Jogos() {
     setSnackbar({ visivel: true, tipo, mensagem });
   }
 
-  const carregar = useCallback(async (isAtivo?: () => boolean) => {
-    setCarregando(true);
-    setErro(null);
+  // Mural completo (partidas + placares) cacheado em 'jogos': revisitas
+  // renderizam na hora e revalidam em background.
+  const buscar = useCallback(async (): Promise<DadosJogos> => {
     const { data: ps, error } = await supabase
       .from('partidas')
       .select('id, data_jogo, status')
       .order('data_jogo', { ascending: false });
+    if (error) throw error;
 
-    if (isAtivo && !isAtivo()) return;
-    if (error) {
-      setErro(error.message);
-      setCarregando(false);
-      return;
-    }
-    setPartidas(ps ?? []);
-
-    if (ps && ps.length > 0) {
-      const ids = ps.map((p) => p.id);
+    const partidas = ps ?? [];
+    const placares: Record<number, Placar> = {};
+    if (partidas.length > 0) {
+      const ids = partidas.map((p) => p.id);
       const { data: pls } = await supabase
         .from('partida_placar')
         .select('partida_id, gols_time_a, gols_time_b')
         .in('partida_id', ids);
-      if (isAtivo && !isAtivo()) return;
-      const mapa: Record<number, Placar> = {};
-      for (const pl of pls ?? []) mapa[pl.partida_id] = pl;
-      setPlacares(mapa);
+      for (const pl of pls ?? []) placares[pl.partida_id] = pl;
     }
-    if (!isAtivo || isAtivo()) setCarregando(false);
+    return { partidas, placares };
   }, []);
 
-  useEffect(() => {
-    let ativo = true;
-    carregar(() => ativo);
-    return () => {
-      ativo = false;
-    };
-  }, [carregar]);
+  const { dados, carregando, erro, recarregar } = useCache<DadosJogos>('jogos', buscar);
+
+  // Exclusões locais sobrepõem o cache até a próxima busca na rede.
+  const partidas = (dados?.partidas ?? []).filter((p) => !idsExcluidos.has(p.id));
+  const placares = dados?.placares ?? {};
 
   async function confirmarExclusao() {
     const alvo = partidaParaExcluir;
@@ -89,7 +82,8 @@ export function Jogos() {
     try {
       const ok = await excluirPartida(alvo.id, jogador.id);
       if (ok) {
-        setPartidas((prev) => prev.filter((p) => p.id !== alvo.id));
+        setIdsExcluidos((anteriores) => new Set(anteriores).add(alvo.id));
+        invalidarCache('jogos');
         mostrarSnackbar('sucesso', 'Partida excluída da súmula');
       } else {
         mostrarSnackbar('erro', 'Não foi possível excluir a partida');
@@ -103,11 +97,13 @@ export function Jogos() {
   }
 
   if (carregando) return <SkeletonJogos />;
-  if (erro)
+  // Erro apenas na primeira visita (sem cache): com dados em tela, a falha de
+  // revalidação em background é tolerada silenciosamente.
+  if (erro && !dados)
     return <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">{erro}</MensagemEstado>;
 
   return (
-    <PullToRefresh onRefresh={carregar}>
+    <PullToRefresh onRefresh={recarregar}>
       <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
         {/* Cabeçalho de Súmula */}
         <div className="flex items-center justify-between sumula-header pb-2">

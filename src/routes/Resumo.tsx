@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { MensagemEstado } from '../components/Estado';
 import { SkeletonResumo } from '../components/Skeletons';
@@ -8,7 +8,7 @@ import { PullToRefresh } from '../components/PullToRefresh';
 import { supabase } from '../lib/supabase';
 import { carregarParticipantes, vagasOcupadas, CAPACIDADE_PARTIDA } from '../lib/partidas';
 import { formatarDataCompleta, formatarDataMobile } from '../lib/formatacao';
-import { formatarMensagemErro } from '../lib/erros';
+import { useCache } from '../hooks/useCache';
 
 interface ResumoAno {
   ano: number;
@@ -37,6 +37,11 @@ interface ResumoAno {
   seca_vitorias: number | null;
 }
 
+interface DadosResumo {
+  resumo: ResumoAno | null;
+  proxima: { id: number; data_jogo: string; ocupadas: number } | null;
+}
+
 interface DestaqueProps {
   titulo: string;
   badge?: string;
@@ -47,71 +52,45 @@ interface DestaqueProps {
 
 export function Resumo() {
   const ano = new Date().getFullYear();
-  const [resumo, setResumo] = useState<ResumoAno | null>(null);
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState<string | null>(null);
-  const [proxima, setProxima] = useState<{
-    id: number;
-    data_jogo: string;
-    ocupadas: number;
-  } | null>(null);
 
-  const carregar = useCallback(
-    async (isAtivo?: () => boolean) => {
-      setCarregando(true);
-      setErro(null);
-      try {
-        const [respResumo, respProx] = await Promise.all([
-          supabase.rpc('resumo_ano', { p_ano: ano }),
-          supabase
-            .from('partidas')
-            .select('id, data_jogo, confirmacao_closes_at')
-            .eq('status', 'draft')
-            .order('data_jogo', { ascending: true })
-            .limit(1)
-            .maybeSingle(),
-        ]);
+  // Boletim completo (RPC resumo_ano + próxima partida draft + ocupação de vagas)
+  // cacheado em 'resumo': revisitas renderizam na hora e revalidam em background.
+  const buscar = useCallback(async (): Promise<DadosResumo> => {
+    const [respResumo, respProx] = await Promise.all([
+      supabase.rpc('resumo_ano', { p_ano: ano }),
+      supabase
+        .from('partidas')
+        .select('id, data_jogo, confirmacao_closes_at')
+        .eq('status', 'draft')
+        .order('data_jogo', { ascending: true })
+        .limit(1)
+        .maybeSingle(),
+    ]);
 
-        if (isAtivo && !isAtivo()) return;
+    if (respResumo.error) throw respResumo.error;
 
-        if (respResumo.error) {
-          setErro(formatarMensagemErro(respResumo.error));
-        } else {
-          setResumo(respResumo.data?.[0] ?? null);
-        }
+    let proxima: DadosResumo['proxima'] = null;
+    if (respProx.data) {
+      const parts = await carregarParticipantes(respProx.data.id);
+      proxima = {
+        id: respProx.data.id,
+        data_jogo: respProx.data.data_jogo,
+        ocupadas: vagasOcupadas(parts, respProx.data.confirmacao_closes_at),
+      };
+    }
 
-        if (respProx.data) {
-          const parts = await carregarParticipantes(respProx.data.id);
-          if (isAtivo && !isAtivo()) return;
-          const ocupadas = vagasOcupadas(parts, respProx.data.confirmacao_closes_at);
-          setProxima({
-            id: respProx.data.id,
-            data_jogo: respProx.data.data_jogo,
-            ocupadas,
-          });
-        } else {
-          setProxima(null);
-        }
-      } catch (e) {
-        if (isAtivo && !isAtivo()) return;
-        setErro(formatarMensagemErro(e));
-      } finally {
-        if (!isAtivo || isAtivo()) setCarregando(false);
-      }
-    },
-    [ano]
-  );
+    return { resumo: respResumo.data?.[0] ?? null, proxima };
+  }, [ano]);
 
-  useEffect(() => {
-    let ativo = true;
-    carregar(() => ativo);
-    return () => {
-      ativo = false;
-    };
-  }, [carregar]);
+  const { dados, carregando, erro, recarregar } = useCache<DadosResumo>('resumo', buscar);
+
+  const resumo = dados?.resumo ?? null;
+  const proxima = dados?.proxima ?? null;
 
   if (carregando) return <SkeletonResumo />;
-  if (erro) {
+  // Erro apenas na primeira visita (sem cache): com dados em tela, a falha de
+  // revalidação em background é tolerada silenciosamente.
+  if (erro && !dados) {
     return <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">{erro}</MensagemEstado>;
   }
 
@@ -165,7 +144,7 @@ export function Resumo() {
     : [];
 
   return (
-    <PullToRefresh onRefresh={carregar}>
+    <PullToRefresh onRefresh={recarregar}>
       <div className="px-3 py-4 pb-20 sm:px-4 sm:mx-auto sm:max-w-2xl text-giz space-y-4">
         {/* Cabeçalho Editorial de Súmula */}
         <div className="flex items-end justify-between sumula-header pb-2">

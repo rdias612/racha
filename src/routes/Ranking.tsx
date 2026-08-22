@@ -3,6 +3,7 @@ import { NavLink, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { POSICOES, type PosicaoId } from '../lib/times';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
+import { useCache } from '../hooks/useCache';
 import { useSwipeTabs } from '../hooks/useSwipeTabs';
 import { MensagemEstado } from '../components/Estado';
 import { SkeletonRanking } from '../components/Skeletons';
@@ -71,9 +72,6 @@ export function Ranking() {
   const { metrica: parametro } = useParams<{ metrica: Metrica }>();
   const metrica: Metrica = parametro && parametro in metricas ? parametro : 'pontos';
   const configuracao = metricas[metrica];
-  const [linhas, setLinhas] = useState<LinhaRanking[]>([]);
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState<string | null>(null);
   const [colunaOrdenacao, setColunaOrdenacao] = useState<ColunaOrdenacao>(configuracao.campo);
   const [direcaoOrdenacao, setDirecaoOrdenacao] = useState<DirecaoOrdenacao>('desc');
   const [posicaoFiltro, setPosicaoFiltro] = useState<PosicaoId | 'todas'>('todas');
@@ -91,46 +89,36 @@ export function Ranking() {
     setDirecaoOrdenacao('desc');
   }, [configuracao.campo]);
 
-  const carregar = useCallback(
-    async (isAtivo?: () => boolean) => {
-      let query = supabase
-        .from('ranking')
-        .select(
-          'jogador_id, nome, posicao, pontos, vitorias, empates, derrotas, partidas, gols, assistencias, gols_contra'
-        )
-        .order('pontos', { ascending: false })
-        .order('vitorias', { ascending: false })
-        .order('partidas', { ascending: false })
-        .order('gols', { ascending: false })
-        .order('assistencias', { ascending: false })
-        .order('nome', { ascending: true });
+  // Cache por filtro de posição: trocar de filtro serve o cache na hora (ou
+  // mantém a lista atual enquanto busca) sem nunca piscar skeleton.
+  const buscar = useCallback(async (): Promise<LinhaRanking[]> => {
+    let query = supabase
+      .from('ranking')
+      .select(
+        'jogador_id, nome, posicao, pontos, vitorias, empates, derrotas, partidas, gols, assistencias, gols_contra'
+      )
+      .order('pontos', { ascending: false })
+      .order('vitorias', { ascending: false })
+      .order('partidas', { ascending: false })
+      .order('gols', { ascending: false })
+      .order('assistencias', { ascending: false })
+      .order('nome', { ascending: true });
 
-      if (posicaoFiltro !== 'todas') {
-        query = query.eq('posicao', posicaoFiltro);
-      }
+    if (posicaoFiltro !== 'todas') {
+      query = query.eq('posicao', posicaoFiltro);
+    }
 
-      const { data, error } = await query;
+    const { data, error } = await query;
+    if (error) throw error;
+    return data ?? [];
+  }, [posicaoFiltro]);
 
-      if (isAtivo && !isAtivo()) return;
-
-      if (error) {
-        setErro(error.message);
-      } else {
-        setLinhas(data ?? []);
-      }
-
-      if (!isAtivo || isAtivo()) setCarregando(false);
-    },
-    [posicaoFiltro]
+  const { dados, carregando, erro, recarregar } = useCache<LinhaRanking[]>(
+    `ranking:${posicaoFiltro}`,
+    buscar
   );
 
-  useEffect(() => {
-    let ativo = true;
-    carregar(() => ativo);
-    return () => {
-      ativo = false;
-    };
-  }, [carregar]);
+  const linhas = dados ?? [];
 
   const maximoPartidas = Math.max(6, ...linhas.map((linha) => linha.partidas));
 
@@ -139,7 +127,9 @@ export function Ranking() {
   }, [maximoPartidas]);
 
   if (carregando) return <SkeletonRanking />;
-  if (erro)
+  // Erro apenas na primeira visita (sem cache): com dados em tela, a falha de
+  // revalidação em background é tolerada silenciosamente.
+  if (erro && !dados)
     return <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">{erro}</MensagemEstado>;
 
   function valorOrdenacao(linha: LinhaRanking, coluna: ColunaOrdenacao) {
@@ -187,7 +177,7 @@ export function Ranking() {
   const linhasFiltradas = linhasOrdenadas.filter((linha) => linha.partidas >= minimoPartidas);
 
   return (
-    <PullToRefresh onRefresh={carregar}>
+    <PullToRefresh onRefresh={recarregar}>
       <div
         className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto touch-pan-y text-giz"
         {...swipeHandlers}
