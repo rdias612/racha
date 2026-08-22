@@ -239,7 +239,7 @@ Cards com borda e sombra são utilizados **apenas** quando houver necessidade se
 - **Ações Rápidas / Efêmeras:** `<Snackbar />` posicionado acima da TabBar (`bottom-[calc(4.5rem+env(safe-area-inset-bottom))]`) com auto-dismiss em 3s.
 - **Mensagens Persistentes / Erros de Tela:** `<MensagemEstado tipo="erro" | "sucesso" | "info" />`.
 - **Empty States (Estados Vazios Informativos):** Nunca deixar tela em branco. Exibir mensagem em tom esportivo com orientação clara do que fazer.
-- **Skeletons (CLS = 0):** `<SkeletonResumo />`, `<SkeletonDetalhe />`, `<SkeletonRanking />` espelhando a mesma altura física e grid do conteúdo carregado.
+- **Skeletons (CLS = 0):** `<SkeletonResumo />`, `<SkeletonDetalhe />`, `<SkeletonRanking />` espelhando a mesma altura física e grid do conteúdo carregado. Exibidos **apenas na primeira visita** (sem cache): revisitas renderizam o dado em cache instantaneamente, com revalidação silenciosa em background (`useCache`). No lazy loading de rotas, o skeleton de fallback é selecionado por pathname dentro do `Layout`, mantendo a casca do app (Header/TabBar) estável — nunca pisca a moldura.
 
 ---
 
@@ -280,7 +280,7 @@ Cards com borda e sombra são utilizados **apenas** quando houver necessidade se
 ### 4.3 Progressive Enhancement & PWA
 
 - **Feedback Háptico (`haptics.ts`):** `vibrateLight()`, `vibrateSuccess()`, `vibrateGoal()`, `vibrateWarning()` e `vibrateError()` devem ser tratados como melhoria progressiva com fallback silencioso para dispositivos sem suporte à Vibration API.
-- **Pull-to-Refresh:** Integrado nas telas com dados voláteis (Resumo, Jogos, Ranking) respeitando o contêiner de rolagem ativo; não aplicar mecanicamente em telas estáticas de formulários.
+- **Pull-to-Refresh:** Integrado nas telas com dados voláteis (Resumo, Jogos, Ranking) respeitando o contêiner de rolagem ativo; não aplicar mecanicamente em telas estáticas de formulários. Em telas com cache (`useCache`), o gesto invoca `recarregar` — busca na rede que aguarda a resposta e atualiza o cache — garantindo dado fresco mesmo com conteúdo em memória.
 - **Resiliência de Navegação:** Sempre usar `voltar(navigate, fallback)` para que usuários vindos de notificações push ou deep-links não fiquem travados.
 
 ---

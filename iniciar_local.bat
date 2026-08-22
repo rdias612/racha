@@ -7,6 +7,11 @@ echo    RACHA GRAGOATA CBO - FRONTEND LOCAL (5173)
 echo ===================================================
 echo.
 
+rem Modos de uso:
+rem   iniciar_local.bat        -> build de producao + preview (comportamento padrao)
+rem   iniciar_local.bat dev    -> servidor de desenvolvimento do Vite (com HMR)
+set MODO=%~1
+
 rem 1. Verifica Node.js
 where node >nul 2>nul
 if %errorlevel% neq 0 (
@@ -40,8 +45,28 @@ if not exist "node_modules" (
     )
 )
 
-echo [OK] Servidor Vite iniciando na porta 5173...
+if /i "%MODO%"=="dev" goto dev
+
+rem 4. Build de producao (checagem de tipos + vite build)
+echo [INFO] Gerando build de producao (npm run build)...
+echo.
+call npm run build
+if %errorlevel% neq 0 (
+    echo [ERRO] Falha no build de producao. Corrija os erros acima antes de iniciar.
+    pause
+    exit /b 1
+)
+
+echo.
+echo [OK] Build concluido. Iniciando preview em http://localhost:5173 ...
+echo.
+call npx vite preview --port 5173 --strictPort --open
+goto fim
+
+:dev
+echo [OK] Modo desenvolvimento. Servidor Vite iniciando na porta 5173...
 echo.
 call npx vite --port 5173 --strictPort --open
 
+:fim
 endlocal

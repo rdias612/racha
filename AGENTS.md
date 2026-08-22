@@ -71,10 +71,11 @@ racha/
 ├── .prettierrc                # Regras de formatação Prettier
 ├── .editorconfig              # Configurações de indentação e charset do editor
 ├── index.html                 # Shell HTML, fontes Google e meta tags de tema PWA
+├── iniciar_local.bat          # Setup local: build de produção + vite preview ("dev" = servidor Vite)
 ├── public/                    # Manifest, ícones SVG/PNG e fallback offline.html
 ├── src/
 │   ├── main.tsx               # Ponto de entrada: StrictMode, ErrorBoundary, registro PWA
-│   ├── App.tsx                # Declaração central de rotas com React.lazy e Suspense
+│   ├── App.tsx                # Declaração central de rotas (componentes lazy importados de lib/rotas.ts)
 │   ├── index.css              # Tokens CSS, temas dark/light, fontes e utilitários Tailwind v4
 │   ├── components/            # Componentes visuais reutilizáveis
 │   │   ├── Avatar.tsx         # Avatar quadrado terroso com plaqueta de posição
@@ -92,6 +93,7 @@ racha/
 │   │   └── SessaoContext.tsx  # Gerenciamento global de sessão e sync do jogador logado
 │   ├── hooks/
 │   │   ├── useAdmin.ts        # Hook para validação de privilégios administrativos
+│   │   ├── useCache.ts        # Cache em memória SWR (stale-while-revalidate) com dedupe e invalidação
 │   │   ├── useEscalacaoTimes.ts # Hook de sorteio automático e manipulação de times
 │   │   ├── useJogadorLogado.ts  # Atalho para dados do atleta conectado
 │   │   └── useSwipeTabs.ts    # Gesto touch de swipe entre abas com trava vertical
@@ -105,11 +107,12 @@ racha/
 │   │   ├── navegacao.ts       # Helper voltar(navigate, fallback) resiliente a deep-links
 │   │   ├── partidas.ts        # Tipos, queries e chamadas a RPCs de partidas
 │   │   ├── pwa.ts             # Service Worker e eventos de instalação PWA
+│   │   ├── rotas.ts           # Fonte única das rotas lazy e do prefetch preCarregarRota(path)
 │   │   ├── supabase.ts        # Instância singleton do cliente Supabase
 │   │   ├── tema.ts            # Hook e alternância de tema claro/escuro
 │   │   └── times.ts           # Constantes de times (Preto 'a' / Branco 'b') e posições
 │   └── routes/                # Telas da aplicação (lazy loaded)
-│       ├── Layout.tsx         # Shell padrão: Header sticky, Offline Banner, TabBar
+│       ├── Layout.tsx         # Shell estável: Header sticky, Offline Banner, Suspense por rota, TabBar com prefetch
 │       ├── Login.tsx          # Tela de autenticação por username/senha
 │       ├── Resumo.tsx         # Boletim Oficial da Temporada
 │       ├── Jogos.tsx          # Mural de placares de jogos
@@ -127,7 +130,7 @@ racha/
 │       └── Administrador.tsx  # Painel financeiro de dívidas e cobranças
 ├── supabase/
 │   ├── aplicar_tudo.sql       # Script mestre unificado para criação do banco do zero
-│   ├── migrations/            # Migrations incrementais sequenciais (001_... a 070_...)
+│   ├── migrations/            # Migrations incrementais sequenciais (001_... a 071_...)
 │   └── functions/             # Edge Functions Deno (send-voting-reminders, etc.)
 ├── GUIA/                      # Manuais passo a passo para devs e LLMs
 │   ├── README.md              # Índice dos guias disponíveis
@@ -207,6 +210,8 @@ useEffect(() => {
 }, [partidaId]);
 ```
 
+**Exceção arquitetural (`useCache`)**: rotas que carregam dados via `useCache()` (seção 5.5) **não** implementam a flag manualmente — o `buscar` é uma função pura (apenas consulta o banco e lança erro) e o hook é o único escritor de estado, aplicando a proteção contra races internamente (nunca seta estado pós-unmount nem após troca de chave). Não reintroduza flags `ativo` manuais nessas rotas.
+
 ### 5.3 Padrão Triplo de Feedback da UI
 
 1. **Notificação Rápida / Ação Efêmera**: `<Snackbar />`
@@ -222,6 +227,21 @@ useEffect(() => {
 ### 5.4 Cumulative Layout Shift (CLS = 0) com Skeletons
 
 Toda rota principal possui um esqueleto correspondente em `src/components/Skeletons.tsx` que espelha exatamente a mesma estrutura física, alturas e grid do conteúdo carregado para garantir CLS zero na transição.
+
+**Posicionamento do `<Suspense>`**: o boundary de lazy loading vive **dentro do `Layout.tsx`**, envolvendo apenas o `<Outlet />`, com fallback selecionado por pathname (mapa prefixo → skeleton, definido como constante de módulo antes dos hooks). **É proibido envolver as `<Routes>` inteiras em `App.tsx`** — isso desmontaria Header e TabBar a cada chunk carregado. A rota `/login` (fora do Layout) possui boundary próprio com `CarregandoGeral`.
+
+### 5.5 Cache em Memória SWR (`src/hooks/useCache.ts`)
+
+As telas de aba (Resumo, Jogos, Ranking) carregam dados via `useCache<T>(chave, buscar)`, com semântica **stale-while-revalidate** e zero dependências externas:
+
+1. **Primeira visita** (sem cache): exibe o skeleton da rota → busca → cacheia em memória de módulo (sobrevive a remontagens da rota).
+2. **Revisitas**: renderizam o cache **instantaneamente** (sem skeleton) e revalidam em background; a atualização chega suavemente quando a resposta retorna.
+3. **Erros tolerantes**: falha de revalidação com dados em tela é silenciosa; erro só vira `MensagemEstado` quando não existe cache.
+4. **Dedupe**: requests concorrentes para a mesma chave compartilham a mesma promise em voo.
+5. **Invalidação obrigatória após mutações**: toda escrita que afete dados cacheados deve chamar `invalidarCache(chave)` (ex.: exclusão de partida em `Jogos.tsx` → `invalidarCache('jogos')`). A invalidação também incrementa a geração da chave, impedindo que uma busca iniciada antes da mutação repovoque o cache com dado obsoleto.
+6. **Pull-to-Refresh**: passe `recarregar` como `onRefresh` — o gesto busca na rede de verdade e aguarda a promise resolver.
+
+Regras de uso: `buscar` deve ser estável (`useCallback`) e uma **função pura** (apenas consulta e lança erro; nunca seta estado); a chave deve identificar o conteúdo consultado, incluindo filtros que alteram a query (ex.: `ranking:${posicaoFiltro}`).
 
 ---
 
@@ -262,6 +282,10 @@ Quando verdadeiro, o `<main>` recebe padding inferior adequado para fixação da
 ### 6.6 Prevenção de Conflito de Gestos Touch
 
 Tabelas ou contêineres roláveis horizontalmente dentro de páginas que utilizam `useSwipeTabs` devem conter a propriedade `data-no-swipe` para impedir que o gesto de rolagem dispare acidentalmente a troca de abas.
+
+### 6.7 Prefetch de Chunks de Rotas Lazy (`src/lib/rotas.ts`)
+
+Todas as declarações `lazy()` das rotas vivem **exclusivamente** em `src/lib/rotas.ts` — a fonte única dos imports dinâmicos. A TabBar chama `preCarregarRota(path)` nos handlers `onTouchStart`, `onMouseEnter` e `onFocus` para pré-carregar o chunk JS da aba antes do clique. Ao criar uma nova rota, registre-a nesse módulo; **nunca duplique specifiers de `import('./routes/...')` em outros arquivos**.
 
 ---
 
@@ -317,7 +341,7 @@ Operações relacionais compostas (ex: criar ou editar partida com elenco, apaga
 **Nunca baixe tabelas inteiras no cliente para calcular médias, rankings ou saldos devedores.**
 
 - Médias aparadas de notas: use a RPC `obter_medias_notas_jogadores()` (Migration 070).
-- Placares e saldos: use as views `partida_placar`, `view_ranking` e `dividas_resumo`.
+- Placares e saldos: use as views `partidas_com_placar` (mural de jogos em query única, Migration 071), `partida_placar`, `view_ranking` e `dividas_resumo`.
 
 ### 7.6 Fusos Horários e Agendamentos com `pg_cron`
 
@@ -470,6 +494,13 @@ npm run format:check
 
 # Build de produção
 npm run build
+
+# Servir o build de produção localmente (vite preview)
+npm run preview
+
+# Setup e início local completos (Windows), na porta 5173
+iniciar_local.bat        # build de produção + vite preview (comportamento padrão)
+iniciar_local.bat dev    # servidor de desenvolvimento Vite com HMR
 ```
 
 ---
@@ -484,7 +515,7 @@ Antes de considerar qualquer modificação concluída, valide item por item:
 - [ ] **4. Fidelidade ao Design System (`design-system.md`)**: A interface respeita listas contínuas, cantos 4px, `shadow-carimbo`, tokens semânticos de cor, tom de voz e fontes `Archivo`, `Barlow Condensed` e `Chivo Mono`?
 - [ ] **5. Alvos de Toque e Safe Areas**: Todos os botões possuem no mínimo 44px (`min-h-[44px]`) e respeitam safe area insets do iOS/Android?
 - [ ] **6. Strict Rules of Hooks**: Todos os hooks estão no topo da função antes de qualquer retorno condicional?
-- [ ] **7. Race Conditions**: Todo `useEffect` de carregamento trata a flag `let ativo = true` no cleanup?
+- [ ] **7. Race Conditions**: Todo `useEffect` de carregamento trata a flag `let ativo = true` no cleanup (ou delega essa proteção ao `useCache`, seção 5.5)?
 - [ ] **8. Diálogos e Alertas**: Não há nenhum `window.confirm` ou `window.alert` no código (uso exclusivo de `ConfirmDialog`, `Snackbar` ou `MensagemEstado`)?
 - [ ] **9. Navegação Resiliente**: Todos os botões de voltar utilizam `voltar(navigate, fallback)`?
 - [ ] **10. Integridade do Banco (se houver SQL)**:
@@ -492,3 +523,4 @@ Antes de considerar qualquer modificação concluída, valide item por item:
   - Zero UUID (apenas `bigserial` / `bigint`).
   - RPCs possuem `SECURITY DEFINER`, `SET search_path = public` e `GRANT EXECUTE`.
   - Coluna `senha_hash` nunca é exposta em leituras públicas.
+- [ ] **11. Cache SWR e Mutações**: Se a tela usa `useCache`, toda mutação bem-sucedida chama `invalidarCache(chave)` e o `PullToRefresh` usa `recarregar` (busca na rede de verdade)?
