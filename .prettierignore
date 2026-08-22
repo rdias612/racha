@@ -1,0 +1,7 @@
+node_modules
+dist
+dist-ssr
+.vercel
+package-lock.json
+*.tsbuildinfo
+*.xlsx
