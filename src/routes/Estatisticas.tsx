@@ -1,13 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
-import { NavLink } from "react-router-dom";
-import { supabase } from "../lib/supabase";
-import { isRandomUsername } from "../lib/jogadores";
-import { useSessao } from "../context/SessaoContext";
-import { useSwipeTabs } from "../hooks/useSwipeTabs";
-import { MensagemEstado } from "../components/Estado";
-import { SkeletonEstatisticas } from "../components/Skeletons";
-import { PullToRefresh } from "../components/PullToRefresh";
-import { Avatar } from "../components/Avatar";
+import { useCallback, useEffect, useState } from 'react';
+import { NavLink } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { isRandomUsername } from '../lib/jogadores';
+import { useSessao } from '../context/SessaoContext';
+import { useSwipeTabs } from '../hooks/useSwipeTabs';
+import { MensagemEstado } from '../components/Estado';
+import { SkeletonEstatisticas } from '../components/Skeletons';
+import { PullToRefresh } from '../components/PullToRefresh';
+import { Avatar } from '../components/Avatar';
 
 const DEFAULT_MIN_PARTIDAS = 5;
 
@@ -23,7 +23,7 @@ interface Stats {
 
 // Parcerias (RPC nova)
 interface Parceria {
-  tipo: "companheiro" | "adversario";
+  tipo: 'companheiro' | 'adversario';
   outro_jogador_id: number;
   nome: string;
   partidas: number;
@@ -37,7 +37,7 @@ interface Parceria {
 // Destaques (RPC 042) - 3 metricas de companheiro de time:
 //   - mais_gols: Soma de gols do PROPRIO usuario nas partidas compartilhadas.
 //   - melhor_nota / pior_nota: AVG(partida_notas.avg_rating) do proprio usuario.
-type MetricaDestaque = "mais_gols" | "melhor_nota" | "pior_nota";
+type MetricaDestaque = 'mais_gols' | 'melhor_nota' | 'pior_nota';
 
 interface ParceriaDestaque {
   metrica: MetricaDestaque;
@@ -57,38 +57,36 @@ interface JogadorOpcao {
 export function Estatisticas() {
   const { jogador } = useSessao();
   const [jogadores, setJogadores] = useState<JogadorOpcao[]>([]);
-  const [jogadorSelecionadoId, setJogadorSelecionadoId] = useState<
-    number | null
-  >(null);
+  const [jogadorSelecionadoId, setJogadorSelecionadoId] = useState<number | null>(null);
   const [minimoPartidas, setMinimoPartidas] = useState(DEFAULT_MIN_PARTIDAS);
   const [stats, setStats] = useState<Stats | null>(null);
   const [parcerias, setParcerias] = useState<Parceria[]>([]);
-  const [destaques, setDestaques] = useState<Record<MetricaDestaque, ParceriaDestaque | undefined>>({
-    mais_gols: undefined,
-    melhor_nota: undefined,
-    pior_nota: undefined,
-  });
+  const [destaques, setDestaques] = useState<Record<MetricaDestaque, ParceriaDestaque | undefined>>(
+    {
+      mais_gols: undefined,
+      melhor_nota: undefined,
+      pior_nota: undefined,
+    }
+  );
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
   const { handlers: swipeHandlers } = useSwipeTabs({
-    tabs: ["/estatisticas/jogador", "/estatisticas/racha"],
-    activeTab: "/estatisticas/jogador",
+    tabs: ['/estatisticas/jogador', '/estatisticas/racha'],
+    activeTab: '/estatisticas/jogador',
   });
 
   // Carrega lista de jogadores ativos uma vez, filtrando os "random".
   useEffect(() => {
     if (!jogador) return;
     supabase
-      .from("jogadores")
-      .select("id, nome, username")
-      .eq("is_ativo", true)
-      .order("nome")
+      .from('jogadores')
+      .select('id, nome, username')
+      .eq('is_ativo', true)
+      .order('nome')
       .then(({ data, error }) => {
         if (error || !data) return;
-        const filtrados = data.filter(
-          (j) => !isRandomUsername(j.username),
-        );
+        const filtrados = data.filter((j) => !isRandomUsername(j.username));
         setJogadores(filtrados);
         // default: o proprio jogador logado
         if (jogadorSelecionadoId === null) {
@@ -96,7 +94,6 @@ export function Estatisticas() {
         }
       });
   }, [jogador?.id]);
-
 
   const carregar = useCallback(async () => {
     if (jogadorSelecionadoId === null) return;
@@ -107,16 +104,14 @@ export function Estatisticas() {
       // Busca stats basicas, parcerias e destaques em paralelo
       const [resStats, resParcerias, resDestaques] = await Promise.all([
         supabase
-          .from("stats_jogador")
-          .select(
-            "jogador_id, partidas, gols, assistencias, gols_contra, vitorias",
-          )
-          .eq("jogador_id", jogadorSelecionadoId)
+          .from('stats_jogador')
+          .select('jogador_id, partidas, gols, assistencias, gols_contra, vitorias')
+          .eq('jogador_id', jogadorSelecionadoId)
           .maybeSingle(),
-        supabase.rpc("parcerias_jogador", {
+        supabase.rpc('parcerias_jogador', {
           p_jogador_id: jogadorSelecionadoId,
         }),
-        supabase.rpc("parcerias_destaque_jogador", {
+        supabase.rpc('parcerias_destaque_jogador', {
           p_jogador_id: jogadorSelecionadoId,
         }),
       ]);
@@ -141,7 +136,7 @@ export function Estatisticas() {
       }
       setDestaques(mapaDestaques);
     } catch (e) {
-      setErro(e instanceof Error ? e.message : "Erro ao carregar dados.");
+      setErro(e instanceof Error ? e.message : 'Erro ao carregar dados.');
     } finally {
       setCarregando(false);
     }
@@ -153,51 +148,31 @@ export function Estatisticas() {
 
   if (carregando) return <SkeletonEstatisticas />;
   if (erro) {
-    return (
-      <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">
-        {erro}
-      </MensagemEstado>
-    );
+    return <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">{erro}</MensagemEstado>;
   }
 
   // Filtra parcerias pelo minimo de partidas
-  const parceriasFiltradas = parcerias.filter(
-    (p) => p.partidas >= minimoPartidas,
-  );
+  const parceriasFiltradas = parcerias.filter((p) => p.partidas >= minimoPartidas);
 
-  const comps = parceriasFiltradas.filter((p) => p.tipo === "companheiro");
-  const advs = parceriasFiltradas.filter((p) => p.tipo === "adversario");
+  const comps = parceriasFiltradas.filter((p) => p.tipo === 'companheiro');
+  const advs = parceriasFiltradas.filter((p) => p.tipo === 'adversario');
 
   // Ordena por aproveitamento (percentual)
-  const compsOrdenados = [...comps].sort(
-    (a, b) => (b.percentual ?? 0) - (a.percentual ?? 0),
-  );
-  const advsOrdenados = [...advs].sort(
-    (a, b) => (b.percentual ?? 0) - (a.percentual ?? 0),
-  );
+  const compsOrdenados = [...comps].sort((a, b) => (b.percentual ?? 0) - (a.percentual ?? 0));
+  const advsOrdenados = [...advs].sort((a, b) => (b.percentual ?? 0) - (a.percentual ?? 0));
 
   const melhorComp = compsOrdenados[0];
   const piorComp =
-    compsOrdenados.length > 1
-      ? compsOrdenados[compsOrdenados.length - 1]
-      : undefined;
+    compsOrdenados.length > 1 ? compsOrdenados[compsOrdenados.length - 1] : undefined;
 
   const melhorAdv = advsOrdenados[0];
-  const piorAdv =
-    advsOrdenados.length > 1
-      ? advsOrdenados[advsOrdenados.length - 1]
-      : undefined;
+  const piorAdv = advsOrdenados.length > 1 ? advsOrdenados[advsOrdenados.length - 1] : undefined;
 
-  const maximoPartidas = Math.max(
-    DEFAULT_MIN_PARTIDAS,
-    ...parcerias.map((p) => p.partidas),
-  );
+  const maximoPartidas = Math.max(DEFAULT_MIN_PARTIDAS, ...parcerias.map((p) => p.partidas));
 
-  const nomeSelecionado =
-    jogadores.find((j) => j.id === jogadorSelecionadoId)?.nome ?? "";
+  const nomeSelecionado = jogadores.find((j) => j.id === jogadorSelecionadoId)?.nome ?? '';
 
-  const semParcerias =
-    !melhorComp && !piorComp && !melhorAdv && !piorAdv;
+  const semParcerias = !melhorComp && !piorComp && !melhorAdv && !piorAdv;
 
   return (
     <PullToRefresh onRefresh={carregar}>
@@ -208,7 +183,7 @@ export function Estatisticas() {
         {/* Cabeçalho da Súmula */}
         <div className="sumula-header pb-2 flex items-baseline justify-between">
           <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
-            Estatísticas{nomeSelecionado ? ` · ${nomeSelecionado}` : ""}
+            Estatísticas{nomeSelecionado ? ` · ${nomeSelecionado}` : ''}
           </h2>
           <span className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
             Oficial CBO
@@ -222,8 +197,8 @@ export function Estatisticas() {
             className={({ isActive }) =>
               `flex-1 min-w-max rounded-[3px] px-3 py-1.5 text-center font-display font-bold uppercase tracking-wider text-xs whitespace-nowrap transition ${
                 isActive
-                  ? "bg-destaque text-destaque-tinta shadow-xs"
-                  : "text-giz-fraco hover:text-giz hover:bg-superficie-2"
+                  ? 'bg-destaque text-destaque-tinta shadow-xs'
+                  : 'text-giz-fraco hover:text-giz hover:bg-superficie-2'
               }`
             }
           >
@@ -234,8 +209,8 @@ export function Estatisticas() {
             className={({ isActive }) =>
               `flex-1 min-w-max rounded-[3px] px-3 py-1.5 text-center font-display font-bold uppercase tracking-wider text-xs whitespace-nowrap transition ${
                 isActive
-                  ? "bg-destaque text-destaque-tinta shadow-xs"
-                  : "text-giz-fraco hover:text-giz hover:bg-superficie-2"
+                  ? 'bg-destaque text-destaque-tinta shadow-xs'
+                  : 'text-giz-fraco hover:text-giz hover:bg-superficie-2'
               }`
             }
           >
@@ -253,14 +228,14 @@ export function Estatisticas() {
           </label>
           <select
             id="select-jogador-stats"
-            value={jogadorSelecionadoId ?? ""}
+            value={jogadorSelecionadoId ?? ''}
             onChange={(e) => setJogadorSelecionadoId(Number(e.target.value))}
             className="w-full rounded-[3px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz font-medium focus:outline-none focus:border-destaque"
           >
             {jogadores.map((j) => (
               <option key={j.id} value={j.id}>
                 {j.nome}
-                {j.id === jogador?.id ? " (eu)" : ""}
+                {j.id === jogador?.id ? ' (eu)' : ''}
               </option>
             ))}
           </select>
@@ -394,7 +369,7 @@ function ParceriaDestaqueCard({
         </h4>
         {destaque && (
           <span className="font-mono text-xs font-black text-destaque tabular-nums">
-            {metrica === "mais_gols"
+            {metrica === 'mais_gols'
               ? `${destaque.valor ?? 0} gols`
               : (destaque.valor ?? 0).toFixed(1)}
           </span>
@@ -403,19 +378,16 @@ function ParceriaDestaqueCard({
 
       {!destaque ? (
         <p className="mt-1 text-xs font-mono text-giz-fraco">
-          Sem dados suficientes (mín. {minimoPartidas}{" "}
-          {minimoPartidas === 1 ? "partida" : "partidas"})
+          Sem dados suficientes (mín. {minimoPartidas}{' '}
+          {minimoPartidas === 1 ? 'partida' : 'partidas'})
         </p>
       ) : (
         <div className="flex items-center gap-2.5">
           <Avatar nome={destaque.nome} size="sm" />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold text-giz">
-              {destaque.nome}
-            </p>
+            <p className="truncate text-sm font-bold text-giz">{destaque.nome}</p>
             <p className="text-[11px] font-mono text-giz-fraco">
-              {destaque.partidas}{" "}
-              {destaque.partidas === 1 ? "partida junta" : "partidas juntas"}
+              {destaque.partidas} {destaque.partidas === 1 ? 'partida junta' : 'partidas juntas'}
             </p>
           </div>
         </div>
@@ -427,7 +399,9 @@ function ParceriaDestaqueCard({
 function StatBox({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-[4px] border border-borda bg-superficie px-2 py-2.5 text-center shadow-carimbo">
-      <div className="font-mono text-xl sm:text-2xl font-black text-destaque tabular-nums">{value}</div>
+      <div className="font-mono text-xl sm:text-2xl font-black text-destaque tabular-nums">
+        {value}
+      </div>
       <div className="font-display text-[10px] font-bold uppercase tracking-wider text-giz-fraco">
         {label}
       </div>
@@ -457,20 +431,17 @@ function ParceriaCard({ titulo, parceria, minimoPartidas }: ParceriaCardProps) {
 
       {!parceria ? (
         <p className="mt-1 text-xs font-mono text-giz-fraco">
-          Sem dados suficientes (mín. {minimoPartidas}{" "}
-          {minimoPartidas === 1 ? "partida" : "partidas"})
+          Sem dados suficientes (mín. {minimoPartidas}{' '}
+          {minimoPartidas === 1 ? 'partida' : 'partidas'})
         </p>
       ) : (
         <div className="space-y-2">
           <div className="flex items-center gap-2.5">
             <Avatar nome={parceria.nome} size="sm" />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-bold text-giz">
-                {parceria.nome}
-              </p>
+              <p className="truncate text-sm font-bold text-giz">{parceria.nome}</p>
               <p className="text-[11px] font-mono text-giz-fraco">
-                {parceria.partidas}{" "}
-                {parceria.partidas === 1 ? "partida" : "partidas"}
+                {parceria.partidas} {parceria.partidas === 1 ? 'partida' : 'partidas'}
               </p>
             </div>
           </div>

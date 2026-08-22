@@ -1,4 +1,4 @@
-import { useState, useRef, type ReactNode, type TouchEvent } from "react";
+import { useState, useRef, type ReactNode, type TouchEvent } from 'react';
 
 interface PullToRefreshProps {
   onRefresh: () => Promise<void> | void;
@@ -12,14 +12,12 @@ function getScrollTop(el: HTMLElement | null): number {
     if (current.scrollTop > 0) return current.scrollTop;
     current = current.parentElement;
   }
-  return (typeof window !== "undefined" ? window.scrollY : 0) || document.documentElement?.scrollTop || 0;
+  return (
+    (typeof window !== 'undefined' ? window.scrollY : 0) || document.documentElement?.scrollTop || 0
+  );
 }
 
-export function PullToRefresh({
-  onRefresh,
-  children,
-  threshold = 60,
-}: PullToRefreshProps) {
+export function PullToRefresh({ onRefresh, children, threshold = 60 }: PullToRefreshProps) {
   const [pullDistance, setPullDistance] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const startY = useRef<number | null>(null);
@@ -87,20 +85,20 @@ export function PullToRefresh({
           <div className="flex items-center gap-2 text-xs font-mono text-giz-fraco py-2">
             <div
               className={`w-4 h-4 border-2 border-destaque border-t-transparent rounded-full ${
-                refreshing ? "animate-spin" : ""
+                refreshing ? 'animate-spin' : ''
               }`}
               style={{
                 transform: refreshing
-                  ? "none"
+                  ? 'none'
                   : `rotate(${Math.min(1, pullDistance / threshold) * 360}deg)`,
               }}
             />
             <span>
               {refreshing
-                ? "Atualizando súmula..."
+                ? 'Atualizando súmula...'
                 : pullDistance >= threshold
-                ? "Solte para atualizar"
-                : "Puxe para atualizar"}
+                  ? 'Solte para atualizar'
+                  : 'Puxe para atualizar'}
             </span>
           </div>
         </div>

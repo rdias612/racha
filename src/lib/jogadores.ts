@@ -1,5 +1,5 @@
-import { supabase } from "./supabase";
-import type { PosicaoId } from "./times";
+import { supabase } from './supabase';
+import type { PosicaoId } from './times';
 
 // Detecta jogadores "random" (placeholders): username com prefixo 'random'
 // e sufixo opcional de dígitos (casa 'random', 'random1'...'random6', 'random99').
@@ -20,7 +20,7 @@ export interface JogadorLista {
   media_nota?: number;
 }
 
-export const SUPERADMINS = ["dico", "tadeu", "natal"];
+export const SUPERADMINS = ['dico', 'tadeu', 'natal'];
 export const MAX_MENSALISTAS = 16;
 
 export function isSuperAdmin(username?: string | null): boolean {
@@ -29,10 +29,7 @@ export function isSuperAdmin(username?: string | null): boolean {
 }
 
 export async function listarUsernames(): Promise<string[]> {
-  const { data, error } = await supabase
-    .from("jogadores")
-    .select("username")
-    .order("username");
+  const { data, error } = await supabase.from('jogadores').select('username').order('username');
 
   if (error) throw error;
   return (data ?? [])
@@ -42,10 +39,10 @@ export async function listarUsernames(): Promise<string[]> {
 
 export async function listarJogadoresAtivos(): Promise<JogadorLista[]> {
   const { data, error } = await supabase
-    .from("jogadores")
-    .select("id, username, nome, posicao, is_admin, is_ativo, is_mensalista, posicao_b")
-    .eq("is_ativo", true)
-    .order("nome");
+    .from('jogadores')
+    .select('id, username, nome, posicao, is_admin, is_ativo, is_mensalista, posicao_b')
+    .eq('is_ativo', true)
+    .order('nome');
 
   if (error) throw error;
   return (data ?? []).map((j) => ({
@@ -56,9 +53,9 @@ export async function listarJogadoresAtivos(): Promise<JogadorLista[]> {
 
 export async function listarTodosJogadores(): Promise<JogadorLista[]> {
   const { data, error } = await supabase
-    .from("jogadores")
-    .select("id, username, nome, posicao, is_admin, is_ativo, is_mensalista, posicao_b")
-    .order("nome");
+    .from('jogadores')
+    .select('id, username, nome, posicao, is_admin, is_ativo, is_mensalista, posicao_b')
+    .order('nome');
 
   if (error) throw error;
   return (data ?? [])
@@ -87,23 +84,23 @@ export async function atualizarCaracteristicasJogador(
     }
     // Regra: não permite ativar is_admin se for não-mensalista
     if (payload.is_admin === true && payload.is_mensalista === false) {
-      throw new Error("Apenas jogadores mensalistas podem ser administradores.");
+      throw new Error('Apenas jogadores mensalistas podem ser administradores.');
     }
   }
 
   // Validação do limite de mensalistas se estiver ativando mensalista
   if (payload.is_mensalista === true) {
     const { data: jogadorAtual } = await supabase
-      .from("jogadores")
-      .select("is_mensalista")
-      .eq("id", id)
+      .from('jogadores')
+      .select('is_mensalista')
+      .eq('id', id)
       .maybeSingle();
 
     if (jogadorAtual && !jogadorAtual.is_mensalista) {
       const { count, error: countErr } = await supabase
-        .from("jogadores")
-        .select("id", { count: "exact", head: true })
-        .eq("is_mensalista", true);
+        .from('jogadores')
+        .select('id', { count: 'exact', head: true })
+        .eq('is_mensalista', true);
 
       if (countErr) throw countErr;
       if ((count ?? 0) >= MAX_MENSALISTAS) {
@@ -114,37 +111,31 @@ export async function atualizarCaracteristicasJogador(
     }
   }
 
-  const { error } = await supabase
-    .from("jogadores")
-    .update(payload)
-    .eq("id", id);
+  const { error } = await supabase.from('jogadores').update(payload).eq('id', id);
 
   if (error) throw error;
 }
 
 export async function atualizarNomeJogador(id: number, nome: string): Promise<void> {
-  const { error } = await supabase
-    .from("jogadores")
-    .update({ nome })
-    .eq("id", id);
+  const { error } = await supabase.from('jogadores').update({ nome }).eq('id', id);
 
   if (error) throw error;
 }
 
 // Redefine a senha do jogador para o padrão "123" (RPC resetar_senha).
 export async function resetarSenhaJogador(id: number): Promise<void> {
-  const { data, error } = await supabase.rpc("resetar_senha", {
+  const { data, error } = await supabase.rpc('resetar_senha', {
     p_jogador_id: id,
   });
 
   if (error) throw error;
-  if (data !== true) throw new Error("Jogador não encontrado.");
+  if (data !== true) throw new Error('Jogador não encontrado.');
 }
 
 export async function obterMediasNotasJogadores(): Promise<Record<number, number>> {
   // 1) Tenta obter médias já agregadas no servidor via RPC
   try {
-    const { data: rpcData, error: rpcError } = await supabase.rpc("obter_medias_notas_jogadores");
+    const { data: rpcData, error: rpcError } = await supabase.rpc('obter_medias_notas_jogadores');
     if (!rpcError && Array.isArray(rpcData)) {
       const mapa: Record<number, number> = {};
       for (const item of rpcData) {
@@ -159,9 +150,7 @@ export async function obterMediasNotasJogadores(): Promise<Record<number, number
   }
 
   // 2) Fallback para cálculo direto
-  const { data, error } = await supabase
-    .from("votes")
-    .select("target_id, rating");
+  const { data, error } = await supabase.from('votes').select('target_id, rating');
 
   if (error || !data) return {};
 
@@ -195,5 +184,3 @@ export async function obterMediasNotasJogadores(): Promise<Record<number, number
   }
   return medias;
 }
-
-

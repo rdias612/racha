@@ -1,14 +1,10 @@
-import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams, useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
-import { useAdmin } from '../hooks/useAdmin'
-import { useJogadorLogado } from '../hooks/useJogadorLogado'
-import { TIMES, POSICOES, type TimeId } from '../lib/times'
-import {
-  isRandomUsername,
-  listarJogadoresAtivos,
-  type JogadorLista,
-} from '../lib/jogadores'
+import { useCallback, useEffect, useState } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { useAdmin } from '../hooks/useAdmin';
+import { useJogadorLogado } from '../hooks/useJogadorLogado';
+import { TIMES, POSICOES, type TimeId } from '../lib/times';
+import { isRandomUsername, listarJogadoresAtivos, type JogadorLista } from '../lib/jogadores';
 import {
   abrirPartida,
   carregarPartida,
@@ -30,53 +26,52 @@ import {
   type Participante,
   type NotaPartida,
   type StatusConfirmacao,
-} from '../lib/partidas'
-import { MensagemEstado } from '../components/Estado'
-import { SkeletonDetalhe } from '../components/Skeletons'
-import { ConfirmDialog } from '../components/ConfirmDialog'
-import { formatarDataCompleta, formatarDataMobile, formatarFechamento } from '../lib/formatacao'
-import { Avatar } from '../components/Avatar'
-import { voltar } from '../lib/navegacao'
-import { vibrateLight, vibrateSuccess } from '../lib/haptics'
-import { formatarMensagemErro } from '../lib/erros'
-
+} from '../lib/partidas';
+import { MensagemEstado } from '../components/Estado';
+import { SkeletonDetalhe } from '../components/Skeletons';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+import { formatarDataCompleta, formatarDataMobile, formatarFechamento } from '../lib/formatacao';
+import { Avatar } from '../components/Avatar';
+import { voltar } from '../lib/navegacao';
+import { vibrateLight, vibrateSuccess } from '../lib/haptics';
+import { formatarMensagemErro } from '../lib/erros';
 
 export function PartidaDetalhe() {
-  const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
-  const isAdmin = useAdmin()
-  const jogadorLogado = useJogadorLogado()
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const isAdmin = useAdmin();
+  const jogadorLogado = useJogadorLogado();
 
-  const [partida, setPartida] = useState<Partida | null>(null)
-  const [placar, setPlacar] = useState<Placar | null>(null)
-  const [participantes, setParticipantes] = useState<Participante[]>([])
-  const [notas, setNotas] = useState<NotaPartida[]>([])
-  const [jaVotou, setJaVotou] = useState(false)
-  const [confirmandoDescarte, setConfirmandoDescarte] = useState(false)
-  const [descartando, setDescartando] = useState(false)
-  const [abrindo, setAbrindo] = useState(false)
-  const [carregando, setCarregando] = useState(true)
-  const [erro, setErro] = useState<string | null>(null)
+  const [partida, setPartida] = useState<Partida | null>(null);
+  const [placar, setPlacar] = useState<Placar | null>(null);
+  const [participantes, setParticipantes] = useState<Participante[]>([]);
+  const [notas, setNotas] = useState<NotaPartida[]>([]);
+  const [jaVotou, setJaVotou] = useState(false);
+  const [confirmandoDescarte, setConfirmandoDescarte] = useState(false);
+  const [descartando, setDescartando] = useState(false);
+  const [abrindo, setAbrindo] = useState(false);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState<string | null>(null);
 
   const carregar = useCallback(
     async (isAtivo?: () => boolean) => {
-      if (!id) return
-      setCarregando(true)
-      setErro(null)
+      if (!id) return;
+      setCarregando(true);
+      setErro(null);
       try {
-        const p = await carregarPartida(Number(id))
-        if (isAtivo && !isAtivo()) return
-        setPartida(p)
+        const p = await carregarPartida(Number(id));
+        if (isAtivo && !isAtivo()) return;
+        setPartida(p);
         if (p) {
           const [pl, parts, ns] = await Promise.all([
             carregarPlacar(p.id),
             carregarParticipantes(p.id),
             carregarNotas(p.id),
-          ])
-          if (isAtivo && !isAtivo()) return
-          setPlacar(pl)
-          setParticipantes(parts)
-          setNotas(ns)
+          ]);
+          if (isAtivo && !isAtivo()) return;
+          setPlacar(pl);
+          setParticipantes(parts);
+          setNotas(ns);
 
           // Verifica se o jogador logado já votou nesta partida
           if (jogadorLogado && p.status === 'published') {
@@ -84,96 +79,92 @@ export function PartidaDetalhe() {
               .from('votes')
               .select('*', { count: 'exact', head: true })
               .eq('partida_id', p.id)
-              .eq('voter_id', jogadorLogado.id)
-            if (isAtivo && !isAtivo()) return
-            setJaVotou((count ?? 0) > 0)
+              .eq('voter_id', jogadorLogado.id);
+            if (isAtivo && !isAtivo()) return;
+            setJaVotou((count ?? 0) > 0);
           } else {
-            if (isAtivo && !isAtivo()) return
-            setJaVotou(false)
+            if (isAtivo && !isAtivo()) return;
+            setJaVotou(false);
           }
         }
       } catch (e) {
-        if (isAtivo && !isAtivo()) return
-        setErro(e instanceof Error ? e.message : String(e))
+        if (isAtivo && !isAtivo()) return;
+        setErro(e instanceof Error ? e.message : String(e));
       } finally {
-        if (!isAtivo || isAtivo()) setCarregando(false)
+        if (!isAtivo || isAtivo()) setCarregando(false);
       }
     },
-    [id, jogadorLogado],
-  )
+    [id, jogadorLogado]
+  );
 
   async function confirmarDescarte() {
-    if (!partida || !jogadorLogado) return
-    setDescartando(true)
+    if (!partida || !jogadorLogado) return;
+    setDescartando(true);
     try {
-      const ok = await descartarVotos(partida.id, jogadorLogado.id)
+      const ok = await descartarVotos(partida.id, jogadorLogado.id);
       if (ok) {
-        setConfirmandoDescarte(false)
-        setJaVotou(false)
-        navigate(`/partida/${partida.id}/votar`)
+        setConfirmandoDescarte(false);
+        setJaVotou(false);
+        navigate(`/partida/${partida.id}/votar`);
       } else {
-        setConfirmandoDescarte(false)
-        setErro('Não foi possível descartar — a votação pode estar encerrada.')
+        setConfirmandoDescarte(false);
+        setErro('Não foi possível descartar — a votação pode estar encerrada.');
       }
     } catch (e) {
-      setConfirmandoDescarte(false)
-      setErro(e instanceof Error ? e.message : String(e))
+      setConfirmandoDescarte(false);
+      setErro(e instanceof Error ? e.message : String(e));
     } finally {
-      setDescartando(false)
+      setDescartando(false);
     }
   }
 
   useEffect(() => {
-    let ativo = true
-    carregar(() => ativo)
+    let ativo = true;
+    carregar(() => ativo);
     return () => {
-      ativo = false
-    }
-  }, [carregar])
+      ativo = false;
+    };
+  }, [carregar]);
 
-  if (carregando) return <SkeletonDetalhe />
+  if (carregando) return <SkeletonDetalhe />;
   if (!partida)
     return (
-      <MensagemEstado
-        tipo={erro ? 'erro' : 'info'}
-        className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl"
-      >
+      <MensagemEstado tipo={erro ? 'erro' : 'info'} className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">
         {erro ?? 'Partida não encontrada.'}
       </MensagemEstado>
-    )
+    );
 
   async function confirmarAbrir() {
-    if (!partida) return
-    setAbrindo(true)
-    setErro(null)
+    if (!partida) return;
+    setAbrindo(true);
+    setErro(null);
     try {
-      const ok = await abrirPartida(partida.id)
+      const ok = await abrirPartida(partida.id);
       if (!ok) {
-        setErro('Não foi possível abrir. Confira se os dois times têm 8 jogadores.')
-        return
+        setErro('Não foi possível abrir. Confira se os dois times têm 8 jogadores.');
+        return;
       }
-      navigate(`/partida/${partida.id}/ao-vivo`, { replace: true })
+      navigate(`/partida/${partida.id}/ao-vivo`, { replace: true });
     } catch (e) {
-      setErro(e instanceof Error ? e.message : String(e))
+      setErro(e instanceof Error ? e.message : String(e));
     } finally {
-      setAbrindo(false)
+      setAbrindo(false);
     }
   }
 
   const participantesDoTime = (t: TimeId) =>
     participantes
       .filter((p) => p.time === t)
-      .sort((a, b) => b.gols - a.gols || b.assistencias - a.assistencias)
+      .sort((a, b) => b.gols - a.gols || b.assistencias - a.assistencias);
 
-  const craque = notas.find((n) => n.is_craque) ?? null
+  const craque = notas.find((n) => n.is_craque) ?? null;
   const votacaoAberta =
     partida.status === 'published' &&
     partida.voting_closes_at &&
-    new Date(partida.voting_closes_at) > new Date()
+    new Date(partida.voting_closes_at) > new Date();
   const jaEhParticipante =
-    !!jogadorLogado &&
-    participantes.some((p) => p.jogador_id === jogadorLogado.id)
-  const isRandom = !!jogadorLogado && isRandomUsername(jogadorLogado.username)
+    !!jogadorLogado && participantes.some((p) => p.jogador_id === jogadorLogado.id);
+  const isRandom = !!jogadorLogado && isRandomUsername(jogadorLogado.username);
 
   const carimboStatusCls =
     partida.status === 'live'
@@ -182,7 +173,7 @@ export function PartidaDetalhe() {
         ? 'border-perigo text-perigo bg-perigo/10 -rotate-2'
         : partida.status === 'published'
           ? 'border-ok text-ok bg-ok/10 -rotate-1'
-          : 'border-borda text-giz-fraco bg-superficie-2'
+          : 'border-borda text-giz-fraco bg-superficie-2';
 
   return (
     <div className="px-3 py-4 pb-16 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
@@ -205,7 +196,9 @@ export function PartidaDetalhe() {
           </p>
         </div>
         <div className="text-right">
-          <span className={`inline-block font-display font-black uppercase tracking-widest text-[10px] border px-2 py-0.5 rounded-[2px] shadow-xs ${carimboStatusCls}`}>
+          <span
+            className={`inline-block font-display font-black uppercase tracking-widest text-[10px] border px-2 py-0.5 rounded-[2px] shadow-xs ${carimboStatusCls}`}
+          >
             {STATUS_LABEL[partida.status]}
           </span>
           {partida.status === 'published' && partida.voting_closes_at && (
@@ -221,11 +214,13 @@ export function PartidaDetalhe() {
         <div className="rounded-[4px] overflow-hidden border-2 border-borda bg-[#000000] shadow-carimbo-preto">
           <div className="flex items-stretch">
             {/* Bloco Lateral: Time Preto */}
-            <div
-              className="flex-1 py-3 px-2.5 text-center border-r border-[#35302a] flex flex-col items-center justify-center bg-[#0d0d0e] text-[#f4f1e8]"
-            >
-              <span className="font-display font-bold text-[10px] uppercase tracking-wider text-giz-fraco">TIME</span>
-              <span className="font-display font-black text-sm sm:text-base uppercase tracking-widest text-[#f4f1e8]">PRETO</span>
+            <div className="flex-1 py-3 px-2.5 text-center border-r border-[#35302a] flex flex-col items-center justify-center bg-[#0d0d0e] text-[#f4f1e8]">
+              <span className="font-display font-bold text-[10px] uppercase tracking-wider text-giz-fraco">
+                TIME
+              </span>
+              <span className="font-display font-black text-sm sm:text-base uppercase tracking-widest text-[#f4f1e8]">
+                PRETO
+              </span>
             </div>
 
             {/* Centro: LED Placar */}
@@ -239,7 +234,8 @@ export function PartidaDetalhe() {
                       : 'text-destaque'
                 }`}
               >
-                {placar.gols_time_a} <span className="text-giz-fraco/50 font-normal">×</span> {placar.gols_time_b}
+                {placar.gols_time_a} <span className="text-giz-fraco/50 font-normal">×</span>{' '}
+                {placar.gols_time_b}
               </span>
               {partida.status === 'live' && (
                 <span className="flex items-center gap-1.5 text-[9px] font-display font-bold uppercase tracking-widest text-destaque animate-pulse mt-1">
@@ -249,11 +245,13 @@ export function PartidaDetalhe() {
             </div>
 
             {/* Bloco Lateral: Time Branco */}
-            <div
-              className="flex-1 py-3 px-2.5 text-center border-l border-[#35302a] flex flex-col items-center justify-center bg-[#f4f1e8] text-[#0d0d0e]"
-            >
-              <span className="font-display font-bold text-[10px] uppercase tracking-wider text-neutral-600">TIME</span>
-              <span className="font-display font-black text-sm sm:text-base uppercase tracking-widest text-[#0d0d0e]">BRANCO</span>
+            <div className="flex-1 py-3 px-2.5 text-center border-l border-[#35302a] flex flex-col items-center justify-center bg-[#f4f1e8] text-[#0d0d0e]">
+              <span className="font-display font-bold text-[10px] uppercase tracking-wider text-neutral-600">
+                TIME
+              </span>
+              <span className="font-display font-black text-sm sm:text-base uppercase tracking-widest text-[#0d0d0e]">
+                BRANCO
+              </span>
             </div>
           </div>
         </div>
@@ -298,9 +296,7 @@ export function PartidaDetalhe() {
           <div className="divide-y divide-borda">
             {[...notas]
               .sort(
-                (a, b) =>
-                  Number(b.avg_rating) - Number(a.avg_rating) ||
-                  b.vote_count - a.vote_count,
+                (a, b) => Number(b.avg_rating) - Number(a.avg_rating) || b.vote_count - a.vote_count
               )
               .map((n) => (
                 <div
@@ -316,7 +312,9 @@ export function PartidaDetalhe() {
                   </div>
                   <span className="font-mono text-sm font-bold text-destaque tabular-nums">
                     {Number(n.avg_rating).toFixed(1)}{' '}
-                    <span className="text-xs font-normal text-giz-fraco font-mono">({n.vote_count}v)</span>
+                    <span className="text-xs font-normal text-giz-fraco font-mono">
+                      ({n.vote_count}v)
+                    </span>
                   </span>
                 </div>
               ))}
@@ -334,13 +332,12 @@ export function PartidaDetalhe() {
         />
       )}
 
-      {(partida.status !== 'draft' ||
-        participantes.some((p) => p.time !== null)) && (
+      {(partida.status !== 'draft' || participantes.some((p) => p.time !== null)) && (
         <>
           {/* Times com gols/assists/gols contra */}
           <div className="grid grid-cols-2 gap-3">
             {(['a', 'b'] as TimeId[]).map((t) => {
-              const jogadoresDoTime = participantesDoTime(t)
+              const jogadoresDoTime = participantesDoTime(t);
               return (
                 <div
                   key={t}
@@ -393,7 +390,7 @@ export function PartidaDetalhe() {
                     )}
                   </div>
                 </div>
-              )
+              );
             })}
           </div>
         </>
@@ -491,7 +488,7 @@ export function PartidaDetalhe() {
         </p>
       )}
     </div>
-  )
+  );
 }
 
 function BadgeStatus({ status }: { status: StatusConfirmacao }) {
@@ -499,33 +496,35 @@ function BadgeStatus({ status }: { status: StatusConfirmacao }) {
     confirmado: 'border-ok/60 bg-ok/10 text-ok',
     pendente: 'border-borda bg-superficie-2 text-giz-fraco',
     recusado: 'border-perigo/60 bg-perigo/10 text-perigo',
-  }
+  };
   const icon: Record<StatusConfirmacao, string> = {
     confirmado: '✓ ',
     pendente: '⏳ ',
     recusado: '✗ ',
-  }
+  };
   return (
-    <span className={`inline-block rounded-[2px] border px-1.5 py-0.5 text-[9px] font-display font-bold uppercase tracking-wider ${cls[status]}`}>
+    <span
+      className={`inline-block rounded-[2px] border px-1.5 py-0.5 text-[9px] font-display font-bold uppercase tracking-wider ${cls[status]}`}
+    >
       {icon[status]}
       {STATUS_CONFIRMACAO_LABEL[status]}
     </span>
-  )
+  );
 }
 
 type PropsBotoes = {
-  status: StatusConfirmacao
-  podeConf: boolean
-  ocupadas: number
-  processando: boolean
-  onAtualizar: (alvo: StatusConfirmacao) => void
-}
+  status: StatusConfirmacao;
+  podeConf: boolean;
+  ocupadas: number;
+  processando: boolean;
+  onAtualizar: (alvo: StatusConfirmacao) => void;
+};
 
 // Botões do próprio jogador (confirma/desconfirma/recusa a própria presença).
 function BotoesSelf({ status, podeConf, ocupadas, processando, onAtualizar }: PropsBotoes) {
   const btn =
-    'min-h-[44px] rounded-[3px] border px-3 text-xs font-display font-bold uppercase tracking-wider active:translate-y-px transition disabled:opacity-40'
-  const lotado = ocupadas >= CAPACIDADE_PARTIDA
+    'min-h-[44px] rounded-[3px] border px-3 text-xs font-display font-bold uppercase tracking-wider active:translate-y-px transition disabled:opacity-40';
+  const lotado = ocupadas >= CAPACIDADE_PARTIDA;
   return (
     <>
       {status !== 'confirmado' && (
@@ -560,7 +559,7 @@ function BotoesSelf({ status, podeConf, ocupadas, processando, onAtualizar }: Pr
         </button>
       )}
     </>
-  )
+  );
 }
 
 // Controles do admin (pode mexer em qualquer jogador com alvos de 44px).
@@ -572,8 +571,8 @@ function BotoesAdmin({
   onRemover,
 }: PropsBotoes & { onRemover?: () => void }) {
   const mini =
-    'min-h-[44px] min-w-[44px] rounded-[3px] border text-xs font-display font-bold uppercase active:translate-y-px transition disabled:opacity-30 flex items-center justify-center'
-  const off = 'border-borda bg-superficie-2 text-giz-fraco hover:text-giz'
+    'min-h-[44px] min-w-[44px] rounded-[3px] border text-xs font-display font-bold uppercase active:translate-y-px transition disabled:opacity-30 flex items-center justify-center';
+  const off = 'border-borda bg-superficie-2 text-giz-fraco hover:text-giz';
   return (
     <div className="flex items-center gap-1.5">
       <button
@@ -582,9 +581,7 @@ function BotoesAdmin({
         onClick={() => onAtualizar('confirmado')}
         title="Confirmar"
         className={`${mini} ${
-          status === 'confirmado'
-            ? 'border-ok bg-ok/20 text-ok font-bold'
-            : off
+          status === 'confirmado' ? 'border-ok bg-ok/20 text-ok font-bold' : off
         }`}
       >
         ✓
@@ -595,9 +592,7 @@ function BotoesAdmin({
         onClick={() => onAtualizar('pendente')}
         title="Pendente"
         className={`${mini} ${
-          status === 'pendente'
-            ? 'border-destaque bg-destaque/20 text-destaque font-bold'
-            : off
+          status === 'pendente' ? 'border-destaque bg-destaque/20 text-destaque font-bold' : off
         }`}
       >
         ⏳
@@ -608,9 +603,7 @@ function BotoesAdmin({
         onClick={() => onAtualizar('recusado')}
         title="Não vai"
         className={`${mini} ${
-          status === 'recusado'
-            ? 'border-perigo bg-perigo/20 text-perigo font-bold'
-            : off
+          status === 'recusado' ? 'border-perigo bg-perigo/20 text-perigo font-bold' : off
         }`}
       >
         ✗
@@ -627,7 +620,7 @@ function BotoesAdmin({
         </button>
       )}
     </div>
-  )
+  );
 }
 
 function Confirmacoes({
@@ -637,113 +630,112 @@ function Confirmacoes({
   isAdmin,
   onAtualizar,
 }: {
-  partida: Partida
-  participantes: Participante[]
-  jogadorLogadoId: number | null
-  isAdmin: boolean
-  onAtualizar: () => Promise<void> | void
+  partida: Partida;
+  participantes: Participante[];
+  jogadorLogadoId: number | null;
+  isAdmin: boolean;
+  onAtualizar: () => Promise<void> | void;
 }) {
-  const [participantesLocais, setParticipantesLocais] = useState<Participante[]>(participantes)
-  const [processando, setProcessando] = useState<number | null>(null)
-  const [erroLocal, setErroLocal] = useState<string | null>(null)
-  const [mostrandoAvulso, setMostrandoAvulso] = useState(false)
-  const [todosAtivos, setTodosAtivos] = useState<JogadorLista[]>([])
+  const [participantesLocais, setParticipantesLocais] = useState<Participante[]>(participantes);
+  const [processando, setProcessando] = useState<number | null>(null);
+  const [erroLocal, setErroLocal] = useState<string | null>(null);
+  const [mostrandoAvulso, setMostrandoAvulso] = useState(false);
+  const [todosAtivos, setTodosAtivos] = useState<JogadorLista[]>([]);
 
   useEffect(() => {
-    setParticipantesLocais(participantes)
-  }, [participantes])
+    setParticipantesLocais(participantes);
+  }, [participantes]);
 
-  const closesAt = partida.confirmacao_closes_at
-  const agora = new Date()
-  const prazoPassou = !!closesAt && agora.getTime() >= new Date(closesAt).getTime()
-  const ocupadas = vagasOcupadas(participantesLocais, closesAt, agora)
-  const livres = Math.max(0, CAPACIDADE_PARTIDA - ocupadas)
+  const closesAt = partida.confirmacao_closes_at;
+  const agora = new Date();
+  const prazoPassou = !!closesAt && agora.getTime() >= new Date(closesAt).getTime();
+  const ocupadas = vagasOcupadas(participantesLocais, closesAt, agora);
+  const livres = Math.max(0, CAPACIDADE_PARTIDA - ocupadas);
 
   const ordenados = [...participantesLocais].sort((a, b) => {
-    const peso = (s: StatusConfirmacao) =>
-      s === 'confirmado' ? 0 : s === 'pendente' ? 1 : 2
+    const peso = (s: StatusConfirmacao) => (s === 'confirmado' ? 0 : s === 'pendente' ? 1 : 2);
     return (
       peso(a.status_confirmacao) - peso(b.status_confirmacao) ||
       (a.nome ?? '').localeCompare(b.nome ?? '')
-    )
-  })
+    );
+  });
 
   async function atualizar(jogadorId: number, alvo: StatusConfirmacao) {
-    setErroLocal(null)
-    setProcessando(jogadorId)
-    if (alvo === 'confirmado') vibrateSuccess()
-    else vibrateLight()
+    setErroLocal(null);
+    setProcessando(jogadorId);
+    if (alvo === 'confirmado') vibrateSuccess();
+    else vibrateLight();
 
     // Atualização otimista imediata
-    const anterior = participantesLocais
+    const anterior = participantesLocais;
     setParticipantesLocais((prev) =>
       prev.map((p) => (p.jogador_id === jogadorId ? { ...p, status_confirmacao: alvo } : p))
-    )
+    );
 
     try {
-      const ehSelf = jogadorId === jogadorLogadoId
+      const ehSelf = jogadorId === jogadorLogadoId;
       const ok =
         !ehSelf && isAdmin && jogadorLogadoId != null
           ? await adminDefinirConfirmacao(partida.id, jogadorId, alvo, jogadorLogadoId)
-          : await confirmarPresenca(partida.id, jogadorId, alvo)
+          : await confirmarPresenca(partida.id, jogadorId, alvo);
       if (!ok) {
-        setParticipantesLocais(anterior) // Rollback
-        setErroLocal('Não foi possível atualizar — confira as vagas disponíveis.')
+        setParticipantesLocais(anterior); // Rollback
+        setErroLocal('Não foi possível atualizar — confira as vagas disponíveis.');
       } else {
-        await onAtualizar()
+        await onAtualizar();
       }
     } catch (e) {
-      setParticipantesLocais(anterior) // Rollback
-      setErroLocal(formatarMensagemErro(e))
+      setParticipantesLocais(anterior); // Rollback
+      setErroLocal(formatarMensagemErro(e));
     } finally {
-      setProcessando(null)
+      setProcessando(null);
     }
   }
 
   async function remover(jogadorId: number) {
-    setErroLocal(null)
-    setProcessando(jogadorId)
+    setErroLocal(null);
+    setProcessando(jogadorId);
     try {
-      await removerParticipanteDraft(partida.id, jogadorId)
-      await onAtualizar()
+      await removerParticipanteDraft(partida.id, jogadorId);
+      await onAtualizar();
     } catch (e) {
-      setErroLocal(formatarMensagemErro(e))
+      setErroLocal(formatarMensagemErro(e));
     } finally {
-      setProcessando(null)
+      setProcessando(null);
     }
   }
 
   async function adicionar(jogadorId: number) {
-    setErroLocal(null)
-    setProcessando(jogadorId)
+    setErroLocal(null);
+    setProcessando(jogadorId);
     try {
-      const ok = await adicionarParticipante(partida.id, jogadorId)
+      const ok = await adicionarParticipante(partida.id, jogadorId);
       if (!ok) {
-        setErroLocal('Não foi possível adicionar — pode não haver vaga.')
+        setErroLocal('Não foi possível adicionar — pode não haver vaga.');
       } else {
-        setMostrandoAvulso(false)
-        await onAtualizar()
+        setMostrandoAvulso(false);
+        await onAtualizar();
       }
     } catch (e) {
-      setErroLocal(e instanceof Error ? e.message : String(e))
+      setErroLocal(e instanceof Error ? e.message : String(e));
     } finally {
-      setProcessando(null)
+      setProcessando(null);
     }
   }
 
   async function abrirAvulso() {
-    setMostrandoAvulso((v) => !v)
+    setMostrandoAvulso((v) => !v);
     if (todosAtivos.length === 0) {
       try {
-        setTodosAtivos(await listarJogadoresAtivos())
+        setTodosAtivos(await listarJogadoresAtivos());
       } catch {
         /* ignora erro de listagem */
       }
     }
   }
 
-  const idsNoElenco = new Set(participantes.map((p) => p.jogador_id))
-  const candidatosAvulso = todosAtivos.filter((j) => !idsNoElenco.has(j.id))
+  const idsNoElenco = new Set(participantes.map((p) => p.jogador_id));
+  const candidatosAvulso = todosAtivos.filter((j) => !idsNoElenco.has(j.id));
 
   return (
     <section className="rounded-[4px] border border-borda bg-superficie overflow-hidden shadow-carimbo">
@@ -766,15 +758,15 @@ function Confirmacoes({
 
       <div className="divide-y divide-borda">
         {ordenados.map((p) => {
-          const ehSelf = p.jogador_id === jogadorLogadoId
-          const podeConf = podeConfirmar(p, 'confirmado', participantes, closesAt, agora)
+          const ehSelf = p.jogador_id === jogadorLogadoId;
+          const podeConf = podeConfirmar(p, 'confirmado', participantes, closesAt, agora);
           return (
             <div
               key={p.jogador_id}
               className="flex items-center justify-between gap-2 px-3 py-2 hover:bg-superficie-2 transition"
             >
               <div className="flex items-center gap-2 min-w-0">
-                <Avatar nome={p.nome ?? ""} size="xs" />
+                <Avatar nome={p.nome ?? ''} size="xs" />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-bold text-giz">
                     {p.nome ?? `#${p.jogador_id}`}
@@ -807,7 +799,7 @@ function Confirmacoes({
                 ) : null}
               </div>
             </div>
-          )
+          );
         })}
         {ordenados.length === 0 && (
           <div className="px-3 py-3 text-xs font-mono text-giz-fraco">Nenhum convite ainda.</div>
@@ -860,5 +852,5 @@ function Confirmacoes({
         </p>
       )}
     </section>
-  )
+  );
 }

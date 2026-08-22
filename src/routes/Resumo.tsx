@@ -1,18 +1,14 @@
-import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { MensagemEstado } from "../components/Estado";
-import { SkeletonResumo } from "../components/Skeletons";
-import { BotaoInstalar } from "../components/BotaoInstalar";
-import { PullToRefresh } from "../components/PullToRefresh";
-import { supabase } from "../lib/supabase";
-import {
-  carregarParticipantes,
-  vagasOcupadas,
-  CAPACIDADE_PARTIDA,
-} from "../lib/partidas";
-import { formatarDataCompleta, formatarDataMobile } from "../lib/formatacao";
+import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { MensagemEstado } from '../components/Estado';
+import { SkeletonResumo } from '../components/Skeletons';
+import { BotaoInstalar } from '../components/BotaoInstalar';
+import { PullToRefresh } from '../components/PullToRefresh';
+import { supabase } from '../lib/supabase';
+import { carregarParticipantes, vagasOcupadas, CAPACIDADE_PARTIDA } from '../lib/partidas';
+import { formatarDataCompleta, formatarDataMobile } from '../lib/formatacao';
 
-import { formatarMensagemErro } from "../lib/erros";
+import { formatarMensagemErro } from '../lib/erros';
 
 interface ResumoAno {
   ano: number;
@@ -60,48 +56,51 @@ export function Resumo() {
     ocupadas: number;
   } | null>(null);
 
-  const carregar = useCallback(async (isAtivo?: () => boolean) => {
-    setCarregando(true);
-    setErro(null);
-    try {
-      const [respResumo, respProx] = await Promise.all([
-        supabase.rpc("resumo_ano", { p_ano: ano }),
-        supabase
-          .from("partidas")
-          .select("id, data_jogo, confirmacao_closes_at")
-          .eq("status", "draft")
-          .order("data_jogo", { ascending: true })
-          .limit(1)
-          .maybeSingle(),
-      ]);
+  const carregar = useCallback(
+    async (isAtivo?: () => boolean) => {
+      setCarregando(true);
+      setErro(null);
+      try {
+        const [respResumo, respProx] = await Promise.all([
+          supabase.rpc('resumo_ano', { p_ano: ano }),
+          supabase
+            .from('partidas')
+            .select('id, data_jogo, confirmacao_closes_at')
+            .eq('status', 'draft')
+            .order('data_jogo', { ascending: true })
+            .limit(1)
+            .maybeSingle(),
+        ]);
 
-      if (isAtivo && !isAtivo()) return;
-
-      if (respResumo.error) {
-        setErro(formatarMensagemErro(respResumo.error));
-      } else {
-        setResumo(respResumo.data?.[0] ?? null);
-      }
-
-      if (respProx.data) {
-        const parts = await carregarParticipantes(respProx.data.id);
         if (isAtivo && !isAtivo()) return;
-        const ocupadas = vagasOcupadas(parts, respProx.data.confirmacao_closes_at);
-        setProxima({
-          id: respProx.data.id,
-          data_jogo: respProx.data.data_jogo,
-          ocupadas,
-        });
-      } else {
-        setProxima(null);
+
+        if (respResumo.error) {
+          setErro(formatarMensagemErro(respResumo.error));
+        } else {
+          setResumo(respResumo.data?.[0] ?? null);
+        }
+
+        if (respProx.data) {
+          const parts = await carregarParticipantes(respProx.data.id);
+          if (isAtivo && !isAtivo()) return;
+          const ocupadas = vagasOcupadas(parts, respProx.data.confirmacao_closes_at);
+          setProxima({
+            id: respProx.data.id,
+            data_jogo: respProx.data.data_jogo,
+            ocupadas,
+          });
+        } else {
+          setProxima(null);
+        }
+      } catch (e) {
+        if (isAtivo && !isAtivo()) return;
+        setErro(formatarMensagemErro(e));
+      } finally {
+        if (!isAtivo || isAtivo()) setCarregando(false);
       }
-    } catch (e) {
-      if (isAtivo && !isAtivo()) return;
-      setErro(formatarMensagemErro(e));
-    } finally {
-      if (!isAtivo || isAtivo()) setCarregando(false);
-    }
-  }, [ano]);
+    },
+    [ano]
+  );
 
   useEffect(() => {
     let ativo = true;
@@ -113,11 +112,7 @@ export function Resumo() {
 
   if (carregando) return <SkeletonResumo />;
   if (erro) {
-    return (
-      <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">
-        {erro}
-      </MensagemEstado>
-    );
+    return <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">{erro}</MensagemEstado>;
   }
 
   const semPartidas = !resumo || resumo.total_partidas === 0;
@@ -125,45 +120,45 @@ export function Resumo() {
   const destaques: DestaqueProps[] = resumo
     ? [
         {
-          titulo: "Artilheiro",
-          badge: "⚽ GOLS",
+          titulo: 'Artilheiro',
+          badge: '⚽ GOLS',
           nome: resumo.artilheiro_nome,
           valor: `${resumo.artilheiro_gols ?? 0} gols`,
           detalhe: `${resumo.artilheiro_partidas ?? 0} partidas`,
         },
         {
-          titulo: "Maestro",
-          badge: "🅰️ PASSES",
+          titulo: 'Maestro',
+          badge: '🅰️ PASSES',
           nome: resumo.maestro_nome,
           valor: `${resumo.maestro_assistencias ?? 0} assistências`,
           detalhe: `${resumo.maestro_partidas ?? 0} partidas`,
         },
         {
-          titulo: "Frequência Máxima",
-          badge: "🛡️ PRESENÇA",
+          titulo: 'Frequência Máxima',
+          badge: '🛡️ PRESENÇA',
           nome: resumo.participante_nome,
           valor: `${resumo.participante_partidas ?? 0} partidas`,
-          detalhe: "O que importa é participar",
+          detalhe: 'O que importa é participar',
         },
         {
-          titulo: "Mais Eficiente",
-          badge: "📈 APROVEITAMENTO",
+          titulo: 'Mais Eficiente',
+          badge: '📈 APROVEITAMENTO',
           nome: resumo.eficiente_nome,
           valor: `${Math.round((resumo.eficiente_percentual ?? 0) * 100)}% vitórias`,
           detalhe: `${resumo.eficiente_vitorias ?? 0}V em ${resumo.eficiente_partidas ?? 0} jogos`,
         },
         {
-          titulo: "Maior Sequência",
-          badge: "🔥 EMBALADO",
+          titulo: 'Maior Sequência',
+          badge: '🔥 EMBALADO',
           nome: resumo.sequencia_vitorias_nome,
           valor: `${resumo.sequencia_vitorias ?? 0} vitórias seguidas`,
         },
         {
-          titulo: "Maior Seca",
-          badge: "🧊 JEJUM",
+          titulo: 'Maior Seca',
+          badge: '🧊 JEJUM',
           nome: resumo.seca_vitorias_nome,
           valor: `${resumo.seca_vitorias ?? 0} jogos sem vencer`,
-          detalhe: "A quinta não perdoa",
+          detalhe: 'A quinta não perdoa',
         },
       ]
     : [];
@@ -182,7 +177,7 @@ export function Resumo() {
             </h2>
           </div>
           <p className="font-mono text-xs font-bold text-giz-fraco tabular-nums">
-            {resumo?.total_partidas ?? 0} {resumo?.total_partidas === 1 ? "partida" : "partidas"}
+            {resumo?.total_partidas ?? 0} {resumo?.total_partidas === 1 ? 'partida' : 'partidas'}
           </p>
         </div>
 
@@ -228,15 +223,13 @@ function Destaque({ titulo, badge, nome, valor, detalhe }: DestaqueProps) {
           </span>
         </div>
         <p className="font-display font-black text-base uppercase tracking-wide text-giz truncate">
-          {nome ?? "Sem registro"}
+          {nome ?? 'Sem registro'}
         </p>
       </div>
       <div className="mt-2 pt-2 border-t border-borda">
         <p className="font-mono text-sm font-bold text-destaque tabular-nums">{valor}</p>
         {detalhe && (
-          <p className="font-mono text-[10px] text-giz-fraco mt-0.5 truncate">
-            {detalhe}
-          </p>
+          <p className="font-mono text-[10px] text-giz-fraco mt-0.5 truncate">{detalhe}</p>
         )}
       </div>
     </section>
@@ -264,9 +257,7 @@ function CardProximaPartida({
       </div>
       <p className="mt-1.5 font-display font-bold text-base uppercase tracking-wider text-giz capitalize">
         <span className="sm:hidden">{formatarDataMobile(proxima.data_jogo)}</span>
-        <span className="hidden sm:inline">
-          {formatarDataCompleta(proxima.data_jogo)}
-        </span>
+        <span className="hidden sm:inline">{formatarDataCompleta(proxima.data_jogo)}</span>
       </p>
       <p className="mt-0.5 text-xs text-giz-fraco font-mono">
         Toque para confirmar ou consultar a lista de presença

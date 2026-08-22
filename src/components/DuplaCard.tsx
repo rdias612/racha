@@ -1,21 +1,22 @@
-import type { ParRacha } from "../lib/partidas";
-import { Avatar } from "./Avatar";
+import type { ParRacha } from '../lib/partidas';
+import type { ColunaOrdenacaoDuplas } from '../routes/EstatisticasRacha';
+import { Avatar } from './Avatar';
 
 interface DuplaCardProps {
   titulo: string;
   par: ParRacha | null;
-  metrica?: "pontos" | "partidas" | "percentual" | "vitorias" | "dupla";
+  metrica?: ColunaOrdenacaoDuplas;
 }
 
-export function DuplaCard({ titulo, par, metrica = "pontos" }: DuplaCardProps) {
+export function DuplaCard({ titulo, par, metrica = 'pontos' }: DuplaCardProps) {
   const badgeTexto = par
-    ? metrica === "percentual"
+    ? metrica === 'percentual'
       ? par.percentual === null
-        ? "—"
+        ? '—'
         : `${Math.round(par.percentual * 100)}%`
-      : metrica === "partidas"
+      : metrica === 'partidas'
         ? `${par.partidas} jogos`
-        : metrica === "vitorias"
+        : metrica === 'vitorias'
           ? `${par.vitorias} vitórias`
           : `${par.pontos} pts`
     : null;
@@ -53,9 +54,7 @@ export function DuplaCard({ titulo, par, metrica = "pontos" }: DuplaCardProps) {
               {par.partidas}J · {par.vitorias}V {par.empates}E {par.derrotas}D
             </span>
             <span className="font-bold text-giz tabular-nums">
-              {par.percentual === null
-                ? "—"
-                : `${Math.round(par.percentual * 100)}%`}
+              {par.percentual === null ? '—' : `${Math.round(par.percentual * 100)}%`}
             </span>
           </div>
         </div>
@@ -63,4 +62,3 @@ export function DuplaCard({ titulo, par, metrica = "pontos" }: DuplaCardProps) {
     </div>
   );
 }
-

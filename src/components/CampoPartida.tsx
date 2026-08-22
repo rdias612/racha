@@ -1,6 +1,6 @@
-import { TIMES, type TimeId } from "../lib/times";
-import type { Participante } from "../lib/partidas";
-import { formatarNome } from "../lib/formatacao";
+import { TIMES, type TimeId } from '../lib/times';
+import type { Participante } from '../lib/partidas';
+import { formatarNome } from '../lib/formatacao';
 
 interface CampoPartidaProps {
   participantes: Participante[];
@@ -18,8 +18,8 @@ const AREA_GOL_L = 18.32;
 const AREA_GOL_P = 5.5;
 const RAIO_CENTRO = 9.15;
 const MARCA_PENALTI = 11;
-const VERDE_ESCURO = "#16281c";
-const VERDE_CLARO = "#1b3323";
+const VERDE_ESCURO = '#16281c';
+const VERDE_CLARO = '#1b3323';
 
 function ChipJogador({
   jogador,
@@ -30,17 +30,15 @@ function ChipJogador({
   onClick?: (jogador: Participante) => void;
   destaque: boolean;
 }) {
-  const preto = jogador.time === "a";
+  const preto = jogador.time === 'a';
   const nome = formatarNome(jogador.nome ?? `#${jogador.jogador_id}`);
   const classe = `inline-flex max-w-[9.5rem] items-center justify-center truncate rounded-[3px] border px-2.5 text-[11px] font-display font-bold uppercase tracking-wider leading-none shadow-carimbo sm:text-xs ${
-    preto
-      ? "border-[#35302a] text-[#f4f1e8]"
-      : "border-[#35302a] text-[#0d0d0e]"
-  } ${destaque ? "ring-2 ring-destaque ring-offset-2 ring-offset-[#16281c]" : ""}`;
+    preto ? 'border-[#35302a] text-[#f4f1e8]' : 'border-[#35302a] text-[#0d0d0e]'
+  } ${destaque ? 'ring-2 ring-destaque ring-offset-2 ring-offset-[#16281c]' : ''}`;
 
   const estilo = {
-    backgroundColor: TIMES[jogador.time ?? "a"].cor,
-    minHeight: "2.25rem",
+    backgroundColor: TIMES[jogador.time ?? 'a'].cor,
+    minHeight: '2.25rem',
   } as const;
 
   if (!onClick) {
@@ -143,9 +141,7 @@ function MarcacoesCampo() {
         <circle cx={xMeio} cy={yMeio} r={0.7} fill="#2c4433" />
 
         {/* Grande área superior (Time Preto) */}
-        <path
-          d={`M ${xPen} ${y1} V ${y1 + AREA_PENALTI_P} H ${xPen2} V ${y1}`}
-        />
+        <path d={`M ${xPen} ${y1} V ${y1 + AREA_PENALTI_P} H ${xPen2} V ${y1}`} />
         {/* Pequena área superior */}
         <path d={`M ${xGol} ${y1} V ${y1 + AREA_GOL_P} H ${xGol2} V ${y1}`} />
         {/* Ponto penal superior */}
@@ -156,9 +152,7 @@ function MarcacoesCampo() {
         />
 
         {/* Grande área inferior (Time Branco) */}
-        <path
-          d={`M ${xPen} ${y2} V ${y2 - AREA_PENALTI_P} H ${xPen2} V ${y2}`}
-        />
+        <path d={`M ${xPen} ${y2} V ${y2 - AREA_PENALTI_P} H ${xPen2} V ${y2}`} />
         {/* Pequena área inferior */}
         <path d={`M ${xGol} ${y2} V ${y2 - AREA_GOL_P} H ${xGol2} V ${y2}`} />
         {/* Ponto penal inferior */}
@@ -186,20 +180,16 @@ function MetadeCampo({
   invertido?: boolean;
 }) {
   const doTime = participantes.filter((p) => p.time === time);
-  const goleiros = doTime.filter((p) => p.posicao === "goleiro");
-  const defensores = doTime.filter(
-    (p) => p.posicao === "zagueiro" || p.posicao === "lateral",
-  );
-  const meias = doTime.filter((p) => p.posicao === "meia");
-  const atacantes = doTime.filter(
-    (p) => p.posicao === "atacante" || p.posicao === "random",
-  );
+  const goleiros = doTime.filter((p) => p.posicao === 'goleiro');
+  const defensores = doTime.filter((p) => p.posicao === 'zagueiro' || p.posicao === 'lateral');
+  const meias = doTime.filter((p) => p.posicao === 'meia');
+  const atacantes = doTime.filter((p) => p.posicao === 'atacante' || p.posicao === 'random');
 
   const linhas = [
-    { key: "gol", jogs: goleiros },
-    { key: "def", jogs: defensores },
-    { key: "mei", jogs: meias },
-    { key: "ata", jogs: atacantes },
+    { key: 'gol', jogs: goleiros },
+    { key: 'def', jogs: defensores },
+    { key: 'mei', jogs: meias },
+    { key: 'ata', jogs: atacantes },
   ];
 
   const ordem = invertido ? [...linhas].reverse() : linhas;

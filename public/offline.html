@@ -1,105 +1,124 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR" class="dark">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Sem Conexão — Súmula de Quinta</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Chivo+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --cor-fundo: #12100d;
-      --cor-superficie: #1a1612;
-      --cor-borda: #2a241c;
-      --cor-giz: #e8e2d4;
-      --cor-giz-fraco: #8a8274;
-      --cor-destaque: #ffb300;
-      --cor-destaque-tinta: #1a1200;
-    }
-    body {
-      margin: 0;
-      padding: 1.5rem;
-      background-color: var(--cor-fundo);
-      color: var(--cor-giz);
-      font-family: "Archivo", -apple-system, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      box-sizing: border-box;
-      text-align: center;
-    }
-    .card {
-      background: var(--cor-superficie);
-      border: 1px solid var(--cor-borda);
-      border-radius: 4px;
-      padding: 2rem 1.5rem;
-      max-width: 360px;
-      width: 100%;
-      box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.45);
-    }
-    .shield-badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 1.25rem;
-    }
-    .shield-badge svg {
-      width: 52px;
-      height: 52px;
-    }
-    h1 {
-      font-family: "Barlow Condensed", sans-serif;
-      font-size: 1.5rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin: 0 0 0.5rem;
-      color: var(--cor-giz);
-    }
-    p {
-      font-family: "Chivo Mono", monospace;
-      font-size: 0.8125rem;
-      color: var(--cor-giz-fraco);
-      margin: 0 0 1.5rem;
-      line-height: 1.5;
-    }
-    button {
-      background-color: var(--cor-destaque);
-      color: var(--cor-destaque-tinta);
-      border: 1px solid var(--cor-destaque);
-      border-radius: 4px;
-      padding: 0.75rem 1.5rem;
-      font-family: "Barlow Condensed", sans-serif;
-      font-size: 0.875rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      cursor: pointer;
-      width: 100%;
-      min-height: 44px;
-      box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.35);
-      transition: transform 0.1s ease;
-    }
-    button:active {
-      transform: translateY(1px);
-    }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <div class="shield-badge">
-      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M50 8 L88 22 V50 C88 74 50 92 50 92 C50 92 12 74 12 50 V22 Z" fill="#0d0d0e" stroke="#2a241c" stroke-width="3" />
-        <path d="M50 8 L88 22 V50 C88 74 50 92 50 92 V8 Z" fill="#f4f1e8" />
-        <polygon points="50,34 54,43 64,44 56,51 59,61 50,56 41,61 44,51 36,44 46,43" fill="#ffb300" stroke="#12100d" stroke-width="1.5" />
-      </svg>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Sem Conexão — Súmula de Quinta</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Chivo+Mono:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --cor-fundo: #12100d;
+        --cor-superficie: #1a1612;
+        --cor-borda: #2a241c;
+        --cor-giz: #e8e2d4;
+        --cor-giz-fraco: #8a8274;
+        --cor-destaque: #ffb300;
+        --cor-destaque-tinta: #1a1200;
+      }
+      body {
+        margin: 0;
+        padding: 1.5rem;
+        background-color: var(--cor-fundo);
+        color: var(--cor-giz);
+        font-family:
+          'Archivo',
+          -apple-system,
+          sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        box-sizing: border-box;
+        text-align: center;
+      }
+      .card {
+        background: var(--cor-superficie);
+        border: 1px solid var(--cor-borda);
+        border-radius: 4px;
+        padding: 2rem 1.5rem;
+        max-width: 360px;
+        width: 100%;
+        box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.45);
+      }
+      .shield-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.25rem;
+      }
+      .shield-badge svg {
+        width: 52px;
+        height: 52px;
+      }
+      h1 {
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 1.5rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin: 0 0 0.5rem;
+        color: var(--cor-giz);
+      }
+      p {
+        font-family: 'Chivo Mono', monospace;
+        font-size: 0.8125rem;
+        color: var(--cor-giz-fraco);
+        margin: 0 0 1.5rem;
+        line-height: 1.5;
+      }
+      button {
+        background-color: var(--cor-destaque);
+        color: var(--cor-destaque-tinta);
+        border: 1px solid var(--cor-destaque);
+        border-radius: 4px;
+        padding: 0.75rem 1.5rem;
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 0.875rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        cursor: pointer;
+        width: 100%;
+        min-height: 44px;
+        box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.35);
+        transition: transform 0.1s ease;
+      }
+      button:active {
+        transform: translateY(1px);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="shield-badge">
+        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M50 8 L88 22 V50 C88 74 50 92 50 92 C50 92 12 74 12 50 V22 Z"
+            fill="#0d0d0e"
+            stroke="#2a241c"
+            stroke-width="3"
+          />
+          <path d="M50 8 L88 22 V50 C88 74 50 92 50 92 V8 Z" fill="#f4f1e8" />
+          <polygon
+            points="50,34 54,43 64,44 56,51 59,61 50,56 41,61 44,51 36,44 46,43"
+            fill="#ffb300"
+            stroke="#12100d"
+            stroke-width="1.5"
+          />
+        </svg>
+      </div>
+      <h1>Você está offline</h1>
+      <p>
+        Sem conexão de rede no momento. A súmula sincronizará automaticamente assim que a conexão
+        for restabelecida.
+      </p>
+      <button onclick="window.location.reload()">Tentar novamente</button>
     </div>
-    <h1>Você está offline</h1>
-    <p>Sem conexão de rede no momento. A súmula sincronizará automaticamente assim que a conexão for restabelecida.</p>
-    <button onclick="window.location.reload()">Tentar novamente</button>
-  </div>
-</body>
+  </body>
 </html>

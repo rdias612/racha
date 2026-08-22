@@ -4,6 +4,7 @@
 **Data:** 21 de Agosto de 2026  
 **Status:** Pronto para Execução  
 **Escopo:**
+
 1. **Code Splitting & Skeletons Zero-CLS**
 2. **Navegação Touch Swipe (Gestos Mobile)**
 3. **Unificação da Escalação de Times (`EscalacaoTimesEditor`)**
@@ -12,7 +13,7 @@
 
 ## 🎯 Objetivos de Engenharia e UX
 
-1. **Desempenho & Web Vitals (Zero-CLS):** Reduzir o bundle inicial de JavaScript através de `React.lazy()` e eliminar oscilações de layout (*Cumulative Layout Shift*) ao carregar dados do Supabase utilizando Skeletons estruturais idênticos aos layouts finais.
+1. **Desempenho & Web Vitals (Zero-CLS):** Reduzir o bundle inicial de JavaScript através de `React.lazy()` e eliminar oscilações de layout (_Cumulative Layout Shift_) ao carregar dados do Supabase utilizando Skeletons estruturais idênticos aos layouts finais.
 2. **Ergonomia Mobile Nativa:** Permitir que o usuário navegue entre abas com gestos horizontais de swipe com o polegar, sem bloquear o scroll vertical nativo e com feedback háptico sutil.
 3. **Eliminação de Duplicação de Código (~85%):** Centralizar as regras complexas de escalação, travas de goleiro (1/1 GK) e limites de time (8/8) em um único componente reutilizável (`EscalacaoTimesEditor.tsx`).
 
@@ -21,6 +22,7 @@
 ## 🏗️ 1. Fase 1: Code Splitting & Skeletons Zero-CLS
 
 ### 1.1. Criação do Módulo de Skeletons (`src/components/Skeletons.tsx`)
+
 - Criar placeholders visuais dimensionados rigorosamente com as mesmas margens, alturas e grids das telas reais com animação CSS `animate-pulse`:
   - `SkeletonResumo`: Header, card da próxima partida e bento grid de destaques da temporada.
   - `SkeletonJogos`: Header com filtro de ano e lista de cards estilo estádio com placar central.
@@ -31,11 +33,12 @@
   - `SkeletonGestao`: Cards de resumo de mensalistas/admins e lista de atletas.
 
 ### 1.2. Refatoração de `src/App.tsx` com `React.lazy` e `Suspense`
+
 - Converter todos os imports estáticos de rotas para `lazy(() => import(...))`.
 - Criar container de fallback inteligente que exibe o Skeleton correto de acordo com a rota ativa:
   ```tsx
-  const Ranking = lazy(() => import("./routes/Ranking").then(m => ({ default: m.Ranking })));
-  const Jogos = lazy(() => import("./routes/Jogos").then(m => ({ default: m.Jogos })));
+  const Ranking = lazy(() => import('./routes/Ranking').then((m) => ({ default: m.Ranking })));
+  const Jogos = lazy(() => import('./routes/Jogos').then((m) => ({ default: m.Jogos })));
   // ... demais rotas
   ```
 - Envolver as rotas no `<Suspense fallback={<CarregandoRota />}>`.
@@ -46,12 +49,14 @@
 ## 👆 2. Fase 2: Navegação Touch Swipe & Gestos Mobile
 
 ### 2.1. Utilitário de Haptics (`src/lib/haptics.ts`)
+
 - Criar/garantir wrapper seguro para `navigator.vibrate`:
   - `vibrateLight()`: pulso de 15ms para toques rápidos e troca de abas.
   - `vibrateSuccess()`: confirmação de gravação de escalação ou salvamento.
   - `vibrateWarning()`: alerta de violação de regra (ex: tentar escalar 2º goleiro).
 
 ### 2.2. Criação do Hook `src/hooks/useSwipeTabs.ts`
+
 - Implementar máquina de estados de toque com precisão:
   - **`onTouchStart`**: captura coordenadas iniciais `(x, y)` e timestamp.
   - **`onTouchMove`**: calcula `deltaX` e `deltaY`. Aplica trava vertical prematura: se `|deltaY| > 12px` e `|deltaY| > |deltaX|`, desativa imediatamente o swipe e entrega o controle ao scroll vertical nativo do navegador.
@@ -60,6 +65,7 @@
   - Exclui toques iniciados em `input[type="range"]`, botões ou elementos com atributo `data-no-swipe`.
 
 ### 2.3. Integração do Swipe nas Abas Principais
+
 - **`Ranking.tsx`**: Swipe horizontal entre as 4 métricas:
   `['/ranking/pontos', '/ranking/gols', '/ranking/assistencias', '/ranking/gols-contra']`.
 - **`Estatisticas.tsx` & `EstatisticasRacha.tsx`**: Swipe entre as abas:
@@ -70,6 +76,7 @@
 ## ⚽ 3. Fase 3: Unificação da Escalação de Times (`EscalacaoTimesEditor`)
 
 ### 3.1. Criação de `src/components/EscalacaoTimesEditor.tsx`
+
 - Componente puro e modular com TypeScript rigoroso recebendo:
   - `jogadores: JogadorLista[]` (lista dos confirmados).
   - `times: Record<number, TimeId>` (alocação atual).
@@ -87,6 +94,7 @@
   - Rodapé fixo com safe-area (`calc(4rem + env(safe-area-inset-bottom))`) e botão de ação principal.
 
 ### 3.2. Refatoração de `src/routes/PartidaNovaTimes.tsx`
+
 - Reduzir o arquivo de 438 linhas para ~60 linhas.
 - Responsabilidades da rota:
   - Validar se o usuário é admin e recuperar estado de navegação da Etapa 1.
@@ -94,6 +102,7 @@
   - Renderizar `<EscalacaoTimesEditor />`.
 
 ### 3.3. Refatoração de `src/routes/PartidaTimes.tsx`
+
 - Reduzir o arquivo de 458 linhas para ~80 linhas.
 - Responsabilidades da rota:
   - Carregar a partida existente e participantes do Supabase.
@@ -105,14 +114,14 @@
 
 ## 🧪 4. Plano de Testes e Validação
 
-| Teste | Tipo | Critério de Aceite |
-| :--- | :--- | :--- |
-| **Typecheck** | Automatizado (`tsc --noEmit`) | 0 erros de compilação TypeScript. |
-| **Build Vite** | Automatizado (`npm run build`) | Bundle gerado com chunks divididos (`dist/assets/*.js`) com sucesso. |
-| **Zero-CLS** | Manual / DevTools | Ausência de saltos visuais durante o carregamento de Jogos, Ranking e Perfil. |
-| **Touch Swipe** | Manual / Mobile | Deslizar horizontalmente no Ranking muda de métrica; rolar para cima/baixo rola a lista normalmente sem disparar troca acidental de aba. |
-| **Escalação Nova Partida** | Manual | Criar nova partida, clicar em "Gerar automaticamente", testar botões Preto/Branco, validar trava de 2º goleiro e salvar. |
-| **Escalação Partida Existente** | Manual | Abrir partida draft em `/partida/:id/times`, ajustar jogadores e salvar com sucesso no banco. |
+| Teste                           | Tipo                           | Critério de Aceite                                                                                                                       |
+| :------------------------------ | :----------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------- |
+| **Typecheck**                   | Automatizado (`tsc --noEmit`)  | 0 erros de compilação TypeScript.                                                                                                        |
+| **Build Vite**                  | Automatizado (`npm run build`) | Bundle gerado com chunks divididos (`dist/assets/*.js`) com sucesso.                                                                     |
+| **Zero-CLS**                    | Manual / DevTools              | Ausência de saltos visuais durante o carregamento de Jogos, Ranking e Perfil.                                                            |
+| **Touch Swipe**                 | Manual / Mobile                | Deslizar horizontalmente no Ranking muda de métrica; rolar para cima/baixo rola a lista normalmente sem disparar troca acidental de aba. |
+| **Escalação Nova Partida**      | Manual                         | Criar nova partida, clicar em "Gerar automaticamente", testar botões Preto/Branco, validar trava de 2º goleiro e salvar.                 |
+| **Escalação Partida Existente** | Manual                         | Abrir partida draft em `/partida/:id/times`, ajustar jogadores e salvar com sucesso no banco.                                            |
 
 ---
 

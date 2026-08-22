@@ -1,6 +1,6 @@
-import { useEffect, useId, useRef, useState } from "react";
-import type { MouseEvent } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useId, useRef, useState } from 'react';
+import type { MouseEvent } from 'react';
+import { createPortal } from 'react-dom';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -10,7 +10,7 @@ interface ConfirmDialogProps {
   mensagem?: string;
   textoConfirmar?: string;
   textoCancelar?: string;
-  tomConfirmar?: "destaque" | "perigo";
+  tomConfirmar?: 'destaque' | 'perigo';
 }
 
 export function ConfirmDialog({
@@ -19,9 +19,9 @@ export function ConfirmDialog({
   onConfirm,
   titulo,
   mensagem,
-  textoConfirmar = "Confirmar",
-  textoCancelar = "Cancelar",
-  tomConfirmar = "destaque",
+  textoConfirmar = 'Confirmar',
+  textoCancelar = 'Cancelar',
+  tomConfirmar = 'destaque',
 }: ConfirmDialogProps) {
   const tituloId = useId();
   const confirmRef = useRef<HTMLButtonElement>(null);
@@ -35,18 +35,18 @@ export function ConfirmDialog({
     const raf = requestAnimationFrame(() => setVisivel(true));
 
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === 'Escape') onClose();
     };
-    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener('keydown', onKeyDown);
 
     (confirmRef.current ?? cardRef.current)?.focus();
 
     const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    document.body.style.overflow = 'hidden';
 
     return () => {
       cancelAnimationFrame(raf);
-      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener('keydown', onKeyDown);
       document.body.style.overflow = prevOverflow;
     };
   }, [open, onClose]);
@@ -66,7 +66,7 @@ export function ConfirmDialog({
         aria-modal="true"
         aria-labelledby={tituloId}
         className={`w-full max-w-sm rounded-[6px] border-2 border-borda bg-superficie p-5 shadow-carimbo-preto transition text-giz ${
-          visivel ? "opacity-100 scale-100" : "opacity-0 scale-95"
+          visivel ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
         }`}
       >
         <h2
@@ -76,9 +76,7 @@ export function ConfirmDialog({
           {titulo}
         </h2>
         {mensagem ? (
-          <p className="text-xs text-giz-fraco mt-1.5 leading-relaxed">
-            {mensagem}
-          </p>
+          <p className="text-xs text-giz-fraco mt-1.5 leading-relaxed">{mensagem}</p>
         ) : null}
         <div className="flex gap-2.5 mt-5">
           <button
@@ -93,9 +91,9 @@ export function ConfirmDialog({
             type="button"
             onClick={onConfirm}
             className={`flex-1 min-h-[44px] cursor-pointer rounded-[4px] border font-display uppercase tracking-wider text-xs font-bold shadow-carimbo transition active:translate-y-px ${
-              tomConfirmar === "perigo"
-                ? "border-perigo bg-perigo text-white hover:brightness-110"
-                : "border-destaque bg-destaque text-destaque-tinta hover:brightness-105"
+              tomConfirmar === 'perigo'
+                ? 'border-perigo bg-perigo text-white hover:brightness-110'
+                : 'border-destaque bg-destaque text-destaque-tinta hover:brightness-105'
             }`}
           >
             {textoConfirmar}
@@ -103,6 +101,6 @@ export function ConfirmDialog({
         </div>
       </div>
     </div>,
-    document.body,
+    document.body
   );
 }

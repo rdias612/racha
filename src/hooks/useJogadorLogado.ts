@@ -1,6 +1,6 @@
-import { useSessao } from '../context/SessaoContext'
+import { useSessao } from '../context/SessaoContext';
 
 export function useJogadorLogado() {
-  const { jogador } = useSessao()
-  return jogador
+  const { jogador } = useSessao();
+  return jogador;
 }

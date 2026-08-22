@@ -1,6 +1,6 @@
-import { useRef, useCallback, type TouchEvent } from "react";
-import { useNavigate } from "react-router-dom";
-import { vibrateLight } from "../lib/haptics";
+import { useRef, useCallback, type TouchEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { vibrateLight } from '../lib/haptics';
 
 export interface UseSwipeTabsOptions {
   /**
@@ -53,9 +53,7 @@ export function useSwipeTabs({
 
       const target = e.target as HTMLElement | null;
       // Não intercepta toques iniciados em sliders, selects, botões interativos ou áreas demarcadas
-      if (
-        target?.closest('input[type="range"], select, textarea, [data-no-swipe]')
-      ) {
+      if (target?.closest('input[type="range"], select, textarea, [data-no-swipe]')) {
         startCoords.current = null;
         return;
       }

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useInstalacaoPWA } from "../lib/pwa";
+import { useState } from 'react';
+import { useInstalacaoPWA } from '../lib/pwa';
 
 /**
  * Cartão de instalação do PWA.
@@ -30,14 +30,15 @@ export function BotaoInstalar() {
       {!iosManual ? (
         <>
           <p className="mt-1.5 text-xs text-giz-fraco">
-            Adicione a Súmula de Quinta à tela inicial para acesso instantâneo em campo, sem barra do navegador.
+            Adicione a Súmula de Quinta à tela inicial para acesso instantâneo em campo, sem barra
+            do navegador.
           </p>
           <button
             onClick={handleClick}
             disabled={instalando}
             className="mt-3 w-full min-h-[44px] rounded-[3px] border border-destaque bg-destaque px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-50"
           >
-            {instalando ? "Instalando…" : "Instalar Aplicativo"}
+            {instalando ? 'Instalando…' : 'Instalar Aplicativo'}
           </button>
         </>
       ) : (
@@ -49,20 +50,22 @@ export function BotaoInstalar() {
             onClick={() => setExpandido((v) => !v)}
             className="mt-2.5 w-full min-h-[40px] rounded-[3px] border border-destaque/50 bg-superficie px-4 py-2 font-display font-bold uppercase tracking-wider text-xs text-destaque hover:bg-superficie-2 transition"
           >
-            {expandido ? "Ocultar passo a passo ▴" : "Ver passo a passo ▾"}
+            {expandido ? 'Ocultar passo a passo ▴' : 'Ver passo a passo ▾'}
           </button>
           {expandido && (
             <ol className="mt-2.5 space-y-1.5 text-xs text-giz-fraco font-mono">
               <li>
-                <strong className="text-giz">1.</strong> Toque no botão <strong className="text-giz">Compartilhar</strong>{" "}
-                <span aria-hidden="true">⎋</span> na barra do Safari.
+                <strong className="text-giz">1.</strong> Toque no botão{' '}
+                <strong className="text-giz">Compartilhar</strong> <span aria-hidden="true">⎋</span>{' '}
+                na barra do Safari.
               </li>
               <li>
-                <strong className="text-giz">2.</strong> Role e toque em{" "}
+                <strong className="text-giz">2.</strong> Role e toque em{' '}
                 <strong className="text-giz">"Adicionar à Tela de Início"</strong>.
               </li>
               <li>
-                <strong className="text-giz">3.</strong> Confirme. O ícone da Súmula de Quinta aparecerá na sua tela.
+                <strong className="text-giz">3.</strong> Confirme. O ícone da Súmula de Quinta
+                aparecerá na sua tela.
               </li>
             </ol>
           )}

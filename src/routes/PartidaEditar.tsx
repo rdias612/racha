@@ -1,15 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
-import { Navigate, useNavigate, useParams } from "react-router-dom";
-import {
-  UserPlus,
-  Trash2,
-  ArrowLeftRight,
-  Search,
-  X,
-} from "lucide-react";
-import { useAdmin } from "../hooks/useAdmin";
-import { listarJogadoresAtivos, type JogadorLista } from "../lib/jogadores";
-import { TIMES, POSICOES, type TimeId } from "../lib/times";
+import { useEffect, useMemo, useState } from 'react';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
+import { UserPlus, Trash2, ArrowLeftRight, Search, X } from 'lucide-react';
+import { useAdmin } from '../hooks/useAdmin';
+import { listarJogadoresAtivos, type JogadorLista } from '../lib/jogadores';
+import { TIMES, POSICOES, type TimeId } from '../lib/times';
 import {
   carregarPartida,
   carregarParticipantes,
@@ -17,15 +11,14 @@ import {
   type Partida,
   type Participante,
   type ParticipanteEdicao,
-} from "../lib/partidas";
-import { Carregando, MensagemEstado } from "../components/Estado";
-import { ConfirmDialog } from "../components/ConfirmDialog";
-import { Avatar } from "../components/Avatar";
-import { formatarDataCompleta } from "../lib/formatacao";
-import { voltar } from "../lib/navegacao";
+} from '../lib/partidas';
+import { Carregando, MensagemEstado } from '../components/Estado';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+import { Avatar } from '../components/Avatar';
+import { formatarDataCompleta } from '../lib/formatacao';
+import { voltar } from '../lib/navegacao';
 
-
-type FiltroModal = "todos" | "goleiros" | "linha" | "mensalistas" | "avulsos";
+type FiltroModal = 'todos' | 'goleiros' | 'linha' | 'mensalistas' | 'avulsos';
 
 export function PartidaEditar() {
   const isAdmin = useAdmin();
@@ -45,8 +38,8 @@ export function PartidaEditar() {
 
   // Modal de adição e diálogo de remoção
   const [modalTime, setModalTime] = useState<TimeId | null>(null);
-  const [buscaJogador, setBuscaJogador] = useState("");
-  const [filtroModal, setFiltroModal] = useState<FiltroModal>("todos");
+  const [buscaJogador, setBuscaJogador] = useState('');
+  const [filtroModal, setFiltroModal] = useState<FiltroModal>('todos');
   const [jogadorParaRemover, setJogadorParaRemover] = useState<ParticipanteEdicao | null>(null);
 
   useEffect(() => {
@@ -76,7 +69,7 @@ export function PartidaEditar() {
             status_confirmacao: pt.status_confirmacao,
             nome: pt.nome,
             username: pt.username,
-          })),
+          }))
         );
       })
       .catch((e) => {
@@ -93,17 +86,17 @@ export function PartidaEditar() {
   const participantesPorTime = useMemo(() => {
     const map: Record<TimeId, ParticipanteEdicao[]> = { a: [], b: [] };
     for (const p of participantes) {
-      if (p.time === "a" || p.time === "b") {
+      if (p.time === 'a' || p.time === 'b') {
         map[p.time].push(p);
       }
     }
-    for (const t of ["a", "b"] as TimeId[]) {
+    for (const t of ['a', 'b'] as TimeId[]) {
       map[t].sort((a, b) => {
         // Goleiros primeiro, depois ordem alfabética
-        const aGk = a.posicao === "goleiro" ? 0 : 1;
-        const bGk = b.posicao === "goleiro" ? 0 : 1;
+        const aGk = a.posicao === 'goleiro' ? 0 : 1;
+        const bGk = b.posicao === 'goleiro' ? 0 : 1;
         if (aGk !== bGk) return aGk - bGk;
-        return (a.nome ?? "").localeCompare(b.nome ?? "");
+        return (a.nome ?? '').localeCompare(b.nome ?? '');
       });
     }
     return map;
@@ -114,10 +107,10 @@ export function PartidaEditar() {
     let placarA = 0;
     let placarB = 0;
     for (const p of participantes) {
-      if (p.time === "a") {
+      if (p.time === 'a') {
         placarA += p.gols;
         placarB += p.gols_contra;
-      } else if (p.time === "b") {
+      } else if (p.time === 'b') {
         placarB += p.gols;
         placarA += p.gols_contra;
       }
@@ -133,30 +126,26 @@ export function PartidaEditar() {
     return jogadoresAtivos
       .filter((j) => !idsEscalados.has(j.id))
       .filter((j) => {
-        if (filtroModal === "goleiros") return j.posicao === "goleiro";
-        if (filtroModal === "linha") return j.posicao !== "goleiro";
-        if (filtroModal === "mensalistas") return j.is_mensalista;
-        if (filtroModal === "avulsos") return !j.is_mensalista;
+        if (filtroModal === 'goleiros') return j.posicao === 'goleiro';
+        if (filtroModal === 'linha') return j.posicao !== 'goleiro';
+        if (filtroModal === 'mensalistas') return j.is_mensalista;
+        if (filtroModal === 'avulsos') return !j.is_mensalista;
         return true;
       })
       .filter(
         (j) =>
-          !termo ||
-          j.nome.toLowerCase().includes(termo) ||
-          j.username.toLowerCase().includes(termo),
+          !termo || j.nome.toLowerCase().includes(termo) || j.username.toLowerCase().includes(termo)
       );
   }, [jogadoresAtivos, participantes, buscaJogador, filtroModal]);
 
   if (!isAdmin) return <Navigate to="/" replace />;
-  if (partida?.status === "live") {
+  if (partida?.status === 'live') {
     return <Navigate to={`/partida/${partidaId}/ao-vivo`} replace />;
   }
   if (carregando) return <Carregando>Carregando partida</Carregando>;
   if (erro && !partida)
     return (
-      <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">
-        Erro: {erro}
-      </MensagemEstado>
+      <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">Erro: {erro}</MensagemEstado>
     );
   if (!partida)
     return (
@@ -165,12 +154,12 @@ export function PartidaEditar() {
       </MensagemEstado>
     );
 
-  const primeiraVez = partida.status === "draft";
+  const primeiraVez = partida.status === 'draft';
 
   function ajustar(
     jogadorId: number,
-    campo: "gols" | "assistencias" | "gols_contra",
-    delta: number,
+    campo: 'gols' | 'assistencias' | 'gols_contra',
+    delta: number
   ) {
     setParticipantes((prev) =>
       prev.map((p) => {
@@ -180,7 +169,7 @@ export function PartidaEditar() {
           ...p,
           [campo]: Math.max(0, valorAtual + delta),
         };
-      }),
+      })
     );
   }
 
@@ -188,9 +177,9 @@ export function PartidaEditar() {
     setParticipantes((prev) =>
       prev.map((p) => {
         if (p.jogador_id !== jogadorId) return p;
-        const novoTime: TimeId = p.time === "a" ? "b" : "a";
+        const novoTime: TimeId = p.time === 'a' ? 'b' : 'a';
         return { ...p, time: novoTime };
-      }),
+      })
     );
   }
 
@@ -216,14 +205,14 @@ export function PartidaEditar() {
       gols: 0,
       assistencias: 0,
       gols_contra: 0,
-      status_confirmacao: "confirmado",
+      status_confirmacao: 'confirmado',
       nome: jogador.nome,
       username: jogador.username,
     };
     setParticipantes((prev) => [...prev, novo]);
     setModalTime(null);
-    setBuscaJogador("");
-    setFiltroModal("todos");
+    setBuscaJogador('');
+    setFiltroModal('todos');
   }
 
   async function salvar() {
@@ -238,19 +227,19 @@ export function PartidaEditar() {
         participantes,
         participantesOriginais,
         partida!.status,
-        primeiraVez,
+        primeiraVez
       );
 
       setFeedback(
         primeiraVez
-          ? "Resultado e escalação publicados com sucesso!"
-          : "Partida, escalação e placar salvos com sucesso.",
+          ? 'Resultado e escalação publicados com sucesso!'
+          : 'Partida, escalação e placar salvos com sucesso.'
       );
       setTimeout(() => {
         navigate(`/partida/${partidaId}`);
       }, 700);
     } catch (e) {
-      setErro("Erro ao salvar alterações: " + (e instanceof Error ? e.message : String(e)));
+      setErro('Erro ao salvar alterações: ' + (e instanceof Error ? e.message : String(e)));
     } finally {
       setSalvando(false);
     }
@@ -270,7 +259,7 @@ export function PartidaEditar() {
       <div className="rounded-[4px] border border-borda bg-superficie p-4 shadow-carimbo space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-xs font-display font-bold uppercase tracking-wider text-giz-fraco">
-            {primeiraVez ? "Lançamento de Resultado" : "Edição da Partida"} · #{partidaId}
+            {primeiraVez ? 'Lançamento de Resultado' : 'Edição da Partida'} · #{partidaId}
           </span>
           <span className="text-xs font-mono text-giz-fraco capitalize">
             {formatarDataCompleta(partida.data_jogo)}
@@ -318,19 +307,20 @@ export function PartidaEditar() {
         </p>
       </div>
 
-      {partida.status === "closed" && (
+      {partida.status === 'closed' && (
         <MensagemEstado tipo="info">
-          Partida encerrada — você está editando a escalação e o resultado de uma partida já finalizada.
+          Partida encerrada — você está editando a escalação e o resultado de uma partida já
+          finalizada.
         </MensagemEstado>
       )}
 
       {/* Seções dos Times */}
       <div className="space-y-6">
-        {(["a", "b"] as TimeId[]).map((t) => {
+        {(['a', 'b'] as TimeId[]).map((t) => {
           const lista = participantesPorTime[t];
-          const goleiros = lista.filter((p) => p.posicao === "goleiro").length;
-          const ehPreto = t === "a";
-          const outroTimeNome = ehPreto ? "Branco" : "Preto";
+          const goleiros = lista.filter((p) => p.posicao === 'goleiro').length;
+          const ehPreto = t === 'a';
+          const outroTimeNome = ehPreto ? 'Branco' : 'Preto';
 
           return (
             <section key={t} className="space-y-2.5">
@@ -339,7 +329,7 @@ export function PartidaEditar() {
                 className="rounded-[4px] px-3.5 py-2.5 flex items-center justify-between shadow-carimbo border border-borda"
                 style={{
                   backgroundColor: TIMES[t].cor,
-                  color: ehPreto ? "#f4f1e8" : "#0d0d0e",
+                  color: ehPreto ? '#f4f1e8' : '#0d0d0e',
                 }}
               >
                 <div className="flex items-center gap-2">
@@ -349,8 +339,8 @@ export function PartidaEditar() {
                   <span
                     className={`text-xs px-2 py-0.5 rounded-[2px] font-mono font-medium ${
                       ehPreto
-                        ? "bg-superficie text-giz border border-borda"
-                        : "bg-superficie-2 text-giz border border-borda"
+                        ? 'bg-superficie text-giz border border-borda'
+                        : 'bg-superficie-2 text-giz border border-borda'
                     }`}
                   >
                     {lista.length} jogadores {goleiros > 0 && `· 🧤 ${goleiros}`}
@@ -360,14 +350,14 @@ export function PartidaEditar() {
                 <button
                   type="button"
                   onClick={() => {
-                    setBuscaJogador("");
-                    setFiltroModal("todos");
+                    setBuscaJogador('');
+                    setFiltroModal('todos');
                     setModalTime(t);
                   }}
                   className={`min-h-[44px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-xs font-display font-bold uppercase tracking-wider shadow-carimbo active:translate-y-px transition cursor-pointer ${
                     ehPreto
-                      ? "bg-superficie text-giz border border-borda hover:bg-superficie-2"
-                      : "bg-[#0d0d0e] hover:bg-[#1b1814] text-[#f4f1e8] border border-[#0d0d0e]"
+                      ? 'bg-superficie text-giz border border-borda hover:bg-superficie-2'
+                      : 'bg-[#0d0d0e] hover:bg-[#1b1814] text-[#f4f1e8] border border-[#0d0d0e]'
                   }`}
                 >
                   <UserPlus className="size-3.5 text-destaque" />
@@ -378,24 +368,21 @@ export function PartidaEditar() {
               {/* Lista de Cards de Jogadores */}
               <div className="space-y-2">
                 {lista.map((p) => {
-                  const ehGoleiro = p.posicao === "goleiro";
-                  const temEstatisticas =
-                    p.gols > 0 || p.assistencias > 0 || p.gols_contra > 0;
+                  const ehGoleiro = p.posicao === 'goleiro';
+                  const temEstatisticas = p.gols > 0 || p.assistencias > 0 || p.gols_contra > 0;
 
                   return (
                     <div
                       key={p.jogador_id}
                       className={`rounded-[4px] border p-3 bg-superficie transition shadow-carimbo space-y-2.5 ${
-                        temEstatisticas
-                          ? "border-destaque/60 bg-destaque/5"
-                          : "border-borda"
+                        temEstatisticas ? 'border-destaque/60 bg-destaque/5' : 'border-borda'
                       }`}
                     >
                       {/* Linha 1: Perfil do Jogador + Ações (Mover / Excluir) */}
                       <div className="flex items-center justify-between gap-2">
                         {/* Identificação do Jogador */}
                         <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                          <Avatar nome={p.nome ?? ""} size="sm" />
+                          <Avatar nome={p.nome ?? ''} size="sm" />
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5">
                               <span className="font-bold text-sm text-giz truncate">
@@ -411,11 +398,9 @@ export function PartidaEditar() {
                             </div>
                             <span className="text-[11px] font-display uppercase tracking-wider text-giz-fraco flex items-center gap-1">
                               {ehGoleiro ? (
-                                <span className="text-ok font-bold">
-                                  🧤 Goleiro
-                                </span>
+                                <span className="text-ok font-bold">🧤 Goleiro</span>
                               ) : (
-                                <span>{POSICOES[p.posicao] ?? "Linha"}</span>
+                                <span>{POSICOES[p.posicao] ?? 'Linha'}</span>
                               )}
                             </span>
                           </div>
@@ -450,24 +435,24 @@ export function PartidaEditar() {
                           label="Gols"
                           valor={p.gols}
                           corAtiva="destaque"
-                          onMenos={() => ajustar(p.jogador_id, "gols", -1)}
-                          onMais={() => ajustar(p.jogador_id, "gols", 1)}
+                          onMenos={() => ajustar(p.jogador_id, 'gols', -1)}
+                          onMais={() => ajustar(p.jogador_id, 'gols', 1)}
                         />
                         <StepperBox
                           icone="🅰️"
                           label="Assists"
                           valor={p.assistencias}
                           corAtiva="azul"
-                          onMenos={() => ajustar(p.jogador_id, "assistencias", -1)}
-                          onMais={() => ajustar(p.jogador_id, "assistencias", 1)}
+                          onMenos={() => ajustar(p.jogador_id, 'assistencias', -1)}
+                          onMais={() => ajustar(p.jogador_id, 'assistencias', 1)}
                         />
                         <StepperBox
                           icone="🥅"
                           label="GC"
                           valor={p.gols_contra}
                           corAtiva="perigo"
-                          onMenos={() => ajustar(p.jogador_id, "gols_contra", -1)}
-                          onMais={() => ajustar(p.jogador_id, "gols_contra", 1)}
+                          onMenos={() => ajustar(p.jogador_id, 'gols_contra', -1)}
+                          onMais={() => ajustar(p.jogador_id, 'gols_contra', 1)}
                         />
                       </div>
                     </div>
@@ -480,8 +465,8 @@ export function PartidaEditar() {
                     <button
                       type="button"
                       onClick={() => {
-                        setBuscaJogador("");
-                        setFiltroModal("todos");
+                        setBuscaJogador('');
+                        setFiltroModal('todos');
                         setModalTime(t);
                       }}
                       className="min-h-[44px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-xs font-display font-bold uppercase tracking-wider bg-destaque text-destaque-tinta shadow-carimbo cursor-pointer"
@@ -503,7 +488,7 @@ export function PartidaEditar() {
       {/* Barra Fixa Inferior de Salvar */}
       <div
         className="fixed inset-x-0 z-40 p-3 bg-superficie/95 backdrop-blur border-t border-borda shadow-carimbo-preto"
-        style={{ bottom: "calc(3.5rem + env(safe-area-inset-bottom))" }}
+        style={{ bottom: 'calc(3.5rem + env(safe-area-inset-bottom))' }}
       >
         <div className="max-w-2xl mx-auto flex flex-col gap-1">
           <button
@@ -512,15 +497,15 @@ export function PartidaEditar() {
             className="w-full min-h-[44px] rounded-[4px] bg-destaque hover:brightness-105 px-4 py-3 font-display font-bold uppercase tracking-wider text-destaque-tinta shadow-carimbo disabled:opacity-40 active:translate-y-px transition cursor-pointer text-xs"
           >
             {salvando
-              ? "Salvando alterações…"
+              ? 'Salvando alterações…'
               : primeiraVez
-                ? "Publicar resultado e escalação"
-                : "Salvar alterações da partida"}
+                ? 'Publicar resultado e escalação'
+                : 'Salvar alterações da partida'}
           </button>
           <p className="text-center text-[10px] font-mono text-giz-fraco">
             {primeiraVez
-              ? "Publica o placar e abre a votação por 24 horas."
-              : "Atualiza escalação, participantes e placar imediatamente."}
+              ? 'Publica o placar e abre a votação por 24 horas.'
+              : 'Atualiza escalação, participantes e placar imediatamente.'}
           </p>
         </div>
       </div>
@@ -562,7 +547,7 @@ export function PartidaEditar() {
                 {buscaJogador && (
                   <button
                     type="button"
-                    onClick={() => setBuscaJogador("")}
+                    onClick={() => setBuscaJogador('')}
                     aria-label="Limpar busca"
                     className="min-h-[44px] min-w-[44px] flex items-center justify-center absolute right-0 top-1/2 -translate-y-1/2 text-xs text-giz-fraco hover:text-giz"
                   >
@@ -575,11 +560,11 @@ export function PartidaEditar() {
               <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-xs no-scrollbar">
                 {(
                   [
-                    { id: "todos", label: "Todos" },
-                    { id: "goleiros", label: "🧤 Goleiros" },
-                    { id: "linha", label: "Linha" },
-                    { id: "mensalistas", label: "Mensalistas" },
-                    { id: "avulsos", label: "Avulsos" },
+                    { id: 'todos', label: 'Todos' },
+                    { id: 'goleiros', label: '🧤 Goleiros' },
+                    { id: 'linha', label: 'Linha' },
+                    { id: 'mensalistas', label: 'Mensalistas' },
+                    { id: 'avulsos', label: 'Avulsos' },
                   ] as const
                 ).map((f) => (
                   <button
@@ -588,8 +573,8 @@ export function PartidaEditar() {
                     onClick={() => setFiltroModal(f.id)}
                     className={`min-h-[36px] px-2.5 py-1 rounded-[3px] font-display font-bold uppercase tracking-wider whitespace-nowrap transition cursor-pointer ${
                       filtroModal === f.id
-                        ? "bg-destaque text-destaque-tinta shadow-carimbo"
-                        : "bg-superficie-2 border border-borda text-giz-fraco hover:text-giz"
+                        ? 'bg-destaque text-destaque-tinta shadow-carimbo'
+                        : 'bg-superficie-2 border border-borda text-giz-fraco hover:text-giz'
                     }`}
                   >
                     {f.label}
@@ -610,17 +595,15 @@ export function PartidaEditar() {
                   <div className="flex items-center gap-2.5 min-w-0">
                     <Avatar nome={j.nome} size="sm" />
                     <div className="min-w-0">
-                      <p className="text-sm font-bold text-giz truncate">
-                        {j.nome}
-                      </p>
+                      <p className="text-sm font-bold text-giz truncate">{j.nome}</p>
                       <p className="text-[10px] font-mono text-giz-fraco">
-                        {j.is_mensalista ? "Mensalista" : "Avulso"}
+                        {j.is_mensalista ? 'Mensalista' : 'Avulso'}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <span className="text-[10px] font-display uppercase tracking-wider text-giz-fraco">
-                      {j.posicao === "goleiro" ? "🧤 Goleiro" : POSICOES[j.posicao] ?? "Linha"}
+                      {j.posicao === 'goleiro' ? '🧤 Goleiro' : (POSICOES[j.posicao] ?? 'Linha')}
                     </span>
                     <span className="min-h-[32px] inline-flex items-center px-2.5 py-1 rounded-[2px] bg-destaque/15 text-destaque text-xs font-display font-bold uppercase tracking-wider">
                       + Escalar
@@ -632,8 +615,8 @@ export function PartidaEditar() {
               {candidatosAdicionar.length === 0 && (
                 <div className="py-12 text-center text-xs font-mono text-giz-fraco">
                   {buscaJogador
-                    ? "Nenhum jogador encontrado com essa busca."
-                    : "Nenhum jogador disponível neste filtro."}
+                    ? 'Nenhum jogador encontrado com essa busca.'
+                    : 'Nenhum jogador disponível neste filtro.'}
                 </div>
               )}
             </div>
@@ -657,7 +640,7 @@ export function PartidaEditar() {
         open={jogadorParaRemover != null}
         onClose={() => setJogadorParaRemover(null)}
         onConfirm={() => jogadorParaRemover && removerJogador(jogadorParaRemover.jogador_id)}
-        titulo={`Remover ${jogadorParaRemover?.nome ?? "jogador"}?`}
+        titulo={`Remover ${jogadorParaRemover?.nome ?? 'jogador'}?`}
         mensagem="Este jogador possui gols, assistências ou gols contra registrados. Se removê-lo da partida, essas estatísticas serão apagadas."
         textoConfirmar="Remover jogador"
         tomConfirmar="perigo"
@@ -668,13 +651,13 @@ export function PartidaEditar() {
         open={confirmandoSalvar}
         onClose={() => setConfirmandoSalvar(false)}
         onConfirm={salvar}
-        titulo={primeiraVez ? "Publicar resultado e escalação?" : "Salvar alterações?"}
+        titulo={primeiraVez ? 'Publicar resultado e escalação?' : 'Salvar alterações?'}
         mensagem={
           primeiraVez
-            ? "Isso grava a escalação definitiva, o placar e abre o período de votação."
-            : "Atualiza os jogadores escalados, seus times e o placar oficial desta partida."
+            ? 'Isso grava a escalação definitiva, o placar e abre o período de votação.'
+            : 'Atualiza os jogadores escalados, seus times e o placar oficial desta partida.'
         }
-        textoConfirmar={primeiraVez ? "Publicar" : "Salvar"}
+        textoConfirmar={primeiraVez ? 'Publicar' : 'Salvar'}
       />
     </div>
   );
@@ -693,7 +676,7 @@ function StepperBox({
   icone: string;
   label: string;
   valor: number;
-  corAtiva: "destaque" | "azul" | "perigo";
+  corAtiva: 'destaque' | 'azul' | 'perigo';
   disabled?: boolean;
   onMenos: () => void;
   onMais: () => void;
@@ -701,20 +684,20 @@ function StepperBox({
   const ativo = valor > 0;
 
   const bgStyle = ativo
-    ? corAtiva === "destaque"
-      ? "bg-destaque/10 border-destaque/60 text-destaque"
-      : corAtiva === "azul"
-        ? "bg-superficie-2 border-destaque text-giz"
-        : "bg-perigo/10 border-perigo/60 text-perigo"
-    : "bg-superficie-2 border-borda text-giz-fraco";
+    ? corAtiva === 'destaque'
+      ? 'bg-destaque/10 border-destaque/60 text-destaque'
+      : corAtiva === 'azul'
+        ? 'bg-superficie-2 border-destaque text-giz'
+        : 'bg-perigo/10 border-perigo/60 text-perigo'
+    : 'bg-superficie-2 border-borda text-giz-fraco';
 
   const numColor = ativo
-    ? corAtiva === "destaque"
-      ? "text-destaque font-bold"
-      : corAtiva === "azul"
-        ? "text-giz font-bold"
-        : "text-perigo font-bold"
-    : "text-giz";
+    ? corAtiva === 'destaque'
+      ? 'text-destaque font-bold'
+      : corAtiva === 'azul'
+        ? 'text-giz font-bold'
+        : 'text-perigo font-bold'
+    : 'text-giz';
 
   return (
     <div
@@ -736,9 +719,7 @@ function StepperBox({
           −
         </button>
 
-        <span className={`text-base font-mono font-black tabular-nums ${numColor}`}>
-          {valor}
-        </span>
+        <span className={`text-base font-mono font-black tabular-nums ${numColor}`}>{valor}</span>
 
         <button
           type="button"
@@ -746,11 +727,11 @@ function StepperBox({
           disabled={disabled}
           aria-label={`Aumentar ${label}`}
           className={`min-h-[44px] min-w-[44px] rounded-[3px] text-sm font-bold flex items-center justify-center active:translate-y-px transition shadow-carimbo cursor-pointer ${
-            corAtiva === "destaque"
-              ? "bg-destaque text-destaque-tinta hover:brightness-105 border border-destaque"
-              : corAtiva === "azul"
-                ? "bg-superficie text-giz hover:bg-superficie-2 border border-borda"
-                : "bg-perigo text-white hover:bg-perigo/90 border border-perigo"
+            corAtiva === 'destaque'
+              ? 'bg-destaque text-destaque-tinta hover:brightness-105 border border-destaque'
+              : corAtiva === 'azul'
+                ? 'bg-superficie text-giz hover:bg-superficie-2 border border-borda'
+                : 'bg-perigo text-white hover:bg-perigo/90 border border-perigo'
           } disabled:opacity-30`}
         >
           +
@@ -759,4 +740,3 @@ function StepperBox({
     </div>
   );
 }
-

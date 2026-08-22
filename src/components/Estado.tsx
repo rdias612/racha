@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode } from 'react';
 
 interface CarregandoProps {
   children: string;
@@ -6,11 +6,7 @@ interface CarregandoProps {
   compacto?: boolean;
 }
 
-export function Carregando({
-  children,
-  className = "",
-  compacto = false,
-}: CarregandoProps) {
+export function Carregando({ children, className = '', compacto = false }: CarregandoProps) {
   return (
     <div
       role="status"
@@ -33,28 +29,24 @@ export function Carregando({
 
 type MensagemEstadoProps = {
   children: ReactNode;
-  tipo?: "erro" | "sucesso" | "info";
+  tipo?: 'erro' | 'sucesso' | 'info';
   className?: string;
 };
 
-export function MensagemEstado({
-  children,
-  tipo = "erro",
-  className = "",
-}: MensagemEstadoProps) {
-  const sucesso = tipo === "sucesso";
-  const informativa = tipo === "info";
+export function MensagemEstado({ children, tipo = 'erro', className = '' }: MensagemEstadoProps) {
+  const sucesso = tipo === 'sucesso';
+  const informativa = tipo === 'info';
 
   return (
     <div
-      role={sucesso || informativa ? "status" : "alert"}
+      role={sucesso || informativa ? 'status' : 'alert'}
       aria-live="polite"
       className={`rounded-[4px] border px-3.5 py-2.5 text-xs font-medium shadow-carimbo ${
         sucesso
-          ? "border-ok/40 bg-ok/10 text-ok"
+          ? 'border-ok/40 bg-ok/10 text-ok'
           : informativa
-            ? "border-borda bg-superficie text-giz-fraco"
-            : "border-perigo/40 bg-perigo/10 text-perigo"
+            ? 'border-borda bg-superficie text-giz-fraco'
+            : 'border-perigo/40 bg-perigo/10 text-perigo'
       } ${className}`}
     >
       {children}

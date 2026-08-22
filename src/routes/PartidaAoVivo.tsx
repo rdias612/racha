@@ -1,12 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Navigate, useNavigate, useParams } from "react-router-dom";
-import { CampoPartida } from "../components/CampoPartida";
-import { ConfirmDialog } from "../components/ConfirmDialog";
-import { DialogoEvento } from "../components/DialogoEvento";
-import { Carregando, MensagemEstado } from "../components/Estado";
-import { useAdmin } from "../hooks/useAdmin";
-import { formatarDataMobile, formatarDataCompleta, formatarNome } from "../lib/formatacao";
-import { voltar } from "../lib/navegacao";
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
+import { CampoPartida } from '../components/CampoPartida';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+import { DialogoEvento } from '../components/DialogoEvento';
+import { Carregando, MensagemEstado } from '../components/Estado';
+import { useAdmin } from '../hooks/useAdmin';
+import { formatarDataMobile, formatarDataCompleta, formatarNome } from '../lib/formatacao';
+import { voltar } from '../lib/navegacao';
 import {
   abrirPartida,
   carregarEventos,
@@ -22,16 +22,11 @@ import {
   type Participante,
   type Partida,
   type TipoEvento,
-} from "../lib/partidas";
+} from '../lib/partidas';
 
-function nomeDoJogador(
-  participantes: Participante[],
-  jogadorId: number | null,
-): string {
-  if (jogadorId == null) return "";
-  const nome =
-    participantes.find((p) => p.jogador_id === jogadorId)?.nome ??
-    `#${jogadorId}`;
+function nomeDoJogador(participantes: Participante[], jogadorId: number | null): string {
+  if (jogadorId == null) return '';
+  const nome = participantes.find((p) => p.jogador_id === jogadorId)?.nome ?? `#${jogadorId}`;
   return formatarNome(nome);
 }
 
@@ -51,11 +46,8 @@ export function PartidaAoVivo() {
   const [abrindo, setAbrindo] = useState(false);
   const [confirmandoFim, setConfirmandoFim] = useState(false);
   const [finalizando, setFinalizando] = useState(false);
-  const [eventoParaRemover, setEventoParaRemover] =
-    useState<EventoPartida | null>(null);
-  const [eventoEmEdicao, setEventoEmEdicao] = useState<EventoPartida | null>(
-    null,
-  );
+  const [eventoParaRemover, setEventoParaRemover] = useState<EventoPartida | null>(null);
+  const [eventoEmEdicao, setEventoEmEdicao] = useState<EventoPartida | null>(null);
 
   const recarregar = useCallback(async () => {
     if (!partidaId) return;
@@ -86,43 +78,37 @@ export function PartidaAoVivo() {
   }, [recarregar]);
 
   useEffect(() => {
-    if (partida?.status !== "live") return;
+    if (partida?.status !== 'live') return;
     const intervalo = setInterval(() => {
       recarregar().catch(() => {});
     }, 10_000);
     return () => clearInterval(intervalo);
   }, [partida?.status, recarregar]);
 
-  const placar = useMemo(
-    () => placarDeEventos(eventos, participantes),
-    [eventos, participantes],
-  );
+  const placar = useMemo(() => placarDeEventos(eventos, participantes), [eventos, participantes]);
 
   const companheiros = useMemo(() => {
     if (!alvo) return [];
     return participantes
       .filter((p) => p.time === alvo.time && p.jogador_id !== alvo.jogador_id)
-      .sort((a, b) => (a.nome ?? "").localeCompare(b.nome ?? ""));
+      .sort((a, b) => (a.nome ?? '').localeCompare(b.nome ?? ''));
   }, [alvo, participantes]);
 
   if (!partidaId) return <Navigate to="/jogos" replace />;
   if (carregando) return <Carregando>Carregando partida</Carregando>;
   if (!partida) {
     return (
-      <MensagemEstado
-        tipo={erro ? "erro" : "info"}
-        className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl"
-      >
-        {erro ?? "Partida não encontrada."}
+      <MensagemEstado tipo={erro ? 'erro' : 'info'} className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">
+        {erro ?? 'Partida não encontrada.'}
       </MensagemEstado>
     );
   }
 
-  if (partida.status === "published" || partida.status === "closed") {
+  if (partida.status === 'published' || partida.status === 'closed') {
     return <Navigate to={`/partida/${partida.id}`} replace />;
   }
 
-  const aoVivo = partida.status === "live";
+  const aoVivo = partida.status === 'live';
   const podeRegistrar = isAdmin && aoVivo;
 
   async function confirmarAbrir() {
@@ -133,7 +119,7 @@ export function PartidaAoVivo() {
       const ok = await abrirPartida(partida.id);
       if (!ok) {
         setErro(
-          "Não foi possível abrir. Confira se os dois times têm 8 jogadores e 1 goleiro cada.",
+          'Não foi possível abrir. Confira se os dois times têm 8 jogadores e 1 goleiro cada.'
         );
         return;
       }
@@ -146,44 +132,27 @@ export function PartidaAoVivo() {
   }
 
   function abrirEdicao(evento: EventoPartida) {
-    const jogador = participantes.find(
-      (p) => p.jogador_id === evento.jogador_id,
-    );
+    const jogador = participantes.find((p) => p.jogador_id === evento.jogador_id);
     if (!jogador) return;
     setEventoEmEdicao(evento);
     setAlvo(jogador);
   }
 
-  async function confirmarEvento(
-    tipo: TipoEvento,
-    assistenciaId: number | null,
-  ) {
+  async function confirmarEvento(tipo: TipoEvento, assistenciaId: number | null) {
     if (!partida || !alvo) return;
     setSalvando(true);
     setErro(null);
     try {
       if (eventoEmEdicao) {
-        const ok = await editarEvento(
-          eventoEmEdicao.id,
-          tipo,
-          alvo.jogador_id,
-          assistenciaId,
-        );
+        const ok = await editarEvento(eventoEmEdicao.id, tipo, alvo.jogador_id, assistenciaId);
         if (!ok) {
-          setErro("Não foi possível editar o evento. A partida ainda está ao vivo?");
+          setErro('Não foi possível editar o evento. A partida ainda está ao vivo?');
           return;
         }
       } else {
-        const idEvento = await registrarEvento(
-          partida.id,
-          tipo,
-          alvo.jogador_id,
-          assistenciaId,
-        );
+        const idEvento = await registrarEvento(partida.id, tipo, alvo.jogador_id, assistenciaId);
         if (idEvento == null) {
-          setErro(
-            "Não foi possível registrar o evento. A partida ainda está ao vivo?",
-          );
+          setErro('Não foi possível registrar o evento. A partida ainda está ao vivo?');
           return;
         }
       }
@@ -204,7 +173,7 @@ export function PartidaAoVivo() {
     try {
       const ok = await removerEvento(eventoParaRemover.id);
       if (!ok) {
-        setErro("Não foi possível desfazer o evento.");
+        setErro('Não foi possível desfazer o evento.');
         return;
       }
       setEventoParaRemover(null);
@@ -223,7 +192,7 @@ export function PartidaAoVivo() {
     try {
       const ok = await finalizarPartida(partida.id);
       if (!ok) {
-        setErro("Não foi possível finalizar a partida.");
+        setErro('Não foi possível finalizar a partida.');
         setConfirmandoFim(false);
         return;
       }
@@ -260,9 +229,9 @@ export function PartidaAoVivo() {
         <div className="text-right">
           <span
             className={`inline-block font-display font-black uppercase tracking-widest text-[10px] border px-2 py-0.5 rounded-[2px] shadow-xs ${
-              partida.status === "live"
-                ? "border-destaque text-destaque bg-destaque/10"
-                : "border-borda text-giz-fraco bg-superficie-2"
+              partida.status === 'live'
+                ? 'border-destaque text-destaque bg-destaque/10'
+                : 'border-borda text-giz-fraco bg-superficie-2'
             }`}
           >
             {STATUS_LABEL[partida.status]}
@@ -275,11 +244,11 @@ export function PartidaAoVivo() {
         </div>
       </div>
 
-      {partida.status === "draft" && (
+      {partida.status === 'draft' && (
         <MensagemEstado tipo="info">
           {isAdmin
-            ? "Abra a partida para começar a registrar gols no campo."
-            : "A partida ainda não começou."}
+            ? 'Abra a partida para começar a registrar gols no campo.'
+            : 'A partida ainda não começou.'}
         </MensagemEstado>
       )}
 
@@ -315,7 +284,9 @@ export function PartidaAoVivo() {
           <span className="font-mono text-destaque font-bold">({eventos.length})</span>
         </div>
         {eventos.length === 0 ? (
-          <p className="px-3 py-4 text-xs font-mono text-giz-fraco text-center">Nenhum evento registrado ainda.</p>
+          <p className="px-3 py-4 text-xs font-mono text-giz-fraco text-center">
+            Nenhum evento registrado ainda.
+          </p>
         ) : (
           <ul className="max-h-48 divide-y divide-borda overflow-y-auto">
             {[...eventos].reverse().map((evento) => (
@@ -329,23 +300,19 @@ export function PartidaAoVivo() {
                   onClick={() => podeRegistrar && abrirEdicao(evento)}
                   className="flex-1 cursor-pointer py-1 text-left text-giz disabled:cursor-default"
                 >
-                  {evento.tipo === "gol" ? (
+                  {evento.tipo === 'gol' ? (
                     <span className="font-medium">
                       ⚽ {nomeDoJogador(participantes, evento.jogador_id)}
                       {evento.assistencia_jogador_id != null && (
                         <span className="text-giz-fraco text-xs font-mono">
-                          {" "}
-                          · 🅰️{" "}
-                          {nomeDoJogador(
-                            participantes,
-                            evento.assistencia_jogador_id,
-                          )}
+                          {' '}
+                          · 🅰️ {nomeDoJogador(participantes, evento.assistencia_jogador_id)}
                         </span>
                       )}
                     </span>
                   ) : (
                     <span className="font-medium">
-                      <span className="text-perigo font-bold font-mono">GC</span>{" "}
+                      <span className="text-perigo font-bold font-mono">GC</span>{' '}
                       {nomeDoJogador(participantes, evento.jogador_id)}
                     </span>
                   )}
@@ -376,10 +343,10 @@ export function PartidaAoVivo() {
 
       {erro && <MensagemEstado>{erro}</MensagemEstado>}
 
-      {isAdmin && partida.status === "draft" && (
+      {isAdmin && partida.status === 'draft' && (
         <div
           className="fixed inset-x-0 z-40 border-t border-borda bg-superficie/95 p-3 backdrop-blur shadow-carimbo-preto"
-          style={{ bottom: "calc(3.5rem + env(safe-area-inset-bottom))" }}
+          style={{ bottom: 'calc(3.5rem + env(safe-area-inset-bottom))' }}
         >
           <div className="mx-auto max-w-2xl">
             <button
@@ -388,7 +355,7 @@ export function PartidaAoVivo() {
               disabled={abrindo}
               className="w-full min-h-[44px] cursor-pointer rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-40"
             >
-              {abrindo ? "Abrindo partida…" : "Abrir partida ao vivo"}
+              {abrindo ? 'Abrindo partida…' : 'Abrir partida ao vivo'}
             </button>
           </div>
         </div>
@@ -397,7 +364,7 @@ export function PartidaAoVivo() {
       {isAdmin && aoVivo && (
         <div
           className="fixed inset-x-0 z-40 border-t border-borda bg-superficie/95 p-3 backdrop-blur shadow-carimbo-preto"
-          style={{ bottom: "calc(3.5rem + env(safe-area-inset-bottom))" }}
+          style={{ bottom: 'calc(3.5rem + env(safe-area-inset-bottom))' }}
         >
           <div className="mx-auto max-w-2xl space-y-1">
             <button
@@ -438,7 +405,7 @@ export function PartidaAoVivo() {
         onConfirm={confirmarRemocao}
         titulo="Desfazer este evento?"
         mensagem="O placar e as estatísticas da partida ao vivo serão atualizados."
-        textoConfirmar={salvando ? "Desfazendo…" : "Desfazer"}
+        textoConfirmar={salvando ? 'Desfazendo…' : 'Desfazer'}
         tomConfirmar="perigo"
       />
 
@@ -448,7 +415,7 @@ export function PartidaAoVivo() {
         onConfirm={confirmarFinalizar}
         titulo="Finalizar partida?"
         mensagem={`Placar ${placar.gols_time_b} × ${placar.gols_time_a}. Isso grava gols, assistências e gols contra e abre a votação por 24h.`}
-        textoConfirmar={finalizando ? "Finalizando…" : "Finalizar"}
+        textoConfirmar={finalizando ? 'Finalizando…' : 'Finalizar'}
       />
     </div>
   );

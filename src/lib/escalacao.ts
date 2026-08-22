@@ -1,5 +1,5 @@
-import type { JogadorLista } from "./jogadores";
-import type { TimeId, PosicaoId } from "./times";
+import type { JogadorLista } from './jogadores';
+import type { TimeId, PosicaoId } from './times';
 
 export interface ParticipanteForm {
   jogador: JogadorLista;
@@ -37,26 +37,21 @@ interface JogadorComRating extends JogadorLista {
  */
 export function gerarEscalacaoAutomatica(
   jogadores: JogadorLista[],
-  mediasNotas?: Record<number, number>,
+  mediasNotas?: Record<number, number>
 ): ParticipanteForm[] {
   const limitePorTime = Math.ceil(jogadores.length / 2);
 
   // Atribuição de notas (padrão 6.0 se não tiver avaliação)
   const jogadoresComNota: JogadorComRating[] = jogadores.map((j) => {
-    const notaCalculada =
-      j.media_nota ?? mediasNotas?.[j.id] ?? NOTA_PADRAO;
+    const notaCalculada = j.media_nota ?? mediasNotas?.[j.id] ?? NOTA_PADRAO;
     return {
       ...j,
       nota: Number(notaCalculada.toFixed(2)),
     };
   });
 
-  const goleiros = embaralhar(
-    jogadoresComNota.filter((j) => j.posicao === "goleiro"),
-  );
-  const linha = embaralhar(
-    jogadoresComNota.filter((j) => j.posicao !== "goleiro"),
-  );
+  const goleiros = embaralhar(jogadoresComNota.filter((j) => j.posicao === 'goleiro'));
+  const linha = embaralhar(jogadoresComNota.filter((j) => j.posicao !== 'goleiro'));
 
   const timeA: JogadorComRating[] = [];
   const timeB: JogadorComRating[] = [];
@@ -68,7 +63,10 @@ export function gerarEscalacaoAutomatica(
   // 1. Distribuir Goleiros alternadamente (atribuindo o melhor goleiro ao time com menor saldo)
   goleiros.sort((a, b) => b.nota - a.nota);
   for (const g of goleiros) {
-    if (timeA.length < limitePorTime && (timeB.length >= limitePorTime || somaNotas(timeA) <= somaNotas(timeB))) {
+    if (
+      timeA.length < limitePorTime &&
+      (timeB.length >= limitePorTime || somaNotas(timeA) <= somaNotas(timeB))
+    ) {
       timeA.push(g);
     } else if (timeB.length < limitePorTime) {
       timeB.push(g);
@@ -91,7 +89,7 @@ export function gerarEscalacaoAutomatica(
   for (const pos in gruposPosicao) {
     // Ordena por nota (maior para menor) com pequena variação aleatória para não ser 100% estático
     const lista = (gruposPosicao[pos] ?? []).sort(
-      (a, b) => b.nota - a.nota + (Math.random() * 0.2 - 0.1),
+      (a, b) => b.nota - a.nota + (Math.random() * 0.2 - 0.1)
     );
 
     while (lista.length >= 2) {
@@ -156,7 +154,7 @@ export function gerarEscalacaoAutomatica(
         : 0);
 
     // Avaliar Equilíbrio da Soma de Notas (diferença absoluta resultante)
-    const diffSeColocarA = Math.abs((somaNotas(timeA) + j.nota) - somaNotas(timeB));
+    const diffSeColocarA = Math.abs(somaNotas(timeA) + j.nota - somaNotas(timeB));
     const diffSeColocarB = Math.abs(somaNotas(timeA) - (somaNotas(timeB) + j.nota));
 
     // Pontuação combinada (Posição + Equilíbrio Técnico)
@@ -182,7 +180,7 @@ export function gerarEscalacaoAutomatica(
   for (const j of timeA) {
     resultado.push({
       jogador: j,
-      time: "a",
+      time: 'a',
       posicao: j.posicao,
       gols: 0,
       assistencias: 0,
@@ -194,7 +192,7 @@ export function gerarEscalacaoAutomatica(
   for (const j of timeB) {
     resultado.push({
       jogador: j,
-      time: "b",
+      time: 'b',
       posicao: j.posicao,
       gols: 0,
       assistencias: 0,

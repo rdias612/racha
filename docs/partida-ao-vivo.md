@@ -11,12 +11,12 @@ draft  →  live  →  published  →  closed
          (ao vivo)  (votação)    (craque)
 ```
 
-| Status | Significado |
-|---|---|
-| `draft` | Times montados, jogo ainda não começou |
-| `live` | Partida aberta. Admin lança eventos no campo. **Não entra no ranking** |
-| `published` | Jogo encerrado. Contadores gravados. Votação 24h |
-| `closed` | Votação encerrada (cron, como antes) |
+| Status      | Significado                                                            |
+| ----------- | ---------------------------------------------------------------------- |
+| `draft`     | Times montados, jogo ainda não começou                                 |
+| `live`      | Partida aberta. Admin lança eventos no campo. **Não entra no ranking** |
+| `published` | Jogo encerrado. Contadores gravados. Votação 24h                       |
+| `closed`    | Votação encerrada (cron, como antes)                                   |
 
 ---
 
@@ -60,27 +60,27 @@ Tipos de evento hoje: `gol` e `gol_contra`. A tabela aceita novos tipos no futur
 
 ### Tabela `partida_eventos`
 
-| Coluna | Tipo | Notas |
-|---|---|---|
-| `id` | bigserial | PK |
-| `partida_id` | bigint | FK `partidas`, cascade |
-| `tipo` | text | `gol` \| `gol_contra` |
-| `jogador_id` | bigint | quem fez o gol / gol contra |
-| `assistencia_jogador_id` | bigint nullable | só em gol; ≠ autor |
-| `created_at` | timestamptz | |
+| Coluna                   | Tipo            | Notas                       |
+| ------------------------ | --------------- | --------------------------- |
+| `id`                     | bigserial       | PK                          |
+| `partida_id`             | bigint          | FK `partidas`, cascade      |
+| `tipo`                   | text            | `gol` \| `gol_contra`       |
+| `jogador_id`             | bigint          | quem fez o gol / gol contra |
+| `assistencia_jogador_id` | bigint nullable | só em gol; ≠ autor          |
+| `created_at`             | timestamptz     |                             |
 
 CHECK: gol contra não pode ter assistência.
 
 ### Funções
 
-| RPC | Efeito |
-|---|---|
-| `abrir_partida(id)` | `draft` → `live`. Zera contadores e eventos. Exige 8+8. |
-| `registrar_evento(partida, tipo, jogador, assist?)` | Insert + sincroniza contadores. Só `live`. |
-| `editar_evento(evento_id, tipo, jogador, assist?)` | Update + sincroniza contadores. Só `live`. |
-| `remover_evento(evento_id)` | Delete + sincroniza. Só `live`. |
-| `finalizar_partida(id)` | Sincroniza, `live` → `published`, abre votação 24h. |
-| `sincronizar_contadores_partida(id)` | Interna. Recalcula `gols`, `assistencias`, `gols_contra` a partir do log. Sem GRANT a `anon`. |
+| RPC                                                 | Efeito                                                                                        |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `abrir_partida(id)`                                 | `draft` → `live`. Zera contadores e eventos. Exige 8+8.                                       |
+| `registrar_evento(partida, tipo, jogador, assist?)` | Insert + sincroniza contadores. Só `live`.                                                    |
+| `editar_evento(evento_id, tipo, jogador, assist?)`  | Update + sincroniza contadores. Só `live`.                                                    |
+| `remover_evento(evento_id)`                         | Delete + sincroniza. Só `live`.                                                               |
+| `finalizar_partida(id)`                             | Sincroniza, `live` → `published`, abre votação 24h.                                           |
+| `sincronizar_contadores_partida(id)`                | Interna. Recalcula `gols`, `assistencias`, `gols_contra` a partir do log. Sem GRANT a `anon`. |
 
 A view `partida_placar` não mudou: ela soma os contadores. Como a sincronização roda a cada evento, a lista de Jogos reflete o placar ao vivo.
 
@@ -92,22 +92,22 @@ Segurança igual ao resto do app (Regra 6): sem RLS; o client é confiável; adm
 
 ### Novos
 
-| Arquivo | Papel |
-|---|---|
-| `src/routes/PartidaAoVivo.tsx` | Tela `/partida/:id/ao-vivo`: campo, eventos, abrir/finalizar |
-| `src/components/CampoPartida.tsx` | Campo: Branco em cima (claro), Preto embaixo (escuro), placar no meio |
-| `src/components/DialogoEvento.tsx` | Popup: tipo do evento → assistência |
+| Arquivo                            | Papel                                                                 |
+| ---------------------------------- | --------------------------------------------------------------------- |
+| `src/routes/PartidaAoVivo.tsx`     | Tela `/partida/:id/ao-vivo`: campo, eventos, abrir/finalizar          |
+| `src/components/CampoPartida.tsx`  | Campo: Branco em cima (claro), Preto embaixo (escuro), placar no meio |
+| `src/components/DialogoEvento.tsx` | Popup: tipo do evento → assistência                                   |
 
 ### Alterados
 
-| Arquivo | O que mudou |
-|---|---|
-| `src/App.tsx` | Rota `/partida/:id/ao-vivo` |
-| `src/lib/partidas.ts` | Status `live`; labels; `EventoPartida`; helpers/RPCs de evento; `placarDeEventos` |
-| `src/lib/times.ts` | `LINHAS_CAMPO` (goleiro → zagueiro/lateral → meia → atacante) |
-| `src/routes/PartidaDetalhe.tsx` | CTAs Abrir / Registrar eventos / Lançar sem acompanhar. Sem placar no `draft` |
-| `src/routes/Jogos.tsx` | Badge “Em andamento”; card `live` vai direto ao campo; placar `— × —` no draft |
-| `src/routes/PartidaEditar.tsx` | Se a partida está `live`, redireciona para o campo |
+| Arquivo                         | O que mudou                                                                       |
+| ------------------------------- | --------------------------------------------------------------------------------- |
+| `src/App.tsx`                   | Rota `/partida/:id/ao-vivo`                                                       |
+| `src/lib/partidas.ts`           | Status `live`; labels; `EventoPartida`; helpers/RPCs de evento; `placarDeEventos` |
+| `src/lib/times.ts`              | `LINHAS_CAMPO` (goleiro → zagueiro/lateral → meia → atacante)                     |
+| `src/routes/PartidaDetalhe.tsx` | CTAs Abrir / Registrar eventos / Lançar sem acompanhar. Sem placar no `draft`     |
+| `src/routes/Jogos.tsx`          | Badge “Em andamento”; card `live` vai direto ao campo; placar `— × —` no draft    |
+| `src/routes/PartidaEditar.tsx`  | Se a partida está `live`, redireciona para o campo                                |
 
 Votação, ranking, perfil, push e cron de fechamento **não foram alterados**. Continuam reagindo só a `published`.
 

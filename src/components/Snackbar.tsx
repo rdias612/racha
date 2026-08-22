@@ -1,8 +1,8 @@
-import { useEffect } from "react";
-import { CheckCircle2, AlertCircle, Info, X } from "lucide-react";
-import { vibrateSuccess, vibrateError } from "../lib/haptics";
+import { useEffect } from 'react';
+import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
+import { vibrateSuccess, vibrateError } from '../lib/haptics';
 
-export type TipoSnackbar = "sucesso" | "erro" | "info";
+export type TipoSnackbar = 'sucesso' | 'erro' | 'info';
 
 interface SnackbarProps {
   mensagem: string;
@@ -14,15 +14,15 @@ interface SnackbarProps {
 
 export function Snackbar({
   mensagem,
-  tipo = "sucesso",
+  tipo = 'sucesso',
   visivel,
   onFechar,
   duracaoMs = 3000,
 }: SnackbarProps) {
   useEffect(() => {
     if (visivel) {
-      if (tipo === "sucesso") vibrateSuccess();
-      else if (tipo === "erro") vibrateError();
+      if (tipo === 'sucesso') vibrateSuccess();
+      else if (tipo === 'erro') vibrateError();
 
       const timer = setTimeout(() => {
         onFechar();
@@ -34,9 +34,9 @@ export function Snackbar({
   if (!visivel) return null;
 
   const bgCores: Record<TipoSnackbar, string> = {
-    sucesso: "bg-ok text-white border-ok/80",
-    erro: "bg-perigo text-white border-perigo/80",
-    info: "bg-superficie text-giz border-borda",
+    sucesso: 'bg-ok text-white border-ok/80',
+    erro: 'bg-perigo text-white border-perigo/80',
+    info: 'bg-superficie text-giz border-borda',
   };
 
   const Icones: Record<TipoSnackbar, typeof CheckCircle2> = {
@@ -50,7 +50,7 @@ export function Snackbar({
   return (
     <div
       className="fixed inset-x-3 z-50 mx-auto max-w-sm transition-all duration-300 ease-out"
-      style={{ bottom: "calc(4.5rem + env(safe-area-inset-bottom, 0px))" }}
+      style={{ bottom: 'calc(4.5rem + env(safe-area-inset-bottom, 0px))' }}
     >
       <div
         className={`flex items-center justify-between gap-3 rounded-[4px] border px-4 py-3 shadow-carimbo-preto backdrop-blur-sm ${bgCores[tipo]}`}
@@ -58,7 +58,9 @@ export function Snackbar({
       >
         <div className="flex items-center gap-2.5 min-w-0">
           <IconeComponente className="size-4 shrink-0" />
-          <span className="truncate text-xs font-semibold uppercase tracking-wide font-display">{mensagem}</span>
+          <span className="truncate text-xs font-semibold uppercase tracking-wide font-display">
+            {mensagem}
+          </span>
         </div>
         <button
           onClick={onFechar}

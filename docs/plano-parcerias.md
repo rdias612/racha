@@ -146,10 +146,10 @@ ORDER BY
 **2.1** Criar `src/routes/Estatisticas.tsx` — nova página que abrigará os módulos de estatísticas. Hoje: **"Estatísticas básicas"** + **"Parcerias"**. Estrutura esqueleto:
 
 ```tsx
-import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
-import { useSessao } from "../context/SessaoContext";
-import { Carregando, MensagemEstado } from "../components/Estado";
+import { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
+import { useSessao } from '../context/SessaoContext';
+import { Carregando, MensagemEstado } from '../components/Estado';
 
 // Stats básicas (igualzinho ao Perfil)
 interface Stats {
@@ -163,7 +163,7 @@ interface Stats {
 
 // Parcerias (nova)
 interface Parceria {
-  tipo: "companheiro" | "adversario";
+  tipo: 'companheiro' | 'adversario';
   outro_jogador_id: number;
   nome: string;
   partidas: number;
@@ -187,13 +187,11 @@ export function Estatisticas() {
     // busca paralela: stats básicas (mesma query do Perfil) + parcerias
     Promise.all([
       supabase
-        .from("stats_jogador")
-        .select(
-          "jogador_id, partidas, gols, assistencias, gols_contra, vitorias",
-        )
-        .eq("jogador_id", jogador.id)
+        .from('stats_jogador')
+        .select('jogador_id, partidas, gols, assistencias, gols_contra, vitorias')
+        .eq('jogador_id', jogador.id)
         .maybeSingle(),
-      supabase.rpc("parcerias_jogador", {
+      supabase.rpc('parcerias_jogador', {
         p_jogador_id: jogador.id,
         p_min_partidas: 5,
       }),

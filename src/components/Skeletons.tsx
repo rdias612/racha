@@ -105,10 +105,7 @@ export function SkeletonRanking() {
       {/* Abas de métricas */}
       <div className="flex gap-1 overflow-x-auto rounded-[4px] border border-borda bg-superficie p-1">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div
-            key={i}
-            className="flex-1 h-7 rounded-[3px] bg-superficie-2 border border-borda"
-          />
+          <div key={i} className="flex-1 h-7 rounded-[3px] bg-superficie-2 border border-borda" />
         ))}
       </div>
 

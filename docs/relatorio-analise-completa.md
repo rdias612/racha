@@ -10,78 +10,86 @@
 
 > **Status Geral do Projeto:** ~85% dos itens prioritários implementados (Segurança, Correção de Hooks, Identidade Visual P1/P2/P3 e Quick Wins de UX finalizados).
 
-| Eixo | Veredito & Diagnóstico | Status de Execução |
-|---|---|---|
-| **1 · Qualidade de código** | Base sólida. Furo de segurança crítico sanado (migration 069), Rules of Hooks corrigidos, RPC transacional de edição criada (migration 068), race conditions eliminadas e médias agregadas no servidor (migration 070). | **8/10 Concluído** (Faltam Prettier/ESLint e ADDENDUM do PLANO) |
-| **2 · UX mobile** | PWA polido: Pull-to-refresh corrigido com scroll recursivo, votação com progresso real e rascunho em localStorage, theme-color alinhado, navegação com fallback para push, alvos de 44px e haptics em ações-chave. | **9/10 Concluído** (Falta ocultar tab bar em fluxos focados) |
-| **3 · Design ("Súmula de Quinta")** | Identidade P&B + âmbar aplicada em todas as telas: Placar LED, Card do Craque com fita, Pódio Top 3, avatares terrosos com plaqueta, cabeçalhos de súmula com carimbos e textura grain global. | **10/10 Concluído** |
-| **4 · Novos requisitos** | Push notifications, presença, sorteio balanceado e módulo financeiro já ativos. Próximas features de alto valor engatilhadas no backlog. | **0/2 Concluído** (Comparador e Cobrança WhatsApp no backlog) |
+| Eixo                                | Veredito & Diagnóstico                                                                                                                                                                                                                                                                     | Status de Execução                                            |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------- |
+| **1 · Qualidade de código**         | Base sólida. Furo de segurança crítico sanado (migration 069), Rules of Hooks corrigidos, RPC transacional de edição criada (migration 068), race conditions eliminadas, médias agregadas no servidor (migration 070) e formatação/linting padronizados com Prettier e ESLint flat config. | **9/9 Concluído** (100% concluído)                            |
+| **2 · UX mobile**                   | PWA polido: Pull-to-refresh corrigido com scroll recursivo, votação com progresso real e rascunho em localStorage, theme-color alinhado, navegação com fallback para push, alvos de 44px e haptics em ações-chave.                                                                         | **9/10 Concluído** (Falta ocultar tab bar em fluxos focados)  |
+| **3 · Design ("Súmula de Quinta")** | Identidade P&B + âmbar aplicada em todas as telas: Placar LED, Card do Craque com fita, Pódio Top 3, avatares terrosos com plaqueta, cabeçalhos de súmula com carimbos e textura grain global.                                                                                             | **10/10 Concluído**                                           |
+| **4 · Novos requisitos**            | Push notifications, presença, sorteio balanceado e módulo financeiro já ativos. Próximas features de alto valor engatilhadas no backlog.                                                                                                                                                   | **0/2 Concluído** (Comparador e Cobrança WhatsApp no backlog) |
 
 ---
 
 # 1 · Qualidade de código
 
 ## Veredito
+
 **Grau de slop: 1/10 (após correções).** Base estabilizada, segurança restrita por coluna, hooks sanitizados e concorrência tratada com cleanup flags.
 
-## Top 10 problemas (Status Detalhado)
+## Top 9 problemas (Status Detalhado)
 
 ### 1. ✅ [CONCLUÍDO] — `senha_hash` legível publicamente
+
 - **Situação:** Resolvido na migration `069_restrict_jogadores_select.sql`.
 - **Implementação:** `REVOKE SELECT ON jogadores FROM anon, authenticated;` seguido de `GRANT SELECT` apenas nas colunas seguras (`id`, `username`, `nome`, `posicao`, `posicao_b`, `is_admin`, `is_ativo`, `is_mensalista`, `created_at`). Autenticação centralizada no RPC `fazer_login`.
 
 ### 2. ✅ [CONCLUÍDO] — Violações de Rules of Hooks
+
 - **Situação:** Resolvido em `Administrador.tsx`, `PartidaConfirma.tsx` e `PartidaNovaTimes.tsx`.
 - **Implementação:** Todos os hooks (`useEffect`, `useMemo`, `useEscalacaoTimes`) foram posicionados estritamente antes dos guards de redirecionamento (`if (!isAdmin) return <Navigate ... />`).
 
 ### 3. ✅ [CONCLUÍDO] — Salvamento de edição não-transacional
+
 - **Situação:** Resolvido na migration `068_rpc_salvar_edicao_partida.sql` e integrado em `lib/partidas.ts:408`.
 - **Implementação:** Criação do RPC `salvar_edicao_partida` com bloco transacional seguro gerenciando participantes, eventos, votos e avulsos de forma atômica no Postgres.
 
 ### 4. ✅ [CONCLUÍDO] — Copy-paste integral entre rotas irmãs
+
 - **Situação:** Resolvido com a criação do hook compartilhado `useEscalacaoTimes` em `src/hooks/useEscalacaoTimes.ts`.
 - **Implementação:** Lógica de atribuição manual, limites de goleiro por time, balanceamento automático ABBA e feedback tátil unificados e consumidos tanto por `PartidaNovaTimes.tsx` quanto por `PartidaTimes.tsx`.
 
 ### 5. ✅ [CONCLUÍDO] — Classes Tailwind inexistentes
+
 - **Situação:** Resolvido. Classes fantasmas `animate-in` removidas; utilitário `@utility no-scrollbar` e sombras-carimbo padronizadas adicionadas em `src/index.css`.
 
 ### 6. ✅ [CONCLUÍDO] — Race condition em `carregar()`
+
 - **Situação:** Resolvido. Flag `let ativo = true` com função de cleanup aplicada em todos os `useEffect` de carregamento de dados (`PartidaDetalhe.tsx`, `Jogos.tsx`, `Administrador.tsx`, `GestaoJogadores.tsx`, `Resumo.tsx`, `Perfil.tsx`, `PartidaVotar.tsx`).
 
 ### 7. ✅ [CONCLUÍDO] — `obterMediasNotasJogadores` baixava tabela `votes` inteira
+
 - **Situação:** Resolvido na migration `070_rpc_medias_notas_jogadores.sql` e integrado em `src/lib/jogadores.ts:144`.
 - **Implementação:** RPC agrega médias no Postgres descartando menor/maior nota (quando >= 3 votos), com fallback seguro no client.
 
-### 8. ⏳ [PENDENTE] — Formatação e padronização com Prettier
-- **O que falta:** Instalar Prettier + `.editorconfig` e rodar formatação geral para unificar estilo de aspas e ponto-e-vírgula em todo o repositório.
+### 8. ✅ [CONCLUÍDO] — Formatação e padronização com Prettier e ESLint
+
+- **Situação:** Resolvido com a configuração completa de Prettier, EditorConfig e ESLint flat config (v9+).
+- **Implementação:** `.prettierrc`, `.prettierignore` e `.editorconfig` criados para padronizar aspas simples, ponto-e-vírgula e indentação; `eslint.config.js` configurado com `typescript-eslint` e `eslint-plugin-react-hooks`; scripts `npm run lint`, `npm run lint:fix`, `npm run format` e `npm run format:check` adicionados no `package.json`; formatação geral aplicada em todo o repositório.
 
 ### 9. ✅ [CONCLUÍDO] — Comentários de lint fantasma e feedback inconsistente
-- **Situação:** Resolvido. Comentários `eslint-disable` mortos foram removidos; `window.confirm` nativo substituído por `ConfirmDialog`; feedback padronizado via `Snackbar` (ações rápidas com haptics) e `MensagemEstado` (persistente).
 
-### 10. ⏳ [PENDENTE] — Atualização do PLANO.md / Criação de ADDENDUM.md
-- **O que falta:** Atualizar `PLANO.md` ou criar `docs/ADDENDUM.md` documentando as decisões arquiteturais reais (status `live`, Web Push com VAPID/Edge Functions, gestão financeira e edição pós-closed).
+- **Situação:** Resolvido. Comentários `eslint-disable` mortos foram removidos; `window.confirm` nativo substituído por `ConfirmDialog`; feedback padronizado via `Snackbar` (ações rápidas com haptics) e `MensagemEstado` (persistente).
 
 ## Dead Code (Status)
 
-| Item | Local | Situação | Status |
-|---|---|---|---|
-| `SkeletonPerfil` | `components/Skeletons.tsx` | Integrado na rota de Perfil | ✅ **Resolvido** |
-| `vibrateWarning` | `lib/haptics.ts` | Integrado no `useEscalacaoTimes` | ✅ **Resolvido** |
-| `vibrateGoal` | `lib/haptics.ts` | Integrado no `DialogoEvento` ao confirmar gol | ✅ **Resolvido** |
-| `ROTULO_TIPO` | `Administrador.tsx` | Removido em favor de `TIPOS_DIVIDA` | ✅ **Resolvido** |
-| Classes `animate-in*` | Diversos | Removidas | ✅ **Resolvido** |
-| Comentários `eslint-disable` | Diversos | Removidos | ✅ **Resolvido** |
-| `ColunaOrdenacaoDuplas` no DuplaCard | `DuplaCard.tsx:8` | Importar tipo exportado em vez de redeclarar inline | ⏳ **Pendente** |
+| Item                                 | Local                      | Situação                                            | Status           |
+| ------------------------------------ | -------------------------- | --------------------------------------------------- | ---------------- |
+| `SkeletonPerfil`                     | `components/Skeletons.tsx` | Integrado na rota de Perfil                         | ✅ **Resolvido** |
+| `vibrateWarning`                     | `lib/haptics.ts`           | Integrado no `useEscalacaoTimes`                    | ✅ **Resolvido** |
+| `vibrateGoal`                        | `lib/haptics.ts`           | Integrado no `DialogoEvento` ao confirmar gol       | ✅ **Resolvido** |
+| `ROTULO_TIPO`                        | `Administrador.tsx`        | Removido em favor de `TIPOS_DIVIDA`                 | ✅ **Resolvido** |
+| Classes `animate-in*`                | Diversos                   | Removidas                                           | ✅ **Resolvido** |
+| Comentários `eslint-disable`         | Diversos                   | Removidos                                           | ✅ **Resolvido** |
+| `ColunaOrdenacaoDuplas` no DuplaCard | `DuplaCard.tsx:8`          | Importar tipo exportado em vez de redeclarar inline | ✅ **Resolvido** |
 
-## Ferramentas Mínimas Sugeridas
+## Ferramentas Mínimas Configuradas
 
 ```bash
 npm i -D prettier eslint @eslint/js typescript-eslint eslint-plugin-react-hooks globals
 ```
 
-- [ ] ⏳ **Configurar Prettier** (defaults + `.editorconfig`).
-- [ ] ⏳ **Configurar ESLint flat config mínimo** (`typescript-eslint recommended` + `eslint-plugin-react-hooks`).
-- [ ] ⏳ **Adicionar script npm:** `"lint": "tsc -b && eslint src"`.
+- [x] ✅ **Configurar Prettier** (defaults + `.editorconfig` + `.prettierrc` + `.prettierignore`).
+- [x] ✅ **Configurar ESLint flat config mínimo** (`typescript-eslint recommended` + `eslint-plugin-react-hooks`).
+- [x] ✅ **Adicionar scripts npm:** `"lint": "tsc -b && eslint src"`, `"lint:fix": "eslint src --fix"`, `"format": "prettier --write ."`, `"format:check": "prettier --check ."`.
 
 ---
 
@@ -111,7 +119,7 @@ npm i -D prettier eslint @eslint/js typescript-eslint eslint-plugin-react-hooks 
    - ✅ Mapper central de erros amigáveis criado em `src/lib/erros.ts`.
    - ✅ Banner global offline adicionado no `Layout.tsx`.
    - ✅ Tela `public/offline.html` repaginada na identidade Súmula de Quinta.
-   - ⏳ *Pendente opcional:* Cache Stale-While-Revalidate no Service Worker para requisições GET do Supabase.
+   - ⏳ _Pendente opcional:_ Cache Stale-While-Revalidate no Service Worker para requisições GET do Supabase.
 
 8. ✅ **[CONCLUÍDO] Troca de window.confirm por ConfirmDialog**
    - Todos os diálogos nativos substituídos pelo modal customizado `ConfirmDialog.tsx`.
@@ -125,8 +133,8 @@ npm i -D prettier eslint @eslint/js typescript-eslint eslint-plugin-react-hooks 
     - ✅ Header do `Layout.tsx` tornado `sticky top-0`.
     - ✅ `Snackbar.tsx` respeitando `env(safe-area-inset-bottom)`.
     - ✅ Screenshots e ícones ajustados no `manifest.webmanifest`.
-    - ⏳ *Pendente:* Ocultar Tab Bar inferior em fluxos focados (votação, edição e partida ao vivo).
-    - ⏳ *Pendente:* Splash screens dedicadas para iOS (`apple-touch-startup-image`).
+    - ⏳ _Pendente:_ Ocultar Tab Bar inferior em fluxos focados (votação, edição e partida ao vivo).
+    - ⏳ _Pendente:_ Splash screens dedicadas para iOS (`apple-touch-startup-image`).
 
 ## Quick Wins (<1h cada) — Status
 
@@ -150,6 +158,7 @@ npm i -D prettier eslint @eslint/js typescript-eslint eslint-plugin-react-hooks 
 A identidade visual completa foi migrada com sucesso da estética genérica Tailwind para o conceito **Súmula de Quinta** (Preto vs Branco como duotônico principal, âmbar refletor como accent de ação, números condensados/mono e bordas duras com sombra-carimbo).
 
 ### P1 — Base Visual, Tokens e Componentes Core
+
 - [x] ✅ `src/index.css` — Tokens `--cor-*`, fontes Google (Barlow Condensed, Archivo, Chivo Mono), textura grain global com `feTurbulence` e utilitários de sombra-carimbo (`shadow-carimbo`, `shadow-carimbo-destaque`, `shadow-carimbo-preto`, `sumula-header`).
 - [x] ✅ `index.html` — Carregamento de fontes e meta tags de cores alinhadas.
 - [x] ✅ `public/icon.svg`, `icon-maskable.svg`, `manifest.webmanifest` — Nova marca P&B com estrela âmbar.
@@ -159,6 +168,7 @@ A identidade visual completa foi migrada com sucesso da estética genérica Tail
 - [x] ✅ `Estado.tsx` + `ConfirmDialog.tsx` — Cantos retos (4px), bordas sólidas de 1px/2px e sombras-carimbo.
 
 ### P2 — Momentos-Assinatura
+
 - [x] ✅ `PartidaDetalhe.tsx` — Placar LED em barra horizontal única preta com glow âmbar no modo `live`, Card do Craque com fita preta e selo translúcido rotacionado, carimbos de status (`sumula-header`).
 - [x] ✅ `Ranking.tsx` — Pódio Top 3 com numerais vazados (`texto-vazado`), 1º lugar em caixa âmbar destacada e números em `tabular-nums` / Chivo Mono.
 - [x] ✅ `Jogos.tsx` — Mural de mini-placares LED pretos na listagem principal.
@@ -166,6 +176,7 @@ A identidade visual completa foi migrada com sucesso da estética genérica Tail
 - [x] ✅ `Skeletons.tsx` — Skeletons sincronizados com a nova geometria e CLS = 0.
 
 ### P3 — Polimento
+
 - [x] ✅ `CampoPartida.tsx` — Tons de gramado noturno alinhados (`#16281c` / `#1b3323`), chips de jogadores com borda dura e destaque âmbar.
 - [x] ✅ `Perfil.tsx` + `Administrador.tsx` — StatBoxes com números display em mono, tabelas financeiras com tipografia mono e alinhamento visual.
 
@@ -174,6 +185,7 @@ A identidade visual completa foi migrada com sucesso da estética genérica Tail
 # 4 · Novos requisitos e features
 
 ## O que JÁ ESTAVA FEITO no backend/core:
+
 - ✅ **Sorteio automático equilibrado** por posição + nota (`escalacao.ts`, `useEscalacaoTimes.ts`).
 - ✅ **Presença semanal + lista de espera de 16 vagas** (`confirmar_presenca`, avulsos, auto-agendamento via cron).
 - ✅ **Web Push completo** com VAPID + Edge Functions + lembretes 30/15min.
@@ -182,10 +194,10 @@ A identidade visual completa foi migrada com sucesso da estética genérica Tail
 
 ## Novas Features (Backlog Priorizado)
 
-| # | Feature | O que é | Complexidade | Status |
-|---|---------|---------|--------------|:------:|
-| 1 | **Cobrança de dívidas via WhatsApp** | Exibir antiguidade da pendência ("há X semanas" 🚨) ordenada por data + botão de copiar mensagem amigável e formatada para colar no WhatsApp (`navigator.clipboard.writeText`). | Baixa | ⏳ **PENDENTE** |
-| 2 | **Comparador cara-a-cara** | Comparação direta entre dois jogadores (gols, assists, notas, vitórias) + histórico de confrontos diretos juntos vs adversários (`confronto_direto`). | Média | ⏳ **PENDENTE** |
+| #   | Feature                              | O que é                                                                                                                                                                         | Complexidade |     Status      |
+| --- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | :-------------: |
+| 1   | **Cobrança de dívidas via WhatsApp** | Exibir antiguidade da pendência ("há X semanas" 🚨) ordenada por data + botão de copiar mensagem amigável e formatada para colar no WhatsApp (`navigator.clipboard.writeText`). | Baixa        | ⏳ **PENDENTE** |
+| 2   | **Comparador cara-a-cara**           | Comparação direta entre dois jogadores (gols, assists, notas, vitórias) + histórico de confrontos diretos juntos vs adversários (`confronto_direto`).                           | Média        | ⏳ **PENDENTE** |
 
 ---
 
@@ -194,6 +206,7 @@ A identidade visual completa foi migrada com sucesso da estética genérica Tail
 Abaixo está a lista objetiva dos itens pendentes para conclusão total:
 
 ### 🔴 Prioridade Alta (Funcionalidades de Valor)
+
 - [ ] ⏳ **Cobrança de dívidas via WhatsApp** (`Administrador.tsx`):
   - Adicionar cálculo de idade da dívida (ex: "há 3 semanas").
   - Adicionar botão "Copiar Cobrança" com texto pré-formatado com emojis e valor total para envio no WhatsApp.
@@ -202,18 +215,18 @@ Abaixo está a lista objetiva dos itens pendentes para conclusão total:
   - Exibir comparativo de métricas lado a lado e histórico de confrontos (quando jogaram juntos vs quando foram adversários).
 
 ### 🟡 Prioridade Média (Ajustes de UX e Ferramentas)
-- [ ] ⏳ **Configurar ESLint + Prettier**:
+
+- [x] ✅ **Configurar ESLint + Prettier**:
   - Instalar dependências de desenvolvimento.
-  - Criar `.prettierrc`, `.editorconfig` e `eslint.config.js`.
-  - Executar formatação em lote para unificar estilo de código.
+  - Criar `.prettierrc`, `.editorconfig`, `.prettierignore` e `eslint.config.js`.
+  - Adicionar scripts no `package.json` e executar formatação em lote no repositório.
 - [ ] ⏳ **Ocultar Tab Bar em fluxos focados**:
   - Em telas como `/partida/:id/votar`, `/partida/:id/editar` e `/partida/:id/ao-vivo`, esconder a barra inferior para maximizar a área útil da tela mobile.
 - [ ] ⏳ **Ajuste de tipo no `DuplaCard.tsx`**:
   - Importar `ColunaOrdenacaoDuplas` de `EstatisticasRacha.tsx` em vez de redeclarar tipo inline.
 
-### 🟢 Prioridade Baixa (Documentação e Cache)
-- [ ] ⏳ **Atualizar PLANO.md / Criar ADDENDUM.md**:
-  - Documentar recursos adicionados que divergiram do plano original (Push VAPID, status `live`, gestão financeira).
+### 🟢 Prioridade Baixa (Cache e PWA)
+
 - [ ] ⏳ **Cache Stale-While-Revalidate no SW (Opcional)**:
   - Permitir carregamento offline de leitura para rotas do Supabase já visitadas.
 - [ ] ⏳ **Splash screens iOS (Opcional)**:

@@ -1,13 +1,7 @@
-import {
-  useEffect,
-  createContext,
-  useContext,
-  useState,
-  type ReactNode,
-} from "react";
-import type { PosicaoId } from "../lib/times";
-import { supabase } from "../lib/supabase";
-import { isSuperAdmin } from "../lib/jogadores";
+import { useEffect, createContext, useContext, useState, type ReactNode } from 'react';
+import type { PosicaoId } from '../lib/times';
+import { supabase } from '../lib/supabase';
+import { isSuperAdmin } from '../lib/jogadores';
 
 export interface JogadorLogado {
   id: number;
@@ -26,7 +20,7 @@ interface SessaoContextValue {
   logout: () => void;
 }
 
-const STORAGE_KEY = "racha_sessao";
+const STORAGE_KEY = 'racha_sessao';
 
 const SessaoContext = createContext<SessaoContextValue | undefined>(undefined);
 
@@ -40,7 +34,6 @@ function lerDoStorage(): JogadorLogado | null {
 }
 
 export function SessaoProvider({ children }: { children: ReactNode }) {
-
   const [jogador, setJogadorState] = useState<JogadorLogado | null>(() => {
     const cached = lerDoStorage();
     if (cached && isSuperAdmin(cached.username)) {
@@ -54,9 +47,9 @@ export function SessaoProvider({ children }: { children: ReactNode }) {
 
     async function sincronizarJogador() {
       const { data, error } = await supabase
-        .from("jogadores")
-        .select("id, username, nome, posicao, is_admin, is_ativo, is_mensalista, posicao_b")
-        .eq("username", jogador!.username)
+        .from('jogadores')
+        .select('id, username, nome, posicao, is_admin, is_ativo, is_mensalista, posicao_b')
+        .eq('username', jogador!.username)
         .maybeSingle();
 
       if (error || !data || !data.is_ativo) return;
@@ -93,7 +86,6 @@ export function SessaoProvider({ children }: { children: ReactNode }) {
     setJogadorState(novoJogador);
   };
 
-
   const logout = () => setJogador(null);
 
   return (
@@ -106,7 +98,7 @@ export function SessaoProvider({ children }: { children: ReactNode }) {
 export function useSessao() {
   const ctx = useContext(SessaoContext);
   if (!ctx) {
-    throw new Error("useSessao deve ser usado dentro de <SessaoProvider>");
+    throw new Error('useSessao deve ser usado dentro de <SessaoProvider>');
   }
   return ctx;
 }

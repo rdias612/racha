@@ -1,16 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
-import { listarJogadoresAtivos, type JogadorLista } from "../lib/jogadores";
-import { useAdmin } from "../hooks/useAdmin";
-import { Carregando, MensagemEstado } from "../components/Estado";
-import { obterProximaQuintaFeira } from "../lib/formatacao";
-import { voltar } from "../lib/navegacao";
+import { useEffect, useMemo, useState } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { listarJogadoresAtivos, type JogadorLista } from '../lib/jogadores';
+import { useAdmin } from '../hooks/useAdmin';
+import { Carregando, MensagemEstado } from '../components/Estado';
+import { obterProximaQuintaFeira } from '../lib/formatacao';
+import { voltar } from '../lib/navegacao';
 
 const LIMITE_LINHA = 14;
 const LIMITE_GOLEIROS = 2;
 const TOTAL_PARTICIPANTES = LIMITE_LINHA + LIMITE_GOLEIROS; // 16
-const STORAGE_KEY = "racha_nova_partida";
-const HORA_PADRAO = "19:00";
+const STORAGE_KEY = 'racha_nova_partida';
+const HORA_PADRAO = '19:00';
 
 interface EstadoPersistido {
   selecionados: number[];
@@ -26,7 +26,7 @@ export function PartidaNova() {
   const [erro, setErro] = useState<string | null>(null);
   const [selecionados, setSelecionados] = useState<number[]>([]);
   const [dataJogo, setDataJogo] = useState(() => obterProximaQuintaFeira());
-  const [busca, setBusca] = useState("");
+  const [busca, setBusca] = useState('');
   const [hidratado, setHidratado] = useState(false);
 
   // Hidratação no mount: lê localStorage e lista jogadores ativos.
@@ -38,7 +38,7 @@ export function PartidaNova() {
         const parsed = JSON.parse(cru) as EstadoPersistido;
         if (
           Array.isArray(parsed.selecionados) &&
-          typeof parsed.dataJogo === "string" &&
+          typeof parsed.dataJogo === 'string' &&
           parsed.dataJogo.trim().length > 0
         ) {
           estadoInicial = parsed;
@@ -64,10 +64,7 @@ export function PartidaNova() {
   useEffect(() => {
     if (!hidratado) return;
     try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({ selecionados, dataJogo }),
-      );
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ selecionados, dataJogo }));
     } catch {
       // Storage indisponível — ignora silenciosamente.
     }
@@ -79,53 +76,45 @@ export function PartidaNova() {
     () =>
       jogadores.filter(
         (j) =>
-          j.posicao === "goleiro" &&
-          (j.nome.toLowerCase().includes(termo) ||
-            j.username.toLowerCase().includes(termo)),
+          j.posicao === 'goleiro' &&
+          (j.nome.toLowerCase().includes(termo) || j.username.toLowerCase().includes(termo))
       ),
-    [jogadores, termo],
+    [jogadores, termo]
   );
   const mensalistas = useMemo(
     () =>
       jogadores.filter(
         (j) =>
           j.is_mensalista &&
-          j.posicao !== "goleiro" &&
-          (j.nome.toLowerCase().includes(termo) ||
-            j.username.toLowerCase().includes(termo)),
+          j.posicao !== 'goleiro' &&
+          (j.nome.toLowerCase().includes(termo) || j.username.toLowerCase().includes(termo))
       ),
-    [jogadores, termo],
+    [jogadores, termo]
   );
   const avulsos = useMemo(
     () =>
       jogadores.filter(
         (j) =>
           !j.is_mensalista &&
-          j.posicao !== "goleiro" &&
-          (j.nome.toLowerCase().includes(termo) ||
-            j.username.toLowerCase().includes(termo)),
+          j.posicao !== 'goleiro' &&
+          (j.nome.toLowerCase().includes(termo) || j.username.toLowerCase().includes(termo))
       ),
-    [jogadores, termo],
+    [jogadores, termo]
   );
 
   // Contadores derivados.
   const linhaSel = selecionados.filter((id) => {
     const j = jogadores.find((x) => x.id === id);
-    return j && j.posicao !== "goleiro";
+    return j && j.posicao !== 'goleiro';
   }).length;
   const goleiroSel = selecionados.length - linhaSel;
-  const podeRevisar =
-    linhaSel === LIMITE_LINHA &&
-    goleiroSel === LIMITE_GOLEIROS &&
-    !!dataJogo;
+  const podeRevisar = linhaSel === LIMITE_LINHA && goleiroSel === LIMITE_GOLEIROS && !!dataJogo;
 
   if (!isAdmin) return <Navigate to="/" replace />;
   if (carregando) return <Carregando>Carregando jogadores</Carregando>;
   if (erro)
     return (
-      <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">
-        Erro: {erro}
-      </MensagemEstado>
+      <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">Erro: {erro}</MensagemEstado>
     );
 
   function toggleSelecionado(id: number) {
@@ -134,10 +123,10 @@ export function PartidaNova() {
         return prev.filter((x) => x !== id);
       }
       const jogador = jogadores.find((j) => j.id === id);
-      const ehGoleiro = jogador?.posicao === "goleiro";
+      const ehGoleiro = jogador?.posicao === 'goleiro';
       const linhaAtual = prev.filter((pid) => {
         const j = jogadores.find((x) => x.id === pid);
-        return j && j.posicao !== "goleiro";
+        return j && j.posicao !== 'goleiro';
       }).length;
       const goleiroAtual = prev.length - linhaAtual;
       if (ehGoleiro && goleiroAtual >= LIMITE_GOLEIROS) return prev;
@@ -189,26 +178,30 @@ export function PartidaNova() {
           <div
             className={`rounded-[3px] border p-2.5 flex items-center justify-between transition ${
               linhaSel >= LIMITE_LINHA
-                ? "border-ok/60 bg-ok/10 text-ok"
-                : "border-borda bg-superficie-2 text-giz-fraco"
+                ? 'border-ok/60 bg-ok/10 text-ok'
+                : 'border-borda bg-superficie-2 text-giz-fraco'
             }`}
           >
-            <span className="text-xs font-display font-bold uppercase tracking-wider">Jogadores Linha</span>
+            <span className="text-xs font-display font-bold uppercase tracking-wider">
+              Jogadores Linha
+            </span>
             <span className="font-mono text-xs font-bold tabular-nums">
-              {linhaSel >= LIMITE_LINHA ? "✓ " : ""}
+              {linhaSel >= LIMITE_LINHA ? '✓ ' : ''}
               {linhaSel}/{LIMITE_LINHA}
             </span>
           </div>
           <div
             className={`rounded-[3px] border p-2.5 flex items-center justify-between transition ${
               goleiroSel >= LIMITE_GOLEIROS
-                ? "border-ok/60 bg-ok/10 text-ok"
-                : "border-borda bg-superficie-2 text-giz-fraco"
+                ? 'border-ok/60 bg-ok/10 text-ok'
+                : 'border-borda bg-superficie-2 text-giz-fraco'
             }`}
           >
-            <span className="text-xs font-display font-bold uppercase tracking-wider">Goleiros</span>
+            <span className="text-xs font-display font-bold uppercase tracking-wider">
+              Goleiros
+            </span>
             <span className="font-mono text-xs font-bold tabular-nums">
-              {goleiroSel >= LIMITE_GOLEIROS ? "✓ " : ""}
+              {goleiroSel >= LIMITE_GOLEIROS ? '✓ ' : ''}
               {goleiroSel}/{LIMITE_GOLEIROS}
             </span>
           </div>
@@ -226,7 +219,7 @@ export function PartidaNova() {
         />
         {busca && (
           <button
-            onClick={() => setBusca("")}
+            onClick={() => setBusca('')}
             aria-label="Limpar busca"
             className="min-h-[44px] min-w-[44px] flex items-center justify-center absolute right-0 top-1/2 -translate-y-1/2 text-xs text-giz-fraco hover:text-giz"
           >
@@ -264,19 +257,20 @@ export function PartidaNova() {
 
       {jogadores.length < TOTAL_PARTICIPANTES && (
         <p className="text-xs font-mono text-destaque">
-          Aviso: há apenas {jogadores.length} jogadores ativos. Uma partida precisa de {TOTAL_PARTICIPANTES}.
+          Aviso: há apenas {jogadores.length} jogadores ativos. Uma partida precisa de{' '}
+          {TOTAL_PARTICIPANTES}.
         </p>
       )}
 
       {/* Barra Fixa Inferior */}
       <div
         className="fixed inset-x-0 z-40 p-3 bg-superficie/95 backdrop-blur border-t border-borda shadow-carimbo-preto"
-        style={{ bottom: "calc(3.5rem + env(safe-area-inset-bottom))" }}
+        style={{ bottom: 'calc(3.5rem + env(safe-area-inset-bottom))' }}
       >
         <div className="max-w-2xl mx-auto space-y-1">
           <button
             onClick={() =>
-              navigate("/partida/nova/confirma", {
+              navigate('/partida/nova/confirma', {
                 state: { selecionados, jogadores, dataJogo, horaJogo: HORA_PADRAO },
               })
             }
@@ -316,9 +310,7 @@ function GrupoJogadores({
   mostrarCota = false,
 }: GrupoJogadoresProps) {
   const idsDoGrupo = jogadores.map((j) => j.id);
-  const selecionadosNoGrupo = selecionados.filter((id) =>
-    idsDoGrupo.includes(id),
-  ).length;
+  const selecionadosNoGrupo = selecionados.filter((id) => idsDoGrupo.includes(id)).length;
   const podeLimpar = selecionadosNoGrupo > 0;
 
   return (
@@ -331,7 +323,7 @@ function GrupoJogadores({
           <span className="text-[11px] font-mono text-giz-fraco tabular-nums">
             {mostrarCota
               ? `${selecionadosNoGrupo}/${LIMITE_GOLEIROS}`
-              : `${selecionadosNoGrupo} selecionado${selecionadosNoGrupo === 1 ? "" : "s"}`}
+              : `${selecionadosNoGrupo} selecionado${selecionadosNoGrupo === 1 ? '' : 's'}`}
           </span>
         </div>
         <button
@@ -357,12 +349,10 @@ function GrupoJogadores({
               <div
                 key={j.id}
                 className={`flex items-center justify-between gap-2 px-3 py-2 transition ${
-                  bloqueado ? "opacity-40 bg-superficie" : "bg-superficie hover:bg-superficie-2"
+                  bloqueado ? 'opacity-40 bg-superficie' : 'bg-superficie hover:bg-superficie-2'
                 }`}
               >
-                <span className="flex-1 min-w-0 truncate text-sm font-bold text-giz">
-                  {j.nome}
-                </span>
+                <span className="flex-1 min-w-0 truncate text-sm font-bold text-giz">{j.nome}</span>
                 <div className="shrink-0">
                   <button
                     type="button"
@@ -370,18 +360,16 @@ function GrupoJogadores({
                     disabled={bloqueado}
                     aria-pressed={selecionado}
                     aria-label={
-                      selecionado
-                        ? `Remover ${j.nome} da escalação`
-                        : `Escalar ${j.nome}`
+                      selecionado ? `Remover ${j.nome} da escalação` : `Escalar ${j.nome}`
                     }
-                    title={bloqueado ? "Cota cheia" : undefined}
+                    title={bloqueado ? 'Cota cheia' : undefined}
                     className={`min-h-[44px] min-w-[7rem] px-3 rounded-[3px] border font-display font-bold uppercase tracking-wider text-xs transition active:translate-y-px ${
                       selecionado
-                        ? "bg-destaque text-destaque-tinta border-destaque shadow-xs"
-                        : "border-borda bg-superficie-2 text-giz-fraco hover:text-giz hover:border-destaque/50"
+                        ? 'bg-destaque text-destaque-tinta border-destaque shadow-xs'
+                        : 'border-borda bg-superficie-2 text-giz-fraco hover:text-giz hover:border-destaque/50'
                     } disabled:cursor-not-allowed`}
                   >
-                    {selecionado ? "✓ Escalado" : "+ Escalar"}
+                    {selecionado ? '✓ Escalado' : '+ Escalar'}
                   </button>
                 </div>
               </div>

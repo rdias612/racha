@@ -1,179 +1,178 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
-import { useSessao } from '../context/SessaoContext'
-import { POSICOES } from '../lib/times'
-import { atualizarNomeJogador } from '../lib/jogadores'
-import { Carregando, MensagemEstado } from '../components/Estado'
-import { Avatar } from '../components/Avatar'
-import { SkeletonPerfil } from '../components/Skeletons'
-import { formatarMensagemErro } from '../lib/erros'
-import { ativarPush, desativarPush, statusPush, type StatusPush } from '../lib/pwa'
-
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { useSessao } from '../context/SessaoContext';
+import { POSICOES } from '../lib/times';
+import { atualizarNomeJogador } from '../lib/jogadores';
+import { Carregando, MensagemEstado } from '../components/Estado';
+import { Avatar } from '../components/Avatar';
+import { SkeletonPerfil } from '../components/Skeletons';
+import { formatarMensagemErro } from '../lib/erros';
+import { ativarPush, desativarPush, statusPush, type StatusPush } from '../lib/pwa';
 
 interface Stats {
-  jogador_id: number
-  partidas: number
-  gols: number
-  assistencias: number
-  gols_contra: number
-  vitorias: number
+  jogador_id: number;
+  partidas: number;
+  gols: number;
+  assistencias: number;
+  gols_contra: number;
+  vitorias: number;
 }
 
 export function Perfil() {
-  const { jogador, setJogador, logout } = useSessao()
-  const navigate = useNavigate()
+  const { jogador, setJogador, logout } = useSessao();
+  const navigate = useNavigate();
 
-  const [stats, setStats] = useState<Stats | null>(null)
-  const [carregandoStats, setCarregandoStats] = useState(true)
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [carregandoStats, setCarregandoStats] = useState(true);
 
   // formulário de alteração de nome
-  const [nomeNovo, setNomeNovo] = useState('')
-  const [salvandoNome, setSalvandoNome] = useState(false)
-  const [erroNome, setErroNome] = useState<string | null>(null)
-  const [okNome, setOkNome] = useState<string | null>(null)
+  const [nomeNovo, setNomeNovo] = useState('');
+  const [salvandoNome, setSalvandoNome] = useState(false);
+  const [erroNome, setErroNome] = useState<string | null>(null);
+  const [okNome, setOkNome] = useState<string | null>(null);
 
   // formulário de troca de senha
-  const [senhaAtual, setSenhaAtual] = useState('')
-  const [senhaNova, setSenhaNova] = useState('')
-  const [senhaConfirma, setSenhaConfirma] = useState('')
-  const [trocando, setTrocando] = useState(false)
-  const [erroSenha, setErroSenha] = useState<string | null>(null)
-  const [okSenha, setOkSenha] = useState<string | null>(null)
-  const [pushStatus, setPushStatus] = useState<StatusPush>('desativado')
-  const [carregandoPush, setCarregandoPush] = useState(true)
-  const [alterandoPush, setAlterandoPush] = useState(false)
-  const [erroPush, setErroPush] = useState<string | null>(null)
+  const [senhaAtual, setSenhaAtual] = useState('');
+  const [senhaNova, setSenhaNova] = useState('');
+  const [senhaConfirma, setSenhaConfirma] = useState('');
+  const [trocando, setTrocando] = useState(false);
+  const [erroSenha, setErroSenha] = useState<string | null>(null);
+  const [okSenha, setOkSenha] = useState<string | null>(null);
+  const [pushStatus, setPushStatus] = useState<StatusPush>('desativado');
+  const [carregandoPush, setCarregandoPush] = useState(true);
+  const [alterandoPush, setAlterandoPush] = useState(false);
+  const [erroPush, setErroPush] = useState<string | null>(null);
 
   useEffect(() => {
     async function carregarStats() {
-      if (!jogador) return
+      if (!jogador) return;
       const { data, error } = await supabase
         .from('stats_jogador')
         .select('jogador_id, partidas, gols, assistencias, gols_contra, vitorias')
         .eq('jogador_id', jogador.id)
-        .maybeSingle()
-      if (!error) setStats(data)
-      setCarregandoStats(false)
+        .maybeSingle();
+      if (!error) setStats(data);
+      setCarregandoStats(false);
     }
-    carregarStats()
-  }, [jogador?.id])
+    carregarStats();
+  }, [jogador?.id]);
 
   useEffect(() => {
-    let ativo = true
+    let ativo = true;
     async function carregarPush() {
-      if (!jogador) return
+      if (!jogador) return;
       try {
-        const status = await statusPush(jogador.id)
-        if (ativo) setPushStatus(status)
+        const status = await statusPush(jogador.id);
+        if (ativo) setPushStatus(status);
       } catch {
-        if (ativo) setPushStatus('desativado')
+        if (ativo) setPushStatus('desativado');
       } finally {
-        if (ativo) setCarregandoPush(false)
+        if (ativo) setCarregandoPush(false);
       }
     }
-    carregarPush()
+    carregarPush();
     return () => {
-      ativo = false
-    }
-  }, [jogador?.id])
+      ativo = false;
+    };
+  }, [jogador?.id]);
 
-  if (!jogador) return null
+  if (!jogador) return null;
 
   async function alterarNome(e: React.FormEvent) {
-    e.preventDefault()
-    setErroNome(null)
-    setOkNome(null)
+    e.preventDefault();
+    setErroNome(null);
+    setOkNome(null);
 
-    const nome = nomeNovo.trim()
+    const nome = nomeNovo.trim();
     if (!nome) {
-      setErroNome('Digite um nome.')
-      return
+      setErroNome('Digite um nome.');
+      return;
     }
     if (nome.length > 60) {
-      setErroNome('O nome deve ter no máximo 60 caracteres.')
-      return
+      setErroNome('O nome deve ter no máximo 60 caracteres.');
+      return;
     }
     if (nome === jogador!.nome) {
-      setErroNome('O nome é igual ao atual.')
-      return
+      setErroNome('O nome é igual ao atual.');
+      return;
     }
 
-    setSalvandoNome(true)
+    setSalvandoNome(true);
     try {
-      await atualizarNomeJogador(jogador!.id, nome)
-      setJogador({ ...jogador!, nome })
-      setOkNome('Nome atualizado. Respeita a camisa nova.')
-      setNomeNovo('')
+      await atualizarNomeJogador(jogador!.id, nome);
+      setJogador({ ...jogador!, nome });
+      setOkNome('Nome atualizado. Respeita a camisa nova.');
+      setNomeNovo('');
     } catch (error) {
-      setErroNome('Erro: ' + (error instanceof Error ? error.message : 'falha ao salvar.'))
+      setErroNome('Erro: ' + (error instanceof Error ? error.message : 'falha ao salvar.'));
     } finally {
-      setSalvandoNome(false)
+      setSalvandoNome(false);
     }
   }
 
   async function trocarSenha(e: React.FormEvent) {
-    e.preventDefault()
-    setErroSenha(null)
-    setOkSenha(null)
+    e.preventDefault();
+    setErroSenha(null);
+    setOkSenha(null);
 
     if (senhaNova.length < 3) {
-      setErroSenha('A nova senha deve ter ao menos 3 caracteres.')
-      return
+      setErroSenha('A nova senha deve ter ao menos 3 caracteres.');
+      return;
     }
     if (senhaNova !== senhaConfirma) {
-      setErroSenha('A confirmação não confere.')
-      return
+      setErroSenha('A confirmação não confere.');
+      return;
     }
 
-    setTrocando(true)
+    setTrocando(true);
     const { data, error } = await supabase.rpc('trocar_senha', {
       p_jogador_id: jogador!.id,
       p_senha_atual: senhaAtual,
       p_senha_nova: senhaNova,
-    })
-    setTrocando(false)
+    });
+    setTrocando(false);
 
     if (error) {
-      setErroSenha('Erro: ' + error.message)
-      return
+      setErroSenha('Erro: ' + error.message);
+      return;
     }
     if (data === false) {
-      setErroSenha('Senha atual incorreta.')
-      return
+      setErroSenha('Senha atual incorreta.');
+      return;
     }
 
-    setOkSenha('Senha alterada com sucesso!')
-    setSenhaAtual('')
-    setSenhaNova('')
-    setSenhaConfirma('')
+    setOkSenha('Senha alterada com sucesso!');
+    setSenhaAtual('');
+    setSenhaNova('');
+    setSenhaConfirma('');
   }
 
   function fazerLogout() {
-    logout()
-    navigate('/login', { replace: true })
+    logout();
+    navigate('/login', { replace: true });
   }
 
   async function alternarPush() {
-    setAlterandoPush(true)
-    setErroPush(null)
+    setAlterandoPush(true);
+    setErroPush(null);
     try {
       if (pushStatus === 'ativado') {
-        await desativarPush(jogador!.id)
-        setPushStatus('desativado')
+        await desativarPush(jogador!.id);
+        setPushStatus('desativado');
       } else {
-        await ativarPush(jogador!.id)
-        setPushStatus('ativado')
+        await ativarPush(jogador!.id);
+        setPushStatus('ativado');
       }
     } catch (error) {
-      setErroPush(formatarMensagemErro(error))
+      setErroPush(formatarMensagemErro(error));
     } finally {
-      setAlterandoPush(false)
+      setAlterandoPush(false);
     }
   }
 
   if (carregandoStats && !stats) {
-    return <SkeletonPerfil />
+    return <SkeletonPerfil />;
   }
 
   return (
@@ -243,7 +242,9 @@ export function Perfil() {
           <MensagemEstado tipo="info">Seu navegador não quer saber dos lembretes.</MensagemEstado>
         )}
         {pushStatus === 'negado' && (
-          <MensagemEstado tipo="info">As notificações estão bloqueadas nas configurações do navegador.</MensagemEstado>
+          <MensagemEstado tipo="info">
+            As notificações estão bloqueadas nas configurações do navegador.
+          </MensagemEstado>
         )}
         {pushStatus !== 'indisponivel' && pushStatus !== 'negado' && (
           <button
@@ -282,12 +283,8 @@ export function Perfil() {
             className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz shadow-xs focus:outline-none focus:border-destaque"
             required
           />
-          {erroNome && (
-            <MensagemEstado>{erroNome}</MensagemEstado>
-          )}
-          {okNome && (
-            <MensagemEstado tipo="sucesso">{okNome}</MensagemEstado>
-          )}
+          {erroNome && <MensagemEstado>{erroNome}</MensagemEstado>}
+          {okNome && <MensagemEstado tipo="sucesso">{okNome}</MensagemEstado>}
           <button
             type="submit"
             disabled={salvandoNome}
@@ -331,12 +328,8 @@ export function Perfil() {
             className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz font-mono shadow-xs focus:outline-none focus:border-destaque"
             required
           />
-          {erroSenha && (
-            <MensagemEstado>{erroSenha}</MensagemEstado>
-          )}
-          {okSenha && (
-            <MensagemEstado tipo="sucesso">{okSenha}</MensagemEstado>
-          )}
+          {erroSenha && <MensagemEstado>{erroSenha}</MensagemEstado>}
+          {okSenha && <MensagemEstado tipo="sucesso">{okSenha}</MensagemEstado>}
           <button
             type="submit"
             disabled={trocando}
@@ -364,16 +357,18 @@ export function Perfil() {
         </p>
       </div>
     </div>
-  )
+  );
 }
 
 function StatBox({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-[4px] border border-borda bg-superficie px-2 py-2.5 text-center shadow-carimbo">
-      <div className="font-mono text-xl sm:text-2xl font-black text-destaque tabular-nums">{value}</div>
+      <div className="font-mono text-xl sm:text-2xl font-black text-destaque tabular-nums">
+        {value}
+      </div>
       <div className="font-display text-[10px] font-bold uppercase tracking-wider text-giz-fraco">
         {label}
       </div>
     </div>
-  )
+  );
 }

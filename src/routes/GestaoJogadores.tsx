@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
-import { useAdmin } from "../hooks/useAdmin";
+import { useEffect, useState } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { useAdmin } from '../hooks/useAdmin';
 import {
   listarTodosJogadores,
   atualizarCaracteristicasJogador,
@@ -8,14 +8,14 @@ import {
   isSuperAdmin,
   MAX_MENSALISTAS,
   type JogadorLista,
-} from "../lib/jogadores";
-import { POSICOES } from "../lib/times";
-import { Avatar } from "../components/Avatar";
-import { MensagemEstado } from "../components/Estado";
-import { SkeletonGestao } from "../components/Skeletons";
-import { ConfirmDialog } from "../components/ConfirmDialog";
-import { Snackbar, type TipoSnackbar } from "../components/Snackbar";
-import { voltar } from "../lib/navegacao";
+} from '../lib/jogadores';
+import { POSICOES } from '../lib/times';
+import { Avatar } from '../components/Avatar';
+import { MensagemEstado } from '../components/Estado';
+import { SkeletonGestao } from '../components/Skeletons';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+import { Snackbar, type TipoSnackbar } from '../components/Snackbar';
+import { voltar } from '../lib/navegacao';
 import {
   ArrowLeft,
   Users,
@@ -29,9 +29,9 @@ import {
   RotateCcw,
   Sparkles,
   KeyRound,
-} from "lucide-react";
+} from 'lucide-react';
 
-type FiltroTipo = "todos" | "mensalistas" | "avulsos" | "admins";
+type FiltroTipo = 'todos' | 'mensalistas' | 'avulsos' | 'admins';
 
 interface AlteracaoRascunho {
   is_mensalista: boolean;
@@ -44,8 +44,8 @@ export function GestaoJogadores() {
 
   const [jogadores, setJogadores] = useState<JogadorLista[]>([]);
   const [carregando, setCarregando] = useState(true);
-  const [busca, setBusca] = useState("");
-  const [filtro, setFiltro] = useState<FiltroTipo>("todos");
+  const [busca, setBusca] = useState('');
+  const [filtro, setFiltro] = useState<FiltroTipo>('todos');
 
   // Rascunho de alterações pendentes { [jogadorId]: { is_mensalista, is_admin } }
   const [rascunhos, setRascunhos] = useState<Record<number, AlteracaoRascunho>>({});
@@ -61,7 +61,7 @@ export function GestaoJogadores() {
     visivel: boolean;
     tipo: TipoSnackbar;
     mensagem: string;
-  }>({ visivel: false, tipo: "sucesso", mensagem: "" });
+  }>({ visivel: false, tipo: 'sucesso', mensagem: '' });
 
   useEffect(() => {
     let ativo = true;
@@ -71,9 +71,7 @@ export function GestaoJogadores() {
         if (ativo) setJogadores(lista);
       } catch (err) {
         if (ativo) {
-          setMensagemErro(
-            err instanceof Error ? err.message : "Erro ao carregar jogadores."
-          );
+          setMensagemErro(err instanceof Error ? err.message : 'Erro ao carregar jogadores.');
         }
       } finally {
         if (ativo) setCarregando(false);
@@ -102,12 +100,8 @@ export function GestaoJogadores() {
   const jogadoresDraft = jogadores.map(obterEstadoDraft);
   const totalJogadores = jogadores.length;
   const totalMensalistas = jogadoresDraft.filter((j) => j.is_mensalista).length;
-  const totalAdmins = jogadoresDraft.filter(
-    (j) => j.is_admin || isSuperAdmin(j.username)
-  ).length;
-  const totalSuperAdmins = jogadoresDraft.filter((j) =>
-    isSuperAdmin(j.username)
-  ).length;
+  const totalAdmins = jogadoresDraft.filter((j) => j.is_admin || isSuperAdmin(j.username)).length;
+  const totalSuperAdmins = jogadoresDraft.filter((j) => isSuperAdmin(j.username)).length;
 
   const qtdModificacoes = Object.keys(rascunhos).length;
   const temAlteracoes = qtdModificacoes > 0;
@@ -139,10 +133,7 @@ export function GestaoJogadores() {
     }
 
     // Se o novo estado voltar a ser idêntico ao original, remove do rascunho
-    if (
-      novoMensalista === jOriginal.is_mensalista &&
-      novoAdmin === jOriginal.is_admin
-    ) {
+    if (novoMensalista === jOriginal.is_mensalista && novoAdmin === jOriginal.is_admin) {
       setRascunhos((prev) => {
         const cop = { ...prev };
         delete cop[jOriginal.id];
@@ -184,10 +175,7 @@ export function GestaoJogadores() {
     setMensagemSucesso(null);
 
     // Se o novo estado voltar a ser idêntico ao original, remove do rascunho
-    if (
-      novoMensalista === jOriginal.is_mensalista &&
-      novoAdmin === jOriginal.is_admin
-    ) {
+    if (novoMensalista === jOriginal.is_mensalista && novoAdmin === jOriginal.is_admin) {
       setRascunhos((prev) => {
         const cop = { ...prev };
         delete cop[jOriginal.id];
@@ -204,11 +192,10 @@ export function GestaoJogadores() {
     }
   }
 
-
   function descartarAlteracoes() {
     setRascunhos({});
     setMensagemErro(null);
-    setMensagemSucesso("Alterações descartadas.");
+    setMensagemSucesso('Alterações descartadas.');
   }
 
   async function confirmarResetSenha() {
@@ -219,15 +206,15 @@ export function GestaoJogadores() {
       await resetarSenhaJogador(alvoReset.id);
       setSnackbar({
         visivel: true,
-        tipo: "sucesso",
+        tipo: 'sucesso',
         mensagem: `Senha de ${alvoReset.nome} resetada para "123".`,
       });
       setAlvoReset(null);
     } catch (err) {
       setSnackbar({
         visivel: true,
-        tipo: "erro",
-        mensagem: err instanceof Error ? err.message : "Erro ao resetar senha.",
+        tipo: 'erro',
+        mensagem: err instanceof Error ? err.message : 'Erro ao resetar senha.',
       });
     } finally {
       setResetandoId(null);
@@ -261,14 +248,10 @@ export function GestaoJogadores() {
       setJogadores(jogadoresDraft);
       setRascunhos({});
 
-      setMensagemSucesso(
-        `Sucesso! ${idsModificados.length} alteração(ões) salva(s) com sucesso.`
-      );
+      setMensagemSucesso(`Sucesso! ${idsModificados.length} alteração(ões) salva(s) com sucesso.`);
     } catch (err) {
       setMensagemErro(
-        err instanceof Error
-          ? err.message
-          : "Erro ao salvar alterações no servidor."
+        err instanceof Error ? err.message : 'Erro ao salvar alterações no servidor.'
       );
     } finally {
       setSalvandoLote(false);
@@ -283,9 +266,9 @@ export function GestaoJogadores() {
 
     if (!matchBusca) return false;
 
-    if (filtro === "mensalistas") return j.is_mensalista;
-    if (filtro === "avulsos") return !j.is_mensalista;
-    if (filtro === "admins") return j.is_admin || isSuperAdmin(j.username);
+    if (filtro === 'mensalistas') return j.is_mensalista;
+    if (filtro === 'avulsos') return !j.is_mensalista;
+    if (filtro === 'admins') return j.is_admin || isSuperAdmin(j.username);
 
     return true;
   });
@@ -298,8 +281,7 @@ export function GestaoJogadores() {
         onClick={() => voltar(navigate, '/administrador')}
         className="inline-flex items-center gap-1 text-xs font-mono text-giz-fraco hover:text-giz transition"
       >
-        <ArrowLeft className="size-3.5" />
-        ← voltar
+        <ArrowLeft className="size-3.5" />← voltar
       </button>
 
       <div className="sumula-header pb-2 flex items-baseline justify-between">
@@ -318,9 +300,7 @@ export function GestaoJogadores() {
       </div>
 
       {mensagemErro && <MensagemEstado>{mensagemErro}</MensagemEstado>}
-      {mensagemSucesso && (
-        <MensagemEstado tipo="sucesso">{mensagemSucesso}</MensagemEstado>
-      )}
+      {mensagemSucesso && <MensagemEstado tipo="sucesso">{mensagemSucesso}</MensagemEstado>}
 
       {limiteAtingido && (
         <div className="rounded-[4px] border border-destaque/50 bg-destaque/10 p-3 text-xs text-giz flex items-start gap-2.5 shadow-carimbo">
@@ -330,7 +310,8 @@ export function GestaoJogadores() {
               Limite Máximo Atingido ({MAX_MENSALISTAS}/{MAX_MENSALISTAS} Mensalistas)
             </span>
             <span className="text-giz-fraco text-xs font-mono">
-              O limite de {MAX_MENSALISTAS} mensalistas foi alcançado. Para definir um novo mensalista, desmarque um mensalista atual.
+              O limite de {MAX_MENSALISTAS} mensalistas foi alcançado. Para definir um novo
+              mensalista, desmarque um mensalista atual.
             </span>
           </div>
         </div>
@@ -359,12 +340,8 @@ export function GestaoJogadores() {
               <UserCheck className="size-4 text-ok" />
             </div>
             <div className="flex items-baseline gap-1 font-mono">
-              <span className="text-2xl font-black text-ok tabular-nums">
-                {totalMensalistas}
-              </span>
-              <span className="text-xs font-bold text-giz-fraco">
-                / {MAX_MENSALISTAS}
-              </span>
+              <span className="text-2xl font-black text-ok tabular-nums">{totalMensalistas}</span>
+              <span className="text-xs font-bold text-giz-fraco">/ {MAX_MENSALISTAS}</span>
             </div>
           </div>
 
@@ -372,19 +349,16 @@ export function GestaoJogadores() {
             <div className="h-1.5 w-full bg-superficie-2 border border-borda rounded-[2px] overflow-hidden">
               <div
                 className={`h-full transition-all duration-300 ${
-                  limiteAtingido ? "bg-destaque" : "bg-ok"
+                  limiteAtingido ? 'bg-destaque' : 'bg-ok'
                 }`}
                 style={{
-                  width: `${Math.min(
-                    100,
-                    (totalMensalistas / MAX_MENSALISTAS) * 100
-                  )}%`,
+                  width: `${Math.min(100, (totalMensalistas / MAX_MENSALISTAS) * 100)}%`,
                 }}
               />
             </div>
             <div className="text-[9px] font-mono text-giz-fraco mt-1">
               {limiteAtingido
-                ? "Limite lotado"
+                ? 'Limite lotado'
                 : `${MAX_MENSALISTAS - totalMensalistas} vaga(s) livre(s)`}
             </div>
           </div>
@@ -428,7 +402,7 @@ export function GestaoJogadores() {
           />
           {busca && (
             <button
-              onClick={() => setBusca("")}
+              onClick={() => setBusca('')}
               aria-label="Limpar busca"
               className="min-h-[44px] min-w-[44px] flex items-center justify-center absolute right-0 top-1/2 -translate-y-1/2 text-xs text-giz-fraco hover:text-giz"
             >
@@ -440,41 +414,41 @@ export function GestaoJogadores() {
         {/* Abas de filtro */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
           <button
-            onClick={() => setFiltro("todos")}
+            onClick={() => setFiltro('todos')}
             className={`min-h-[36px] px-3 py-1.5 rounded-[3px] font-display font-bold uppercase tracking-wider transition shrink-0 ${
-              filtro === "todos"
-                ? "bg-destaque text-destaque-tinta shadow-carimbo"
-                : "bg-superficie border border-borda text-giz-fraco hover:text-giz hover:bg-superficie-2"
+              filtro === 'todos'
+                ? 'bg-destaque text-destaque-tinta shadow-carimbo'
+                : 'bg-superficie border border-borda text-giz-fraco hover:text-giz hover:bg-superficie-2'
             }`}
           >
             Todos ({totalJogadores})
           </button>
           <button
-            onClick={() => setFiltro("mensalistas")}
+            onClick={() => setFiltro('mensalistas')}
             className={`min-h-[36px] px-3 py-1.5 rounded-[3px] font-display font-bold uppercase tracking-wider transition shrink-0 ${
-              filtro === "mensalistas"
-                ? "bg-destaque text-destaque-tinta shadow-carimbo"
-                : "bg-superficie border border-borda text-giz-fraco hover:text-giz hover:bg-superficie-2"
+              filtro === 'mensalistas'
+                ? 'bg-destaque text-destaque-tinta shadow-carimbo'
+                : 'bg-superficie border border-borda text-giz-fraco hover:text-giz hover:bg-superficie-2'
             }`}
           >
             Mensalistas ({totalMensalistas}/{MAX_MENSALISTAS})
           </button>
           <button
-            onClick={() => setFiltro("avulsos")}
+            onClick={() => setFiltro('avulsos')}
             className={`min-h-[36px] px-3 py-1.5 rounded-[3px] font-display font-bold uppercase tracking-wider transition shrink-0 ${
-              filtro === "avulsos"
-                ? "bg-destaque text-destaque-tinta shadow-carimbo"
-                : "bg-superficie border border-borda text-giz-fraco hover:text-giz hover:bg-superficie-2"
+              filtro === 'avulsos'
+                ? 'bg-destaque text-destaque-tinta shadow-carimbo'
+                : 'bg-superficie border border-borda text-giz-fraco hover:text-giz hover:bg-superficie-2'
             }`}
           >
             Avulsos ({totalJogadores - totalMensalistas})
           </button>
           <button
-            onClick={() => setFiltro("admins")}
+            onClick={() => setFiltro('admins')}
             className={`min-h-[36px] px-3 py-1.5 rounded-[3px] font-display font-bold uppercase tracking-wider transition shrink-0 ${
-              filtro === "admins"
-                ? "bg-destaque text-destaque-tinta shadow-carimbo"
-                : "bg-superficie border border-borda text-giz-fraco hover:text-giz hover:bg-superficie-2"
+              filtro === 'admins'
+                ? 'bg-destaque text-destaque-tinta shadow-carimbo'
+                : 'bg-superficie border border-borda text-giz-fraco hover:text-giz hover:bg-superficie-2'
             }`}
           >
             Admins ({totalAdmins})
@@ -501,9 +475,7 @@ export function GestaoJogadores() {
               <div
                 key={j.id}
                 className={`rounded-[4px] border bg-superficie p-3.5 shadow-carimbo space-y-3 transition ${
-                  modificado
-                    ? "border-destaque ring-2 ring-destaque/30"
-                    : "border-borda"
+                  modificado ? 'border-destaque ring-2 ring-destaque/30' : 'border-borda'
                 }`}
               >
                 {/* Linha Superior: Dados do Jogador */}
@@ -572,33 +544,35 @@ export function GestaoJogadores() {
                     }
                     className={`flex items-center justify-between p-2.5 rounded-[3px] border transition min-h-[44px] ${
                       j.is_mensalista
-                        ? "border-ok/60 bg-ok/10 text-ok hover:bg-ok/20"
+                        ? 'border-ok/60 bg-ok/10 text-ok hover:bg-ok/20'
                         : bloqMensalista
-                        ? "border-borda bg-superficie-2 text-giz-fraco opacity-60"
-                        : "border-borda bg-superficie-2 text-giz-fraco hover:text-giz hover:border-destaque/40"
+                          ? 'border-borda bg-superficie-2 text-giz-fraco opacity-60'
+                          : 'border-borda bg-superficie-2 text-giz-fraco hover:text-giz hover:border-destaque/40'
                     }`}
                   >
                     <div className="flex items-center gap-2">
                       <div
                         className={`size-4 rounded-[2px] flex items-center justify-center border transition ${
                           j.is_mensalista
-                            ? "bg-ok border-ok text-white"
+                            ? 'bg-ok border-ok text-white'
                             : bloqMensalista
-                            ? "border-borda bg-superficie"
-                            : "border-borda bg-superficie"
+                              ? 'border-borda bg-superficie'
+                              : 'border-borda bg-superficie'
                         }`}
                       >
                         {j.is_mensalista && <Check className="size-3 stroke-[3]" />}
                       </div>
-                      <span className="font-display font-bold uppercase tracking-wider">Mensalista</span>
+                      <span className="font-display font-bold uppercase tracking-wider">
+                        Mensalista
+                      </span>
                     </div>
 
                     <span className="text-[10px] font-mono opacity-80">
                       {j.is_mensalista
-                        ? "Ativo"
+                        ? 'Ativo'
                         : bloqMensalista
-                        ? `Lotado (${MAX_MENSALISTAS})`
-                        : "Tornar Mensalista"}
+                          ? `Lotado (${MAX_MENSALISTAS})`
+                          : 'Tornar Mensalista'}
                     </span>
                   </button>
 
@@ -609,36 +583,36 @@ export function GestaoJogadores() {
                     onClick={() => alternarAdminDraft(jOriginal)}
                     title={
                       superadmin
-                        ? "Superadmin permanente (acesso não pode ser removido)"
+                        ? 'Superadmin permanente (acesso não pode ser removido)'
                         : !j.is_mensalista
-                        ? "Apenas jogadores mensalistas podem ser administradores"
-                        : undefined
+                          ? 'Apenas jogadores mensalistas podem ser administradores'
+                          : undefined
                     }
                     className={`flex items-center justify-between p-2.5 rounded-[3px] border transition min-h-[44px] ${
                       superadmin
-                        ? "border-destaque/60 bg-destaque/15 text-destaque cursor-not-allowed"
+                        ? 'border-destaque/60 bg-destaque/15 text-destaque cursor-not-allowed'
                         : j.is_admin
-                        ? "border-destaque/60 bg-destaque/10 text-destaque hover:bg-destaque/20"
-                        : !j.is_mensalista
-                        ? "border-borda bg-superficie-2 text-giz-fraco/50"
-                        : "border-borda bg-superficie-2 text-giz-fraco hover:text-giz hover:border-destaque/40"
+                          ? 'border-destaque/60 bg-destaque/10 text-destaque hover:bg-destaque/20'
+                          : !j.is_mensalista
+                            ? 'border-borda bg-superficie-2 text-giz-fraco/50'
+                            : 'border-borda bg-superficie-2 text-giz-fraco hover:text-giz hover:border-destaque/40'
                     }`}
                   >
                     <div className="flex items-center gap-2">
                       <div
                         className={`size-4 rounded-[2px] flex items-center justify-center border transition ${
                           superadmin
-                            ? "bg-destaque border-destaque text-destaque-tinta"
+                            ? 'bg-destaque border-destaque text-destaque-tinta'
                             : j.is_admin
-                            ? "bg-destaque border-destaque text-destaque-tinta"
-                            : "border-borda bg-superficie"
+                              ? 'bg-destaque border-destaque text-destaque-tinta'
+                              : 'border-borda bg-superficie'
                         }`}
                       >
-                        {(superadmin || j.is_admin) && (
-                          <Check className="size-3 stroke-[3]" />
-                        )}
+                        {(superadmin || j.is_admin) && <Check className="size-3 stroke-[3]" />}
                       </div>
-                      <span className="font-display font-bold uppercase tracking-wider">Administrador</span>
+                      <span className="font-display font-bold uppercase tracking-wider">
+                        Administrador
+                      </span>
                     </div>
 
                     <span className="text-[10px] font-mono opacity-80 flex items-center gap-1">
@@ -648,11 +622,11 @@ export function GestaoJogadores() {
                           <span>Superadmin</span>
                         </>
                       ) : j.is_admin ? (
-                        "Ativo"
+                        'Ativo'
                       ) : !j.is_mensalista ? (
-                        "Requer Mensalista"
+                        'Requer Mensalista'
                       ) : (
-                        "Tornar Admin"
+                        'Tornar Admin'
                       )}
                     </span>
                   </button>
@@ -668,15 +642,16 @@ export function GestaoJogadores() {
                     >
                       <div className="flex items-center gap-2">
                         <KeyRound className="size-4 text-giz-fraco" />
-                        <span className="font-display font-bold uppercase tracking-wider">Resetar Senha</span>
+                        <span className="font-display font-bold uppercase tracking-wider">
+                          Resetar Senha
+                        </span>
                       </div>
 
                       <span className="text-[10px] font-mono opacity-80">
-                        {resetandoId === j.id ? "Resetando..." : "Padrão \"123\""}
+                        {resetandoId === j.id ? 'Resetando...' : 'Padrão "123"'}
                       </span>
                     </button>
                   )}
-
                 </div>
               </div>
             );
@@ -694,7 +669,7 @@ export function GestaoJogadores() {
               </span>
               <span className="text-xs font-display font-bold uppercase tracking-wider text-giz truncate">
                 {qtdModificacoes === 1
-                  ? "1 alteração pendente"
+                  ? '1 alteração pendente'
                   : `${qtdModificacoes} alterações pendentes`}
               </span>
             </div>
@@ -717,7 +692,7 @@ export function GestaoJogadores() {
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[3px] text-xs font-display font-bold uppercase tracking-wider bg-destaque hover:brightness-105 text-destaque-tinta transition shadow-carimbo active:translate-y-px disabled:opacity-50 shrink-0 min-h-[44px]"
               >
                 {salvandoLote ? (
-                  "Salvando..."
+                  'Salvando...'
                 ) : (
                   <>
                     <Save className="size-3.5" />
@@ -741,7 +716,7 @@ export function GestaoJogadores() {
             ? `Redefinir a senha de ${alvoReset.nome} (@${alvoReset.username}) para o padrão "123"? Ele deve trocá-la depois no Perfil.`
             : undefined
         }
-        textoConfirmar={resetandoId !== null ? "Resetando..." : "Resetar"}
+        textoConfirmar={resetandoId !== null ? 'Resetando...' : 'Resetar'}
       />
 
       <Snackbar
@@ -750,7 +725,6 @@ export function GestaoJogadores() {
         visivel={snackbar.visivel}
         onFechar={() => setSnackbar((s) => ({ ...s, visivel: false }))}
       />
-
     </div>
   );
 }

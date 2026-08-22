@@ -1,15 +1,15 @@
-import { supabase } from "./supabase";
+import { supabase } from './supabase';
 
 // Controle financeiro: dívidas por jogador.
 // Cada linha da tabela `dividas` = UMA dívida individual (mensalidade, avulso, outro).
 // O total devido por jogador = soma das dívidas em aberto (paga = false).
 
-export type TipoDivida = "mensalidade" | "avulso" | "outro";
+export type TipoDivida = 'mensalidade' | 'avulso' | 'outro';
 
 export const TIPOS_DIVIDA: { value: TipoDivida; label: string }[] = [
-  { value: "mensalidade", label: "Mensalidade" },
-  { value: "avulso", label: "Avulso" },
-  { value: "outro", label: "Outro" },
+  { value: 'mensalidade', label: 'Mensalidade' },
+  { value: 'avulso', label: 'Avulso' },
+  { value: 'outro', label: 'Outro' },
 ];
 
 export interface Divida {
@@ -40,12 +40,12 @@ export interface DividaPorJogador {
 /** Lista todas as dívidas em aberto (paga = false), já com nome do jogador. */
 export async function listarDividasEmAberto(): Promise<Divida[]> {
   const { data, error } = await supabase
-    .from("dividas")
+    .from('dividas')
     .select(
-      "id, jogador_id, tipo, valor, descricao, referencia, partida_id, data_divida, paga, data_pagamento, created_at, jogadores(nome, username, is_mensalista)",
+      'id, jogador_id, tipo, valor, descricao, referencia, partida_id, data_divida, paga, data_pagamento, created_at, jogadores(nome, username, is_mensalista)'
     )
-    .eq("paga", false)
-    .order("data_divida", { ascending: false });
+    .eq('paga', false)
+    .order('data_divida', { ascending: false });
   if (error) throw error;
   // Cast via unknown: o cliente Supabase infere `jogadores` como array, mas em
   // runtime o join m:1 devolve um objeto (ou null). Vide migration 051 (FK única).
@@ -65,10 +65,10 @@ export interface DevedorResumo {
 /** Lista devedores (total_devido > 0) via view `dividas_resumo`, pelo maior total. */
 export async function listarResumoDevedores(): Promise<DevedorResumo[]> {
   const { data, error } = await supabase
-    .from("dividas_resumo")
-    .select("jogador_id, nome, username, is_mensalista, total_devido, qtd_dividas")
-    .gt("total_devido", 0)
-    .order("total_devido", { ascending: false });
+    .from('dividas_resumo')
+    .select('jogador_id, nome, username, is_mensalista, total_devido, qtd_dividas')
+    .gt('total_devido', 0)
+    .order('total_devido', { ascending: false });
   if (error) throw error;
   return (data ?? []) as DevedorResumo[];
 }
@@ -83,7 +83,7 @@ export async function registrarDivida(input: {
   referencia?: string;
   partida_id?: number;
 }): Promise<number> {
-  const { data, error } = await supabase.rpc("registrar_divida", {
+  const { data, error } = await supabase.rpc('registrar_divida', {
     p_jogador_id: input.jogador_id,
     p_tipo: input.tipo,
     p_valor: input.valor,
@@ -98,13 +98,13 @@ export async function registrarDivida(input: {
 
 /** Marca uma única dívida como paga. */
 export async function quitarDivida(dividaId: number): Promise<void> {
-  const { error } = await supabase.rpc("quitar_divida", { p_divida_id: dividaId });
+  const { error } = await supabase.rpc('quitar_divida', { p_divida_id: dividaId });
   if (error) throw error;
 }
 
 /** Marca TODAS as dívidas em aberto de um jogador como pagas. */
 export async function quitarDividasJogador(jogadorId: number): Promise<void> {
-  const { error } = await supabase.rpc("quitar_dividas_jogador", {
+  const { error } = await supabase.rpc('quitar_dividas_jogador', {
     p_jogador_id: jogadorId,
   });
   if (error) throw error;

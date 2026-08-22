@@ -1,5 +1,5 @@
-import { useEffect, useId, useRef, useState } from "react";
-import { vibrateLight } from "../lib/haptics";
+import { useEffect, useId, useRef, useState } from 'react';
+import { vibrateLight } from '../lib/haptics';
 
 interface SeletorNotaProps {
   /** Nota atual (1-10). `undefined` = ainda não avaliado. */
@@ -14,7 +14,7 @@ interface SeletorNotaProps {
    * numa linha; o popup do listbox recebe largura mínima e âncora à direita
    * para não ultrapassar a viewport no celular.
    */
-  variant?: "full" | "compact";
+  variant?: 'full' | 'compact';
 }
 
 const NOTAS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -27,10 +27,10 @@ export function SeletorNota({
   value,
   onChange,
   disabled = false,
-  className = "",
-  variant = "full",
+  className = '',
+  variant = 'full',
 }: SeletorNotaProps) {
-  const compact = variant === "compact";
+  const compact = variant === 'compact';
   const [aberto, setAberto] = useState(false);
   const [destaque, setDestaque] = useState<number>(value ?? 5);
   const idBase = useId();
@@ -49,7 +49,7 @@ export function SeletorNota({
   useEffect(() => {
     if (!aberto) return;
     const el = opcaoRefs.current[destaque - 1];
-    el?.scrollIntoView({ block: "nearest" });
+    el?.scrollIntoView({ block: 'nearest' });
   }, [aberto, destaque]);
 
   // Fecha ao clicar fora.
@@ -60,8 +60,8 @@ export function SeletorNota({
         setAberto(false);
       }
     }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
   }, [aberto]);
 
   function abrirSeFechado() {
@@ -78,10 +78,10 @@ export function SeletorNota({
 
   function onKeyDownTrigger(e: React.KeyboardEvent) {
     switch (e.key) {
-      case "ArrowDown":
-      case "ArrowUp":
-      case "Enter":
-      case " ":
+      case 'ArrowDown':
+      case 'ArrowUp':
+      case 'Enter':
+      case ' ':
         e.preventDefault();
         abrirSeFechado();
         break;
@@ -90,31 +90,31 @@ export function SeletorNota({
 
   function onKeyDownLista(e: React.KeyboardEvent) {
     switch (e.key) {
-      case "ArrowDown":
+      case 'ArrowDown':
         e.preventDefault();
         setDestaque((d) => Math.min(10, d + 1));
         break;
-      case "ArrowUp":
+      case 'ArrowUp':
         e.preventDefault();
         setDestaque((d) => Math.max(1, d - 1));
         break;
-      case "Home":
+      case 'Home':
         e.preventDefault();
         setDestaque(1);
         break;
-      case "End":
+      case 'End':
         e.preventDefault();
         setDestaque(10);
         break;
-      case "Enter":
+      case 'Enter':
         e.preventDefault();
         selecionar(destaque);
         break;
-      case "Escape":
+      case 'Escape':
         e.preventDefault();
         setAberto(false);
         break;
-      case "Tab":
+      case 'Tab':
         setAberto(false);
         break;
     }
@@ -133,24 +133,20 @@ export function SeletorNota({
         onClick={() => (aberto ? setAberto(false) : abrirSeFechado())}
         onKeyDown={onKeyDownTrigger}
         className={`flex items-center justify-between rounded-[4px] border border-borda bg-superficie text-left text-sm disabled:opacity-40 shadow-xs transition ${
-          compact
-            ? "min-h-[44px] w-24 px-3"
-            : "min-h-[44px] w-full px-3"
+          compact ? 'min-h-[44px] w-24 px-3' : 'min-h-[44px] w-full px-3'
         }`}
       >
         <span
           className={
-            definido
-              ? "font-mono font-bold text-destaque text-base"
-              : "text-giz-fraco text-xs"
+            definido ? 'font-mono font-bold text-destaque text-base' : 'text-giz-fraco text-xs'
           }
         >
-          {definido ? value : "Nota"}
+          {definido ? value : 'Nota'}
         </span>
         <svg
           aria-hidden="true"
           viewBox="0 0 20 20"
-          className={`h-4 w-4 text-giz-fraco transition-transform ${aberto ? "rotate-180" : ""}`}
+          className={`h-4 w-4 text-giz-fraco transition-transform ${aberto ? 'rotate-180' : ''}`}
         >
           <path
             fill="currentColor"
@@ -167,9 +163,7 @@ export function SeletorNota({
           aria-label="Notas de 1 a 10"
           onKeyDown={onKeyDownLista}
           className={`absolute z-30 mt-1 max-h-64 overflow-auto rounded-[4px] border border-borda bg-superficie p-1 shadow-carimbo-preto ${
-            compact
-              ? "right-0 min-w-[11rem] sm:left-0 sm:right-auto"
-              : "w-full"
+            compact ? 'right-0 min-w-[11rem] sm:left-0 sm:right-auto' : 'w-full'
           }`}
         >
           {NOTAS.map((n) => {
@@ -189,12 +183,8 @@ export function SeletorNota({
                 }}
                 onMouseEnter={() => setDestaque(n)}
                 className={`flex min-h-[44px] cursor-pointer items-center justify-between rounded-[3px] px-3 py-2 text-sm font-mono ${
-                  emDestaque ? "bg-superficie-2 text-giz" : ""
-                } ${
-                  selecionado
-                    ? "font-bold text-destaque bg-destaque/10"
-                    : "text-giz-fraco"
-                }`}
+                  emDestaque ? 'bg-superficie-2 text-giz' : ''
+                } ${selecionado ? 'font-bold text-destaque bg-destaque/10' : 'text-giz-fraco'}`}
               >
                 <span>{n}</span>
                 {selecionado && (

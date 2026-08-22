@@ -1,8 +1,8 @@
-import { type ReactNode, useMemo } from "react";
-import { Wand2 } from "lucide-react";
-import { type JogadorLista } from "../lib/jogadores";
-import { type TimeId } from "../lib/times";
-import { MensagemEstado } from "./Estado";
+import { type ReactNode, useMemo } from 'react';
+import { Wand2 } from 'lucide-react';
+import { type JogadorLista } from '../lib/jogadores';
+import { type TimeId } from '../lib/times';
+import { MensagemEstado } from './Estado';
 
 export const LIMITE_POR_TIME = 8;
 
@@ -29,9 +29,9 @@ export function EscalacaoTimesEditor({
   titulo,
   subtitulo,
   infoExtra,
-  rotuloListaJogadores = "Jogadores",
-  salvarRotulo = "Salvar times",
-  salvandoRotulo = "Salvando…",
+  rotuloListaJogadores = 'Jogadores',
+  salvarRotulo = 'Salvar times',
+  salvandoRotulo = 'Salvando…',
   onVoltar,
   jogadores,
   times,
@@ -57,7 +57,7 @@ export function EscalacaoTimesEditor({
       if (!t) continue;
       const id = Number(idStr);
       const jog = jogadores.find((j) => j.id === id);
-      if (jog?.posicao === "goleiro") g[t]++;
+      if (jog?.posicao === 'goleiro') g[t]++;
     }
     return g;
   }, [times, jogadores]);
@@ -98,7 +98,8 @@ export function EscalacaoTimesEditor({
             Escalação Automática
           </h3>
           <p className="text-[11px] font-mono text-giz-fraco mt-0.5">
-            Equilibra por posição e histórico de notas ({totalConfirmados}/{LIMITE_POR_TIME * 2} confirmados)
+            Equilibra por posição e histórico de notas ({totalConfirmados}/{LIMITE_POR_TIME * 2}{' '}
+            confirmados)
           </p>
         </div>
         <button
@@ -114,38 +115,36 @@ export function EscalacaoTimesEditor({
 
       {/* Painel com os 2 times e contadores */}
       <div className="grid grid-cols-2 gap-3">
-        {(["a", "b"] as TimeId[]).map((t) => {
+        {(['a', 'b'] as TimeId[]).map((t) => {
           const count = contagemTime[t];
           const gCount = contagemGoleiros[t];
           const completo = count === LIMITE_POR_TIME && gCount === 1;
-          const ehPreto = t === "a";
+          const ehPreto = t === 'a';
           return (
             <div
               key={t}
               className={`rounded-[4px] border-2 p-3 text-center shadow-carimbo transition ${
-                completo
-                  ? "border-ok/70 bg-superficie"
-                  : "border-borda bg-superficie"
+                completo ? 'border-ok/70 bg-superficie' : 'border-borda bg-superficie'
               }`}
             >
               <div
                 className="inline-block px-2.5 py-0.5 rounded-[2px] font-display font-black text-xs uppercase tracking-widest border mb-1.5 shadow-xs"
                 style={{
-                  backgroundColor: ehPreto ? "#0d0d0e" : "#f4f1e8",
-                  color: ehPreto ? "#f4f1e8" : "#0d0d0e",
-                  borderColor: "#35302a",
+                  backgroundColor: ehPreto ? '#0d0d0e' : '#f4f1e8',
+                  color: ehPreto ? '#f4f1e8' : '#0d0d0e',
+                  borderColor: '#35302a',
                 }}
               >
-                Time {ehPreto ? "Preto" : "Branco"}
+                Time {ehPreto ? 'Preto' : 'Branco'}
               </div>
               <div className="font-mono text-xl font-bold text-destaque tabular-nums">
                 {count}/{LIMITE_POR_TIME}
               </div>
               <span className="block font-mono text-[10px] text-giz-fraco mt-0.5">
                 {gCount === 0
-                  ? "Sem goleiro"
+                  ? 'Sem goleiro'
                   : gCount === 1
-                    ? "1 goleiro ✓"
+                    ? '1 goleiro ✓'
                     : `${gCount} goleiros (máx 1)`}
               </span>
             </div>
@@ -159,21 +158,17 @@ export function EscalacaoTimesEditor({
           <span className="font-display font-bold text-xs uppercase tracking-wider text-giz">
             {rotuloListaJogadores} ({jogadores.length})
           </span>
-          <span className="text-[10px] font-mono text-giz-fraco">
-            Toque para escalar
-          </span>
+          <span className="text-[10px] font-mono text-giz-fraco">Toque para escalar</span>
         </div>
         <div className="divide-y divide-borda">
           {jogadores.map((j) => {
             const time = times[j.id] ?? null;
             const neutro = time === null;
-            const ehGoleiro = j.posicao === "goleiro";
-            const pretoCheio = contagemTime.a >= LIMITE_POR_TIME && time !== "a";
-            const brancoCheio = contagemTime.b >= LIMITE_POR_TIME && time !== "b";
-            const pretoBloqueiaGoleiro =
-              ehGoleiro && time !== "a" && contagemGoleiros.a >= 1;
-            const brancoBloqueiaGoleiro =
-              ehGoleiro && time !== "b" && contagemGoleiros.b >= 1;
+            const ehGoleiro = j.posicao === 'goleiro';
+            const pretoCheio = contagemTime.a >= LIMITE_POR_TIME && time !== 'a';
+            const brancoCheio = contagemTime.b >= LIMITE_POR_TIME && time !== 'b';
+            const pretoBloqueiaGoleiro = ehGoleiro && time !== 'a' && contagemGoleiros.a >= 1;
+            const brancoBloqueiaGoleiro = ehGoleiro && time !== 'b' && contagemGoleiros.b >= 1;
             const pretoDisabled = pretoCheio || pretoBloqueiaGoleiro;
             const brancoDisabled = brancoCheio || brancoBloqueiaGoleiro;
             const temNota = mediasNotas[j.id] !== undefined;
@@ -183,18 +178,13 @@ export function EscalacaoTimesEditor({
               <div
                 key={j.id}
                 className={`flex items-center gap-2 px-3 py-2.5 transition ${
-                  neutro ? "bg-superficie opacity-75" : "bg-superficie-2"
+                  neutro ? 'bg-superficie opacity-75' : 'bg-superficie-2'
                 }`}
               >
                 <div className="flex-1 min-w-0 flex items-baseline gap-1.5">
-                  <span className="truncate text-sm font-bold text-giz">
-                    {j.nome}
-                  </span>
+                  <span className="truncate text-sm font-bold text-giz">{j.nome}</span>
                   {ehGoleiro && (
-                    <span
-                      className="shrink-0 text-xs font-mono"
-                      title="Goleiro"
-                    >
+                    <span className="shrink-0 text-xs font-mono" title="Goleiro">
                       🧤
                     </span>
                   )}
@@ -208,28 +198,28 @@ export function EscalacaoTimesEditor({
                 <div className="shrink-0 flex gap-1.5">
                   <button
                     type="button"
-                    onClick={() => onAtribuirTime(j.id, "a")}
+                    onClick={() => onAtribuirTime(j.id, 'a')}
                     disabled={pretoDisabled}
-                    aria-pressed={time === "a"}
+                    aria-pressed={time === 'a'}
                     aria-label={`Escalar ${j.nome} no time Preto`}
                     className={`min-h-[44px] min-w-[3.5rem] px-2 rounded-[3px] border font-display font-bold uppercase tracking-wider text-xs transition active:translate-y-px disabled:opacity-30 ${
-                      time === "a"
-                        ? "bg-[#0d0d0e] text-[#f4f1e8] border-destaque shadow-xs"
-                        : "border-borda bg-superficie text-giz-fraco hover:text-giz"
+                      time === 'a'
+                        ? 'bg-[#0d0d0e] text-[#f4f1e8] border-destaque shadow-xs'
+                        : 'border-borda bg-superficie text-giz-fraco hover:text-giz'
                     }`}
                   >
                     Preto
                   </button>
                   <button
                     type="button"
-                    onClick={() => onAtribuirTime(j.id, "b")}
+                    onClick={() => onAtribuirTime(j.id, 'b')}
                     disabled={brancoDisabled}
-                    aria-pressed={time === "b"}
+                    aria-pressed={time === 'b'}
                     aria-label={`Escalar ${j.nome} no time Branco`}
                     className={`min-h-[44px] min-w-[3.5rem] px-2 rounded-[3px] border font-display font-bold uppercase tracking-wider text-xs transition active:translate-y-px disabled:opacity-30 ${
-                      time === "b"
-                        ? "bg-[#f4f1e8] text-[#0d0d0e] border-destaque shadow-xs"
-                        : "border-borda bg-superficie text-giz-fraco hover:text-giz"
+                      time === 'b'
+                        ? 'bg-[#f4f1e8] text-[#0d0d0e] border-destaque shadow-xs'
+                        : 'border-borda bg-superficie text-giz-fraco hover:text-giz'
                     }`}
                   >
                     Branco
@@ -251,7 +241,7 @@ export function EscalacaoTimesEditor({
 
       <div
         className="fixed inset-x-0 z-40 p-3 bg-superficie/95 backdrop-blur border-t border-borda shadow-carimbo-preto"
-        style={{ bottom: "calc(3.5rem + env(safe-area-inset-bottom))" }}
+        style={{ bottom: 'calc(3.5rem + env(safe-area-inset-bottom))' }}
       >
         <div className="max-w-2xl mx-auto">
           <button
@@ -264,10 +254,9 @@ export function EscalacaoTimesEditor({
           </button>
           {!podeSalvar && (
             <p className="mt-1 text-center text-xs font-mono text-giz-fraco">
-              {contagemTime.a !== LIMITE_POR_TIME ||
-              contagemTime.b !== LIMITE_POR_TIME
+              {contagemTime.a !== LIMITE_POR_TIME || contagemTime.b !== LIMITE_POR_TIME
                 ? `Aloque exatamente ${LIMITE_POR_TIME} jogadores em cada time.`
-                : "Cada time precisa ter exatamente 1 goleiro."}
+                : 'Cada time precisa ter exatamente 1 goleiro.'}
             </p>
           )}
         </div>

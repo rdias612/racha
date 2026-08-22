@@ -1,11 +1,5 @@
-import { useEffect, useState } from "react";
-import {
-  NavLink,
-  Outlet,
-  Navigate,
-  Link,
-  useLocation,
-} from "react-router-dom";
+import { useEffect, useState } from 'react';
+import { NavLink, Outlet, Navigate, Link, useLocation } from 'react-router-dom';
 import {
   Home,
   Shield,
@@ -19,12 +13,12 @@ import {
   WifiOff,
   Sun,
   Moon,
-} from "lucide-react";
-import { useSessao } from "../context/SessaoContext";
-import { useAdmin } from "../hooks/useAdmin";
-import { useTema } from "../lib/tema";
-import { Logo } from "../components/Logo";
-import { BannerLembrete } from "../components/BannerLembrete";
+} from 'lucide-react';
+import { useSessao } from '../context/SessaoContext';
+import { useAdmin } from '../hooks/useAdmin';
+import { useTema } from '../lib/tema';
+import { Logo } from '../components/Logo';
+import { BannerLembrete } from '../components/BannerLembrete';
 
 export function Layout() {
   const { jogador } = useSessao();
@@ -33,7 +27,7 @@ export function Layout() {
   const { pathname } = useLocation();
   const [menuAberto, setMenuAberto] = useState(false);
   const [isOffline, setIsOffline] = useState(() =>
-    typeof navigator !== "undefined" ? !navigator.onLine : false,
+    typeof navigator !== 'undefined' ? !navigator.onLine : false
   );
 
   useEffect(() => {
@@ -43,16 +37,16 @@ export function Layout() {
     function handleOffline() {
       setIsOffline(true);
     }
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
     return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
     };
   }, []);
 
-  const rankingAtivo = pathname.startsWith("/ranking");
-  const estatisticasAtivo = pathname.startsWith("/estatisticas");
+  const rankingAtivo = pathname.startsWith('/ranking');
+  const estatisticasAtivo = pathname.startsWith('/estatisticas');
 
   if (!jogador) {
     return <Navigate to="/login" replace />;
@@ -83,11 +77,15 @@ export function Layout() {
             <button
               type="button"
               onClick={alternarTema}
-              aria-label={tema === "dark" ? "Mudar para modo claro (papel de súmula)" : "Mudar para modo escuro (refletor)"}
-              title={tema === "dark" ? "Modo Claro" : "Modo Escuro"}
+              aria-label={
+                tema === 'dark'
+                  ? 'Mudar para modo claro (papel de súmula)'
+                  : 'Mudar para modo escuro (refletor)'
+              }
+              title={tema === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
               className="inline-flex min-h-[36px] min-w-[36px] items-center justify-center rounded-[4px] border border-borda bg-superficie p-2 text-giz shadow-carimbo hover:bg-superficie-2 hover:text-destaque transition active:translate-y-px"
             >
-              {tema === "dark" ? (
+              {tema === 'dark' ? (
                 <Sun className="size-4 text-destaque" />
               ) : (
                 <Moon className="size-4 text-destaque" />
@@ -103,15 +101,14 @@ export function Layout() {
                   className="inline-flex items-center gap-1.5 rounded-[4px] border border-borda bg-superficie px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-giz shadow-carimbo hover:bg-superficie-2 transition"
                 >
                   <span className="font-display tracking-wider">ADMIN</span>
-                  <ChevronDown className={`size-3.5 text-destaque transition-transform ${menuAberto ? "rotate-180" : ""}`} />
+                  <ChevronDown
+                    className={`size-3.5 text-destaque transition-transform ${menuAberto ? 'rotate-180' : ''}`}
+                  />
                 </button>
 
                 {menuAberto && (
                   <>
-                    <div
-                      className="fixed inset-0 z-40"
-                      onClick={() => setMenuAberto(false)}
-                    />
+                    <div className="fixed inset-0 z-40" onClick={() => setMenuAberto(false)} />
                     <div className="absolute right-0 top-full mt-1.5 z-50 w-52 rounded-[4px] border border-borda bg-superficie p-1.5 shadow-carimbo">
                       <Link
                         to="/gestao-jogadores"
@@ -161,17 +158,17 @@ export function Layout() {
       >
         <div
           className="mx-auto flex max-w-2xl items-stretch justify-around"
-          style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+          style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
         >
           <NavLink
             to="/"
             end
-            aria-current={pathname === "/" ? "page" : undefined}
+            aria-current={pathname === '/' ? 'page' : undefined}
             className={({ isActive }) =>
               `relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
                 isActive
                   ? "text-destaque font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
-                  : "text-giz-fraco hover:text-giz"
+                  : 'text-giz-fraco hover:text-giz'
               }`
             }
           >
@@ -180,12 +177,12 @@ export function Layout() {
           </NavLink>
           <NavLink
             to="/jogos"
-            aria-current={pathname === "/jogos" ? "page" : undefined}
+            aria-current={pathname === '/jogos' ? 'page' : undefined}
             className={({ isActive }) =>
               `relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
                 isActive
                   ? "text-destaque font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
-                  : "text-giz-fraco hover:text-giz"
+                  : 'text-giz-fraco hover:text-giz'
               }`
             }
           >
@@ -194,11 +191,11 @@ export function Layout() {
           </NavLink>
           <NavLink
             to="/ranking/pontos"
-            aria-current={rankingAtivo ? "page" : undefined}
+            aria-current={rankingAtivo ? 'page' : undefined}
             className={`relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
               rankingAtivo
                 ? "text-destaque font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
-                : "text-giz-fraco hover:text-giz"
+                : 'text-giz-fraco hover:text-giz'
             }`}
           >
             <Medal className="size-5" aria-hidden="true" />
@@ -206,11 +203,11 @@ export function Layout() {
           </NavLink>
           <NavLink
             to="/estatisticas/jogador"
-            aria-current={estatisticasAtivo ? "page" : undefined}
+            aria-current={estatisticasAtivo ? 'page' : undefined}
             className={`relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
               estatisticasAtivo
                 ? "text-destaque font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
-                : "text-giz-fraco hover:text-giz"
+                : 'text-giz-fraco hover:text-giz'
             }`}
           >
             <TrendingUp className="size-5" aria-hidden="true" />
@@ -218,12 +215,12 @@ export function Layout() {
           </NavLink>
           <NavLink
             to="/perfil"
-            aria-current={pathname === "/perfil" ? "page" : undefined}
+            aria-current={pathname === '/perfil' ? 'page' : undefined}
             className={({ isActive }) =>
               `relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
                 isActive
                   ? "text-destaque font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
-                  : "text-giz-fraco hover:text-giz"
+                  : 'text-giz-fraco hover:text-giz'
               }`
             }
           >

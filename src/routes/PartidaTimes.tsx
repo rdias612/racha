@@ -1,29 +1,24 @@
-import { useEffect, useMemo, useState } from "react";
-import { Navigate, useNavigate, useParams } from "react-router-dom";
-import { supabase } from "../lib/supabase";
-import { useAdmin } from "../hooks/useAdmin";
-import { useEscalacaoTimes } from "../hooks/useEscalacaoTimes";
+import { useEffect, useMemo, useState } from 'react';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { useAdmin } from '../hooks/useAdmin';
+import { useEscalacaoTimes } from '../hooks/useEscalacaoTimes';
 import {
   carregarPartida,
   carregarParticipantes,
   type Partida,
   type Participante,
-} from "../lib/partidas";
+} from '../lib/partidas';
 import {
   listarJogadoresAtivos,
   obterMediasNotasJogadores,
   type JogadorLista,
-} from "../lib/jogadores";
-import { type TimeId } from "../lib/times";
-import { formatarDataCompleta, formatarDataMobile } from "../lib/formatacao";
-import { Carregando, MensagemEstado } from "../components/Estado";
-import {
-  EscalacaoTimesEditor,
-  LIMITE_POR_TIME,
-} from "../components/EscalacaoTimesEditor";
-import { voltar } from "../lib/navegacao";
-
-
+} from '../lib/jogadores';
+import { type TimeId } from '../lib/times';
+import { formatarDataCompleta, formatarDataMobile } from '../lib/formatacao';
+import { Carregando, MensagemEstado } from '../components/Estado';
+import { EscalacaoTimesEditor, LIMITE_POR_TIME } from '../components/EscalacaoTimesEditor';
+import { voltar } from '../lib/navegacao';
 
 export function PartidaTimes() {
   const isAdmin = useAdmin();
@@ -43,29 +38,20 @@ export function PartidaTimes() {
   const confirmadosIds = useMemo(
     () =>
       new Set(
-        participantes
-          .filter((p) => p.status_confirmacao === "confirmado")
-          .map((p) => p.jogador_id),
+        participantes.filter((p) => p.status_confirmacao === 'confirmado').map((p) => p.jogador_id)
       ),
-    [participantes],
+    [participantes]
   );
 
   const confirmadosJogadores = useMemo(
     () =>
       jogadoresAtivos
         .filter((j) => confirmadosIds.has(j.id))
-        .sort((a, b) => (a.nome ?? "").localeCompare(b.nome ?? "")),
-    [jogadoresAtivos, confirmadosIds],
+        .sort((a, b) => (a.nome ?? '').localeCompare(b.nome ?? '')),
+    [jogadoresAtivos, confirmadosIds]
   );
 
-  const {
-    times,
-    setTimes,
-    feedback,
-    setFeedback,
-    atribuirTime,
-    autoEscalar,
-  } = useEscalacaoTimes({
+  const { times, setTimes, feedback, setFeedback, atribuirTime, autoEscalar } = useEscalacaoTimes({
     jogadores: confirmadosJogadores,
     mediasNotas,
   });
@@ -90,7 +76,7 @@ export function PartidaTimes() {
         // Pré-carrega o time atual de cada confirmado.
         const init: Record<number, TimeId> = {};
         for (const part of parts) {
-          if (part.status_confirmacao === "confirmado" && part.time) {
+          if (part.status_confirmacao === 'confirmado' && part.time) {
             init[part.jogador_id] = part.time;
           }
         }
@@ -115,8 +101,7 @@ export function PartidaTimes() {
         Partida não encontrada.
       </MensagemEstado>
     );
-  if (partida.status !== "draft")
-    return <Navigate to={`/partida/${partidaId}`} replace />;
+  if (partida.status !== 'draft') return <Navigate to={`/partida/${partidaId}`} replace />;
 
   function handleAutoEscalar() {
     setErro(null);
@@ -135,22 +120,20 @@ export function PartidaTimes() {
     try {
       const updates = participantes.map((p) => {
         const novoTime =
-          p.status_confirmacao === "confirmado" && times[p.jogador_id]
-            ? times[p.jogador_id]
-            : null;
+          p.status_confirmacao === 'confirmado' && times[p.jogador_id] ? times[p.jogador_id] : null;
         return supabase
-          .from("partidas_participantes")
+          .from('partidas_participantes')
           .update({ time: novoTime })
-          .eq("partida_id", partidaId)
-          .eq("jogador_id", p.jogador_id);
+          .eq('partida_id', partidaId)
+          .eq('jogador_id', p.jogador_id);
       });
       const resultados = await Promise.all(updates);
       const falha = resultados.find((r) => r.error);
       if (falha?.error) throw falha.error;
-      setFeedback("Times salvos.");
+      setFeedback('Times salvos.');
       setTimeout(() => navigate(`/partida/${partidaId}`, { replace: true }), 600);
     } catch (e) {
-      setErro("Erro ao salvar times: " + (e instanceof Error ? e.message : String(e)));
+      setErro('Erro ao salvar times: ' + (e instanceof Error ? e.message : String(e)));
     } finally {
       setSalvando(false);
     }
@@ -163,18 +146,15 @@ export function PartidaTimes() {
         partida?.data_jogo ? (
           <p className="text-sm text-giz-fraco font-mono capitalize mt-1">
             <span className="sm:hidden">{formatarDataMobile(partida.data_jogo)}</span>
-            <span className="hidden sm:inline">
-              {formatarDataCompleta(partida.data_jogo)}
-            </span>
+            <span className="hidden sm:inline">{formatarDataCompleta(partida.data_jogo)}</span>
           </p>
         ) : null
       }
       infoExtra={
         faltamConfirmados > 0 ? (
           <MensagemEstado tipo="info">
-            {confirmadosJogadores.length} confirmados — faltam {faltamConfirmados}{" "}
-            para completar {LIMITE_POR_TIME * 2}. Adicione avulsos na partida para
-            liberar a escalação completa.
+            {confirmadosJogadores.length} confirmados — faltam {faltamConfirmados} para completar{' '}
+            {LIMITE_POR_TIME * 2}. Adicione avulsos na partida para liberar a escalação completa.
           </MensagemEstado>
         ) : null
       }

@@ -1,16 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabase";
-import {
-  obterMediasNotasJogadores,
-  type JogadorLista,
-} from "../lib/jogadores";
-import { useAdmin } from "../hooks/useAdmin";
-import { useJogadorLogado } from "../hooks/useJogadorLogado";
-import { useEscalacaoTimes } from "../hooks/useEscalacaoTimes";
-import { formatarDataCompleta } from "../lib/formatacao";
-import { EscalacaoTimesEditor } from "../components/EscalacaoTimesEditor";
-import { voltar } from "../lib/navegacao";
+import { useEffect, useMemo, useState } from 'react';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { obterMediasNotasJogadores, type JogadorLista } from '../lib/jogadores';
+import { useAdmin } from '../hooks/useAdmin';
+import { useJogadorLogado } from '../hooks/useJogadorLogado';
+import { useEscalacaoTimes } from '../hooks/useEscalacaoTimes';
+import { formatarDataCompleta } from '../lib/formatacao';
+import { EscalacaoTimesEditor } from '../components/EscalacaoTimesEditor';
+import { voltar } from '../lib/navegacao';
 
 interface EstadoPartida {
   selecionados: number[];
@@ -19,7 +16,7 @@ interface EstadoPartida {
   horaJogo?: string;
 }
 
-const STORAGE_KEY = "racha_nova_partida";
+const STORAGE_KEY = 'racha_nova_partida';
 
 export function PartidaNovaTimes() {
   const isAdmin = useAdmin();
@@ -43,21 +40,13 @@ export function PartidaNovaTimes() {
   // Apenas os confirmados recebidos via state.
   const jogadoresConfirmados = useMemo(
     () =>
-      estado &&
-      Array.isArray(estado.jogadores) &&
-      Array.isArray(estado.selecionados)
+      estado && Array.isArray(estado.jogadores) && Array.isArray(estado.selecionados)
         ? estado.jogadores.filter((j) => estado.selecionados.includes(j.id))
         : [],
-    [estado?.jogadores, estado?.selecionados],
+    [estado?.jogadores, estado?.selecionados]
   );
 
-  const {
-    times,
-    feedback,
-    setFeedback,
-    atribuirTime,
-    autoEscalar,
-  } = useEscalacaoTimes({
+  const { times, feedback, setFeedback, atribuirTime, autoEscalar } = useEscalacaoTimes({
     jogadores: jogadoresConfirmados,
     mediasNotas,
   });
@@ -66,15 +55,11 @@ export function PartidaNovaTimes() {
   if (!isAdmin) return <Navigate to="/" replace />;
 
   // Guard de state ausente (acesso direto/refresh): volta para a Etapa 1.
-  if (
-    !estado ||
-    !Array.isArray(estado.selecionados) ||
-    !Array.isArray(estado.jogadores)
-  ) {
+  if (!estado || !Array.isArray(estado.selecionados) || !Array.isArray(estado.jogadores)) {
     return <Navigate to="/partida/nova" replace />;
   }
 
-  const horaJogo = estado.horaJogo || "19:00";
+  const horaJogo = estado.horaJogo || '19:00';
   const { dataJogo } = estado;
 
   function handleAutoEscalar() {
@@ -91,14 +76,14 @@ export function PartidaNovaTimes() {
     const dataIso = new Date(`${dataJogo}T${horaJogo}`).toISOString();
     const payload = jogadoresConfirmados.map((j) => ({
       jogador_id: j.id,
-      time: times[j.id] ?? "a",
+      time: times[j.id] ?? 'a',
       posicao: j.posicao,
       gols: 0,
       assistencias: 0,
       gols_contra: 0,
     }));
 
-    const { data, error } = await supabase.rpc("criar_partida", {
+    const { data, error } = await supabase.rpc('criar_partida', {
       p_data_jogo: dataIso,
       p_criado_por: adminLogado.id,
       p_participantes: payload,
@@ -107,11 +92,11 @@ export function PartidaNovaTimes() {
     setSalvando(false);
 
     if (error) {
-      setErro("Erro ao criar partida: " + error.message);
+      setErro('Erro ao criar partida: ' + error.message);
       return;
     }
     if (data === null) {
-      setErro("Falha ao criar partida (rollback). Verifique os dados.");
+      setErro('Falha ao criar partida (rollback). Verifique os dados.');
       return;
     }
 
@@ -126,8 +111,7 @@ export function PartidaNovaTimes() {
     setTimeout(() => navigate(`/partida/${data}`, { replace: true }), 800);
   }
 
-  const dataHoraIso =
-    dataJogo && horaJogo ? `${dataJogo}T${horaJogo}` : dataJogo;
+  const dataHoraIso = dataJogo && horaJogo ? `${dataJogo}T${horaJogo}` : dataJogo;
   const dataHoraTexto = dataHoraIso
     ? formatarDataCompleta(dataHoraIso)
     : `${dataJogo} · ${horaJogo}`;
@@ -138,9 +122,7 @@ export function PartidaNovaTimes() {
       subtitulo={
         dataHoraTexto ? (
           <section className="rounded-[4px] border border-borda bg-superficie p-3 mt-3 shadow-carimbo">
-            <p className="text-sm font-bold text-giz capitalize font-mono">
-              {dataHoraTexto}
-            </p>
+            <p className="text-sm font-bold text-giz capitalize font-mono">{dataHoraTexto}</p>
           </section>
         ) : null
       }

@@ -1,10 +1,10 @@
-import { useMemo } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
-import { useAdmin } from "../hooks/useAdmin";
-import type { JogadorLista } from "../lib/jogadores";
-import { POSICOES } from "../lib/times";
-import { formatarDataCompleta } from "../lib/formatacao";
-import { voltar } from "../lib/navegacao";
+import { useMemo } from 'react';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { useAdmin } from '../hooks/useAdmin';
+import type { JogadorLista } from '../lib/jogadores';
+import { POSICOES } from '../lib/times';
+import { formatarDataCompleta } from '../lib/formatacao';
+import { voltar } from '../lib/navegacao';
 
 interface EstadoPartida {
   selecionados: number[];
@@ -21,26 +21,16 @@ export function PartidaConfirma() {
 
   // Derivação dos jogadores selecionados agrupados por categoria.
   const grupos = useMemo(() => {
-    if (
-      !estado ||
-      !Array.isArray(estado.selecionados) ||
-      !Array.isArray(estado.jogadores)
-    ) {
+    if (!estado || !Array.isArray(estado.selecionados) || !Array.isArray(estado.jogadores)) {
       return { mensalistas: [], avulsos: [], goleiros: [] };
     }
     const selecionadosDetalhados = estado.jogadores.filter((j) =>
-      estado.selecionados.includes(j.id),
+      estado.selecionados.includes(j.id)
     );
     return {
-      mensalistas: selecionadosDetalhados.filter(
-        (j) => j.is_mensalista && j.posicao !== "goleiro",
-      ),
-      avulsos: selecionadosDetalhados.filter(
-        (j) => !j.is_mensalista && j.posicao !== "goleiro",
-      ),
-      goleiros: selecionadosDetalhados.filter(
-        (j) => j.posicao === "goleiro",
-      ),
+      mensalistas: selecionadosDetalhados.filter((j) => j.is_mensalista && j.posicao !== 'goleiro'),
+      avulsos: selecionadosDetalhados.filter((j) => !j.is_mensalista && j.posicao !== 'goleiro'),
+      goleiros: selecionadosDetalhados.filter((j) => j.posicao === 'goleiro'),
     };
   }, [estado]);
 
@@ -49,11 +39,7 @@ export function PartidaConfirma() {
 
   // Guard de state ausente (acesso direto/refresh): volta para a Etapa 1,
   // que rehidrata do localStorage e devolve o usuário pra cá com state.
-  if (
-    !estado ||
-    !Array.isArray(estado.selecionados) ||
-    !Array.isArray(estado.jogadores)
-  ) {
+  if (!estado || !Array.isArray(estado.selecionados) || !Array.isArray(estado.jogadores)) {
     return <Navigate to="/partida/nova" replace />;
   }
 
@@ -62,15 +48,11 @@ export function PartidaConfirma() {
 
   // Data/hora para o resumo. dataJogo vem do input date (YYYY-MM-DD);
   // juntamos com horaJogo (HH:mm) padrão 19:00 em ISO local para formatar amigavelmente.
-  const horaJogo = estado.horaJogo || "19:00";
-  const dataHoraIso =
-    estado.dataJogo
-      ? `${estado.dataJogo}T${horaJogo}`
-      : estado.dataJogo;
+  const horaJogo = estado.horaJogo || '19:00';
+  const dataHoraIso = estado.dataJogo ? `${estado.dataJogo}T${horaJogo}` : estado.dataJogo;
   const dataHoraTexto = dataHoraIso
     ? formatarDataCompleta(dataHoraIso)
     : `${estado.dataJogo} · ${horaJogo}`;
-
 
   return (
     <div className="px-3 py-4 pb-40 sm:px-4 space-y-5 max-w-2xl mx-auto text-giz">
@@ -88,9 +70,7 @@ export function PartidaConfirma() {
 
       {/* Resumo: data/hora + totais */}
       <section className="rounded-[4px] border border-borda bg-superficie p-3 space-y-3 shadow-carimbo">
-        <p className="text-sm font-bold text-giz capitalize">
-          {dataHoraTexto}
-        </p>
+        <p className="text-sm font-bold text-giz capitalize">{dataHoraTexto}</p>
         <div className="flex flex-wrap gap-2">
           <span className="inline-flex items-center gap-1 rounded-[2px] border border-ok/40 bg-ok/10 px-2.5 py-1 text-xs font-display font-bold uppercase tracking-wider text-ok">
             ✓ {totalLinha} de linha
@@ -109,12 +89,12 @@ export function PartidaConfirma() {
       {/* CTA fixo inferior */}
       <div
         className="fixed inset-x-0 z-40 p-3 bg-superficie/95 backdrop-blur border-t border-borda shadow-carimbo-preto"
-        style={{ bottom: "calc(3.5rem + env(safe-area-inset-bottom))" }}
+        style={{ bottom: 'calc(3.5rem + env(safe-area-inset-bottom))' }}
       >
         <div className="max-w-2xl mx-auto">
           <button
             onClick={() =>
-              navigate("/partida/nova/times", {
+              navigate('/partida/nova/times', {
                 state: {
                   selecionados: estado.selecionados,
                   jogadores: estado.jogadores,
@@ -151,9 +131,7 @@ function GrupoConfirma({ titulo, jogadores }: GrupoConfirmaProps) {
       </div>
       <div className="px-3 py-3">
         {jogadores.length === 0 ? (
-          <p className="text-xs font-mono text-giz-fraco">
-            Nenhum jogador
-          </p>
+          <p className="text-xs font-mono text-giz-fraco">Nenhum jogador</p>
         ) : (
           <div className="flex flex-wrap gap-2">
             {jogadores.map((j) => (
@@ -173,4 +151,3 @@ function GrupoConfirma({ titulo, jogadores }: GrupoConfirmaProps) {
     </section>
   );
 }
-

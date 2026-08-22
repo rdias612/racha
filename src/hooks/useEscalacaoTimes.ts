@@ -1,9 +1,9 @@
-import { useState, useCallback } from "react";
-import { LIMITE_POR_TIME } from "../components/EscalacaoTimesEditor";
-import { gerarEscalacaoAutomatica } from "../lib/escalacao";
-import type { JogadorLista } from "../lib/jogadores";
-import type { TimeId } from "../lib/times";
-import { vibrateWarning, vibrateSuccess } from "../lib/haptics";
+import { useState, useCallback } from 'react';
+import { LIMITE_POR_TIME } from '../components/EscalacaoTimesEditor';
+import { gerarEscalacaoAutomatica } from '../lib/escalacao';
+import type { JogadorLista } from '../lib/jogadores';
+import type { TimeId } from '../lib/times';
+import { vibrateWarning, vibrateSuccess } from '../lib/haptics';
 
 export interface UseEscalacaoTimesOptions {
   jogadores: JogadorLista[];
@@ -27,7 +27,7 @@ export function useEscalacaoTimes({
       const jogador = jogadores.find((j) => j.id === id);
       if (!jogador) return;
 
-      const ehGoleiro = jogador.posicao === "goleiro";
+      const ehGoleiro = jogador.posicao === 'goleiro';
       const atual = times[id];
 
       // Já está nesse time -> remove (sem time)
@@ -45,21 +45,20 @@ export function useEscalacaoTimes({
         ([jidStr, tm]) =>
           tm === time &&
           Number(jidStr) !== id &&
-          jogadores.find((x) => x.id === Number(jidStr))?.posicao === "goleiro",
+          jogadores.find((x) => x.id === Number(jidStr))?.posicao === 'goleiro'
       );
       if (ehGoleiro && destinoTemGoleiro) {
         vibrateWarning();
         setFeedback(
           `Cada time só pode ter 1 goleiro. ${jogador.nome} não pode ir para o ${
-            time === "a" ? "Preto" : "Branco"
-          }.`,
+            time === 'a' ? 'Preto' : 'Branco'
+          }.`
         );
         return;
       }
 
       // Bloqueia se o time alvo já está cheio.
-      const destinoCheio =
-        Object.values(times).filter((tm) => tm === time).length >= limitePorTime;
+      const destinoCheio = Object.values(times).filter((tm) => tm === time).length >= limitePorTime;
       if (destinoCheio) {
         vibrateWarning();
         return;
@@ -67,7 +66,7 @@ export function useEscalacaoTimes({
 
       setTimes((prev) => ({ ...prev, [id]: time }));
     },
-    [jogadores, times, limitePorTime],
+    [jogadores, times, limitePorTime]
   );
 
   const autoEscalar = useCallback(() => {
@@ -75,7 +74,7 @@ export function useEscalacaoTimes({
     if (jogadores.length < limitePorTime * 2) {
       vibrateWarning();
       setFeedback(
-        `Precisa de ${limitePorTime * 2} confirmados para gerar os times automaticamente.`,
+        `Precisa de ${limitePorTime * 2} confirmados para gerar os times automaticamente.`
       );
       return;
     }
@@ -86,20 +85,14 @@ export function useEscalacaoTimes({
     }
     setTimes(novos);
 
-    const timeAPart = proposta.filter((p) => p.time === "a");
-    const timeBPart = proposta.filter((p) => p.time === "b");
+    const timeAPart = proposta.filter((p) => p.time === 'a');
+    const timeBPart = proposta.filter((p) => p.time === 'b');
     const avgA = timeAPart.length
-      ? (
-          timeAPart.reduce((s, p) => s + (p.media_nota ?? 6.0), 0) /
-          timeAPart.length
-        ).toFixed(1)
-      : "0.0";
+      ? (timeAPart.reduce((s, p) => s + (p.media_nota ?? 6.0), 0) / timeAPart.length).toFixed(1)
+      : '0.0';
     const avgB = timeBPart.length
-      ? (
-          timeBPart.reduce((s, p) => s + (p.media_nota ?? 6.0), 0) /
-          timeBPart.length
-        ).toFixed(1)
-      : "0.0";
+      ? (timeBPart.reduce((s, p) => s + (p.media_nota ?? 6.0), 0) / timeBPart.length).toFixed(1)
+      : '0.0';
     vibrateSuccess();
     setFeedback(`Times equilibrados! (Preto ${avgA}★ vs Branco ${avgB}★)`);
   }, [jogadores, mediasNotas, limitePorTime]);

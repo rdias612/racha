@@ -4,7 +4,7 @@
  */
 
 function vibrate(pattern: number | number[]): void {
-  if (typeof window !== "undefined" && "navigator" in window && "vibrate" in navigator) {
+  if (typeof window !== 'undefined' && 'navigator' in window && 'vibrate' in navigator) {
     try {
       navigator.vibrate(pattern);
     } catch {
@@ -47,4 +47,3 @@ export function vibrateError(): void {
 export function vibrateGoal(): void {
   vibrate([40, 60, 80]);
 }
-

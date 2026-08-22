@@ -8,18 +8,19 @@
 //
 // Default: jogador_id = 1 (dico).
 
-import webpush from "npm:web-push@3.6.7";
-import { createClient } from "npm:@supabase/supabase-js@2";
+import webpush from 'npm:web-push@3.6.7';
+import { createClient } from 'npm:@supabase/supabase-js@2';
 
-const supabaseUrl = Deno.env.get("SUPABASE_URL");
-const serviceRoleKey = Deno.env.get("PUSH_SUPABASE_KEY") ?? Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-const cronSecret = Deno.env.get("PUSH_CRON_SECRET");
-const vapidSubject = Deno.env.get("VAPID_SUBJECT") ?? "mailto:admin@example.com";
-const vapidPublicKey = Deno.env.get("VAPID_PUBLIC_KEY");
-const vapidPrivateKey = Deno.env.get("VAPID_PRIVATE_KEY");
+const supabaseUrl = Deno.env.get('SUPABASE_URL');
+const serviceRoleKey =
+  Deno.env.get('PUSH_SUPABASE_KEY') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+const cronSecret = Deno.env.get('PUSH_CRON_SECRET');
+const vapidSubject = Deno.env.get('VAPID_SUBJECT') ?? 'mailto:admin@example.com';
+const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY');
+const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY');
 
 if (!supabaseUrl || !serviceRoleKey || !cronSecret || !vapidPublicKey || !vapidPrivateKey) {
-  throw new Error("Missing notification function secrets.");
+  throw new Error('Missing notification function secrets.');
 }
 
 webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
@@ -31,29 +32,29 @@ const supabase = createClient(supabaseUrl, serviceRoleKey, {
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "content-type": "application/json" },
+    headers: { 'content-type': 'application/json' },
   });
 }
 
 Deno.serve(async (request) => {
-  if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
-  if (request.headers.get("x-push-cron-secret") !== cronSecret) {
-    return json({ error: "Unauthorized" }, 401);
+  if (request.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
+  if (request.headers.get('x-push-cron-secret') !== cronSecret) {
+    return json({ error: 'Unauthorized' }, 401);
   }
 
   let jogadorId = 1; // default: dico
   try {
     const body = await request.json().catch(() => ({}));
-    if (typeof body?.jogador_id === "number") jogadorId = body.jogador_id;
+    if (typeof body?.jogador_id === 'number') jogadorId = body.jogador_id;
   } catch {
     // body vazio é ok — usa default
   }
 
   try {
     const { data: subscriptions, error } = await supabase
-      .from("push_subscriptions")
-      .select("endpoint, p256dh, auth")
-      .eq("jogador_id", jogadorId);
+      .from('push_subscriptions')
+      .select('endpoint, p256dh, auth')
+      .eq('jogador_id', jogadorId);
     if (error) throw error;
 
     if (!subscriptions || subscriptions.length === 0) {
@@ -61,9 +62,9 @@ Deno.serve(async (request) => {
     }
 
     const payload = JSON.stringify({
-      title: "🔔 Teste de notificação",
+      title: '🔔 Teste de notificação',
       body: `Push direto para jogador ${jogadorId} às ${new Date().toISOString()}`,
-      url: "/",
+      url: '/',
     });
 
     const resultados = [];
@@ -82,12 +83,14 @@ Deno.serve(async (request) => {
         const statusCode = (error as { statusCode?: number }).statusCode;
         // 404/410 = endpoint expirado: limpa para não insistir.
         if (statusCode === 404 || statusCode === 410) {
-          await supabase
-            .from("push_subscriptions")
-            .delete()
-            .eq("endpoint", subscription.endpoint);
+          await supabase.from('push_subscriptions').delete().eq('endpoint', subscription.endpoint);
         }
-        resultados.push({ endpoint: subscription.endpoint.slice(-12), ok: false, erro: ultimoErro, statusCode });
+        resultados.push({
+          endpoint: subscription.endpoint.slice(-12),
+          ok: false,
+          erro: ultimoErro,
+          statusCode,
+        });
       }
     }
 

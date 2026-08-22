@@ -1,28 +1,28 @@
-import { supabase } from "./supabase";
-import type { TimeId, PosicaoId } from "./times";
+import { supabase } from './supabase';
+import type { TimeId, PosicaoId } from './times';
 
-export type StatusPartida = "draft" | "live" | "published" | "closed";
-export type StatusConfirmacao = "pendente" | "confirmado" | "recusado";
-export type TipoEvento = "gol" | "gol_contra";
+export type StatusPartida = 'draft' | 'live' | 'published' | 'closed';
+export type StatusConfirmacao = 'pendente' | 'confirmado' | 'recusado';
+export type TipoEvento = 'gol' | 'gol_contra';
 
 export const STATUS_CONFIRMACAO_LABEL: Record<StatusConfirmacao, string> = {
-  pendente: "Pendente",
-  confirmado: "Confirmado",
-  recusado: "Não vai",
+  pendente: 'Pendente',
+  confirmado: 'Confirmado',
+  recusado: 'Não vai',
 };
 
 export const STATUS_LABEL: Record<StatusPartida, string> = {
-  draft: "Agendada",
-  live: "Em andamento",
-  published: "Votação aberta",
-  closed: "Encerrada",
+  draft: 'Agendada',
+  live: 'Em andamento',
+  published: 'Votação aberta',
+  closed: 'Encerrada',
 };
 
 export const STATUS_COR: Record<StatusPartida, string> = {
-  draft: "text-giz-fraco",
-  live: "text-destaque font-bold",
-  published: "text-destaque font-bold",
-  closed: "text-ok font-bold",
+  draft: 'text-giz-fraco',
+  live: 'text-destaque font-bold',
+  published: 'text-destaque font-bold',
+  closed: 'text-ok font-bold',
 };
 
 export interface Partida {
@@ -38,7 +38,7 @@ export interface Placar {
   partida_id: number;
   gols_time_a: number;
   gols_time_b: number;
-  vencedor: "a" | "b" | "empate";
+  vencedor: 'a' | 'b' | 'empate';
 }
 
 export interface Participante {
@@ -76,11 +76,9 @@ export interface EventoPartida {
 
 export async function carregarPartida(id: number) {
   const { data, error } = await supabase
-    .from("partidas")
-    .select(
-      "id, data_jogo, status, voting_closes_at, confirmacao_closes_at, criado_por",
-    )
-    .eq("id", id)
+    .from('partidas')
+    .select('id, data_jogo, status, voting_closes_at, confirmacao_closes_at, criado_por')
+    .eq('id', id)
     .maybeSingle();
   if (error) throw error;
   return data as Partida | null;
@@ -88,9 +86,9 @@ export async function carregarPartida(id: number) {
 
 export async function carregarPlacar(partidaId: number) {
   const { data, error } = await supabase
-    .from("partida_placar")
-    .select("partida_id, gols_time_a, gols_time_b, vencedor")
-    .eq("partida_id", partidaId)
+    .from('partida_placar')
+    .select('partida_id, gols_time_a, gols_time_b, vencedor')
+    .eq('partida_id', partidaId)
     .maybeSingle();
   if (error) throw error;
   return data as Placar | null;
@@ -114,11 +112,11 @@ interface ParticipanteJoinRow {
 
 export async function carregarParticipantes(partidaId: number) {
   const { data, error } = await supabase
-    .from("partidas_participantes")
+    .from('partidas_participantes')
     .select(
-      "partida_id, jogador_id, time, posicao, gols, assistencias, gols_contra, status_confirmacao, confirmado_em, jogadores(nome, username)",
+      'partida_id, jogador_id, time, posicao, gols, assistencias, gols_contra, status_confirmacao, confirmado_em, jogadores(nome, username)'
     )
-    .eq("partida_id", partidaId);
+    .eq('partida_id', partidaId);
   if (error) throw error;
   // achata o join
   const rows = (data ?? []) as unknown as ParticipanteJoinRow[];
@@ -139,9 +137,9 @@ export async function carregarParticipantes(partidaId: number) {
 
 export async function carregarNotas(partidaId: number) {
   const { data, error } = await supabase
-    .from("partida_notas")
-    .select("partida_id, target_id, nome, avg_rating, vote_count, is_craque")
-    .eq("partida_id", partidaId);
+    .from('partida_notas')
+    .select('partida_id, target_id, nome, avg_rating, vote_count, is_craque')
+    .eq('partida_id', partidaId);
   if (error) throw error;
   return (data ?? []) as NotaPartida[];
 }
@@ -160,7 +158,7 @@ export interface ParRacha {
 }
 
 export async function carregarParesRacha(minPartidas: number = 5) {
-  const { data, error } = await supabase.rpc("pares_racha", {
+  const { data, error } = await supabase.rpc('pares_racha', {
     p_min_partidas: minPartidas,
   });
   if (error) throw error;
@@ -170,7 +168,7 @@ export async function carregarParesRacha(minPartidas: number = 5) {
 // Apaga TODOS os votos do jogador logado numa partida (descartar p/ refazer).
 // Retorna true se o servidor aceitou (votacao aberta); false caso contrario.
 export async function descartarVotos(partidaId: number, voterId: number) {
-  const { data, error } = await supabase.rpc("descartar_votos", {
+  const { data, error } = await supabase.rpc('descartar_votos', {
     p_partida_id: partidaId,
     p_voter_id: voterId,
   });
@@ -180,38 +178,33 @@ export async function descartarVotos(partidaId: number, voterId: number) {
 
 export async function carregarEventos(partidaId: number) {
   const { data, error } = await supabase
-    .from("partida_eventos")
-    .select(
-      "id, partida_id, tipo, jogador_id, assistencia_jogador_id, created_at",
-    )
-    .eq("partida_id", partidaId)
-    .order("created_at", { ascending: true });
+    .from('partida_eventos')
+    .select('id, partida_id, tipo, jogador_id, assistencia_jogador_id, created_at')
+    .eq('partida_id', partidaId)
+    .order('created_at', { ascending: true });
   if (error) throw error;
   return (data ?? []) as EventoPartida[];
 }
 
 export function placarDeEventos(
   eventos: EventoPartida[],
-  participantes: Participante[],
+  participantes: Participante[]
 ): { gols_time_a: number; gols_time_b: number } {
-  const timePorJogador = new Map(
-    participantes.map((p) => [p.jogador_id, p.time]),
-  );
+  const timePorJogador = new Map(participantes.map((p) => [p.jogador_id, p.time]));
   let gols_time_a = 0;
   let gols_time_b = 0;
   for (const evento of eventos) {
     const time = timePorJogador.get(evento.jogador_id);
     if (!time) continue;
-    const timeQueRecebe =
-      evento.tipo === "gol_contra" ? (time === "a" ? "b" : "a") : time;
-    if (timeQueRecebe === "a") gols_time_a += 1;
+    const timeQueRecebe = evento.tipo === 'gol_contra' ? (time === 'a' ? 'b' : 'a') : time;
+    if (timeQueRecebe === 'a') gols_time_a += 1;
     else gols_time_b += 1;
   }
   return { gols_time_a, gols_time_b };
 }
 
 export async function abrirPartida(partidaId: number) {
-  const { data, error } = await supabase.rpc("abrir_partida", {
+  const { data, error } = await supabase.rpc('abrir_partida', {
     p_partida_id: partidaId,
   });
   if (error) throw error;
@@ -222,9 +215,9 @@ export async function registrarEvento(
   partidaId: number,
   tipo: TipoEvento,
   jogadorId: number,
-  assistenciaJogadorId: number | null = null,
+  assistenciaJogadorId: number | null = null
 ) {
-  const { data, error } = await supabase.rpc("registrar_evento", {
+  const { data, error } = await supabase.rpc('registrar_evento', {
     p_partida_id: partidaId,
     p_tipo: tipo,
     p_jogador_id: jogadorId,
@@ -235,7 +228,7 @@ export async function registrarEvento(
 }
 
 export async function removerEvento(eventoId: number) {
-  const { data, error } = await supabase.rpc("remover_evento", {
+  const { data, error } = await supabase.rpc('remover_evento', {
     p_evento_id: eventoId,
   });
   if (error) throw error;
@@ -246,9 +239,9 @@ export async function editarEvento(
   eventoId: number,
   tipo: TipoEvento,
   jogadorId: number,
-  assistenciaJogadorId: number | null = null,
+  assistenciaJogadorId: number | null = null
 ) {
-  const { data, error } = await supabase.rpc("editar_evento", {
+  const { data, error } = await supabase.rpc('editar_evento', {
     p_evento_id: eventoId,
     p_tipo: tipo,
     p_jogador_id: jogadorId,
@@ -259,7 +252,7 @@ export async function editarEvento(
 }
 
 export async function finalizarPartida(partidaId: number) {
-  const { data, error } = await supabase.rpc("finalizar_partida", {
+  const { data, error } = await supabase.rpc('finalizar_partida', {
     p_partida_id: partidaId,
   });
   if (error) throw error;
@@ -268,7 +261,7 @@ export async function finalizarPartida(partidaId: number) {
 
 // Caminho legado de draft -> published (PartidaEditar). Abre votação 24h e gera avulsos.
 export async function publicarPartida(partidaId: number) {
-  const { data, error } = await supabase.rpc("publicar_partida", {
+  const { data, error } = await supabase.rpc('publicar_partida', {
     p_partida_id: partidaId,
   });
   if (error) throw error;
@@ -284,10 +277,10 @@ export const CAPACIDADE_PARTIDA = 16;
 export function vagaOcupada(
   status: StatusConfirmacao,
   closesAt: string | null,
-  agora: Date = new Date(),
+  agora: Date = new Date()
 ): boolean {
-  if (status === "confirmado") return true;
-  if (status === "pendente") {
+  if (status === 'confirmado') return true;
+  if (status === 'pendente') {
     if (!closesAt) return false;
     return agora.getTime() < new Date(closesAt).getTime();
   }
@@ -297,11 +290,9 @@ export function vagaOcupada(
 export function vagasOcupadas(
   participantes: Participante[],
   closesAt: string | null,
-  agora: Date = new Date(),
+  agora: Date = new Date()
 ): number {
-  return participantes.filter((p) =>
-    vagaOcupada(p.status_confirmacao, closesAt, agora),
-  ).length;
+  return participantes.filter((p) => vagaOcupada(p.status_confirmacao, closesAt, agora)).length;
 }
 
 // O jogador pode ir para o status `alvo`? Espelha a regra server-side:
@@ -311,7 +302,7 @@ export function podeConfirmar(
   alvo: StatusConfirmacao,
   participantes: Participante[],
   closesAt: string | null,
-  agora: Date = new Date(),
+  agora: Date = new Date()
 ): boolean {
   const ocupadasPelosDemais = participantes
     .filter((p) => p.jogador_id !== participante.jogador_id)
@@ -324,9 +315,9 @@ export function podeConfirmar(
 export async function confirmarPresenca(
   partidaId: number,
   jogadorId: number,
-  status: StatusConfirmacao,
+  status: StatusConfirmacao
 ) {
-  const { data, error } = await supabase.rpc("confirmar_presenca", {
+  const { data, error } = await supabase.rpc('confirmar_presenca', {
     p_partida_id: partidaId,
     p_jogador_id: jogadorId,
     p_status: status,
@@ -340,9 +331,9 @@ export async function adminDefinirConfirmacao(
   partidaId: number,
   jogadorId: number,
   status: StatusConfirmacao,
-  adminId: number,
+  adminId: number
 ) {
-  const { data, error } = await supabase.rpc("admin_definir_confirmacao", {
+  const { data, error } = await supabase.rpc('admin_definir_confirmacao', {
     p_partida_id: partidaId,
     p_jogador_id: jogadorId,
     p_status: status,
@@ -356,7 +347,7 @@ export async function adminDefinirConfirmacao(
 // Remove também dívidas vinculadas (pagas e não pagas); participantes, votos,
 // eventos e push reminders caem por CASCADE. Ver migration 066.
 export async function excluirPartida(partidaId: number, adminId: number) {
-  const { data, error } = await supabase.rpc("excluir_partida", {
+  const { data, error } = await supabase.rpc('excluir_partida', {
     p_partida_id: partidaId,
     p_admin_id: adminId,
   });
@@ -365,11 +356,8 @@ export async function excluirPartida(partidaId: number, adminId: number) {
 }
 
 // Admin adiciona um avulso (preenche vaga liberada após o prazo).
-export async function adicionarParticipante(
-  partidaId: number,
-  jogadorId: number,
-) {
-  const { data, error } = await supabase.rpc("adicionar_participante", {
+export async function adicionarParticipante(partidaId: number, jogadorId: number) {
+  const { data, error } = await supabase.rpc('adicionar_participante', {
     p_partida_id: partidaId,
     p_jogador_id: jogadorId,
   });
@@ -378,15 +366,12 @@ export async function adicionarParticipante(
 }
 
 // Remove participante de uma partida em draft.
-export async function removerParticipanteDraft(
-  partidaId: number,
-  jogadorId: number,
-) {
+export async function removerParticipanteDraft(partidaId: number, jogadorId: number) {
   const { error } = await supabase
-    .from("partidas_participantes")
+    .from('partidas_participantes')
     .delete()
-    .eq("partida_id", partidaId)
-    .eq("jogador_id", jogadorId);
+    .eq('partida_id', partidaId)
+    .eq('jogador_id', jogadorId);
   if (error) throw error;
   return true;
 }
@@ -410,7 +395,7 @@ export async function salvarEdicaoCompletaPartida(
   participantesNovos: ParticipanteEdicao[],
   _participantesOriginais?: Participante[],
   _statusPartida?: StatusPartida,
-  primeiraVezPublicacao: boolean = false,
+  primeiraVezPublicacao: boolean = false
 ) {
   const payload = participantesNovos.map((p) => ({
     jogador_id: p.jogador_id,
@@ -419,10 +404,10 @@ export async function salvarEdicaoCompletaPartida(
     gols: p.gols ?? 0,
     assistencias: p.assistencias ?? 0,
     gols_contra: p.gols_contra ?? 0,
-    status_confirmacao: p.status_confirmacao ?? "confirmado",
+    status_confirmacao: p.status_confirmacao ?? 'confirmado',
   }));
 
-  const { data, error } = await supabase.rpc("salvar_edicao_partida", {
+  const { data, error } = await supabase.rpc('salvar_edicao_partida', {
     p_partida_id: partidaId,
     p_participantes: payload,
     p_primeira_vez: primeiraVezPublicacao,
@@ -430,7 +415,7 @@ export async function salvarEdicaoCompletaPartida(
 
   if (error) throw error;
   if (data === false) {
-    throw new Error("Não foi possível salvar a edição da partida.");
+    throw new Error('Não foi possível salvar a edição da partida.');
   }
 
   return true;

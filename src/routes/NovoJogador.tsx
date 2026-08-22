@@ -1,20 +1,20 @@
-import { useState, type FormEvent } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabase";
-import { useAdmin } from "../hooks/useAdmin";
-import { POSICOES, POSICOES_B, type PosicaoId } from "../lib/times";
-import { MensagemEstado } from "../components/Estado";
-import { User, Shield, Star, Copy, Check, ArrowLeft, UserPlus } from "lucide-react";
-import { voltar } from "../lib/navegacao";
+import { useState, type FormEvent } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { useAdmin } from '../hooks/useAdmin';
+import { POSICOES, POSICOES_B, type PosicaoId } from '../lib/times';
+import { MensagemEstado } from '../components/Estado';
+import { User, Shield, Star, Copy, Check, ArrowLeft, UserPlus } from 'lucide-react';
+import { voltar } from '../lib/navegacao';
 
 export function NovoJogador() {
   const isAdmin = useAdmin();
   const navigate = useNavigate();
 
-  const [username, setUsername] = useState("");
-  const [nome, setNome] = useState("");
-  const [posicao, setPosicao] = useState<PosicaoId>("meia");
-  const [posicaoB, setPosicaoB] = useState<PosicaoId>("meia");
+  const [username, setUsername] = useState('');
+  const [nome, setNome] = useState('');
+  const [posicao, setPosicao] = useState<PosicaoId>('meia');
+  const [posicaoB, setPosicaoB] = useState<PosicaoId>('meia');
   const [isMensalista, setIsMensalista] = useState(false);
   const [isAdminNovo, setIsAdminNovo] = useState(false);
   const [criando, setCriando] = useState(false);
@@ -25,7 +25,7 @@ export function NovoJogador() {
   if (!isAdmin) return <Navigate to="/" replace />;
 
   function copiarSenhaPadrao() {
-    navigator.clipboard.writeText("123");
+    navigator.clipboard.writeText('123');
     setCopiado(true);
     setTimeout(() => setCopiado(false), 2000);
   }
@@ -36,39 +36,39 @@ export function NovoJogador() {
     setOk(null);
 
     if (!username.trim() || !nome.trim()) {
-      setErro("Preencha o usuário e o nome para cadastrar.");
+      setErro('Preencha o usuário e o nome para cadastrar.');
       return;
     }
 
     setCriando(true);
-    const { data, error } = await supabase.rpc("criar_jogador", {
+    const { data, error } = await supabase.rpc('criar_jogador', {
       p_username: username.trim(),
       p_nome: nome.trim(),
       p_posicao: posicao,
       p_is_admin: isAdminNovo,
-      p_posicao_b: posicao === "goleiro" ? null : posicaoB,
+      p_posicao_b: posicao === 'goleiro' ? null : posicaoB,
       p_is_mensalista: isMensalista,
     });
     setCriando(false);
 
     if (error) {
-      if (error.code === "23505") {
+      if (error.code === '23505') {
         setErro(`Já existe um jogador cadastrado com o usuário "${username.trim()}".`);
       } else {
-        setErro("Erro ao criar jogador: " + error.message);
+        setErro('Erro ao criar jogador: ' + error.message);
       }
       return;
     }
     if (data === null) {
-      setErro("Não foi possível criar o jogador.");
+      setErro('Não foi possível criar o jogador.');
       return;
     }
 
     setOk(`Jogador "${nome.trim()}" criado com sucesso! Senha padrão: 123`);
-    setUsername("");
-    setNome("");
-    setPosicao("meia");
-    setPosicaoB("meia");
+    setUsername('');
+    setNome('');
+    setPosicao('meia');
+    setPosicaoB('meia');
     setIsMensalista(false);
     setIsAdminNovo(false);
   }
@@ -79,8 +79,7 @@ export function NovoJogador() {
         onClick={() => voltar(navigate, '/administrador')}
         className="inline-flex items-center gap-1 text-xs font-mono text-giz-fraco hover:text-giz transition"
       >
-        <ArrowLeft className="size-3.5" />
-        ← voltar
+        <ArrowLeft className="size-3.5" />← voltar
       </button>
 
       <div className="sumula-header pb-2 flex items-baseline justify-between">
@@ -170,12 +169,12 @@ export function NovoJogador() {
 
             <label className="block">
               <span className="block text-xs font-display font-bold uppercase tracking-wider text-giz-fraco mb-1">
-                Posição secundária{posicao === "goleiro" ? " (não aplicável)" : ""}
+                Posição secundária{posicao === 'goleiro' ? ' (não aplicável)' : ''}
               </span>
               <select
                 value={posicaoB}
                 onChange={(e) => setPosicaoB(e.target.value as PosicaoId)}
-                disabled={posicao === "goleiro"}
+                disabled={posicao === 'goleiro'}
                 className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz shadow-xs focus:outline-none focus:border-destaque disabled:opacity-40"
               >
                 {(Object.keys(POSICOES_B) as (keyof typeof POSICOES_B)[]).map((p) => (
@@ -232,7 +231,8 @@ export function NovoJogador() {
                 É Administrador
               </span>
               <span className="text-giz-fraco">
-                Pode criar, editar partidas, lançar eventos e gerenciar o racha (requer ser Mensalista).
+                Pode criar, editar partidas, lançar eventos e gerenciar o racha (requer ser
+                Mensalista).
               </span>
             </div>
           </label>
@@ -241,9 +241,15 @@ export function NovoJogador() {
         {/* Seção 4: Senha Padrão */}
         <div className="rounded-[4px] border border-destaque/40 bg-destaque/10 p-3.5 flex items-center justify-between gap-3 text-xs shadow-carimbo">
           <div>
-            <span className="font-display font-bold uppercase tracking-wider text-destaque block">Senha inicial padrão:</span>
+            <span className="font-display font-bold uppercase tracking-wider text-destaque block">
+              Senha inicial padrão:
+            </span>
             <span className="text-giz-fraco text-xs">
-              O jogador utilizará a senha <code className="font-mono font-bold text-destaque bg-superficie px-1.5 py-0.5 rounded-[2px] border border-destaque/30">123</code> no primeiro acesso.
+              O jogador utilizará a senha{' '}
+              <code className="font-mono font-bold text-destaque bg-superficie px-1.5 py-0.5 rounded-[2px] border border-destaque/30">
+                123
+              </code>{' '}
+              no primeiro acesso.
             </span>
           </div>
           <button
@@ -272,7 +278,7 @@ export function NovoJogador() {
           className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {criando ? (
-            "Gravando na súmula..."
+            'Gravando na súmula...'
           ) : (
             <>
               <UserPlus className="size-4" />

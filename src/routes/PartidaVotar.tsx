@@ -1,18 +1,14 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate, Navigate } from "react-router-dom";
-import { supabase } from "../lib/supabase";
-import { useSessao } from "../context/SessaoContext";
-import { SeletorNota } from "../components/SeletorNota";
-import { Carregando, MensagemEstado } from "../components/Estado";
-import { ConfirmDialog } from "../components/ConfirmDialog";
-import {
-  carregarParticipantes,
-  type Partida,
-  type Participante,
-} from "../lib/partidas";
-import { TIMES, POSICOES, type TimeId } from "../lib/times";
-import { isRandomUsername } from "../lib/jogadores";
-import { voltar } from "../lib/navegacao";
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate, Navigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { useSessao } from '../context/SessaoContext';
+import { SeletorNota } from '../components/SeletorNota';
+import { Carregando, MensagemEstado } from '../components/Estado';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+import { carregarParticipantes, type Partida, type Participante } from '../lib/partidas';
+import { TIMES, POSICOES, type TimeId } from '../lib/times';
+import { isRandomUsername } from '../lib/jogadores';
+import { voltar } from '../lib/navegacao';
 
 export function PartidaVotar() {
   const { id } = useParams<{ id: string }>();
@@ -22,9 +18,7 @@ export function PartidaVotar() {
   const [partida, setPartida] = useState<Partida | null>(null);
   const [alvos, setAlvos] = useState<Participante[]>([]);
   const [notas, setNotas] = useState<Record<number, number>>({});
-  const [votosOriginais, setVotosOriginais] = useState<Map<number, number>>(
-    new Map(),
-  );
+  const [votosOriginais, setVotosOriginais] = useState<Map<number, number>>(new Map());
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -44,11 +38,11 @@ export function PartidaVotar() {
     function handleBeforeUnload(e: BeforeUnloadEvent) {
       if (temModificacoes) {
         e.preventDefault();
-        e.returnValue = "";
+        e.returnValue = '';
       }
     }
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [temModificacoes]);
 
   const draftKey = partida && jogador ? `racha_voto_draft_${partida.id}_${jogador.id}` : null;
@@ -59,7 +53,7 @@ export function PartidaVotar() {
       if (!id || !jogador) return;
       const partidaId = Number(id);
       if (!Number.isFinite(partidaId)) {
-        setErro("ID de partida inválido.");
+        setErro('ID de partida inválido.');
         setCarregando(false);
         return;
       }
@@ -69,14 +63,14 @@ export function PartidaVotar() {
 
       try {
         const { data: p, error: errP } = await supabase
-          .from("partidas")
-          .select("*")
-          .eq("id", partidaId)
+          .from('partidas')
+          .select('*')
+          .eq('id', partidaId)
           .single();
 
         if (errP || !p) {
           if (ativo) {
-            setErro("Partida não encontrada.");
+            setErro('Partida não encontrada.');
             setCarregando(false);
           }
           return;
@@ -84,12 +78,11 @@ export function PartidaVotar() {
 
         const agora = new Date().toISOString();
         const aberta =
-          p.status === "published" &&
-          (!p.voting_closes_at || p.voting_closes_at > agora);
+          p.status === 'published' && (!p.voting_closes_at || p.voting_closes_at > agora);
 
         if (!aberta) {
           if (ativo) {
-            setErro("A votação desta partida não está aberta.");
+            setErro('A votação desta partida não está aberta.');
             setCarregando(false);
           }
           return;
@@ -100,28 +93,24 @@ export function PartidaVotar() {
 
         const eu = participantes.find((x) => x.jogador_id === jogador.id);
         if (!eu) {
-          setErro("Apenas jogadores que participaram da partida podem votar.");
+          setErro('Apenas jogadores que participaram da partida podem votar.');
           setCarregando(false);
           return;
         }
 
         if (isRandomUsername(jogador.username)) {
-          setErro(
-            "Jogadores convidados não votam. O capitão responsável vota.",
-          );
+          setErro('Jogadores convidados não votam. O capitão responsável vota.');
           setCarregando(false);
           return;
         }
 
-        const outros = participantes.filter(
-          (x) => x.jogador_id !== jogador.id && x.time !== null,
-        );
+        const outros = participantes.filter((x) => x.jogador_id !== jogador.id && x.time !== null);
 
         const { data: meusVotos } = await supabase
-          .from("votes")
-          .select("target_id, rating")
-          .eq("match_id", partidaId)
-          .eq("voter_id", jogador.id);
+          .from('votes')
+          .select('target_id, rating')
+          .eq('match_id', partidaId)
+          .eq('voter_id', jogador.id);
 
         if (!ativo) return;
 
@@ -140,7 +129,7 @@ export function PartidaVotar() {
             const rawDraft = localStorage.getItem(storageKey);
             if (rawDraft) {
               const draftObj = JSON.parse(rawDraft);
-              if (draftObj && typeof draftObj === "object") {
+              if (draftObj && typeof draftObj === 'object') {
                 mapaNotas = draftObj;
               }
             }
@@ -155,7 +144,7 @@ export function PartidaVotar() {
         setVotosOriginais(mapaOriginais);
       } catch (e) {
         if (ativo) {
-          setErro(e instanceof Error ? e.message : "Erro ao carregar votação.");
+          setErro(e instanceof Error ? e.message : 'Erro ao carregar votação.');
         }
       } finally {
         if (ativo) setCarregando(false);
@@ -170,11 +159,7 @@ export function PartidaVotar() {
   if (!jogador) return <Navigate to="/login" replace />;
   if (carregando) return <Carregando>Carregando cédula de votação…</Carregando>;
   if (erro)
-    return (
-      <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">
-        {erro}
-      </MensagemEstado>
-    );
+    return <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">{erro}</MensagemEstado>;
   if (!partida) return null;
 
   function setNota(targetId: number, rating: number) {
@@ -215,7 +200,7 @@ export function PartidaVotar() {
       rating: notas[a.jogador_id],
     }));
 
-    const { data, error } = await supabase.rpc("registrar_votos", {
+    const { data, error } = await supabase.rpc('registrar_votos', {
       p_partida_id: partida.id,
       p_voter_id: jogador.id,
       p_votos: payload,
@@ -224,13 +209,11 @@ export function PartidaVotar() {
     setSalvando(false);
 
     if (error) {
-      setErro("Erro ao registrar votos: " + error.message);
+      setErro('Erro ao registrar votos: ' + error.message);
       return;
     }
     if (data === false) {
-      setErro(
-        "Não foi possível registrar (a votação pode ter fechado ou há voto inválido).",
-      );
+      setErro('Não foi possível registrar (a votação pode ter fechado ou há voto inválido).');
       return;
     }
 
@@ -243,20 +226,15 @@ export function PartidaVotar() {
     }
 
     setVotosEnviados(true);
-    setFeedback(editando ? "Votos atualizados com sucesso!" : "Votos registrados na urna!");
-    setTimeout(
-      () => navigate(`/partida/${partida.id}`, { replace: true }),
-      800,
-    );
+    setFeedback(editando ? 'Votos atualizados com sucesso!' : 'Votos registrados na urna!');
+    setTimeout(() => navigate(`/partida/${partida.id}`, { replace: true }), 800);
   }
 
   const tempoRestante = partida.voting_closes_at
     ? Math.max(0, new Date(partida.voting_closes_at).getTime() - Date.now())
     : 0;
   const horasRestantes = Math.floor(tempoRestante / (1000 * 60 * 60));
-  const minutosRestantes = Math.floor(
-    (tempoRestante % (1000 * 60 * 60)) / (1000 * 60),
-  );
+  const minutosRestantes = Math.floor((tempoRestante % (1000 * 60 * 60)) / (1000 * 60));
 
   return (
     <div className="px-3 py-4 pb-28 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
@@ -269,7 +247,7 @@ export function PartidaVotar() {
 
       <div className="sumula-header pb-2">
         <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
-          {editando ? "Editar Votos da Súmula" : "Cédula de Votação"} — Partida #{partida.id}
+          {editando ? 'Editar Votos da Súmula' : 'Cédula de Votação'} — Partida #{partida.id}
         </h2>
         <div className="flex items-center justify-between mt-1">
           <p className="text-xs font-mono font-bold text-destaque">
@@ -287,13 +265,13 @@ export function PartidaVotar() {
         <div className="mt-3 space-y-1">
           <div className="flex items-center justify-between text-xs font-mono">
             <span className="text-giz-fraco">Progresso da cédula:</span>
-            <span className={todosAvaliados ? "text-ok font-bold" : "text-destaque font-bold"}>
+            <span className={todosAvaliados ? 'text-ok font-bold' : 'text-destaque font-bold'}>
               {avaliadosCount}/{alvos.length} avaliados
             </span>
           </div>
           <div className="h-2 w-full bg-superficie-2 rounded-[2px] overflow-hidden border border-borda">
             <div
-              className={`h-full transition-all duration-200 ease-out ${todosAvaliados ? "bg-ok" : "bg-destaque"}`}
+              className={`h-full transition-all duration-200 ease-out ${todosAvaliados ? 'bg-ok' : 'bg-destaque'}`}
               style={{ width: `${alvos.length ? (avaliadosCount / alvos.length) * 100 : 0}%` }}
             />
           </div>
@@ -301,11 +279,11 @@ export function PartidaVotar() {
       </div>
 
       <div className="space-y-4">
-        {(["a", "b"] as TimeId[]).map((t) => {
+        {(['a', 'b'] as TimeId[]).map((t) => {
           const jogadoresDoTime = alvos
             .filter((a) => a.time === t)
             .sort((a, b) =>
-              (a.nome ?? '').localeCompare(b.nome ?? '', "pt-BR", { sensitivity: "base" }),
+              (a.nome ?? '').localeCompare(b.nome ?? '', 'pt-BR', { sensitivity: 'base' })
             );
           if (jogadoresDoTime.length === 0) return null;
           return (
@@ -317,7 +295,7 @@ export function PartidaVotar() {
                 className="px-3 py-2 text-xs font-display font-bold uppercase tracking-wider border-b border-borda"
                 style={{
                   backgroundColor: TIMES[t].cor,
-                  color: t === "a" ? "#f4f1e8" : "#0d0d0e",
+                  color: t === 'a' ? '#f4f1e8' : '#0d0d0e',
                 }}
               >
                 {TIMES[t].nome}
@@ -331,9 +309,7 @@ export function PartidaVotar() {
                       className="flex items-center justify-between gap-2 px-3 py-2.5 bg-superficie hover:bg-superficie-2 transition"
                     >
                       <div className="min-w-0">
-                        <span className="block truncate text-sm font-bold text-giz">
-                          {a.nome}
-                        </span>
+                        <span className="block truncate text-sm font-bold text-giz">{a.nome}</span>
                         <span className="text-[10px] font-display uppercase tracking-wider text-giz-fraco">
                           {POSICOES[a.posicao]}
                         </span>
@@ -357,7 +333,7 @@ export function PartidaVotar() {
 
       <div
         className="fixed inset-x-0 z-40 p-3 bg-superficie/95 backdrop-blur border-t border-borda shadow-carimbo-preto"
-        style={{ bottom: "calc(3.5rem + env(safe-area-inset-bottom))" }}
+        style={{ bottom: 'calc(3.5rem + env(safe-area-inset-bottom))' }}
       >
         <div className="max-w-2xl mx-auto">
           <button
@@ -366,11 +342,11 @@ export function PartidaVotar() {
             className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo transition active:translate-y-px disabled:opacity-40"
           >
             {salvando
-              ? "Depositando votos na urna…"
+              ? 'Depositando votos na urna…'
               : editando
-                ? "Atualizar votos"
+                ? 'Atualizar votos'
                 : todosAvaliados
-                  ? "Enviar todos os votos"
+                  ? 'Enviar todos os votos'
                   : `Avalie todos (${alvos.length - Object.keys(notas).length} restantes)`}
           </button>
         </div>

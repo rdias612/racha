@@ -1,16 +1,16 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabase";
-import { useSessao } from "../context/SessaoContext";
-import { MensagemEstado } from "../components/Estado";
-import { listarUsernames } from "../lib/jogadores";
-import { Logo } from "../components/Logo";
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { useSessao } from '../context/SessaoContext';
+import { MensagemEstado } from '../components/Estado';
+import { listarUsernames } from '../lib/jogadores';
+import { Logo } from '../components/Logo';
 
 export function Login() {
   const navigate = useNavigate();
   const { setJogador } = useSessao();
-  const [username, setUsername] = useState("");
-  const [senha, setSenha] = useState("");
+  const [username, setUsername] = useState('');
+  const [senha, setSenha] = useState('');
   const [usernames, setUsernames] = useState<string[]>([]);
   const [carregandoUsernames, setCarregandoUsernames] = useState(true);
   const [erroUsernames, setErroUsernames] = useState<string | null>(null);
@@ -20,15 +20,14 @@ export function Login() {
   const refInput = useRef<HTMLInputElement>(null);
 
   const usernamesFiltrados = usernames.filter(
-    (nome) =>
-      !username || nome.toLowerCase().includes(username.toLowerCase()),
+    (nome) => !username || nome.toLowerCase().includes(username.toLowerCase())
   );
   const indiceAtivo = usernamesFiltrados.indexOf(username);
 
   useEffect(() => {
     listarUsernames()
       .then(setUsernames)
-      .catch(() => setErroUsernames("Não foi possível carregar os usuários."))
+      .catch(() => setErroUsernames('Não foi possível carregar os usuários.'))
       .finally(() => setCarregandoUsernames(false));
   }, []);
 
@@ -44,20 +43,17 @@ export function Login() {
   }
 
   function navegarTeclado(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault();
       if (!aberto) {
         setAberto(true);
         return;
       }
       const atual = usernamesFiltrados.indexOf(username);
-      const delta = e.key === "ArrowDown" ? 1 : -1;
-      const proximo = Math.min(
-        usernamesFiltrados.length - 1,
-        Math.max(0, atual + delta),
-      );
+      const delta = e.key === 'ArrowDown' ? 1 : -1;
+      const proximo = Math.min(usernamesFiltrados.length - 1, Math.max(0, atual + delta));
       if (usernamesFiltrados[proximo]) setUsername(usernamesFiltrados[proximo]);
-    } else if (e.key === "Enter" || e.key === "Escape") {
+    } else if (e.key === 'Enter' || e.key === 'Escape') {
       setAberto(false);
     }
   }
@@ -67,7 +63,7 @@ export function Login() {
     setErro(null);
     setCarregando(true);
 
-    const { data, error } = await supabase.rpc("fazer_login", {
+    const { data, error } = await supabase.rpc('fazer_login', {
       p_username: username,
       p_senha: senha,
     });
@@ -75,17 +71,17 @@ export function Login() {
     setCarregando(false);
 
     if (error) {
-      setErro("A rede falhou — nem aqui nem no campo. Tenta de novo.");
+      setErro('A rede falhou — nem aqui nem no campo. Tenta de novo.');
       return;
     }
 
     if (!data || data.length === 0) {
-      setErro("Não bateu. Confere o usuário e tenta de novo.");
+      setErro('Não bateu. Confere o usuário e tenta de novo.');
       return;
     }
 
     setJogador(data[0]);
-    navigate("/", { replace: true });
+    navigate('/', { replace: true });
   }
 
   return (
@@ -118,8 +114,8 @@ export function Login() {
                 autoCorrect="off"
                 placeholder={
                   carregandoUsernames
-                    ? "Carregando convocados..."
-                    : "Selecione ou digite seu usuário"
+                    ? 'Carregando convocados...'
+                    : 'Selecione ou digite seu usuário'
                 }
                 value={username}
                 onChange={(e) => {
@@ -138,14 +134,14 @@ export function Login() {
                 tabIndex={-1}
                 aria-label="Ver usuários"
                 onClick={() => {
-                  if (username) setUsername("");
+                  if (username) setUsername('');
                   setAberto((a) => !a);
                   refInput.current?.focus();
                 }}
                 className="absolute right-1 top-1/2 -translate-y-1/2 rounded-[2px] p-1.5 text-giz-fraco hover:text-giz"
               >
                 <svg
-                  className={`w-4 h-4 text-destaque transition-transform ${aberto ? "rotate-180" : ""}`}
+                  className={`w-4 h-4 text-destaque transition-transform ${aberto ? 'rotate-180' : ''}`}
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -171,9 +167,9 @@ export function Login() {
                         onClick={() => selecionar(nome)}
                         className={`w-full text-left px-3 py-2 text-sm rounded-[3px] transition ${
                           i === indiceAtivo
-                            ? "bg-superficie-2 text-destaque font-bold"
-                            : "text-giz hover:bg-superficie-2"
-                        } ${nome === username ? "font-bold text-destaque" : ""}`}
+                            ? 'bg-superficie-2 text-destaque font-bold'
+                            : 'text-giz hover:bg-superficie-2'
+                        } ${nome === username ? 'font-bold text-destaque' : ''}`}
                       >
                         {nome}
                       </button>
@@ -203,18 +199,14 @@ export function Login() {
             />
           </div>
 
-          {(erroUsernames || erro) && (
-            <MensagemEstado>{erroUsernames || erro}</MensagemEstado>
-          )}
+          {(erroUsernames || erro) && <MensagemEstado>{erroUsernames || erro}</MensagemEstado>}
 
           <button
             type="submit"
-            disabled={
-              carregando || carregandoUsernames || !!erroUsernames || !username
-            }
+            disabled={carregando || carregandoUsernames || !!erroUsernames || !username}
             className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-50"
           >
-            {carregando ? "Acessando súmula…" : "Entrar no Racha"}
+            {carregando ? 'Acessando súmula…' : 'Entrar no Racha'}
           </button>
         </form>
       </div>

@@ -38,13 +38,13 @@ a notificação na tela de perfil.
 
 Configuradas via `supabase secrets set`:
 
-| Secret | Descrição |
-|---|---|
+| Secret              | Descrição                                                             |
+| ------------------- | --------------------------------------------------------------------- |
 | `VAPID_PUBLIC_KEY`  | Chave pública VAPID (mesma usada no front em `VITE_VAPID_PUBLIC_KEY`) |
-| `VAPID_PRIVATE_KEY` | Chave privada VAPID |
-| `VAPID_SUBJECT`     | `mailto:seu@email.com` |
-| `PUSH_SUPABASE_KEY` | Service Role Key para a Edge Function |
-| `PUSH_CRON_SECRET`  | Header `x-push-cron-secret` validado pela função |
+| `VAPID_PRIVATE_KEY` | Chave privada VAPID                                                   |
+| `VAPID_SUBJECT`     | `mailto:seu@email.com`                                                |
+| `PUSH_SUPABASE_KEY` | Service Role Key para a Edge Function                                 |
+| `PUSH_CRON_SECRET`  | Header `x-push-cron-secret` validado pela função                      |
 
 O `PUSH_CRON_SECRET` também precisa existir no **Vault** (`push_cron_secret`)
 para que o `pg_cron` consiga ler via `vault.decrypted_secrets`.
@@ -112,13 +112,13 @@ $secret = (supabase db query --linked "SELECT decrypted_secret FROM vault.decryp
 
 ## Solução de problemas comuns
 
-| Sintoma | Causa provável | Como validar |
-|---|---|---|
-| Push não chega, mas função retorna `{ok:true}` | Modo não perturbe / SW cacheado / PWA desinstalado | Reinstale o PWA; abra Chrome → `chrome://serviceworker-internals/` e verifique o SW do domínio |
-| Função retorna `"...must have 'auth' and 'p256dh' keys"` | Subscription sem wrapper `keys` | Confirmar que o código envia `{ endpoint, keys: { p256dh, auth } }` para `webpush.sendNotification` |
-| `candidates: 0` na função de produção | Sem partida published dentro da janela 24h, ou todos já votaram | `SELECT id, status, voting_closes_at FROM partidas WHERE status='published';` |
-| `claimed: 0` em slot válido | Slot HH:MM já entregue antes (PK em `push_reminder_deliveries`) | `SELECT * FROM push_reminder_deliveries WHERE partida_id=<id> ORDER BY claimed_at DESC;` |
-| `Unauthorized` (401) | Header `x-push-cron-secret` divergente | Revalidar Valor via Vault (`push_cron_secret`) e secret da Edge Function (`PUSH_CRON_SECRET`) — têm que ser iguais |
+| Sintoma                                                  | Causa provável                                                  | Como validar                                                                                                       |
+| -------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Push não chega, mas função retorna `{ok:true}`           | Modo não perturbe / SW cacheado / PWA desinstalado              | Reinstale o PWA; abra Chrome → `chrome://serviceworker-internals/` e verifique o SW do domínio                     |
+| Função retorna `"...must have 'auth' and 'p256dh' keys"` | Subscription sem wrapper `keys`                                 | Confirmar que o código envia `{ endpoint, keys: { p256dh, auth } }` para `webpush.sendNotification`                |
+| `candidates: 0` na função de produção                    | Sem partida published dentro da janela 24h, ou todos já votaram | `SELECT id, status, voting_closes_at FROM partidas WHERE status='published';`                                      |
+| `claimed: 0` em slot válido                              | Slot HH:MM já entregue antes (PK em `push_reminder_deliveries`) | `SELECT * FROM push_reminder_deliveries WHERE partida_id=<id> ORDER BY claimed_at DESC;`                           |
+| `Unauthorized` (401)                                     | Header `x-push-cron-secret` divergente                          | Revalidar Valor via Vault (`push_cron_secret`) e secret da Edge Function (`PUSH_CRON_SECRET`) — têm que ser iguais |
 
 ## Rotinas de diagnóstico rápidas
 

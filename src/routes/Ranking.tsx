@@ -1,28 +1,28 @@
-import { useCallback, useEffect, useState } from "react";
-import { NavLink, useParams } from "react-router-dom";
-import { supabase } from "../lib/supabase";
-import { POSICOES, type PosicaoId } from "../lib/times";
-import { useJogadorLogado } from "../hooks/useJogadorLogado";
-import { useSwipeTabs } from "../hooks/useSwipeTabs";
-import { MensagemEstado } from "../components/Estado";
-import { SkeletonRanking } from "../components/Skeletons";
-import { PullToRefresh } from "../components/PullToRefresh";
-import { Avatar } from "../components/Avatar";
+import { useCallback, useEffect, useState } from 'react';
+import { NavLink, useParams } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { POSICOES, type PosicaoId } from '../lib/times';
+import { useJogadorLogado } from '../hooks/useJogadorLogado';
+import { useSwipeTabs } from '../hooks/useSwipeTabs';
+import { MensagemEstado } from '../components/Estado';
+import { SkeletonRanking } from '../components/Skeletons';
+import { PullToRefresh } from '../components/PullToRefresh';
+import { Avatar } from '../components/Avatar';
 
-type Metrica = "pontos" | "gols" | "assistencias" | "gols-contra";
-type CampoMetrica = "pontos" | "gols" | "assistencias" | "gols_contra";
+type Metrica = 'pontos' | 'gols' | 'assistencias' | 'gols-contra';
+type CampoMetrica = 'pontos' | 'gols' | 'assistencias' | 'gols_contra';
 type ColunaOrdenacao =
-  | "nome"
+  | 'nome'
   | CampoMetrica
-  | "media_gols"
-  | "percentual_vitorias"
-  | "partidas"
-  | "vitorias"
-  | "empates"
-  | "derrotas";
-type DirecaoOrdenacao = "asc" | "desc";
+  | 'media_gols'
+  | 'percentual_vitorias'
+  | 'partidas'
+  | 'vitorias'
+  | 'empates'
+  | 'derrotas';
+type DirecaoOrdenacao = 'asc' | 'desc';
 
-const numero2casas = new Intl.NumberFormat("pt-BR", {
+const numero2casas = new Intl.NumberFormat('pt-BR', {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
@@ -31,19 +31,19 @@ const metricas: Record<
   Metrica,
   { titulo: string; coluna: string; campo: CampoMetrica; unidade: string }
 > = {
-  pontos: { titulo: "Ranking de Pontuação", coluna: "Pts", campo: "pontos", unidade: "pts" },
-  gols: { titulo: "Ranking de Artilharia", coluna: "Gols", campo: "gols", unidade: "gols" },
+  pontos: { titulo: 'Ranking de Pontuação', coluna: 'Pts', campo: 'pontos', unidade: 'pts' },
+  gols: { titulo: 'Ranking de Artilharia', coluna: 'Gols', campo: 'gols', unidade: 'gols' },
   assistencias: {
-    titulo: "Ranking de Assistências (Maestros)",
-    coluna: "Assists",
-    campo: "assistencias",
-    unidade: "assists",
+    titulo: 'Ranking de Assistências (Maestros)',
+    coluna: 'Assists',
+    campo: 'assistencias',
+    unidade: 'assists',
   },
-  "gols-contra": {
-    titulo: "Ranking de Gols Contra (Zoeira)",
-    coluna: "GC",
-    campo: "gols_contra",
-    unidade: "GC",
+  'gols-contra': {
+    titulo: 'Ranking de Gols Contra (Zoeira)',
+    coluna: 'GC',
+    campo: 'gols_contra',
+    unidade: 'GC',
   },
 };
 
@@ -69,49 +69,40 @@ interface LinhaRanking {
 export function Ranking() {
   const jogadorLogado = useJogadorLogado();
   const { metrica: parametro } = useParams<{ metrica: Metrica }>();
-  const metrica: Metrica =
-    parametro && parametro in metricas ? parametro : "pontos";
+  const metrica: Metrica = parametro && parametro in metricas ? parametro : 'pontos';
   const configuracao = metricas[metrica];
   const [linhas, setLinhas] = useState<LinhaRanking[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
-  const [colunaOrdenacao, setColunaOrdenacao] = useState<ColunaOrdenacao>(
-    configuracao.campo,
-  );
-  const [direcaoOrdenacao, setDirecaoOrdenacao] =
-    useState<DirecaoOrdenacao>("desc");
-  const [posicaoFiltro, setPosicaoFiltro] = useState<PosicaoId | "todas">("todas");
+  const [colunaOrdenacao, setColunaOrdenacao] = useState<ColunaOrdenacao>(configuracao.campo);
+  const [direcaoOrdenacao, setDirecaoOrdenacao] = useState<DirecaoOrdenacao>('desc');
+  const [posicaoFiltro, setPosicaoFiltro] = useState<PosicaoId | 'todas'>('todas');
   const [minimoPartidas, setMinimoPartidas] = useState(6);
 
   const { handlers: swipeHandlers } = useSwipeTabs({
-    tabs: [
-      "/ranking/pontos",
-      "/ranking/gols",
-      "/ranking/assistencias",
-      "/ranking/gols-contra",
-    ],
+    tabs: ['/ranking/pontos', '/ranking/gols', '/ranking/assistencias', '/ranking/gols-contra'],
     activeTab: `/ranking/${metrica}`,
   });
 
   useEffect(() => {
-    setPosicaoFiltro("todas");
+    setPosicaoFiltro('todas');
   }, [metrica]);
 
   const carregar = useCallback(async () => {
     let query = supabase
-      .from("ranking")
+      .from('ranking')
       .select(
-        "jogador_id, nome, posicao, pontos, vitorias, empates, derrotas, partidas, gols, assistencias, gols_contra",
+        'jogador_id, nome, posicao, pontos, vitorias, empates, derrotas, partidas, gols, assistencias, gols_contra'
       )
-      .order("pontos", { ascending: false })
-      .order("vitorias", { ascending: false })
-      .order("partidas", { ascending: false })
-      .order("gols", { ascending: false })
-      .order("assistencias", { ascending: false })
-      .order("nome", { ascending: true });
+      .order('pontos', { ascending: false })
+      .order('vitorias', { ascending: false })
+      .order('partidas', { ascending: false })
+      .order('gols', { ascending: false })
+      .order('assistencias', { ascending: false })
+      .order('nome', { ascending: true });
 
-    if (posicaoFiltro !== "todas") {
-      query = query.eq("posicao", posicaoFiltro);
+    if (posicaoFiltro !== 'todas') {
+      query = query.eq('posicao', posicaoFiltro);
     }
 
     const { data, error } = await query;
@@ -130,7 +121,7 @@ export function Ranking() {
 
   useEffect(() => {
     setColunaOrdenacao(configuracao.campo);
-    setDirecaoOrdenacao("desc");
+    setDirecaoOrdenacao('desc');
   }, [configuracao.campo]);
 
   const maximoPartidas = Math.max(6, ...linhas.map((linha) => linha.partidas));
@@ -141,18 +132,14 @@ export function Ranking() {
 
   if (carregando) return <SkeletonRanking />;
   if (erro)
-    return (
-      <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">
-        {erro}
-      </MensagemEstado>
-    );
+    return <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">{erro}</MensagemEstado>;
 
   function valorOrdenacao(linha: LinhaRanking, coluna: ColunaOrdenacao) {
-    if (coluna === "nome") return linha.nome;
-    if (coluna === "media_gols") {
+    if (coluna === 'nome') return linha.nome;
+    if (coluna === 'media_gols') {
       return linha.partidas > 0 ? linha.gols / linha.partidas : 0;
     }
-    if (coluna === "percentual_vitorias") {
+    if (coluna === 'percentual_vitorias') {
       return linha.partidas > 0 ? linha.vitorias / linha.partidas : 0;
     }
     return Number(linha[coluna]);
@@ -160,40 +147,36 @@ export function Ranking() {
 
   function selecionarOrdenacao(coluna: ColunaOrdenacao) {
     if (coluna === colunaOrdenacao) {
-      setDirecaoOrdenacao((direcao) => (direcao === "asc" ? "desc" : "asc"));
+      setDirecaoOrdenacao((direcao) => (direcao === 'asc' ? 'desc' : 'asc'));
       return;
     }
     setColunaOrdenacao(coluna);
-    setDirecaoOrdenacao(coluna === "nome" ? "asc" : "desc");
+    setDirecaoOrdenacao(coluna === 'nome' ? 'asc' : 'desc');
   }
 
   const colunasOrdenacao: ColunaTabela[] = [
-    { key: "nome", label: "Nome" },
+    { key: 'nome', label: 'Nome' },
     { key: configuracao.campo, label: configuracao.coluna },
-    ...(metrica === "gols"
-      ? [{ key: "media_gols" as const, label: "Média" }]
-      : []),
-    { key: "percentual_vitorias", label: "%V" },
-    { key: "partidas", label: "J" },
-    { key: "vitorias", label: "V" },
-    { key: "empates", label: "E" },
-    { key: "derrotas", label: "D" },
+    ...(metrica === 'gols' ? [{ key: 'media_gols' as const, label: 'Média' }] : []),
+    { key: 'percentual_vitorias', label: '%V' },
+    { key: 'partidas', label: 'J' },
+    { key: 'vitorias', label: 'V' },
+    { key: 'empates', label: 'E' },
+    { key: 'derrotas', label: 'D' },
   ];
 
   const linhasOrdenadas = [...linhas].sort((a, b) => {
     const valorA = valorOrdenacao(a, colunaOrdenacao);
     const valorB = valorOrdenacao(b, colunaOrdenacao);
-    const fator = direcaoOrdenacao === "asc" ? 1 : -1;
+    const fator = direcaoOrdenacao === 'asc' ? 1 : -1;
 
-    if (typeof valorA === "string" && typeof valorB === "string") {
+    if (typeof valorA === 'string' && typeof valorB === 'string') {
       return valorA.localeCompare(valorB) * fator;
     }
     return (Number(valorA) - Number(valorB)) * fator;
   });
 
-  const linhasFiltradas = linhasOrdenadas.filter(
-    (linha) => linha.partidas >= minimoPartidas,
-  );
+  const linhasFiltradas = linhasOrdenadas.filter((linha) => linha.partidas >= minimoPartidas);
 
   return (
     <PullToRefresh onRefresh={carregar}>
@@ -218,8 +201,8 @@ export function Ranking() {
             className={({ isActive }) =>
               `flex-1 min-w-max rounded-[3px] px-3 py-1.5 text-center font-display uppercase tracking-wider text-xs font-bold whitespace-nowrap transition ${
                 isActive
-                  ? "bg-destaque text-destaque-tinta shadow-xs"
-                  : "text-giz-fraco hover:text-giz hover:bg-superficie-2"
+                  ? 'bg-destaque text-destaque-tinta shadow-xs'
+                  : 'text-giz-fraco hover:text-giz hover:bg-superficie-2'
               }`
             }
           >
@@ -230,8 +213,8 @@ export function Ranking() {
             className={({ isActive }) =>
               `flex-1 min-w-max rounded-[3px] px-3 py-1.5 text-center font-display uppercase tracking-wider text-xs font-bold whitespace-nowrap transition ${
                 isActive
-                  ? "bg-destaque text-destaque-tinta shadow-xs"
-                  : "text-giz-fraco hover:text-giz hover:bg-superficie-2"
+                  ? 'bg-destaque text-destaque-tinta shadow-xs'
+                  : 'text-giz-fraco hover:text-giz hover:bg-superficie-2'
               }`
             }
           >
@@ -242,8 +225,8 @@ export function Ranking() {
             className={({ isActive }) =>
               `flex-1 min-w-max rounded-[3px] px-3 py-1.5 text-center font-display uppercase tracking-wider text-xs font-bold whitespace-nowrap transition ${
                 isActive
-                  ? "bg-destaque text-destaque-tinta shadow-xs"
-                  : "text-giz-fraco hover:text-giz hover:bg-superficie-2"
+                  ? 'bg-destaque text-destaque-tinta shadow-xs'
+                  : 'text-giz-fraco hover:text-giz hover:bg-superficie-2'
               }`
             }
           >
@@ -254,8 +237,8 @@ export function Ranking() {
             className={({ isActive }) =>
               `flex-1 min-w-max rounded-[3px] px-3 py-1.5 text-center font-display uppercase tracking-wider text-xs font-bold whitespace-nowrap transition ${
                 isActive
-                  ? "bg-destaque text-destaque-tinta shadow-xs"
-                  : "text-giz-fraco hover:text-giz hover:bg-superficie-2"
+                  ? 'bg-destaque text-destaque-tinta shadow-xs'
+                  : 'text-giz-fraco hover:text-giz hover:bg-superficie-2'
               }`
             }
           >
@@ -272,11 +255,11 @@ export function Ranking() {
             <div className="flex flex-wrap gap-1.5">
               <button
                 type="button"
-                onClick={() => setPosicaoFiltro("todas")}
+                onClick={() => setPosicaoFiltro('todas')}
                 className={`rounded-[3px] px-2.5 py-1 text-xs font-display font-bold uppercase tracking-wider transition ${
-                  posicaoFiltro === "todas"
-                    ? "bg-destaque text-destaque-tinta shadow-xs"
-                    : "border border-borda bg-superficie-2 text-giz-fraco hover:text-giz"
+                  posicaoFiltro === 'todas'
+                    ? 'bg-destaque text-destaque-tinta shadow-xs'
+                    : 'border border-borda bg-superficie-2 text-giz-fraco hover:text-giz'
                 }`}
               >
                 Todas
@@ -288,8 +271,8 @@ export function Ranking() {
                   onClick={() => setPosicaoFiltro(pos)}
                   className={`rounded-[3px] px-2.5 py-1 text-xs font-display font-bold uppercase tracking-wider transition ${
                     posicaoFiltro === pos
-                      ? "bg-destaque text-destaque-tinta shadow-xs"
-                      : "border border-borda bg-superficie-2 text-giz-fraco hover:text-giz"
+                      ? 'bg-destaque text-destaque-tinta shadow-xs'
+                      : 'border border-borda bg-superficie-2 text-giz-fraco hover:text-giz'
                   }`}
                 >
                   {POSICOES[pos]}
@@ -379,12 +362,16 @@ function PodioTop3({
         {/* 1º Lugar (Centro - Maior e em Destaque Âmbar) */}
         <div className="rounded-[4px] border-2 border-destaque bg-destaque text-destaque-tinta p-3 text-center shadow-carimbo-destaque flex flex-col items-center justify-between min-h-[165px] -translate-y-1">
           <div className="flex items-center justify-center gap-1">
-            <span className="font-display font-black text-4xl leading-none text-destaque-tinta">1</span>
+            <span className="font-display font-black text-4xl leading-none text-destaque-tinta">
+              1
+            </span>
             <span className="text-xs">👑</span>
           </div>
           <Avatar nome={primeiro.nome} posicao={primeiro.posicao} size="md" />
           <div className="w-full truncate mt-1">
-            <span className="block truncate text-xs font-black uppercase tracking-wider">{primeiro.nome}</span>
+            <span className="block truncate text-xs font-black uppercase tracking-wider">
+              {primeiro.nome}
+            </span>
             <span className="block font-mono text-sm font-black tabular-nums">
               {primeiro[campoMetrica]} {unidade}
             </span>
@@ -438,7 +425,9 @@ function TabelaRanking({
       <table className="w-full min-w-120 text-sm">
         <thead className="bg-superficie-2 border-b border-borda text-giz-fraco">
           <tr>
-            <th className="px-2 py-2 text-left font-display font-bold uppercase tracking-wider text-xs w-8">#</th>
+            <th className="px-2 py-2 text-left font-display font-bold uppercase tracking-wider text-xs w-8">
+              #
+            </th>
             {colunasOrdenacao.map((coluna) => {
               const ativa = colunaOrdenacao === coluna.key;
               const direcao = ativa ? direcaoOrdenacao : null;
@@ -446,30 +435,22 @@ function TabelaRanking({
                 <th
                   key={coluna.key}
                   aria-sort={
-                    direcao === "asc"
-                      ? "ascending"
-                      : direcao === "desc"
-                        ? "descending"
-                        : "none"
+                    direcao === 'asc' ? 'ascending' : direcao === 'desc' ? 'descending' : 'none'
                   }
                   className={`px-2 py-2 font-display font-bold uppercase tracking-wider text-xs ${
-                    coluna.key === "nome"
-                      ? "w-px whitespace-nowrap text-left sm:min-w-44"
-                      : "text-right"
+                    coluna.key === 'nome'
+                      ? 'w-px whitespace-nowrap text-left sm:min-w-44'
+                      : 'text-right'
                   }`}
                 >
                   <button
                     type="button"
                     onClick={() => selecionarOrdenacao(coluna.key)}
-                    className={`inline-flex items-center gap-1 min-h-0 ${ativa ? "text-destaque font-black" : "hover:text-giz"}`}
+                    className={`inline-flex items-center gap-1 min-h-0 ${ativa ? 'text-destaque font-black' : 'hover:text-giz'}`}
                   >
                     <span>{coluna.label}</span>
                     <span aria-hidden="true" className="font-mono text-[10px]">
-                      {direcao === "asc"
-                        ? "▲"
-                        : direcao === "desc"
-                          ? "▼"
-                          : "↕"}
+                      {direcao === 'asc' ? '▲' : direcao === 'desc' ? '▼' : '↕'}
                     </span>
                   </button>
                 </th>
@@ -485,37 +466,33 @@ function TabelaRanking({
               <tr
                 key={l.jogador_id}
                 className={`transition hover:bg-superficie-2 ${
-                  ehLogado
-                    ? "border-l-2 border-destaque bg-destaque/10"
-                    : "bg-superficie"
+                  ehLogado ? 'border-l-2 border-destaque bg-destaque/10' : 'bg-superficie'
                 }`}
               >
                 <td className="px-2 py-2 font-mono text-xs font-bold text-giz-fraco">
-                  {primeiro ? "🏆" : i + 1}
+                  {primeiro ? '🏆' : i + 1}
                 </td>
                 {colunasOrdenacao.map((coluna) => (
                   <td
                     key={coluna.key}
                     className={`px-2 py-2 ${
-                      coluna.key === "nome"
-                        ? "whitespace-nowrap text-giz font-medium text-xs"
-                        : "text-right font-mono text-xs text-giz tabular-nums font-semibold"
+                      coluna.key === 'nome'
+                        ? 'whitespace-nowrap text-giz font-medium text-xs'
+                        : 'text-right font-mono text-xs text-giz tabular-nums font-semibold'
                     }`}
                   >
-                    {coluna.key === "nome" ? (
+                    {coluna.key === 'nome' ? (
                       <div className="flex items-center gap-2">
                         <Avatar nome={l.nome} posicao={l.posicao} size="xs" />
                         <span className="font-bold">{l.nome}</span>
                       </div>
-                    ) : coluna.key === "media_gols"
-                        ? numero2casas.format(
-                            Number(valorOrdenacao(l, coluna.key)),
-                          )
-                        : coluna.key === "percentual_vitorias"
-                          ? `${Math.round(
-                              Number(valorOrdenacao(l, coluna.key)) * 100,
-                            )}%`
-                          : l[coluna.key as keyof LinhaRanking]}
+                    ) : coluna.key === 'media_gols' ? (
+                      numero2casas.format(Number(valorOrdenacao(l, coluna.key)))
+                    ) : coluna.key === 'percentual_vitorias' ? (
+                      `${Math.round(Number(valorOrdenacao(l, coluna.key)) * 100)}%`
+                    ) : (
+                      l[coluna.key as keyof LinhaRanking]
+                    )}
                   </td>
                 ))}
               </tr>

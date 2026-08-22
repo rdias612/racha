@@ -1,12 +1,12 @@
-import { useEffect, useState, type FormEvent } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
-import { Wallet, ChevronDown, Plus, Check } from "lucide-react";
-import { useAdmin } from "../hooks/useAdmin";
-import { Carregando, MensagemEstado } from "../components/Estado";
-import { ConfirmDialog } from "../components/ConfirmDialog";
-import { formatarReais, formatarDataLista } from "../lib/formatacao";
-import { listarJogadoresAtivos, type JogadorLista } from "../lib/jogadores";
-import { voltar } from "../lib/navegacao";
+import { useEffect, useState, type FormEvent } from 'react';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Wallet, ChevronDown, Plus, Check } from 'lucide-react';
+import { useAdmin } from '../hooks/useAdmin';
+import { Carregando, MensagemEstado } from '../components/Estado';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+import { formatarReais, formatarDataLista } from '../lib/formatacao';
+import { listarJogadoresAtivos, type JogadorLista } from '../lib/jogadores';
+import { voltar } from '../lib/navegacao';
 import {
   TIPOS_DIVIDA,
   listarDividasEmAberto,
@@ -17,28 +17,24 @@ import {
   type Divida,
   type DividaPorJogador,
   type TipoDivida,
-} from "../lib/dividas";
+} from '../lib/dividas';
 
 function hojeStr() {
   const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
-    d.getDate(),
-  ).padStart(2, "0")}`;
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
+    d.getDate()
+  ).padStart(2, '0')}`;
 }
 function mesAtualStr() {
   const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
 
 const COR_TIPO: Record<TipoDivida, string> = {
-  mensalidade:
-    "bg-destaque/15 text-destaque border-destaque/40",
-  avulso:
-    "bg-ok/15 text-ok border-ok/40",
-  outro:
-    "bg-superficie-2 text-giz-fraco border-borda",
+  mensalidade: 'bg-destaque/15 text-destaque border-destaque/40',
+  avulso: 'bg-ok/15 text-ok border-ok/40',
+  outro: 'bg-superficie-2 text-giz-fraco border-borda',
 };
-
 
 export function Administrador() {
   const isAdmin = useAdmin();
@@ -58,12 +54,12 @@ export function Administrador() {
   } | null>(null);
 
   // formulário "adicionar dívida"
-  const [fJogador, setFJogador] = useState("");
-  const [fTipo, setFTipo] = useState<TipoDivida>("mensalidade");
-  const [fValor, setFValor] = useState("90");
+  const [fJogador, setFJogador] = useState('');
+  const [fTipo, setFTipo] = useState<TipoDivida>('mensalidade');
+  const [fValor, setFValor] = useState('90');
   const [fData, setFData] = useState(hojeStr());
   const [fReferencia, setFReferencia] = useState(mesAtualStr());
-  const [fDescricao, setFDescricao] = useState("");
+  const [fDescricao, setFDescricao] = useState('');
   const [salvando, setSalvando] = useState(false);
 
   async function carregar(isAtivo?: () => boolean) {
@@ -94,11 +90,11 @@ export function Administrador() {
           is_mensalista: r.is_mensalista,
           total_devido: Number(r.total_devido),
           dividas: itensPorJogador.get(r.jogador_id) ?? [],
-        })),
+        }))
       );
     } catch (e) {
       if (isAtivo && !isAtivo()) return;
-      setErro(e instanceof Error ? e.message : "Erro ao carregar dívidas.");
+      setErro(e instanceof Error ? e.message : 'Erro ao carregar dívidas.');
     } finally {
       if (!isAtivo || isAtivo()) setCarregando(false);
     }
@@ -118,16 +114,16 @@ export function Administrador() {
     e.stopPropagation();
     setConfirmacao({
       open: true,
-      titulo: "Quitar dívida?",
+      titulo: 'Quitar dívida?',
       mensagem: `Marcar a dívida de ${nome} como paga na súmula financeira?`,
       onConfirm: async () => {
         setConfirmacao(null);
         try {
           await quitarDivida(dividaId);
-          setOk("Dívida marcada como paga.");
+          setOk('Dívida marcada como paga.');
           await carregar();
         } catch (e) {
-          setErro(e instanceof Error ? e.message : "Erro ao quitar dívida.");
+          setErro(e instanceof Error ? e.message : 'Erro ao quitar dívida.');
         }
       },
     });
@@ -137,7 +133,7 @@ export function Administrador() {
     e.stopPropagation();
     setConfirmacao({
       open: true,
-      titulo: "Quitar todas as dívidas?",
+      titulo: 'Quitar todas as dívidas?',
       mensagem: `Quitar TODAS as pendências em aberto de ${nome}?`,
       onConfirm: async () => {
         setConfirmacao(null);
@@ -146,7 +142,7 @@ export function Administrador() {
           setOk(`Dívidas de ${nome} quitadas.`);
           await carregar();
         } catch (e) {
-          setErro(e instanceof Error ? e.message : "Erro ao quitar dívidas.");
+          setErro(e instanceof Error ? e.message : 'Erro ao quitar dívidas.');
         }
       },
     });
@@ -157,13 +153,13 @@ export function Administrador() {
     setErro(null);
     setOk(null);
 
-    const valor = Number(fValor.replace(",", "."));
+    const valor = Number(fValor.replace(',', '.'));
     if (!fJogador) {
-      setErro("Selecione o jogador.");
+      setErro('Selecione o jogador.');
       return;
     }
     if (!Number.isFinite(valor) || valor <= 0) {
-      setErro("Valor deve ser maior que zero.");
+      setErro('Valor deve ser maior que zero.');
       return;
     }
 
@@ -177,11 +173,11 @@ export function Administrador() {
         referencia: fReferencia ? fReferencia.trim() : undefined,
         descricao: fDescricao ? fDescricao.trim() : undefined,
       });
-      setOk("Dívida registrada com sucesso.");
-      setFDescricao("");
+      setOk('Dívida registrada com sucesso.');
+      setFDescricao('');
       await carregar();
     } catch (e) {
-      setErro(e instanceof Error ? e.message : "Erro ao registrar dívida.");
+      setErro(e instanceof Error ? e.message : 'Erro ao registrar dívida.');
     } finally {
       setSalvando(false);
     }
@@ -192,7 +188,7 @@ export function Administrador() {
   return (
     <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
       <button
-        onClick={() => voltar(navigate, "/")}
+        onClick={() => voltar(navigate, '/')}
         className="text-xs font-mono text-giz-fraco hover:text-giz transition"
       >
         ← voltar
@@ -237,7 +233,7 @@ export function Administrador() {
               {jogadores.map((j) => (
                 <option key={j.id} value={j.id}>
                   {j.nome}
-                  {j.is_mensalista ? " (mensalista)" : ""}
+                  {j.is_mensalista ? ' (mensalista)' : ''}
                 </option>
               ))}
             </select>
@@ -290,7 +286,7 @@ export function Administrador() {
 
           <label className="block">
             <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
-              Referência {fTipo === "mensalidade" ? "(mês)" : "(opcional)"}
+              Referência {fTipo === 'mensalidade' ? '(mês)' : '(opcional)'}
             </span>
             <input
               type="text"
@@ -321,7 +317,7 @@ export function Administrador() {
           className="w-full flex items-center justify-center gap-1.5 rounded-[4px] border border-destaque bg-destaque px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo transition active:translate-y-px disabled:opacity-50"
         >
           <Plus className="size-4" />
-          {salvando ? "Adicionando…" : "Adicionar dívida"}
+          {salvando ? 'Adicionando…' : 'Adicionar dívida'}
         </button>
       </form>
 
@@ -339,7 +335,9 @@ export function Administrador() {
         {carregando ? (
           <Carregando>Carregando dívidas…</Carregando>
         ) : grupos.length === 0 ? (
-          <MensagemEstado tipo="info">Ninguém devendo 🎉 Todo mundo em dia com a quinta.</MensagemEstado>
+          <MensagemEstado tipo="info">
+            Ninguém devendo 🎉 Todo mundo em dia com a quinta.
+          </MensagemEstado>
         ) : (
           <ul className="space-y-2">
             {grupos.map((g) => {
@@ -355,7 +353,7 @@ export function Administrador() {
                     tabIndex={0}
                     onClick={() => setExpandido(aberto ? null : g.jogador_id)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
+                      if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         setExpandido(aberto ? null : g.jogador_id);
                       }
@@ -364,14 +362,12 @@ export function Administrador() {
                   >
                     <ChevronDown
                       className={`size-4 shrink-0 text-destaque transition-transform ${
-                        aberto ? "rotate-180" : ""
+                        aberto ? 'rotate-180' : ''
                       }`}
                     />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
-                        <span className="truncate text-sm font-bold text-giz">
-                          {g.nome}
-                        </span>
+                        <span className="truncate text-sm font-bold text-giz">{g.nome}</span>
                         {g.is_mensalista && (
                           <span className="shrink-0 rounded-[2px] border border-destaque/40 bg-destaque/15 px-1.5 py-0.5 text-[9px] font-display uppercase tracking-wider font-bold text-destaque">
                             mensalista
@@ -379,8 +375,7 @@ export function Administrador() {
                         )}
                       </div>
                       <span className="text-xs font-mono text-giz-fraco">
-                        {g.dividas.length}{" "}
-                        {g.dividas.length === 1 ? "dívida" : "dívidas"}
+                        {g.dividas.length} {g.dividas.length === 1 ? 'dívida' : 'dívidas'}
                       </span>
                     </div>
                     <span className="shrink-0 font-mono text-sm font-bold text-perigo tabular-nums">
@@ -399,10 +394,7 @@ export function Administrador() {
                   {aberto && (
                     <ul className="divide-y divide-borda border-t border-borda bg-fundo/40">
                       {g.dividas.map((d) => (
-                        <li
-                          key={d.id}
-                          className="flex items-start gap-2 px-3 py-2.5"
-                        >
+                        <li key={d.id} className="flex items-start gap-2 px-3 py-2.5">
                           <div className="min-w-0 flex-1 space-y-1">
                             <div className="flex flex-wrap items-center gap-1.5">
                               <span
@@ -420,11 +412,7 @@ export function Administrador() {
                                 {formatarDataLista(d.data_divida)}
                               </span>
                             </div>
-                            {d.descricao && (
-                              <p className="text-xs text-giz">
-                                {d.descricao}
-                              </p>
-                            )}
+                            {d.descricao && <p className="text-xs text-giz">{d.descricao}</p>}
                             {d.partida_id && (
                               <Link
                                 to={`/partida/${d.partida_id}`}
