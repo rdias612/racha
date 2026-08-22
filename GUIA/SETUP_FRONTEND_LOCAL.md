@@ -1,151 +1,112 @@
-# 💻 Guia: Subir o Frontend Localmente Conectado ao Supabase Real
+# ⚡ Guia Rápido: Subir o Frontend Localmente (1-Clique)
 
-Este guia detalha o processo completo para rodar a aplicação frontend do **Racha Gragoatá CBO** no seu ambiente local (Vite + React 19) conectado diretamente à instância de produção/real do **Supabase**.
-
----
-
-## 📋 1. Pré-Requisitos
-
-Antes de iniciar, certifique-se de ter instalado:
-
-- **Node.js**: Versão 18+ (recomendado Node.js 20 LTS ou superior)
-- **npm**: Versão 9+ ou superior (já incluso no Node.js)
-- **Git**: Para controle de versão e checkout do repositório
+Este guia foi otimizado para que qualquer desenvolvedor ou agente possa subir o frontend localmente em **menos de 30 segundos**, já conectado diretamente ao banco de dados Supabase real do **Racha Gragoatá CBO**.
 
 ---
 
-## ⚙️ 2. Passo a Passo de Instalação e Configuração
+## 🚀 1. Início Imediato no Windows (1-Clique)
 
-### Passo 1: Instalar Dependências do Projeto
+Você pode subir o projeto de **3 formas fáceis**:
 
-Abra o terminal na raiz do projeto (`racha/`) e execute:
+### Opção A: Executável Direto Windows (Duplo Clique ou Terminal)
 
-```bash
-npm install
+Basta dar duplo clique no arquivo **[`iniciar_local.bat`](file:///c:/Users/PC/Documents/GitHub/racha/iniciar_local.bat)** ou rodar no terminal:
+
+```cmd
+.\iniciar_local.bat
 ```
 
----
+### Opção B: Script PowerShell
 
-### Passo 2: Criar e Configurar o Arquivo `.env`
-
-O frontend precisa de variáveis de ambiente com o prefixo `VITE_` para instanciar o cliente Supabase e os serviços de Web Push.
-
-1. Na raiz do projeto, crie um arquivo chamado `.env` (duplicando o `.env.example`):
-
-   ```bash
-   # Windows PowerShell
-   Copy-Item .env.example .env
-
-   # Linux / macOS / Git Bash
-   cp .env.example .env
-   ```
-
-2. Abra o arquivo `.env` e preencha as variáveis de acordo com a sua instância do Supabase:
-
-```env
-# URL da instância do Supabase
-VITE_SUPABASE_URL=https://jtavmrlllyctkuxefhpc.supabase.co
-
-# Chave pública anônima (anon key)
-VITE_SUPABASE_ANON_KEY=sua_chave_anon_key_aqui
-
-# Chave pública VAPID para Web Push Notifications (opcional para testes locais)
-VITE_VAPID_PUBLIC_KEY=sua_chave_publica_vapid_aqui
+```powershell
+.\iniciar_local.ps1
 ```
 
-#### 🔑 Onde encontrar essas credenciais no painel do Supabase?
-
-1. Acesse o console web do Supabase: [https://supabase.com/dashboard](https://supabase.com/dashboard).
-2. Selecione o projeto **racha** (referência: `jtavmrlllyctkuxefhpc`).
-3. Vá em **Project Settings (ícone de engrenagem)** no menu lateral esquerdo.
-4. Clique na aba **API**.
-5. Em **Project URL**, copie a URL (`https://jtavmrlllyctkuxefhpc.supabase.co`).
-6. Em **Project API keys**, copie a chave pública marcada como **`anon` `public`**.
-
-> [!IMPORTANT]
-> Nunca compartilhe ou coloque no arquivo `.env` a chave `service_role` (chave secreta com privilégios de root). No frontend, utiliza-se **exclusivamente a chave `anon`**.
-
----
-
-### Passo 3: Iniciar o Servidor de Desenvolvimento
-
-Após salvar o arquivo `.env`, inicie o servidor Vite:
+### Opção C: Comando npm
 
 ```bash
 npm run dev
 ```
 
-O terminal exibirá a URL local:
-
-```text
-  VITE v8.2.1  ready in 280 ms
-
-  ➜  Local:   http://localhost:5173/
-  ➜  Network: use --host to expose
-  ➜  press h + enter to show help
-```
-
-Abra o navegador e acesse **`http://localhost:5173`**.
+> [!NOTE]
+> Os scripts `iniciar_local.bat` e `iniciar_local.ps1` já realizam tudo automaticamente para você:
+>
+> 1. Verificam se o `.env` existe (e copiam do `.env.example` se faltar).
+> 2. Verificam se as dependências do `node_modules` estão instaladas.
+> 3. Iniciam o servidor fixando a porta **5173** e abrem o navegador automaticamente!
 
 ---
 
-## ⚽ 3. Como Testar o Sistema Localmente
+## 🌐 2. Acesso à Aplicação
 
-### 3.1 Autenticação e Perfis de Teste
+Assim que o comando iniciar, acesse no navegador:
 
-O sistema utiliza login customizado por username e senha validados no Supabase via RPC `fazer_login`.
-
-- **Superadministradores Pré-configurados**:
-  - Usuários: `dico`, `tadeu`, `natal`
-  - Possuem privilégios administrativos completos e acesso permanente às telas de gestão:
-    - `/administrador`: Gestão de dívidas, mensalidades e quitação financeira.
-    - `/gestao-jogadores`: Ativação/desativação de atletas e status de mensalista.
-    - `/partida/nova`: Criação manual de novas partidas.
-    - `/partida/:id/editar`: Edição de súmula e presença.
-- **Jogadores Mensalistas e Avulsos**:
-  - Qualquer jogador ativo cadastrado na tabela `jogadores`.
+👉 **[http://localhost:5173](http://localhost:5173)**
 
 ---
 
-## 🧪 4. Comandos de Validação e Qualidade
+## 🔑 3. Configuração do `.env` (Já Engatilhada)
 
-Antes de enviar qualquer alteração, certifique-se de que o código segue os padrões do repositório:
+O repositório já conta com o arquivo [`.env`](file:///c:/Users/PC/Documents/GitHub/racha/.env) configurado na raiz com a chave pública do projeto Supabase oficial (`jtavmrlllyctkuxefhpc`).
+
+Caso precise recriá-lo do zero no futuro, copie o [`.env.example`](file:///c:/Users/PC/Documents/GitHub/racha/.env.example):
 
 ```bash
-# 1. Executar checagem de tipos (TypeScript) e Linter (ESLint flat config)
-npm run lint
+# Windows PowerShell
+Copy-Item .env.example .env
 
-# 2. Formatar todos os arquivos conforme o Prettier
-npm run format
+# Linux / macOS / Git Bash
+cp .env.example .env
+```
 
-# 3. Validar se o build de produção passa sem erros
-npm run build
+### Conteúdo Pré-Configurado do `.env`:
 
-# 4. Pré-visualizar o build localmente em modo produção
-npm run preview
+```env
+VITE_SUPABASE_URL=https://jtavmrlllyctkuxefhpc.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0YXZtcmxsbHljdGt1eGVmaHBjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU1MzA5MDMsImV4cCI6MjEwMTEwNjkwM30.zrn4FoaobmmLKqWbdgV5gbFdXdeS_bWRHI5oNKwwiak
 ```
 
 ---
 
-## 🛠️ 5. Resolução de Problemas Comuns (Troubleshooting)
+## ⚽ 4. Como Navegar e Testar os Perfis
 
-### 1. Erro: _"Variáveis de ambiente faltando. Configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY..."_
+### 4.1 Login de Superadministrador (Acesso Total)
 
-- **Causa**: O arquivo `.env` não existe na raiz do projeto ou uma das variáveis está vazia.
-- **Solução**: Crie o arquivo `.env` com `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` preenchidos e **reinicie o comando `npm run dev`** (o Vite precisa ser reiniciado para carregar novas variáveis de ambiente).
+Para testar telas administrativas, financeiro, edição de súmula e novas partidas, utilize um dos usernames de superadmin no formulário de login (`/login`):
 
-### 2. Erro: _"Sem conexão com o servidor. Verifique sua internet e tente novamente."_
+- **Usernames Superadmin**:
+  - `dico`
+  - `tadeu`
+  - `natal`
+- **Telas Exclusivas de Admin Habilitadas**:
+  - 💰 **`/administrador`**: Gestão financeira de débitos, mensalidades (R$ 90) e avulsos (R$ 20).
+  - 👥 **`/gestao-jogadores`**: Cadastro, ativação e controle de mensalistas (teto de 16).
+  - ⚽ **`/partida/nova`**: Criação manual e agendamento de novas partidas.
+  - 📝 **`/partida/:id/editar`**: Edição atômica de súmula oficial.
 
-- **Causa**: URL do Supabase incorreta, chave `anon` inválida ou bloqueio de rede.
-- **Solução**: Verifique se a URL no `.env` está sem barras adicionais no final (`https://jtavmrlllyctkuxefhpc.supabase.co`) e confirme se a chave `anon` é a mesma do dashboard.
+### 4.2 Login de Jogador / Atleta Comum
 
-### 3. Porta 5173 já está em uso
+- Qualquer username da lista ativa (ex: `rod`, `pedro`, etc.) para testar a visão de jogador, confirmação de presença, votação secreta pós-jogo e estatísticas individuais em `/perfil`.
 
-- **Solução**: O Vite selecionará automaticamente a próxima porta livre (ex: `5174`). Se desejar forçar uma porta específica:
-  ```bash
-  npm run dev -- --port 3000
-  ```
+---
 
-### 4. Cache do PWA / Service Worker desatualizado
+## 🧪 5. Scripts Úteis do Dia a Dia
 
-- **Solução**: Abra as Ferramentas de Desenvolvedor do navegador (F12) > Aba **Application** (ou **Aplicativo**) > **Service Workers** > Clique em **Unregister** e recarregue a página com `Ctrl + Shift + R` (ou `Cmd + Shift + R`).
+| Ação Desejada                              | Comando no Terminal          |
+| ------------------------------------------ | ---------------------------- |
+| **Iniciar servidor de desenvolvimento**    | `npm run dev`                |
+| **Checagem de erros de código e tipos**    | `npm run lint`               |
+| **Formatar código automaticamente**        | `npm run format`             |
+| **Validar build de produção**              | `npm run build`              |
+| **Trocar porta se a 5173 estiver ocupada** | `npm run dev -- --port 3000` |
+
+---
+
+## 🛠️ 6. Resolução Rápida de Problemas
+
+1. **A tela não atualizou após mudanças no `.env`**:
+   - Pressione `Ctrl + C` no terminal e rode `npm run dev` novamente (o Vite precisa reiniciar para carregar novas variáveis de ambiente).
+2. **PWA mostrando versão antiga em cache**:
+   - Pressione `Ctrl + Shift + R` no navegador ou abra uma aba anônima.
+3. **Sem conexão / Offline**:
+   - Confirme se você está conectado à internet para se comunicar com o banco Supabase na nuvem.
