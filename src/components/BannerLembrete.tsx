@@ -69,19 +69,19 @@ export function BannerLembrete() {
   if (pendentes.length === 0) return null
 
   return (
-    <div className="border-b border-destaque/30 bg-destaque/10 px-3 py-2 sm:px-4 space-y-1">
+    <div className="border-b border-destaque/40 bg-destaque/10 px-3 py-2 sm:px-4 space-y-1">
       {pendentes.map((p) => {
         const restante = new Date(p.voting_closes_at).getTime() - agora
         return (
           <Link
             key={p.id}
             to={`/partida/${p.id}/votar`}
-            className="flex items-center justify-between text-xs"
+            className="flex items-center justify-between text-xs hover:opacity-80 transition"
           >
-            <span className="text-neutral-800 dark:text-neutral-200">
-              ⚡ Votação aberta — partida #{p.id}
+            <span className="font-display font-bold uppercase tracking-wider text-giz">
+              ⚡ Urna Aberta — Partida #{p.id}
             </span>
-            <span className="font-medium text-destaque">
+            <span className="font-mono text-[11px] font-bold text-destaque">
               fecha em {formatarRestante(restante)}
             </span>
           </Link>

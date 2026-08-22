@@ -19,10 +19,10 @@ export const STATUS_LABEL: Record<StatusPartida, string> = {
 };
 
 export const STATUS_COR: Record<StatusPartida, string> = {
-  draft: "text-neutral-500",
-  live: "text-amber-600 dark:text-amber-400",
-  published: "text-destaque",
-  closed: "text-green-600 dark:text-green-400",
+  draft: "text-giz-fraco",
+  live: "text-destaque font-bold",
+  published: "text-destaque font-bold",
+  closed: "text-ok font-bold",
 };
 
 export interface Partida {

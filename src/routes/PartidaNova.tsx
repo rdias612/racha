@@ -152,7 +152,7 @@ export function PartidaNova() {
   }
 
   return (
-    <div className="px-3 py-4 pb-40 sm:px-4 space-y-5 max-w-2xl mx-auto">
+    <div className="px-3 py-4 pb-40 sm:px-4 space-y-4 max-w-2xl mx-auto text-giz">
       <div>
         <button
           onClick={() => voltar(navigate, '/jogos')}
@@ -160,53 +160,58 @@ export function PartidaNova() {
         >
           ← voltar
         </button>
-        <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-          Nova partida
-        </h2>
+        <div className="sumula-header pb-2 flex items-baseline justify-between">
+          <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
+            Nova Partida da Súmula
+          </h2>
+          <span className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
+            Etapa 1 de 2
+          </span>
+        </div>
       </div>
 
       {/* Data */}
-      <div>
+      <div className="rounded-[4px] border border-borda bg-superficie p-3.5 shadow-carimbo space-y-3">
         <label className="block">
-          <span className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">
-            Data
+          <span className="block text-xs font-display font-bold uppercase tracking-wider text-giz-fraco mb-1">
+            Data do Jogo
           </span>
           <input
             type="date"
             value={dataJogo}
             onChange={(e) => setDataJogo(e.target.value)}
-            className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-destaque"
+            className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz font-mono shadow-xs focus:outline-none focus:border-destaque"
           />
         </label>
-      </div>
 
-      {/* Cards de cota */}
-      <div className="flex gap-3">
-        <div
-          className={`flex-1 rounded-lg border px-3 py-2 flex items-center justify-between transition ${
-            linhaSel >= LIMITE_LINHA
-              ? "border-green-500/30 bg-green-500/10 text-green-600 dark:text-green-400"
-              : "border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300"
-          }`}
-        >
-          <span className="text-sm font-medium">Linha</span>
-          <span className="text-sm font-semibold tabular-nums">
-            {linhaSel >= LIMITE_LINHA ? "✓ " : ""}
-            {linhaSel}/{LIMITE_LINHA}
-          </span>
-        </div>
-        <div
-          className={`flex-1 rounded-lg border px-3 py-2 flex items-center justify-between transition ${
-            goleiroSel >= LIMITE_GOLEIROS
-              ? "border-green-500/30 bg-green-500/10 text-green-600 dark:text-green-400"
-              : "border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300"
-          }`}
-        >
-          <span className="text-sm font-medium">Goleiros</span>
-          <span className="text-sm font-semibold tabular-nums">
-            {goleiroSel >= LIMITE_GOLEIROS ? "✓ " : ""}
-            {goleiroSel}/{LIMITE_GOLEIROS}
-          </span>
+        {/* Cards de cota com visual de selo postal */}
+        <div className="grid grid-cols-2 gap-2.5 pt-1">
+          <div
+            className={`rounded-[3px] border p-2.5 flex items-center justify-between transition ${
+              linhaSel >= LIMITE_LINHA
+                ? "border-ok/60 bg-ok/10 text-ok"
+                : "border-borda bg-superficie-2 text-giz-fraco"
+            }`}
+          >
+            <span className="text-xs font-display font-bold uppercase tracking-wider">Jogadores Linha</span>
+            <span className="font-mono text-xs font-bold tabular-nums">
+              {linhaSel >= LIMITE_LINHA ? "✓ " : ""}
+              {linhaSel}/{LIMITE_LINHA}
+            </span>
+          </div>
+          <div
+            className={`rounded-[3px] border p-2.5 flex items-center justify-between transition ${
+              goleiroSel >= LIMITE_GOLEIROS
+                ? "border-ok/60 bg-ok/10 text-ok"
+                : "border-borda bg-superficie-2 text-giz-fraco"
+            }`}
+          >
+            <span className="text-xs font-display font-bold uppercase tracking-wider">Goleiros</span>
+            <span className="font-mono text-xs font-bold tabular-nums">
+              {goleiroSel >= LIMITE_GOLEIROS ? "✓ " : ""}
+              {goleiroSel}/{LIMITE_GOLEIROS}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -216,15 +221,16 @@ export function PartidaNova() {
           type="text"
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
-          placeholder="Buscar jogador por nome..."
-          className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-green-500/50"
+          placeholder="Buscar jogador por nome ou apelido..."
+          className="w-full rounded-[4px] border border-borda bg-superficie px-3 py-2.5 text-sm text-giz placeholder-giz-fraco shadow-carimbo focus:outline-none focus:border-destaque"
         />
         {busca && (
           <button
             onClick={() => setBusca("")}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
+            aria-label="Limpar busca"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center absolute right-0 top-1/2 -translate-y-1/2 text-xs text-giz-fraco hover:text-giz"
           >
-            Limpar
+            ✕
           </button>
         )}
       </div>
@@ -257,17 +263,17 @@ export function PartidaNova() {
       />
 
       {jogadores.length < TOTAL_PARTICIPANTES && (
-        <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
-          Aviso: há apenas {jogadores.length} jogadores ativos. Uma partida
-          precisa de {TOTAL_PARTICIPANTES}.
+        <p className="text-xs font-mono text-destaque">
+          Aviso: há apenas {jogadores.length} jogadores ativos. Uma partida precisa de {TOTAL_PARTICIPANTES}.
         </p>
       )}
 
+      {/* Barra Fixa Inferior */}
       <div
-        className="fixed inset-x-0 z-40 p-3 bg-neutral-50/90 dark:bg-neutral-950/90 backdrop-blur border-t border-neutral-200 dark:border-neutral-800"
-        style={{ bottom: "calc(4rem + env(safe-area-inset-bottom))" }}
+        className="fixed inset-x-0 z-40 p-3 bg-superficie/95 backdrop-blur border-t border-borda shadow-carimbo-preto"
+        style={{ bottom: "calc(3.5rem + env(safe-area-inset-bottom))" }}
       >
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl mx-auto space-y-1">
           <button
             onClick={() =>
               navigate("/partida/nova/confirma", {
@@ -275,14 +281,13 @@ export function PartidaNova() {
               })
             }
             disabled={!podeRevisar}
-            className="w-full rounded-lg bg-destaque px-4 py-3 font-medium text-white disabled:opacity-40 active:scale-95 transition"
+            className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-40"
           >
-            Revisar escalação
+            Revisar escalação ({selecionados.length}/{TOTAL_PARTICIPANTES})
           </button>
           {!podeRevisar && (
-            <p className="mt-1 text-center text-xs text-neutral-500 dark:text-neutral-400">
-              Selecione {LIMITE_LINHA} jogadores de linha e{" "}
-              {LIMITE_GOLEIROS} goleiros.
+            <p className="text-center text-[10px] font-mono text-giz-fraco">
+              Selecione {LIMITE_LINHA} jogadores de linha e {LIMITE_GOLEIROS} goleiros para avançar.
             </p>
           )}
         </div>
@@ -317,13 +322,13 @@ function GrupoJogadores({
   const podeLimpar = selecionadosNoGrupo > 0;
 
   return (
-    <section>
-      <div className="flex items-center justify-between mb-2">
+    <section className="rounded-[4px] border border-borda bg-superficie overflow-hidden shadow-carimbo">
+      <div className="flex items-center justify-between px-3 py-2 bg-superficie-2 border-b border-borda">
         <div className="flex items-baseline gap-2">
-          <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+          <span className="text-xs font-display font-bold uppercase tracking-wider text-giz">
             {titulo}
           </span>
-          <span className="text-xs text-neutral-500 dark:text-neutral-400 tabular-nums">
+          <span className="text-[11px] font-mono text-giz-fraco tabular-nums">
             {mostrarCota
               ? `${selecionadosNoGrupo}/${LIMITE_GOLEIROS}`
               : `${selecionadosNoGrupo} selecionado${selecionadosNoGrupo === 1 ? "" : "s"}`}
@@ -333,15 +338,15 @@ function GrupoJogadores({
           type="button"
           onClick={() => onLimpar(idsDoGrupo)}
           disabled={!podeLimpar}
-          className="text-xs text-neutral-500 hover:text-red-500 dark:text-neutral-400 dark:hover:text-red-400 disabled:opacity-0 disabled:pointer-events-none transition"
+          className="text-xs font-mono text-giz-fraco hover:text-perigo disabled:opacity-0 disabled:pointer-events-none transition"
         >
           Limpar
         </button>
       </div>
 
-      <div className="rounded-lg border border-neutral-200 dark:border-neutral-800 divide-y divide-neutral-200 dark:divide-neutral-800 overflow-hidden">
+      <div className="divide-y divide-borda">
         {jogadores.length === 0 ? (
-          <p className="px-3 py-2 text-xs text-neutral-500">
+          <p className="px-3 py-3 text-xs font-mono text-giz-fraco text-center">
             Nenhum jogador nesta categoria.
           </p>
         ) : (
@@ -351,11 +356,11 @@ function GrupoJogadores({
             return (
               <div
                 key={j.id}
-                className={`flex items-center gap-2 px-3 bg-white dark:bg-neutral-900 ${
-                  bloqueado ? "opacity-40" : ""
+                className={`flex items-center justify-between gap-2 px-3 py-2 transition ${
+                  bloqueado ? "opacity-40 bg-superficie" : "bg-superficie hover:bg-superficie-2"
                 }`}
               >
-                <span className="flex-1 min-w-0 truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                <span className="flex-1 min-w-0 truncate text-sm font-bold text-giz">
                   {j.nome}
                 </span>
                 <div className="shrink-0">
@@ -370,13 +375,13 @@ function GrupoJogadores({
                         : `Escalar ${j.nome}`
                     }
                     title={bloqueado ? "Cota cheia" : undefined}
-                    className={`min-h-[44px] min-w-[7rem] px-3 rounded-lg border text-xs font-semibold transition active:scale-95 ${
+                    className={`min-h-[44px] min-w-[7rem] px-3 rounded-[3px] border font-display font-bold uppercase tracking-wider text-xs transition active:translate-y-px ${
                       selecionado
-                        ? "bg-destaque text-white border-destaque"
-                        : "border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300"
+                        ? "bg-destaque text-destaque-tinta border-destaque shadow-xs"
+                        : "border-borda bg-superficie-2 text-giz-fraco hover:text-giz hover:border-destaque/50"
                     } disabled:cursor-not-allowed`}
                   >
-                    {selecionado ? "✓ Selecionado" : "+ Escalar"}
+                    {selecionado ? "✓ Escalado" : "+ Escalar"}
                   </button>
                 </div>
               </div>

@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { CampoPartida } from "../components/CampoPartida";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { DialogoEvento } from "../components/DialogoEvento";
 import { Carregando, MensagemEstado } from "../components/Estado";
 import { useAdmin } from "../hooks/useAdmin";
-import { formatarDataMobile, formatarNome } from "../lib/formatacao";
+import { formatarDataMobile, formatarDataCompleta, formatarNome } from "../lib/formatacao";
+import { voltar } from "../lib/navegacao";
 import {
   abrirPartida,
   carregarEventos,
@@ -16,7 +17,6 @@ import {
   editarEvento,
   registrarEvento,
   removerEvento,
-  STATUS_COR,
   STATUS_LABEL,
   type EventoPartida,
   type Participante,
@@ -237,24 +237,42 @@ export function PartidaAoVivo() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-3 px-2 py-3 pb-36 sm:space-y-4 sm:px-4 sm:py-4 sm:pb-40">
-      <Link
-        to={`/partida/${partida.id}`}
-        className="inline-block cursor-pointer text-xs text-neutral-500 dark:text-neutral-400"
+    <div className="mx-auto max-w-2xl space-y-4 px-3 py-4 pb-36 sm:px-4 sm:pb-40 text-giz">
+      <button
+        type="button"
+        onClick={() => voltar(navigate, `/partida/${partida.id}`)}
+        className="text-xs font-mono text-giz-fraco hover:text-giz transition"
       >
         ← voltar
-      </Link>
+      </button>
 
-      <div>
-        <h2 className="text-base font-semibold text-neutral-900 sm:text-lg dark:text-neutral-100">
-          Partida #{partida.id}
-        </h2>
-        <p className="text-sm capitalize text-neutral-500 dark:text-neutral-400">
-          {formatarDataMobile(partida.data_jogo)}
-        </p>
-        <p className={`text-xs font-medium ${STATUS_COR[partida.status]}`}>
-          {STATUS_LABEL[partida.status]}
-        </p>
+      {/* Cabeçalho da Súmula */}
+      <div className="sumula-header pb-2 flex items-start justify-between">
+        <div>
+          <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
+            Partida #{partida.id}
+          </h2>
+          <p className="text-xs text-giz-fraco capitalize font-mono mt-0.5">
+            <span className="sm:hidden">{formatarDataMobile(partida.data_jogo)}</span>
+            <span className="hidden sm:inline">{formatarDataCompleta(partida.data_jogo)}</span>
+          </p>
+        </div>
+        <div className="text-right">
+          <span
+            className={`inline-block font-display font-black uppercase tracking-widest text-[10px] border px-2 py-0.5 rounded-[2px] shadow-xs ${
+              partida.status === "live"
+                ? "border-destaque text-destaque bg-destaque/10"
+                : "border-borda text-giz-fraco bg-superficie-2"
+            }`}
+          >
+            {STATUS_LABEL[partida.status]}
+          </span>
+          {aoVivo && (
+            <p className="text-[10px] font-mono text-destaque flex items-center justify-end gap-1 mt-1 animate-pulse">
+              <span className="size-1.5 rounded-full bg-destaque" /> AO VIVO
+            </p>
+          )}
+        </div>
       </div>
 
       {partida.status === "draft" && (
@@ -266,15 +284,14 @@ export function PartidaAoVivo() {
       )}
 
       {aoVivo && !isAdmin && (
-        <p className="text-xs text-neutral-500 dark:text-neutral-400">
-          Placar ao vivo. Só o admin registra os eventos.
+        <p className="text-xs font-mono text-giz-fraco">
+          Placar ao vivo da súmula. Registrado pelo administrador do racha.
         </p>
       )}
 
       {aoVivo && isAdmin && (
-        <p className="text-xs text-neutral-500 dark:text-neutral-400">
-          Toque em um jogador para lançar gol ou gol contra. Toque num evento
-          para editar.
+        <p className="text-xs font-mono text-giz-fraco">
+          Toque em um jogador no campo para lançar gol ou gol contra. Toque num evento para editar.
         </p>
       )}
 
@@ -292,30 +309,31 @@ export function PartidaAoVivo() {
         jogadorDestaqueId={alvo?.jogador_id}
       />
 
-      <section className="rounded-lg border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950">
-        <div className="border-b border-neutral-200 px-3 py-2 text-xs font-semibold text-neutral-700 dark:border-neutral-800 dark:text-neutral-300">
-          Eventos ({eventos.length})
+      <section className="rounded-[4px] border border-borda bg-superficie shadow-carimbo overflow-hidden">
+        <div className="border-b border-borda bg-superficie-2 px-3 py-2 text-xs font-display font-bold uppercase tracking-wider text-giz flex items-center justify-between">
+          <span>Eventos da Súmula</span>
+          <span className="font-mono text-destaque font-bold">({eventos.length})</span>
         </div>
         {eventos.length === 0 ? (
-          <p className="px-3 py-3 text-sm text-neutral-400">Nenhum evento ainda.</p>
+          <p className="px-3 py-4 text-xs font-mono text-giz-fraco text-center">Nenhum evento registrado ainda.</p>
         ) : (
-          <ul className="max-h-40 divide-y divide-neutral-200 overflow-y-auto dark:divide-neutral-800">
+          <ul className="max-h-48 divide-y divide-borda overflow-y-auto">
             {[...eventos].reverse().map((evento) => (
               <li
                 key={evento.id}
-                className="flex items-center gap-2 px-3 py-2 text-sm"
+                className="flex items-center justify-between gap-2 px-3 py-2 text-sm hover:bg-superficie-2 transition"
               >
                 <button
                   type="button"
                   disabled={!podeRegistrar}
                   onClick={() => podeRegistrar && abrirEdicao(evento)}
-                  className={`flex-1 cursor-pointer rounded-md py-1 text-left text-neutral-900 disabled:cursor-default dark:text-neutral-100`}
+                  className="flex-1 cursor-pointer py-1 text-left text-giz disabled:cursor-default"
                 >
                   {evento.tipo === "gol" ? (
-                    <>
+                    <span className="font-medium">
                       ⚽ {nomeDoJogador(participantes, evento.jogador_id)}
                       {evento.assistencia_jogador_id != null && (
-                        <span className="text-neutral-500 dark:text-neutral-400">
+                        <span className="text-giz-fraco text-xs font-mono">
                           {" "}
                           · 🅰️{" "}
                           {nomeDoJogador(
@@ -324,31 +342,31 @@ export function PartidaAoVivo() {
                           )}
                         </span>
                       )}
-                    </>
+                    </span>
                   ) : (
-                    <>
-                      <span className="text-red-600 dark:text-red-400">GC</span>{" "}
+                    <span className="font-medium">
+                      <span className="text-perigo font-bold font-mono">GC</span>{" "}
                       {nomeDoJogador(participantes, evento.jogador_id)}
-                    </>
+                    </span>
                   )}
                 </button>
                 {podeRegistrar && (
-                  <>
+                  <div className="flex items-center gap-1 shrink-0">
                     <button
                       type="button"
                       onClick={() => abrirEdicao(evento)}
-                      className="cursor-pointer rounded-md px-2 text-xs font-medium text-destaque"
+                      className="cursor-pointer rounded-[2px] border border-destaque/40 bg-destaque/10 px-2 py-1 text-[11px] font-display font-bold uppercase tracking-wider text-destaque hover:bg-destaque hover:text-destaque-tinta transition"
                     >
                       Editar
                     </button>
                     <button
                       type="button"
                       onClick={() => setEventoParaRemover(evento)}
-                      className="cursor-pointer rounded-md px-2 text-xs text-red-600 dark:text-red-400"
+                      className="cursor-pointer rounded-[2px] border border-perigo/40 bg-perigo/10 px-2 py-1 text-[11px] font-display font-bold uppercase tracking-wider text-perigo hover:bg-perigo hover:text-white transition"
                     >
                       Desfazer
                     </button>
-                  </>
+                  </div>
                 )}
               </li>
             ))}
@@ -360,17 +378,17 @@ export function PartidaAoVivo() {
 
       {isAdmin && partida.status === "draft" && (
         <div
-          className="fixed inset-x-0 z-40 border-t border-neutral-200 bg-neutral-50/90 p-3 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/90"
-          style={{ bottom: "calc(4rem + env(safe-area-inset-bottom))" }}
+          className="fixed inset-x-0 z-40 border-t border-borda bg-superficie/95 p-3 backdrop-blur shadow-carimbo-preto"
+          style={{ bottom: "calc(3.5rem + env(safe-area-inset-bottom))" }}
         >
           <div className="mx-auto max-w-2xl">
             <button
               type="button"
               onClick={confirmarAbrir}
               disabled={abrindo}
-              className="w-full cursor-pointer rounded-lg bg-destaque px-4 py-3 font-medium text-white active:scale-95 disabled:opacity-40"
+              className="w-full min-h-[44px] cursor-pointer rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-40"
             >
-              {abrindo ? "Abrindo…" : "Abrir partida"}
+              {abrindo ? "Abrindo partida…" : "Abrir partida ao vivo"}
             </button>
           </div>
         </div>
@@ -378,19 +396,19 @@ export function PartidaAoVivo() {
 
       {isAdmin && aoVivo && (
         <div
-          className="fixed inset-x-0 z-40 border-t border-neutral-200 bg-neutral-50/90 p-3 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/90"
-          style={{ bottom: "calc(4rem + env(safe-area-inset-bottom))" }}
+          className="fixed inset-x-0 z-40 border-t border-borda bg-superficie/95 p-3 backdrop-blur shadow-carimbo-preto"
+          style={{ bottom: "calc(3.5rem + env(safe-area-inset-bottom))" }}
         >
-          <div className="mx-auto max-w-2xl">
+          <div className="mx-auto max-w-2xl space-y-1">
             <button
               type="button"
               onClick={() => setConfirmandoFim(true)}
-              className="w-full cursor-pointer rounded-lg bg-destaque px-4 py-3 font-medium text-white active:scale-95"
+              className="w-full min-h-[44px] cursor-pointer rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition"
             >
-              Finalizar partida
+              Finalizar partida e abrir votação
             </button>
-            <p className="mt-1 text-center text-xs text-neutral-500 dark:text-neutral-400">
-              Grava o resultado e abre a votação por 24h.
+            <p className="text-center text-[10px] font-mono text-giz-fraco">
+              Grava o placar final e abre a urna de votação por 24 horas.
             </p>
           </div>
         </div>

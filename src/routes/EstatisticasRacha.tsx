@@ -147,21 +147,28 @@ export function EstatisticasRacha() {
   return (
     <PullToRefresh onRefresh={carregar}>
       <div
-        className="mx-auto w-full max-w-2xl space-y-6 px-3 py-4 pb-20 sm:px-4 touch-pan-y"
+        className="mx-auto w-full max-w-2xl space-y-4 px-3 py-4 pb-20 sm:px-4 touch-pan-y text-giz"
         {...swipeHandlers}
       >
-        <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-          Estatísticas · Racha
-        </h2>
+        {/* Cabeçalho da Súmula */}
+        <div className="sumula-header pb-2 flex items-baseline justify-between">
+          <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
+            Estatísticas do Racha
+          </h2>
+          <span className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
+            Oficial CBO
+          </span>
+        </div>
 
-        <div className="flex gap-1 overflow-x-auto rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 p-1">
+        {/* Abas */}
+        <div className="flex gap-1 overflow-x-auto rounded-[4px] border border-borda bg-superficie p-1 shadow-xs">
           <NavLink
             to="/estatisticas/jogador"
             className={({ isActive }) =>
-              `flex-1 min-w-max rounded-md px-3 py-1.5 text-center text-xs font-medium whitespace-nowrap ${
+              `flex-1 min-w-max rounded-[3px] px-3 py-1.5 text-center font-display font-bold uppercase tracking-wider text-xs whitespace-nowrap transition ${
                 isActive
-                  ? "bg-destaque text-white"
-                  : "text-neutral-600 dark:text-neutral-400"
+                  ? "bg-destaque text-destaque-tinta shadow-xs"
+                  : "text-giz-fraco hover:text-giz hover:bg-superficie-2"
               }`
             }
           >
@@ -170,10 +177,10 @@ export function EstatisticasRacha() {
           <NavLink
             to="/estatisticas/racha"
             className={({ isActive }) =>
-              `flex-1 min-w-max rounded-md px-3 py-1.5 text-center text-xs font-medium whitespace-nowrap ${
+              `flex-1 min-w-max rounded-[3px] px-3 py-1.5 text-center font-display font-bold uppercase tracking-wider text-xs whitespace-nowrap transition ${
                 isActive
-                  ? "bg-destaque text-white"
-                  : "text-neutral-600 dark:text-neutral-400"
+                  ? "bg-destaque text-destaque-tinta shadow-xs"
+                  : "text-giz-fraco hover:text-giz hover:bg-superficie-2"
               }`
             }
           >
@@ -181,19 +188,18 @@ export function EstatisticasRacha() {
           </NavLink>
         </div>
 
-        {/* Secao extensível: próximas estatísticas (sequências, coeficientes, etc.)
-            entram como novos <SecaoRacha titulo="...">. */}
+        {/* Seção de Duplas */}
         <SecaoRacha
-          titulo="Duplas"
+          titulo="Duplas & Parcerias"
           nota={`Consideramos apenas duplas com pelo menos ${MIN_PARTIDAS} partidas juntos.`}
         >
           {paresOrdenados.length === 0 ? (
             <MensagemEstado tipo="info">
-              Ainda não há duplas com {MIN_PARTIDAS}+ partidas.
+              Ainda não há duplas com {MIN_PARTIDAS}+ partidas nesta temporada.
             </MensagemEstado>
           ) : (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2.5">
                 <DuplaCard
                   titulo="Melhor dupla"
                   par={melhor}
@@ -207,8 +213,8 @@ export function EstatisticasRacha() {
               </div>
 
               <div>
-                <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                  Top 5
+                <p className="text-xs font-display font-bold uppercase tracking-wider text-giz-fraco mb-2">
+                  Top 5 Parcerias
                 </p>
                 <TabelaDuplas
                   pares={paresOrdenados.slice(0, 5)}
@@ -221,8 +227,8 @@ export function EstatisticasRacha() {
 
               {paresOrdenados.length > 5 && (
                 <div>
-                  <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                    Bottom 5
+                  <p className="text-xs font-display font-bold uppercase tracking-wider text-giz-fraco mb-2">
+                    Bottom 5 Parcerias
                   </p>
                   <TabelaDuplas
                     pares={paresOrdenados.slice(-5).reverse()}
@@ -259,13 +265,13 @@ function TabelaDuplas({
   function renderIndicador(coluna: ColunaOrdenacaoDuplas) {
     if (colunaOrdenacao !== coluna) {
       return (
-        <ArrowUpDown className="w-3 h-3 text-neutral-400 dark:text-neutral-500 opacity-40 group-hover:opacity-100 transition-opacity shrink-0" />
+        <ArrowUpDown className="size-3 text-giz-fraco opacity-40 group-hover:opacity-100 transition-opacity shrink-0" />
       );
     }
     return direcaoOrdenacao === "asc" ? (
-      <ArrowUp className="w-3 h-3 text-destaque shrink-0" />
+      <ArrowUp className="size-3 text-destaque shrink-0" />
     ) : (
-      <ArrowDown className="w-3 h-3 text-destaque shrink-0" />
+      <ArrowDown className="size-3 text-destaque shrink-0" />
     );
   }
 
@@ -303,10 +309,10 @@ function TabelaDuplas({
         <button
           type="button"
           onClick={() => onOrdenar(coluna)}
-          className={`group inline-flex items-center gap-1 font-bold uppercase transition-colors cursor-pointer select-none ${justifyClass} ${
+          className={`group inline-flex items-center gap-1 font-display font-bold uppercase tracking-wider text-xs transition cursor-pointer select-none ${justifyClass} ${
             ativa
-              ? "text-destaque font-extrabold"
-              : "text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100"
+              ? "text-destaque font-black"
+              : "text-giz-fraco hover:text-giz"
           }`}
           title={`Ordenar por ${label}`}
         >
@@ -318,9 +324,9 @@ function TabelaDuplas({
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900/60 shadow-xs">
+    <div className="overflow-x-auto rounded-[4px] border border-borda bg-superficie shadow-carimbo">
       <table className="w-full text-left text-xs">
-        <thead className="border-b border-neutral-200 bg-neutral-50/80 text-[10px] font-bold uppercase tracking-wider text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900/80 dark:text-neutral-400">
+        <thead className="border-b border-borda bg-superficie-2 text-[10px] font-display font-bold uppercase tracking-wider text-giz-fraco">
           <tr>
             <th scope="col" className="px-3 py-2 text-center w-8">
               #
@@ -332,16 +338,16 @@ function TabelaDuplas({
             {renderTh("percentual", "%", "right")}
           </tr>
         </thead>
-        <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800/80">
+        <tbody className="divide-y divide-borda">
           {pares.map((par, i) => (
             <tr
               key={`${par.jogador_a_id}-${par.jogador_b_id}`}
-              className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30 transition-colors"
+              className="hover:bg-superficie-2 transition"
             >
-              <td className="px-3 py-2.5 text-center font-medium text-neutral-400 dark:text-neutral-500 text-[11px]">
+              <td className="px-3 py-2.5 text-center font-mono text-xs font-bold text-giz-fraco">
                 {inicio + i}
               </td>
-              <td className="px-3 py-2.5 font-bold text-neutral-900 dark:text-neutral-100 whitespace-nowrap">
+              <td className="px-3 py-2.5 font-bold text-giz whitespace-nowrap">
                 <div className="flex items-center gap-2">
                   <div className="flex -space-x-1.5 shrink-0">
                     <Avatar nome={par.jogador_a_nome} size="xs" />
@@ -353,7 +359,7 @@ function TabelaDuplas({
                 </div>
               </td>
               <td
-                className={`px-3 py-2.5 text-center font-extrabold ${
+                className={`px-3 py-2.5 text-center font-mono text-xs font-bold tabular-nums ${
                   colunaOrdenacao === "pontos"
                     ? "text-destaque font-black"
                     : "text-destaque"
@@ -362,28 +368,28 @@ function TabelaDuplas({
                 {par.pontos}
               </td>
               <td
-                className={`px-3 py-2.5 text-center ${
+                className={`px-3 py-2.5 text-center font-mono text-xs tabular-nums ${
                   colunaOrdenacao === "partidas"
-                    ? "font-bold text-neutral-900 dark:text-neutral-100"
-                    : "text-neutral-600 dark:text-neutral-400"
+                    ? "font-bold text-giz"
+                    : "text-giz-fraco"
                 }`}
               >
                 {par.partidas}
               </td>
               <td
-                className={`px-3 py-2.5 text-center text-[11px] whitespace-nowrap ${
+                className={`px-3 py-2.5 text-center text-[11px] font-mono whitespace-nowrap ${
                   colunaOrdenacao === "vitorias"
-                    ? "font-bold text-neutral-900 dark:text-neutral-100"
-                    : "text-neutral-500 dark:text-neutral-400"
+                    ? "font-bold text-giz"
+                    : "text-giz-fraco"
                 }`}
               >
                 {par.vitorias}V {par.empates}E {par.derrotas}D
               </td>
               <td
-                className={`px-3 py-2.5 text-right font-semibold ${
+                className={`px-3 py-2.5 text-right font-mono text-xs tabular-nums font-semibold ${
                   colunaOrdenacao === "percentual"
                     ? "font-bold text-destaque"
-                    : "text-neutral-700 dark:text-neutral-300"
+                    : "text-giz"
                 }`}
               >
                 {par.percentual === null

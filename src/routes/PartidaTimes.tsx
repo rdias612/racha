@@ -161,7 +161,7 @@ export function PartidaTimes() {
       titulo={`Escalar times · Partida #${partidaId}`}
       subtitulo={
         partida?.data_jogo ? (
-          <p className="text-sm text-neutral-500 dark:text-neutral-400 capitalize mt-1">
+          <p className="text-sm text-giz-fraco font-mono capitalize mt-1">
             <span className="sm:hidden">{formatarDataMobile(partida.data_jogo)}</span>
             <span className="hidden sm:inline">
               {formatarDataCompleta(partida.data_jogo)}

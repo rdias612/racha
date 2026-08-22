@@ -13,7 +13,7 @@
 | **Qualidade de código** | Slop **3/10**. Base sólida (zero `any`, TS strict, lib bem desenhada), mas há **1 furo de segurança crítico** (senhas legíveis por qualquer anônimo), 3 violações de Rules of Hooks, escrita multi-tabela não transacional e sinais clássicos de geração descuidada (classes CSS alucinadas, `eslint-disable` num projeto sem ESLint). |
 | **UX mobile** | Base técnica excelente (safe areas, alvos 44px, anti-zoom iOS). Falha nos detalhes nativos: bug no pull-to-refresh, fluxo de votação sem progresso real nem rascunho, voltar morto em deep-links, offline cru. |
 | **Design** | Genérico por decisão acumulada: system-ui + neutral-* + amber-500 para tudo + 3 identidades convivendo (ícone azul, logo verde, botões âmbar). Direção recomendada: **"Súmula de Quinta"** (Preto/Branco + âmbar refletor, tipografia de placar, bordas duras). O P1 inteiro é CSS/ativos, zero lógica. |
-| **Novos requisitos** | O app já cobre mais do que parece (push existe!, sorteio equilibrado, presença/lista de espera, dívidas). Maiores lacunas de valor: cartão de resultado p/ WhatsApp, bolão de placar, records all-time, prêmios mensais, comparador cara-a-cara. |
+| **Novos requisitos** | O app já cobre mais do que parece (push existe!, sorteio equilibrado, presença/lista de espera, dívidas). Maiores lacunas de valor selecionadas: comparador cara-a-cara e cobrança de dívidas via WhatsApp. |
 
 **Correção importante de premissa:** `PLANO.md` virou ficção — diz "sem push" (há Web Push completo com VAPID + Edge Functions, migrations 036–045), status `draft|published|closed` (existe `live`), destaque azul (realidade é âmbar). Vale um ADDENDUM.md ou atualização.
 
@@ -199,9 +199,7 @@ A base técnica é muito boa para um PWA (safe areas, alvos de 44px globais, inp
 3. **Um único accent para tudo** — amber-500 literal (`#f59e0b`, `index.css:13`) pinta aba ativa (`Ranking.tsx:212`), botão primário (`Login.tsx:215`), badge admin (`Perfil.tsx:190`), stats (`Perfil.tsx:344`): quando tudo é destaque, nada é.
 4. **Iconografia híbrida sem regra** — emoji (`⭐` `PartidaDetalhe.tsx:220`, `⚽🅰️` :310–312, `🏆` `Ranking.tsx:396`) + lucide (`Layout.tsx:10–21`) + ASCII (`←` :171, `↑↓↕` `Ranking.tsx:371–374`, `✓⏳✗` :470–472).
 5. **Cabeçalhos idênticos e anônimos** — `text-lg font-semibold` em todas as telas (`Resumo.tsx:164`, `Jogos.tsx:103`, `Ranking.tsx:202`, `Perfil.tsx:173`, `PartidaDetalhe.tsx:176`).
-6. **Toggle sol/lua redondo** (`Layout.tsx:52–64`) — o clichê nº 1 de app gerado por IA.
-7. **Identidade dividida** — ícone do PWA ainda azul `#2563eb` (`index.html:10`, `public/icon.svg`), logo verde (`Logo.tsx:36`), botões âmbar — três marcas num app.
-8. **Microcopy neutra de sistema** ("Entre com seu usuário e senha", `Login.tsx:98`; `Perfil.tsx:221`) onde o domínio pede resenha.
+6. **Identidade dividida** — ícone do PWA ainda azul `#2563eb` (`index.html:10`, `public/icon.svg`), logo verde (`Logo.tsx:36`), botões âmbar — três marcas num app.
 
 ## A direção recomendada: **SÚMULA DE QUINTA**
 
@@ -319,27 +317,11 @@ Hoje: pills `rounded-full bg-destaque/10`, texto verde/vermelho soltos, `✓⏳�
   - Botão primário: `active:translate-y-[2px]` junto com a sombra-carimbo encolhendo — o botão "afunda no papel".
 - **Coerência com reduced-motion:** garantir animações novas em CSS (`@keyframes`) e confete checando `matchMedia('(prefers-reduced-motion: reduce)')`.
 
-## Tom de voz (microcopy PT-BR com humor de grupo)
+## Suporte a Dark/Light mode (com toggle)
 
-| Contexto | Hoje | Proposto |
-|---|---|---|
-| Erro de rede (`Login.tsx:78`) | "Erro ao conectar." | "A rede falhou — nem aqui nem no campo. Tenta de novo." |
-| Senha errada (`Login.tsx:83`) | "Usuário ou senha inválidos." | "Não bateu. Confere o usuário e tenta de novo." |
-| Vazio em Jogos (`Jogos.tsx:114–119`) | "Nenhuma partida ainda." | "Ainda não tem jogo na ficha. A quinta cobra o preço do esquecimento." / admin: "Cria a primeira partida e convoca a galera." |
-| Ranking vazio (`Ranking.tsx:301–303`) | "Nenhuma partida publicada ainda…" | "O ranking nasce no primeiro apito. Nada publicado ainda." |
-| Já votou (`PartidaDetalhe.tsx:415`) | "✓ Você já votou. Pode editar…" | "Seu voto tá garantido. Dá pra mudar até as urnas fecharem." |
-| Votação encerrada (`PartidaDetalhe.tsx:456`) | "Votação encerrada — aguardando resultado." | "As urnas fecharam. O craque está sendo apurado." |
-| Recusar presença (`PartidaDetalhe.tsx:525`) | "Não vou" | "Essa quinta não rola pra mim" |
-| Push indisponível (`Perfil.tsx:225`) | "Web Push não está disponível neste navegador." | "Seu navegador não quer saber dos lembretes." |
-| Sucesso ao salvar nome (`Perfil.tsx:102`) | "Nome alterado com sucesso!" | "Nome atualizado. Respeita a camisa nova." |
+O racha acontece à noite sob refletores — tema escuro é o cenário canônico e principal; o claro vira o derivado "papel de súmula", mantendo o seletor (toggle) acessível para alternância pelo usuário:
 
-**Manter** os acertos que já existem — "Maior seca de vitórias" (`Resumo.tsx:152`), "O que importa é participar" (:136), "Vou jogar" (`PartidaDetalhe.tsx:505`) — são exatamente essa voz; o trabalho é estendê-la aos estados genéricos.
-
-## Dark mode como tema principal? **Sim, sem toggle.**
-
-O racha acontece à noite sob refletores — tema escuro é o cenário canônico; o claro vira derivado "papel de súmula". Concretamente:
-
-1. Remover o botão sol/lua (`Layout.tsx:52–64`): seguir `prefers-color-scheme`, override manual opcional via localStorage depois.
+1. Manter o botão de toggle de tema (`Layout.tsx:52–64`), alinhando seu visual e ícones à nova identidade.
 2. `index.html:10` — trocar os dois `theme-color`: dark `#12100d`, light `#f3efe4`. Hoje ainda está `#2563eb` (o azul fantasma).
 3. Repintar `public/icon.svg` e `icon-maskable.svg`: fundo preto `#0d0d0e`, bola partida ao meio (giz/preta) ou monograma — mata a terceira identidade azul que hoje convive com verde e âmbar.
 
@@ -349,7 +331,7 @@ O racha acontece à noite sob refletores — tema escuro é o cenário canônico
 1. `src/index.css` — tokens + fontes + grain + sombras-carimbo. Manter nomes legados = ~74 usos redesenham de graça.
 2. `index.html` — `<link>` das 3 fontes Google + theme-color corrigidos.
 3. `public/icon.svg`, `icon-maskable.svg`, `manifest.webmanifest` — identidade única P&B+âmbar.
-4. `Layout.tsx` — wordmark tipográfico "RACHA GRAGOATÁ" empilhado estilo costas-de-camisa no header (substitui `Logo.tsx:57–63`), remove toggle, nav inferior ganha indicador de barra âmbar de 2px sobre a aba ativa.
+4. `Layout.tsx` — wordmark tipográfico "RACHA GRAGOATÁ" empilhado estilo costas-de-camisa no header (substitui `Logo.tsx:57–63`), toggle de tema integrado ao novo visual, nav inferior ganha indicador de barra âmbar de 2px sobre a aba ativa.
 5. `Logo.tsx` — escudo verde genérico sai; entra escudo partido verticalmente preto/giz com estrela âmbar (Preto vs Branco é a marca).
 6. `Avatar.tsx` — paleta terrosa + iniciais condensed + plaqueta de posição.
 7. `Estado.tsx` + `ConfirmDialog.tsx` — bordas duras, cantos 4px, sem sombras difusas.
@@ -364,7 +346,6 @@ O racha acontece à noite sob refletores — tema escuro é o cenário canônico
 **P3 — polimento:**
 13. `CampoPartida.tsx` — alinhar verdes do gramado ao token `--cor-campo`; chips com borda dura.
 14. `Perfil.tsx`, `Administrador.tsx` — StatBox com número display, dívidas em mono.
-15. Copy pass conforme tabela de microcopy.
 
 ## Cinco detalhes assinatura baratos
 
@@ -401,32 +382,16 @@ O racha acontece à noite sob refletores — tema escuro é o cenário canônico
 
 | # | Feature | O que é / por quê gruda | Esforço | Primeiro passo técnico |
 |---|---------|------------------------|---------|------------------------|
-| 1 | **Cartão do resultado p/ WhatsApp** | Imagem bonita (placar, craque, notas) gerada após fechar a votação, pronta pra colar no grupo. É o combustível do zoerinho — hoje alguém monta print na mão. | Baixo-médio | Componente `CartaoPartida.tsx` desenhando `<canvas>` nativo com `partida_placar` + `partida_notas`; botão em `PartidaDetalhe.tsx` chamando `navigator.share({files})` c/ fallback download |
-| 2 | **Bolão de placar** | Palpite antes da quinta; acerto exato 3 pts, vencedor 1 pt; ranking de palpiteiros. Gera discussão quarta à noite e rivalidade própria. | Médio | Tabela `bolao_palpites(partida_id, jogador_id, gols_a, gols_b)` UNIQUE(partida,jogador); RPC `registrar_palpite` validando janela **server-side** (padrão `registrar_votos`); pontos calculados ao publicar. UI: seção no `PartidaDetalhe` quando draft/live |
-| 3 | **Streak badges no Ranking 🔥🧊** | Fogo pra quem tá em sequência de vitórias, gelo pra quem tá na seca — atualizado a cada rodada. Custo mínimo, visibilidade máxima. | **Baixíssimo** | Sequências já calculadas no `resumo_ano` (031): extrair p/ RPC `sequencias_atuais(jogador_id)` ou computar no client; renderizar ícone na linha de `Ranking.tsx` |
-| 4 | **Hall de records ("Livro do Racha")** | Records ALL-TIME: maior goleada, jogo com mais gols, invencibilidade mais longa, jejum histórico, maior zerada… vira tópico fixo de discussão. | Baixo-médio | Nova seção `<SecaoRacha titulo="Records">` (componente já extensível — `EstatisticasRacha.tsx:184`) + RPC `records_geral` consultando `partida_placar`/`partidas_participantes` |
-| 5 | **Prêmios do mês (craque + zoeira)** | Craque do mês, Artilheiro do mês e o lendário **"Pior do mês"** (menor média, mín. 3 jogos) 🥇🥈🥉💩. Cadência mensal = briga constante; hoje só existe snapshot anual. | Baixo-médio | Generalizar `resumo_ano` → `resumo_periodo(p_ano, p_mes)` incluindo agregação de `partida_notas`; cards no Resumo com seletor de mês |
-| 6 | **Comparador cara-a-cara** | Dois jogadores lado a lado (gols, assists, notas, % vitórias) + confronto direto mesmo time vs times opostos. Combate de vizinho = conteúdo garantido. | Baixo | Dados já existem (`stats_jogador`, `parcerias_jogador`); RPC `confronto_direto(a,b)` somando vitórias mútuas em `partidas_participantes` + `partida_placar`; tela `/comparar` com dois dropdowns |
-| 7 | **Time da temporada (Seleção do Ano)** | 11 ideal pelas médias de nota do ano, estilo FIFA, com cartão compartilhável (sinergia c/ #1). Todo mundo quer saber se entrou. | Médio | RPC `time_temporada(p_ano)`: média de `avg_rating` por jogador no ano via `partida_notas` join `partidas` (published/closed), best-by-posição; render tipo escalação em campo |
-| 8 | **Dívida com idade + copiar cobrança** | "Devedor há X semanas" 🚨 ordenado por antiguidade + botão copiando mensagem formatada pro WhatsApp ("@fulano, pendência de R$180 desde 12/07 😅"). Zoeira com propósito: faz o dinheiro entrar. | **Baixo** | Adicionar coluna derivada na view `dividas_resumo` (`date_part('week', now()-min(data_divida))`); botão `navigator.clipboard.writeText` montando texto em `Administrador.tsx` |
-| 9 | **Elo/Poder do jogador** | Número único de "força" exibido no Perfil/Ranking; narrativa de evolução semanal — sobe na quarta à noite depois da votação. | Médio | Começar simples: `poder = 900 + media_nota*40 + vitorias*8 - derrotas*5` recalculado no fechamento da votação (hook no cron 015); coluna na view `ranking`; refinar p/ ELO real depois |
-| 10 | **Mural "Momentos da temporada"** | Admin cola link de foto/vídeo do WhatsApp + legenda ("gol do Tadeu de bicicleta"); galeria simples navegável. Preserva a história do grupo fora do scroll infinito do ZAP. | Médio | Sem storage novo: tabela `momentos(id, partida_id null, url text, descricao, data)` + insert via SQL/RPC simples; tela `/momentos` |
-
-## Ideias malucas mas baratas (uma tarde cada)
-
-1. **Narração automática no Ao Vivo:** cada gol lançado sorteia frase pré-definida ("GOOOOL DO RODRIGO! A quadra veio abaixo! 📢", "É o gol do título??"). Só array de strings + `Math.random()` no `DialogoEvento`/timeline de `PartidaAoVivo.tsx`. Zero schema.
-2. **"Nunca fui craque" 👻:** lista dos jogadores ativos que **nunca** foram craque (query trivial sobre `partida_notas.is_craque`). Pressão social pura. Nova seção no `EstatisticasRacha`.
-3. **Botão "copiar ranking" como texto:** transforma a tabela em texto emoji formatado (`🏆 Dico — 87 pts\n2️⃣ …`) pro clipboard. Admin cola no grupo sem digitar nada. ~20 linhas.
+| 1 | **Comparador cara-a-cara** | Dois jogadores lado a lado (gols, assists, notas, % vitórias) + confronto direto mesmo time vs times opostos. Combate de vizinho = conteúdo garantido. | Baixo | Dados já existem (`stats_jogador`, `parcerias_jogador`); RPC `confronto_direto(a,b)` somando vitórias mútuas em `partidas_participantes` + `partida_placar`; tela `/comparar` com dois dropdowns |
+| 2 | **Dívida com idade + copiar cobrança** | "Devedor há X semanas" 🚨 ordenado por antiguidade + botão copiando mensagem formatada pro WhatsApp ("@fulano, pendência de R$180 desde 12/07 😅"). Zoeira com propósito: faz o dinheiro entrar. | **Baixo** | Adicionar coluna derivada na view `dividas_resumo` (`date_part('week', now()-min(data_divida))`); botão `navigator.clipboard.writeText` montando texto em `Administrador.tsx` |
 
 ## Conflitos com restrições atuais
 
-- **Push**: a restrição "sem push" **já não vale** — pipeline completo existe (docs/notificacoes-push.md, migrations 036–045). Features novas (bolão aberto, resultado publicado, cobrança) devem **reusar esse pipeline** (cron/pg_net → Edge Function → `push_subscriptions`), com banner interno como fallback iOS.
-- **Confiança no client**: o Bolão (#2) cria incentivo real a trapaça (alterar palpite após o jogo) — precisa do **bloqueio server-side duplo** no padrão do `registrar_votos` (014): validar janela dentro da RPC, não só esconder o form.
-- **Anonimato dos votos**: é propriedade da UX, não do servidor. Comparador/Elo/Time da temporada devem consumir apenas `partida_notas` (agregados), **nunca** `votes` cru — manter essa fronteira nas views novas.
-- **Sem storage/RLS**: o Mural (#10) usa links de propósito — habilitar Storage + policies fere a postura "sem RLS/triggers" do PLANO.md e adiciona superfície de manutenção pro dev solo.
+- **Push**: a restrição "sem push" **já não vale** — pipeline completo existe (docs/notificacoes-push.md, migrations 036–045). Lembretes e notificações futuras devem **reusar esse pipeline** (cron/pg_net → Edge Function → `push_subscriptions`), com banner interno como fallback iOS.
+- **Anonimato dos votos**: é propriedade da UX, não do servidor. O Comparador deve consumir apenas `partida_notas` (agregados), **nunca** `votes` cru — manter essa fronteira nas views novas.
 - **pg_cron já carregado** (fecha votação, mensalidades, partida semanal): novos gatilhos seguem o padrão `unschedule-if-exists → schedule` das migrations 040/055/060.
 
-**Sequência sugerida:** #1 (cartão) → #3 (badges) → #8 (cobrança) num fim de semana; #2 (bolão) na semana seguinte; #4/#5/#6 conforme o grupo pedir.
+**Sequência sugerida:** #2 (cobrança de dívidas) → #1 (comparador cara-a-cara).
 
 ---
 
@@ -441,11 +406,10 @@ O racha acontece à noite sob refletores — tema escuro é o cenário canônico
 6. Fluxo de voto com progresso real + rascunho (item 2.2).
 
 **Fim de semana 2 — identidade visual (o que se vê)**
-7. P1 do design inteiro: tokens + fontes + ícones PWA + remover toggle + wordmark — muda a cara sem tocar em lógica.
+7. P1 do design inteiro: tokens + fontes + ícones PWA + toggle de tema estilizado + wordmark — muda a cara sem tocar em lógica.
 8. Quick wins de UX (lista da seção 2) aproveitando o mesmo commit de CSS.
 
 **Depois — valor contínuo**
-9. P2 visual (placar LED, pódio, mural de placares) + P3 polimento/copy.
-10. Streak badges + cartão WhatsApp + cobrança de dívida (maior risada por hora investida).
-11. Bolão de placar; demais features conforme o grupo pedir.
-12. Prettier + ESLint mínimos; ADDENDUM/atualização do PLANO.md.
+9. P2 visual (placar LED, pódio, mural de placares) + P3 polimento.
+10. Cobrança de dívidas formatada p/ WhatsApp + Comparador cara-a-cara.
+11. Prettier + ESLint mínimos; ADDENDUM/atualização do PLANO.md.

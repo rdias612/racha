@@ -137,8 +137,8 @@ export function PartidaNovaTimes() {
       titulo="Escolher times"
       subtitulo={
         dataHoraTexto ? (
-          <section className="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-3 mt-3">
-            <p className="text-sm text-neutral-700 dark:text-neutral-300 capitalize">
+          <section className="rounded-[4px] border border-borda bg-superficie p-3 mt-3 shadow-carimbo">
+            <p className="text-sm font-bold text-giz capitalize font-mono">
               {dataHoraTexto}
             </p>
           </section>

@@ -22,49 +22,47 @@ export function BotaoInstalar() {
   }
 
   return (
-    <section className="rounded-lg border border-destaque/30 bg-destaque/10 p-3">
-      <h3 className="text-xs font-semibold uppercase tracking-wide text-destaque">
-        📲 Instalar app
+    <section className="rounded-[4px] border border-destaque/40 bg-destaque/10 p-3.5 shadow-carimbo">
+      <h3 className="text-xs font-display font-bold uppercase tracking-wider text-destaque flex items-center gap-1.5">
+        <span>📲</span> Instalar App na Tela Inicial
       </h3>
 
       {!iosManual ? (
         <>
-          <p className="mt-1.5 text-xs text-neutral-600 dark:text-neutral-300">
-            Adicione o Racha à tela inicial para abrir como um app, sem a barra
-            do navegador.
+          <p className="mt-1.5 text-xs text-giz-fraco">
+            Adicione a Súmula de Quinta à tela inicial para acesso instantâneo em campo, sem barra do navegador.
           </p>
           <button
             onClick={handleClick}
             disabled={instalando}
-            className="mt-2.5 w-full rounded-lg bg-destaque px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50"
+            className="mt-3 w-full min-h-[44px] rounded-[3px] border border-destaque bg-destaque px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-50"
           >
-            {instalando ? "Instalando…" : "Instalar app"}
+            {instalando ? "Instalando…" : "Instalar Aplicativo"}
           </button>
         </>
       ) : (
         <>
-          <p className="mt-1.5 text-xs text-neutral-600 dark:text-neutral-300">
-            No iPhone, a instalação é feita pelo Safari:
+          <p className="mt-1.5 text-xs text-giz-fraco">
+            No iPhone / iPad, a instalação é feita pelo Safari:
           </p>
           <button
             onClick={() => setExpandido((v) => !v)}
-            className="mt-2 w-full rounded-lg border border-destaque/40 px-4 py-2 text-sm font-medium text-destaque"
+            className="mt-2.5 w-full min-h-[40px] rounded-[3px] border border-destaque/50 bg-superficie px-4 py-2 font-display font-bold uppercase tracking-wider text-xs text-destaque hover:bg-superficie-2 transition"
           >
-            {expandido ? "Ver passo a passo ▴" : "Ver passo a passo ▾"}
+            {expandido ? "Ocultar passo a passo ▴" : "Ver passo a passo ▾"}
           </button>
           {expandido && (
-            <ol className="mt-2.5 space-y-1.5 text-xs text-neutral-600 dark:text-neutral-300">
+            <ol className="mt-2.5 space-y-1.5 text-xs text-giz-fraco font-mono">
               <li>
-                <strong>1.</strong> Toque no botão <strong>Compartilhar</strong>{" "}
+                <strong className="text-giz">1.</strong> Toque no botão <strong className="text-giz">Compartilhar</strong>{" "}
                 <span aria-hidden="true">⎋</span> na barra do Safari.
               </li>
               <li>
-                <strong>2.</strong> Role e toque em{" "}
-                <strong>"Adicionar à Tela de Início"</strong>.
+                <strong className="text-giz">2.</strong> Role e toque em{" "}
+                <strong className="text-giz">"Adicionar à Tela de Início"</strong>.
               </li>
               <li>
-                <strong>3.</strong> Confirme. O ícone do Racha aparece na tela
-                inicial.
+                <strong className="text-giz">3.</strong> Confirme. O ícone da Súmula de Quinta aparecerá na sua tela.
               </li>
             </ol>
           )}

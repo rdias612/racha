@@ -17,15 +17,19 @@ import {
   ChevronDown,
   Users,
   WifiOff,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { useSessao } from "../context/SessaoContext";
 import { useAdmin } from "../hooks/useAdmin";
+import { useTema } from "../lib/tema";
 import { Logo } from "../components/Logo";
 import { BannerLembrete } from "../components/BannerLembrete";
 
 export function Layout() {
   const { jogador } = useSessao();
   const isAdmin = useAdmin();
+  const { tema, alternar: alternarTema } = useTema();
   const { pathname } = useLocation();
   const [menuAberto, setMenuAberto] = useState(false);
   const [isOffline, setIsOffline] = useState(() =>
@@ -76,6 +80,20 @@ export function Layout() {
           </Link>
 
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={alternarTema}
+              aria-label={tema === "dark" ? "Mudar para modo claro (papel de súmula)" : "Mudar para modo escuro (refletor)"}
+              title={tema === "dark" ? "Modo Claro" : "Modo Escuro"}
+              className="inline-flex min-h-[36px] min-w-[36px] items-center justify-center rounded-[4px] border border-borda bg-superficie p-2 text-giz shadow-carimbo hover:bg-superficie-2 hover:text-destaque transition active:translate-y-px"
+            >
+              {tema === "dark" ? (
+                <Sun className="size-4 text-destaque" />
+              ) : (
+                <Moon className="size-4 text-destaque" />
+              )}
+            </button>
+
             {isAdmin && (
               <div className="relative">
                 <button
