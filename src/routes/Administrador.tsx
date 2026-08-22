@@ -372,7 +372,9 @@ export function Administrador() {
           </span>
         </div>
 
-        {carregando ? (
+        {/* Recarregamentos pós-mutação mantêm a lista visível (sem flash de
+            skeleton); o Carregando só aparece no primeiro load da tela. */}
+        {carregando && grupos.length === 0 ? (
           <Carregando>Carregando dívidas…</Carregando>
         ) : grupos.length === 0 ? (
           <MensagemEstado tipo="info">

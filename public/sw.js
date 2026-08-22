@@ -1,8 +1,11 @@
 // Service Worker - Súmula de Quinta (Racha Gragoatá CBO)
-// Estratégias: Stale-While-Revalidate para API Supabase (GET) e NetworkFirst/CacheFirst para App Shell e Assets.
+// Estratégias: NetworkFirst com fallback offline para API Supabase (GET) e
+// NetworkFirst/CacheFirst para App Shell e Assets. O stale-while-revalidate de
+// dados vive apenas no hook useCache (memória) — no HTTP ele serviria resposta
+// atrasada após mutações (ex.: quitar dívidas e a lista não atualizar).
 
 const CACHE_STATIC = 'racha-static-v3';
-const CACHE_API = 'racha-api-v1';
+const CACHE_API = 'racha-api-v2';
 const OFFLINE_URL = '/offline.html';
 
 const ASSETS_PRECACHE = [
@@ -87,7 +90,8 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
 
   // 1. Requisições da API REST do Supabase (GET /rest/v1/...)
-  // Estratégia: Stale-While-Revalidate com fallback seguro offline
+  // Estratégia: NetworkFirst — online devolve sempre dado fresco (o cache HTTP
+  // é apenas reserva offline); sem rede, serve a última resposta conhecida.
   const isSupabaseGet =
     url.pathname.startsWith('/rest/v1/') ||
     (url.hostname.endsWith('.supabase.co') && url.pathname.includes('/rest/v1/'));
@@ -95,22 +99,17 @@ self.addEventListener('fetch', (event) => {
   if (isSupabaseGet) {
     event.respondWith(
       caches.open(CACHE_API).then(async (cache) => {
-        const cached = await cache.match(request);
-
-        const fetchPromise = fetch(request)
-          .then((networkResponse) => {
-            if (networkResponse && networkResponse.status === 200) {
-              cache.put(request, networkResponse.clone());
-            }
-            return networkResponse;
-          })
-          .catch((err) => {
-            if (cached) return cached;
-            throw err;
-          });
-
-        // Se já existe cache, retorna imediatamente (0ms / offline) enquanto revalida em background
-        return cached || fetchPromise;
+        try {
+          const networkResponse = await fetch(request);
+          if (networkResponse && networkResponse.status === 200) {
+            cache.put(request, networkResponse.clone());
+          }
+          return networkResponse;
+        } catch {
+          const cached = await cache.match(request);
+          if (cached) return cached;
+          throw new Error('Requisição indisponível offline');
+        }
       })
     );
     return;

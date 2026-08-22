@@ -30,3 +30,6 @@ dist-ssr
 
 # Vercel
 .vercel
+
+# Zcode
+.zcode
