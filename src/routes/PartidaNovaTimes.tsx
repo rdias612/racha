@@ -45,6 +45,17 @@ export function PartidaNovaTimes() {
       });
   }, []);
 
+  // Apenas os confirmados recebidos via state.
+  const jogadoresConfirmados = useMemo(
+    () =>
+      estado &&
+      Array.isArray(estado.jogadores) &&
+      Array.isArray(estado.selecionados)
+        ? estado.jogadores.filter((j) => estado.selecionados.includes(j.id))
+        : [],
+    [estado?.jogadores, estado?.selecionados],
+  );
+
   // Guard admin.
   if (!isAdmin) return <Navigate to="/" replace />;
 
@@ -59,12 +70,6 @@ export function PartidaNovaTimes() {
 
   const horaJogo = estado.horaJogo || "19:00";
   const { dataJogo } = estado;
-
-  // Apenas os 16 confirmados recebidos via state.
-  const jogadoresConfirmados = useMemo(
-    () => estado.jogadores.filter((j) => estado.selecionados.includes(j.id)),
-    [estado.jogadores, estado.selecionados]
-  );
 
   function autoEscalar() {
     setErro(null);

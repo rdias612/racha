@@ -18,17 +18,15 @@ export function PartidaConfirma() {
   const location = useLocation();
   const estado = location.state as EstadoPartida | null;
 
-  // Guard admin.
-  if (!isAdmin) return <Navigate to="/" replace />;
-
-  // Guard de state ausente (acesso direto/refresh): volta para a Etapa 1,
-  // que rehidrata do localStorage e devolve o usuário pra cá com state.
-  if (!estado || !Array.isArray(estado.selecionados)) {
-    return <Navigate to="/partida/nova" replace />;
-  }
-
   // Derivação dos jogadores selecionados agrupados por categoria.
   const grupos = useMemo(() => {
+    if (
+      !estado ||
+      !Array.isArray(estado.selecionados) ||
+      !Array.isArray(estado.jogadores)
+    ) {
+      return { mensalistas: [], avulsos: [], goleiros: [] };
+    }
     const selecionadosDetalhados = estado.jogadores.filter((j) =>
       estado.selecionados.includes(j.id),
     );
@@ -44,6 +42,19 @@ export function PartidaConfirma() {
       ),
     };
   }, [estado]);
+
+  // Guard admin.
+  if (!isAdmin) return <Navigate to="/" replace />;
+
+  // Guard de state ausente (acesso direto/refresh): volta para a Etapa 1,
+  // que rehidrata do localStorage e devolve o usuário pra cá com state.
+  if (
+    !estado ||
+    !Array.isArray(estado.selecionados) ||
+    !Array.isArray(estado.jogadores)
+  ) {
+    return <Navigate to="/partida/nova" replace />;
+  }
 
   const totalLinha = grupos.mensalistas.length + grupos.avulsos.length;
   const totalGoleiros = grupos.goleiros.length;

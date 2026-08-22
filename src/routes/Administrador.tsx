@@ -63,9 +63,8 @@ export function Administrador() {
   const [fDescricao, setFDescricao] = useState("");
   const [salvando, setSalvando] = useState(false);
 
-  if (!isAdmin) return <Navigate to="/" replace />;
-
   async function carregar() {
+    if (!isAdmin) return;
     setCarregando(true);
     setErro(null);
     try {
@@ -104,6 +103,8 @@ export function Administrador() {
     carregar();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  if (!isAdmin) return <Navigate to="/" replace />;
 
   async function handleQuitar(e: React.MouseEvent, dividaId: number, nome: string) {
     e.stopPropagation();
