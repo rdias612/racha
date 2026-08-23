@@ -4,6 +4,7 @@ import { Wallet, ChevronDown, Plus, Check, MessageSquare } from 'lucide-react';
 import { useAdmin } from '../hooks/useAdmin';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { PullToRefresh } from '../components/PullToRefresh';
 import { Snackbar, type TipoSnackbar } from '../components/Snackbar';
 import { formatarReais, formatarDataLista } from '../lib/formatacao';
 import { listarJogadoresAtivos, type JogadorLista } from '../lib/jogadores';
@@ -45,7 +46,6 @@ export function Administrador() {
   const [jogadores, setJogadores] = useState<JogadorLista[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
-  const [ok, setOk] = useState<string | null>(null);
   const [expandido, setExpandido] = useState<number | null>(null);
   const [snackbar, setSnackbar] = useState<{
     visivel: boolean;
@@ -58,6 +58,10 @@ export function Administrador() {
     mensagem: string;
     onConfirm: () => void;
   } | null>(null);
+
+  function mostrarSnackbar(tipo: TipoSnackbar, mensagem: string) {
+    setSnackbar({ visivel: true, tipo, mensagem });
+  }
 
   // formulário "adicionar dívida"
   const [fJogador, setFJogador] = useState('');
@@ -77,10 +81,10 @@ export function Administrador() {
         const [resumo, dividas, jogs] = await Promise.all([
           listarResumoDevedores(),
           listarDividasEmAberto(),
-          jogadores.length ? Promise.resolve(jogadores) : listarJogadoresAtivos(),
+          listarJogadoresAtivos(),
         ]);
         if (isAtivo && !isAtivo()) return;
-        if (!jogadores.length) setJogadores(jogs);
+        setJogadores(jogs);
 
         // A view `dividas_resumo` dita totais e ordem; os itens (drill-down) casam pelo jogador_id.
         const itensPorJogador = new Map<number, Divida[]>();
@@ -106,7 +110,7 @@ export function Administrador() {
         if (!isAtivo || isAtivo()) setCarregando(false);
       }
     },
-    [isAdmin, jogadores]
+    [isAdmin]
   );
 
   useEffect(() => {
@@ -127,12 +131,33 @@ export function Administrador() {
       mensagem: `Marcar a dívida de ${nome} como paga na súmula financeira?`,
       onConfirm: async () => {
         setConfirmacao(null);
+        const gruposAnteriores = grupos;
+
+        // Atualização Otimista: remove a dívida e atualiza total ou jogador
+        setGrupos((prev) =>
+          prev
+            .map((g) => {
+              const dividaAlvo = g.dividas.find((d) => d.id === dividaId);
+              if (!dividaAlvo) return g;
+              const novasDividas = g.dividas.filter((d) => d.id !== dividaId);
+              const novoTotal = Math.max(0, g.total_devido - Number(dividaAlvo.valor));
+              return {
+                ...g,
+                total_devido: novoTotal,
+                dividas: novasDividas,
+              };
+            })
+            .filter((g) => g.dividas.length > 0 && g.total_devido > 0)
+        );
+
+        mostrarSnackbar('sucesso', 'Dívida marcada como paga.');
+
         try {
           await quitarDivida(dividaId);
-          setOk('Dívida marcada como paga.');
           await carregar();
         } catch (e) {
-          setErro(e instanceof Error ? e.message : 'Erro ao quitar dívida.');
+          setGrupos(gruposAnteriores);
+          mostrarSnackbar('erro', e instanceof Error ? e.message : 'Erro ao quitar dívida.');
         }
       },
     });
@@ -146,12 +171,22 @@ export function Administrador() {
       mensagem: `Quitar TODAS as pendências em aberto de ${nome}?`,
       onConfirm: async () => {
         setConfirmacao(null);
+        const gruposAnteriores = grupos;
+
+        // Atualização Otimista: remove jogador devedor imediatamente
+        setGrupos((prev) => prev.filter((g) => g.jogador_id !== jogadorId));
+        if (expandido === jogadorId) {
+          setExpandido(null);
+        }
+
+        mostrarSnackbar('sucesso', `Dívidas de ${nome} quitadas.`);
+
         try {
           await quitarDividasJogador(jogadorId);
-          setOk(`Dívidas de ${nome} quitadas.`);
           await carregar();
         } catch (e) {
-          setErro(e instanceof Error ? e.message : 'Erro ao quitar dívidas.');
+          setGrupos(gruposAnteriores);
+          mostrarSnackbar('erro', e instanceof Error ? e.message : 'Erro ao quitar dívidas.');
         }
       },
     });
@@ -160,7 +195,6 @@ export function Administrador() {
   async function handleAdicionar(e: FormEvent) {
     e.preventDefault();
     setErro(null);
-    setOk(null);
 
     const valor = Number(fValor.replace(',', '.'));
     if (!fJogador) {
@@ -182,7 +216,7 @@ export function Administrador() {
         referencia: fReferencia ? fReferencia.trim() : undefined,
         descricao: fDescricao ? fDescricao.trim() : undefined,
       });
-      setOk('Dívida registrada com sucesso.');
+      mostrarSnackbar('sucesso', 'Dívida registrada com sucesso.');
       setFDescricao('');
       await carregar();
     } catch (e) {
@@ -207,18 +241,10 @@ export function Administrador() {
       navigator.clipboard
         .writeText(texto)
         .then(() => {
-          setSnackbar({
-            visivel: true,
-            tipo: 'sucesso',
-            mensagem: `Lembrete para ${g.nome} copiado com sucesso!`,
-          });
+          mostrarSnackbar('sucesso', `Lembrete para ${g.nome} copiado com sucesso!`);
         })
         .catch(() => {
-          setSnackbar({
-            visivel: true,
-            tipo: 'erro',
-            mensagem: 'Não foi possível copiar a mensagem.',
-          });
+          mostrarSnackbar('erro', 'Não foi possível copiar a mensagem.');
         });
     }
   }
@@ -226,38 +252,38 @@ export function Administrador() {
   const totalGeral = grupos.reduce((acc, g) => acc + g.total_devido, 0);
 
   return (
-    <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
-      <button
-        onClick={() => voltar(navigate, '/')}
-        className="text-xs font-mono text-giz-fraco hover:text-giz transition"
-      >
-        ← voltar
-      </button>
+    <PullToRefresh onRefresh={() => carregar()}>
+      <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
+        <button
+          onClick={() => voltar(navigate, '/')}
+          className="text-xs font-mono text-giz-fraco hover:text-giz transition"
+        >
+          ← voltar
+        </button>
 
-      {/* Cabeçalho da Súmula Financeira */}
-      <div className="flex items-center justify-between sumula-header pb-2">
-        <div className="flex items-center gap-2">
-          <Wallet className="size-5 text-destaque" />
-          <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
-            Controle Financeiro
-          </h2>
+        {/* Cabeçalho da Súmula Financeira */}
+        <div className="flex items-center justify-between sumula-header pb-2">
+          <div className="flex items-center gap-2">
+            <Wallet className="size-5 text-destaque" />
+            <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
+              Controle Financeiro
+            </h2>
+          </div>
+          <span className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
+            Súmula CBO
+          </span>
         </div>
-        <span className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
-          Súmula CBO
-        </span>
-      </div>
 
-      {erro && <MensagemEstado>{erro}</MensagemEstado>}
-      {ok && <MensagemEstado tipo="sucesso">{ok}</MensagemEstado>}
+        {erro && <MensagemEstado>{erro}</MensagemEstado>}
 
-      {/* Adicionar dívida */}
-      <form
-        onSubmit={handleAdicionar}
-        className="space-y-3 rounded-[4px] border border-borda bg-superficie p-3.5 shadow-carimbo"
-      >
-        <h3 className="font-display font-bold text-sm uppercase tracking-wider text-giz">
-          Adicionar Dívida / Mensalidade
-        </h3>
+        {/* Adicionar dívida */}
+        <form
+          onSubmit={handleAdicionar}
+          className="space-y-3 rounded-[4px] border border-borda bg-superficie p-3.5 shadow-carimbo"
+        >
+          <h3 className="font-display font-bold text-sm uppercase tracking-wider text-giz">
+            Adicionar Dívida / Mensalidade
+          </h3>
 
         <div className="grid grid-cols-2 gap-3">
           <label className="block col-span-2">
@@ -517,5 +543,6 @@ export function Administrador() {
         onFechar={() => setSnackbar((s) => ({ ...s, visivel: false }))}
       />
     </div>
+    </PullToRefresh>
   );
 }
