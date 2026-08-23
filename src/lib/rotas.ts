@@ -18,6 +18,7 @@ const carregarRanking = () => import('../routes/Ranking');
 const carregarPerfil = () => import('../routes/Perfil');
 const carregarEstatisticas = () => import('../routes/Estatisticas');
 const carregarEstatisticasRacha = () => import('../routes/EstatisticasRacha');
+const carregarComparador = () => import('../routes/Comparador');
 const carregarPartidaNova = () => import('../routes/PartidaNova');
 const carregarPartidaConfirma = () => import('../routes/PartidaConfirma');
 const carregarPartidaNovaTimes = () => import('../routes/PartidaNovaTimes');
@@ -42,6 +43,7 @@ export const Estatisticas = lazy(() =>
 export const EstatisticasRacha = lazy(() =>
   carregarEstatisticasRacha().then((m) => ({ default: m.EstatisticasRacha }))
 );
+export const Comparador = lazy(() => carregarComparador().then((m) => ({ default: m.Comparador })));
 export const PartidaNova = lazy(() =>
   carregarPartidaNova().then((m) => ({ default: m.PartidaNova }))
 );
@@ -94,6 +96,7 @@ const TABELA_PRE_CARREGAMENTO: Array<{
   { padrao: /^\/partida\/\d+\/editar/, carregar: carregarPartidaEditar },
   { padrao: /^\/partida\/\d+\/votar/, carregar: carregarPartidaVotar },
   { padrao: /^\/partida\/\d+/, carregar: carregarPartidaDetalhe },
+  { padrao: /^\/estatisticas\/comparar/, carregar: carregarComparador },
   { padrao: /^\/estatisticas\/racha/, carregar: carregarEstatisticasRacha },
   { padrao: /^\/estatisticas/, carregar: carregarEstatisticas },
   { padrao: /^\/ranking/, carregar: carregarRanking },

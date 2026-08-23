@@ -177,6 +177,88 @@ export function SkeletonEstatisticas() {
   );
 }
 
+export function SkeletonComparador() {
+  return (
+    <div
+      role="status"
+      aria-busy="true"
+      aria-label="Carregando confronto..."
+      className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-4 animate-pulse text-giz"
+    >
+      <span className="sr-only">Carregando confronto direto...</span>
+
+      {/* Header */}
+      <div className="sumula-header pb-2 flex justify-between items-baseline">
+        <div className="h-6 w-40 bg-superficie-2 border border-borda rounded-[3px]" />
+        <div className="h-3 w-24 bg-superficie-2 border border-borda rounded-[2px]" />
+      </div>
+
+      {/* Abas */}
+      <div className="flex gap-1 rounded-[4px] border border-borda bg-superficie p-1">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="flex-1 h-7 rounded-[3px] bg-superficie-2 border border-borda" />
+        ))}
+      </div>
+
+      {/* Card do Duelo (avatar A + swap + avatar B) */}
+      <div className="h-24 rounded-[4px] border border-borda bg-superficie p-3 shadow-carimbo flex items-center justify-between">
+        <div className="size-12 rounded-[3px] bg-superficie-2 border border-borda" />
+        <div className="size-11 rounded-[4px] bg-superficie-2 border border-borda" />
+        <div className="size-12 rounded-[3px] bg-superficie-2 border border-borda" />
+      </div>
+
+      {/* Seletores A/B */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-[4px] border border-borda bg-superficie p-3 shadow-carimbo">
+        <div className="h-[64px] rounded-[4px] bg-superficie-2 border border-borda" />
+        <div className="h-[64px] rounded-[4px] bg-superficie-2 border border-borda" />
+      </div>
+
+      {/* Métricas (lista contínua de 7 linhas valor | rótulo | valor + barra) */}
+      <div className="space-y-2">
+        <div className="h-3 w-36 bg-superficie-2 border border-borda rounded-[2px]" />
+        <div className="divide-y divide-borda/40 border-y border-borda">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <div key={i} className="py-2.5 px-1 space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <div className="w-12 h-5 bg-superficie-2 rounded-[2px]" />
+                <div className="flex-1 max-w-24 mx-auto h-2.5 bg-superficie-2 rounded-[2px]" />
+                <div className="w-12 h-5 bg-superficie-2 rounded-[2px]" />
+              </div>
+              <div className="h-1.5 rounded-[2px] bg-superficie-2 border border-borda" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Bloco Juntos */}
+      <div className="space-y-2">
+        <div className="h-3 w-48 bg-superficie-2 border border-borda rounded-[2px]" />
+        <div className="h-36 rounded-[4px] border border-borda bg-superficie p-3 shadow-carimbo" />
+      </div>
+
+      {/* Bloco Adversos */}
+      <div className="space-y-2">
+        <div className="h-3 w-40 bg-superficie-2 border border-borda rounded-[2px]" />
+        <div className="h-40 rounded-[4px] border border-borda bg-superficie p-3 shadow-carimbo" />
+      </div>
+
+      {/* Histórico (4 linhas) */}
+      <div className="space-y-2">
+        <div className="h-3 w-32 bg-superficie-2 border border-borda rounded-[2px]" />
+        <div className="divide-y divide-borda/40 border-y border-borda">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="min-h-[44px] px-1 flex items-center justify-between">
+              <div className="h-3.5 w-24 bg-superficie-2 rounded-[2px]" />
+              <div className="h-4 w-14 bg-superficie-2 rounded-[2px]" />
+              <div className="h-4 w-14 bg-superficie-2 rounded-[2px]" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function SkeletonPerfil() {
   return (
     <div

@@ -11,6 +11,7 @@ import {
   Perfil,
   Estatisticas,
   EstatisticasRacha,
+  Comparador,
   PartidaNova,
   PartidaConfirma,
   PartidaNovaTimes,
@@ -47,6 +48,7 @@ export function App() {
           <Route path="/estatisticas" element={<Navigate to="/estatisticas/jogador" replace />} />
           <Route path="/estatisticas/jogador" element={<Estatisticas />} />
           <Route path="/estatisticas/racha" element={<EstatisticasRacha />} />
+          <Route path="/estatisticas/comparar" element={<Comparador />} />
           <Route path="/partida/nova" element={<PartidaNova />} />
           <Route path="/partida/nova/confirma" element={<PartidaConfirma />} />
           <Route path="/partida/nova/times" element={<PartidaNovaTimes />} />

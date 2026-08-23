@@ -184,3 +184,119 @@ export async function obterMediasNotasJogadores(): Promise<Record<number, number
   }
   return medias;
 }
+
+// ---------------------------------------------------------------------------
+// Confronto direto (comparador cara-a-cara)
+// ---------------------------------------------------------------------------
+
+// Linha crua da RPC confronto_direto: numéricos do Postgres (bigint/numeric)
+// podem chegar como string dependendo do driver, por isso o union com string.
+interface LinhaConfrontoRow {
+  lado: string;
+  bloco: string;
+  partidas: number | string;
+  gols: number | string;
+  assistencias: number | string;
+  gols_contra: number | string;
+  vitorias: number | string;
+  empates: number | string;
+  derrotas: number | string;
+  media_nota: number | string | null;
+}
+
+// Agregado do confronto: produção e retrospecto de um atleta ('a' ou 'b') num
+// contexto — 'juntos' (mesmo time) ou 'adversos' (times opostos).
+// O consumer indexa por (lado, bloco), nunca pela ordem das linhas.
+export interface LinhaConfronto {
+  lado: 'a' | 'b';
+  bloco: 'juntos' | 'adversos';
+  partidas: number;
+  gols: number;
+  assistencias: number;
+  gols_contra: number;
+  vitorias: number;
+  empates: number;
+  derrotas: number;
+  media_nota: number | null;
+}
+
+interface PartidaConfrontoRow {
+  partida_id: number | string;
+  data_jogo: string;
+  relacao: string;
+  time_a: string;
+  gols_time_a: number | string;
+  gols_time_b: number | string;
+  vencedor: string;
+}
+
+// Uma partida compartilhada pelos dois atletas: placar sob a ótica do lado A
+// (time_a = time do jogador A naquela partida; vencedor 'a' | 'b' | 'empate').
+export interface PartidaConfronto {
+  partida_id: number;
+  data_jogo: string;
+  relacao: 'juntos' | 'adversos';
+  time_a: string;
+  gols_time_a: number;
+  gols_time_b: number;
+  vencedor: string;
+}
+
+// Retorno consolidado do comparador: agregados por contexto + histórico.
+export interface ComparativoConfronto {
+  linhas: LinhaConfronto[];
+  partidas: PartidaConfronto[];
+}
+
+// Comparação cara-a-cara entre dois atletas: agregados juntos/adversos via RPC
+// confronto_direto e últimas partidas compartilhadas via RPC confronto_direto_partidas
+// (agregação 100% no PostgreSQL, em duas chamadas paralelas).
+// Função pura de leitura: apenas consulta e lança erro (nunca seta estado —
+// requisito do useCache, AGENTS.md 5.5).
+export async function compararJogadores(
+  a: number,
+  b: number,
+  limite = 10
+): Promise<ComparativoConfronto> {
+  const [resLinhas, resPartidas] = await Promise.all([
+    supabase.rpc('confronto_direto', { p_jogador_a: a, p_jogador_b: b }),
+    supabase.rpc('confronto_direto_partidas', {
+      p_jogador_a: a,
+      p_jogador_b: b,
+      p_limite: limite,
+    }),
+  ]);
+
+  // Mensagens das RPCs já vêm em pt-BR; a rota aplica formatarMensagemErro.
+  if (resLinhas.error) throw resLinhas.error;
+  if (resPartidas.error) throw resPartidas.error;
+
+  const linhas: LinhaConfronto[] = ((resLinhas.data ?? []) as LinhaConfrontoRow[]).map((l) => ({
+    lado: l.lado as 'a' | 'b',
+    bloco: l.bloco as 'juntos' | 'adversos',
+    partidas: Number(l.partidas),
+    gols: Number(l.gols),
+    assistencias: Number(l.assistencias),
+    gols_contra: Number(l.gols_contra),
+    vitorias: Number(l.vitorias),
+    empates: Number(l.empates),
+    derrotas: Number(l.derrotas),
+    // numeric do Postgres pode vir como string; normaliza e arredonda p/ 2 casas
+    media_nota: l.media_nota == null ? null : Number(Number(l.media_nota).toFixed(2)),
+  }));
+
+  // A RPC já ordena por data_jogo DESC — mantém a ordem recebida.
+  const partidas: PartidaConfronto[] = ((resPartidas.data ?? []) as PartidaConfrontoRow[]).map(
+    (p) => ({
+      partida_id: Number(p.partida_id),
+      data_jogo: p.data_jogo,
+      relacao: p.relacao as 'juntos' | 'adversos',
+      time_a: p.time_a,
+      gols_time_a: Number(p.gols_time_a),
+      gols_time_b: Number(p.gols_time_b),
+      vencedor: p.vencedor,
+    })
+  );
+
+  return { linhas, partidas };
+}

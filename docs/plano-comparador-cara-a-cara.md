@@ -35,15 +35,15 @@ Requisitos não-funcionais: uma única ida ao banco por bloco de dados (agregaç
 
 ## 2. Decisões de Arquitetura
 
-| # | Decisão | Justificativa |
-| - | ------- | ------------- |
-| 1 | **Nova aba `/estatisticas/comparar`** (terceira aba ao lado de "Jogador" e "Racha"), e não rota solta `/comparar` | Reutiliza o padrão existente de abas com swipe (`useSwipeTabs`) e NavLink em `Estatisticas.tsx`/`EstatisticasRacha.tsx`; mantém a TabBar principal enxuta (5 itens, sem nova entrada); features de estatística vivem sob `/estatisticas/*`. O relatório sugeria "`/comparar` **ou** aba em `Estatisticas.tsx`" — a aba é a opção com menor custo de descoberta e navegação. |
-| 2 | **Agregação exclusivamente em 2 RPCs novas** (`confronto_direto` e `confronto_direto_partidas`) | Regra 7.5 do AGENTS.md: nunca baixar tabelas para agregar no client. Precedente: `parcerias_jogador` (030) e `parcerias_destaque_jogador` (042) resolvem problema análogo no servidor. |
-| 3 | **`RETURNS TABLE` com discriminador `lado`/`bloco`** (sem jsonb de retorno) | Todas as RPCs complexas do projeto retornam `TABLE` (003, 028, 030, 032, 042, 070). O padrão "UNION ALL com coluna discriminadora" já existe na 042 (`metrica`). |
-| 4 | **Duas funções em vez de uma** (agregados vs. lista de partidas) | Granularidades diferentes (5 linhas agregadas vs. N linhas de partidas) não cabem limpas numa única `TABLE`. O client consolida com `Promise.all` — mesmo padrão de `Estatisticas.tsx` hoje (view + 2 RPCs em paralelo). |
-| 5 | **Comparativo geral reaproveita fontes existentes** (`view stats_jogador` + RPC `obter_medias_notas_jogadores` da 070) | Zero SQL novo para o bloco "Números na Temporada". A RPC nova cobre apenas o que não existe: contexto juntos/adversários. |
-| 6 | **Estado via `useCache`** com chave `comparar:${idA}:${idB}` | Tela somente-leitura de aba (regra 5.5). Sem mutações, não há `invalidarCache`; `PullToRefresh` recebe `recarregar`. A chave inclui os dois ids (filtros que alteram a query fazem parte da chave). |
-| 7 | **`partida_placar` como fonte de vencedor e placar** | Mesma fonte das views `ranking`/`stats_jogador` — regra de gols contra já corrigida pelas migrations 061–064. |
+| #   | Decisão                                                                                                                | Justificativa                                                                                                                                                                                                                                                                                                                                                               |
+| --- | ---------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Nova aba `/estatisticas/comparar`** (terceira aba ao lado de "Jogador" e "Racha"), e não rota solta `/comparar`      | Reutiliza o padrão existente de abas com swipe (`useSwipeTabs`) e NavLink em `Estatisticas.tsx`/`EstatisticasRacha.tsx`; mantém a TabBar principal enxuta (5 itens, sem nova entrada); features de estatística vivem sob `/estatisticas/*`. O relatório sugeria "`/comparar` **ou** aba em `Estatisticas.tsx`" — a aba é a opção com menor custo de descoberta e navegação. |
+| 2   | **Agregação exclusivamente em 2 RPCs novas** (`confronto_direto` e `confronto_direto_partidas`)                        | Regra 7.5 do AGENTS.md: nunca baixar tabelas para agregar no client. Precedente: `parcerias_jogador` (030) e `parcerias_destaque_jogador` (042) resolvem problema análogo no servidor.                                                                                                                                                                                      |
+| 3   | **`RETURNS TABLE` com discriminador `lado`/`bloco`** (sem jsonb de retorno)                                            | Todas as RPCs complexas do projeto retornam `TABLE` (003, 028, 030, 032, 042, 070). O padrão "UNION ALL com coluna discriminadora" já existe na 042 (`metrica`).                                                                                                                                                                                                            |
+| 4   | **Duas funções em vez de uma** (agregados vs. lista de partidas)                                                       | Granularidades diferentes (5 linhas agregadas vs. N linhas de partidas) não cabem limpas numa única `TABLE`. O client consolida com `Promise.all` — mesmo padrão de `Estatisticas.tsx` hoje (view + 2 RPCs em paralelo).                                                                                                                                                    |
+| 5   | **Comparativo geral reaproveita fontes existentes** (`view stats_jogador` + RPC `obter_medias_notas_jogadores` da 070) | Zero SQL novo para o bloco "Números na Temporada". A RPC nova cobre apenas o que não existe: contexto juntos/adversários.                                                                                                                                                                                                                                                   |
+| 6   | **Estado via `useCache`** com chave `comparar:${idA}:${idB}`                                                           | Tela somente-leitura de aba (regra 5.5). Sem mutações, não há `invalidarCache`; `PullToRefresh` recebe `recarregar`. A chave inclui os dois ids (filtros que alteram a query fazem parte da chave).                                                                                                                                                                         |
+| 7   | **`partida_placar` como fonte de vencedor e placar**                                                                   | Mesma fonte das views `ranking`/`stats_jogador` — regra de gols contra já corrigida pelas migrations 061–064.                                                                                                                                                                                                                                                               |
 
 ---
 
@@ -161,7 +161,11 @@ export interface PartidaConfronto {
 }
 
 // Função pura: apenas consulta e lança erro (nunca seta estado) — requisito do useCache
-export async function compararJogadores(a: number, b: number, limite = 10): Promise<{
+export async function compararJogadores(
+  a: number,
+  b: number,
+  limite = 10
+): Promise<{
   linhas: LinhaConfronto[];
   partidas: PartidaConfronto[];
 }>;
@@ -218,32 +222,32 @@ Nova tela em `src/routes/Comparador.tsx`. **Tom de voz Nível 3** (estatísticas
 
 Checklist fechado de arquivos a tocar (todos os pontos de registro centralizado):
 
-| Arquivo | Mudança |
-| ------- | ------- |
-| `src/lib/rotas.ts` | `carregarComparador` + `export const Comparador = lazy(...)` + entrada `{ padrao: /^\/estatisticas\/comparar/, carregar: carregarComparador }` na `TABELA_PRE_CARREGAMENTO` **antes** de `/^\/estatisticas/` (ordem importa). Único lugar com `import()` de rotas (regra 6.7). |
-| `src/App.tsx` | `<Route path="/estatisticas/comparar" element={<Comparador />} />` dentro do `Layout`. |
-| `src/routes/Estatisticas.tsx` | + NavLink "Comparar"; `useSwipeTabs` passa a `['/estatisticas/jogador', '/estatisticas/racha', '/estatisticas/comparar']`. |
-| `src/routes/EstatisticasRacha.tsx` | Idem (mesma lista de abas, `activeTab: '/estatisticas/racha'`). |
-| `src/routes/Comparador.tsx` | Nova rota (etapa 3). |
-| `src/components/Skeletons.tsx` | + `SkeletonComparador` espelhando a anatomia da tela (header, abas, card do duelo, 2 seletores, ~6 linhas de métricas, blocos juntos/adversos, 4 linhas de histórico) para CLS = 0 (regra 5.4). |
-| `src/routes/Layout.tsx` | Entrada `{ padrao: /^\/estatisticas\/comparar/, Skeleton: SkeletonComparador }` no `SKELETONS_POR_ROTA` **antes** de `/^\/estatisticas/`. |
-| `supabase/aplicar_tudo.sql` | Espelhar as duas funções da migration 072 (regra 7.2). |
+| Arquivo                            | Mudança                                                                                                                                                                                                                                                                        |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `src/lib/rotas.ts`                 | `carregarComparador` + `export const Comparador = lazy(...)` + entrada `{ padrao: /^\/estatisticas\/comparar/, carregar: carregarComparador }` na `TABELA_PRE_CARREGAMENTO` **antes** de `/^\/estatisticas/` (ordem importa). Único lugar com `import()` de rotas (regra 6.7). |
+| `src/App.tsx`                      | `<Route path="/estatisticas/comparar" element={<Comparador />} />` dentro do `Layout`.                                                                                                                                                                                         |
+| `src/routes/Estatisticas.tsx`      | + NavLink "Comparar"; `useSwipeTabs` passa a `['/estatisticas/jogador', '/estatisticas/racha', '/estatisticas/comparar']`.                                                                                                                                                     |
+| `src/routes/EstatisticasRacha.tsx` | Idem (mesma lista de abas, `activeTab: '/estatisticas/racha'`).                                                                                                                                                                                                                |
+| `src/routes/Comparador.tsx`        | Nova rota (etapa 3).                                                                                                                                                                                                                                                           |
+| `src/components/Skeletons.tsx`     | + `SkeletonComparador` espelhando a anatomia da tela (header, abas, card do duelo, 2 seletores, ~6 linhas de métricas, blocos juntos/adversos, 4 linhas de histórico) para CLS = 0 (regra 5.4).                                                                                |
+| `src/routes/Layout.tsx`            | Entrada `{ padrao: /^\/estatisticas\/comparar/, Skeleton: SkeletonComparador }` no `SKELETONS_POR_ROTA` **antes** de `/^\/estatisticas/`.                                                                                                                                      |
+| `supabase/aplicar_tudo.sql`        | Espelhar as duas funções da migration 072 (regra 7.2).                                                                                                                                                                                                                         |
 
 ---
 
 ## 7. Casos extremos e empty states
 
-| Caso | Comportamento |
-| ---- | ------------- |
-| B não selecionado | Tela exibe seletores + `MensagemEstado tipo="info"` "Escolha dois atletas para abrir o confronto." Nenhuma RPC disparada. |
-| A = B | Bloqueado no `<select>` (opção desabilitada) **e** no servidor (`RAISE EXCEPTION`); `formatarMensagemErro` exibe a mensagem amigável. |
-| Nunca jogaram juntos | Bloco "juntos" oculto ou com empty state info: "Ainda não dividiram o mesmo time." |
-| Nunca se enfrentaram | Bloco "adversos" com empty state info: "Ainda não se enfrentaram em campos opostos." |
-| Nunca jogaram juntos **nem** adversários | Histórico substituído por empty state único: "Estes atletas ainda não se cruzaram em súmula nenhuma." |
-| Atleta sem partidas/votos | `stats_jogador` sem linha → zeros; `media_nota = null` → exibir "—" em mono. |
-| Random (`random\d*`) | Fora dos seletores (`listarTodosJogadores` filtra) e rejeitado pela RPC (regra 8.6). |
-| Deep-link direto em `/estatisticas/comparar` | Tela funcional sem histórico de navegação (não usa `navigate(-1)`; a volta é pelas abas/TabBar). |
-| Offline | `supabase.rpc` é POST (o SW cacheia apenas GETs): a tela depende do cache em memória do `useCache`; sem rede e sem cache → `MensagemEstado` de erro amigável. Documentar limitação, não mitigar. |
+| Caso                                         | Comportamento                                                                                                                                                                                    |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| B não selecionado                            | Tela exibe seletores + `MensagemEstado tipo="info"` "Escolha dois atletas para abrir o confronto." Nenhuma RPC disparada.                                                                        |
+| A = B                                        | Bloqueado no `<select>` (opção desabilitada) **e** no servidor (`RAISE EXCEPTION`); `formatarMensagemErro` exibe a mensagem amigável.                                                            |
+| Nunca jogaram juntos                         | Bloco "juntos" oculto ou com empty state info: "Ainda não dividiram o mesmo time."                                                                                                               |
+| Nunca se enfrentaram                         | Bloco "adversos" com empty state info: "Ainda não se enfrentaram em campos opostos."                                                                                                             |
+| Nunca jogaram juntos **nem** adversários     | Histórico substituído por empty state único: "Estes atletas ainda não se cruzaram em súmula nenhuma."                                                                                            |
+| Atleta sem partidas/votos                    | `stats_jogador` sem linha → zeros; `media_nota = null` → exibir "—" em mono.                                                                                                                     |
+| Random (`random\d*`)                         | Fora dos seletores (`listarTodosJogadores` filtra) e rejeitado pela RPC (regra 8.6).                                                                                                             |
+| Deep-link direto em `/estatisticas/comparar` | Tela funcional sem histórico de navegação (não usa `navigate(-1)`; a volta é pelas abas/TabBar).                                                                                                 |
+| Offline                                      | `supabase.rpc` é POST (o SW cacheia apenas GETs): a tela depende do cache em memória do `useCache`; sem rede e sem cache → `MensagemEstado` de erro amigável. Documentar limitação, não mitigar. |
 
 ---
 

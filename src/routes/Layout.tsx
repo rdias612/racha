@@ -21,6 +21,7 @@ import { Logo } from '../components/Logo';
 import { BannerLembrete } from '../components/BannerLembrete';
 import {
   CarregandoGeral,
+  SkeletonComparador,
   SkeletonDetalhe,
   SkeletonEstatisticas,
   SkeletonGestao,
@@ -41,6 +42,7 @@ const SKELETONS_POR_ROTA: Array<{ padrao: RegExp; Skeleton: ComponentType }> = [
   { padrao: /^\/$/, Skeleton: SkeletonResumo },
   { padrao: /^\/jogos/, Skeleton: SkeletonJogos },
   { padrao: /^\/ranking/, Skeleton: SkeletonRanking },
+  { padrao: /^\/estatisticas\/comparar/, Skeleton: SkeletonComparador },
   { padrao: /^\/estatisticas/, Skeleton: SkeletonEstatisticas },
   { padrao: /^\/perfil/, Skeleton: SkeletonPerfil },
   { padrao: /^\/partida\/\d+\/?$/, Skeleton: SkeletonDetalhe },

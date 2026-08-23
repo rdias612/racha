@@ -75,7 +75,7 @@ export function EstatisticasRacha() {
   const [direcaoOrdenacao, setDirecaoOrdenacao] = useState<DirecaoOrdenacao>('desc');
 
   const { handlers: swipeHandlers } = useSwipeTabs({
-    tabs: ['/estatisticas/jogador', '/estatisticas/racha'],
+    tabs: ['/estatisticas/jogador', '/estatisticas/racha', '/estatisticas/comparar'],
     activeTab: '/estatisticas/racha',
   });
 
@@ -167,6 +167,18 @@ export function EstatisticasRacha() {
             }
           >
             Racha
+          </NavLink>
+          <NavLink
+            to="/estatisticas/comparar"
+            className={({ isActive }) =>
+              `flex-1 min-w-max rounded-[3px] px-3 py-1.5 text-center font-display font-bold uppercase tracking-wider text-xs whitespace-nowrap transition ${
+                isActive
+                  ? 'bg-destaque text-destaque-tinta shadow-xs'
+                  : 'text-giz-fraco hover:text-giz hover:bg-superficie-2'
+              }`
+            }
+          >
+            Comparar
           </NavLink>
         </div>
 

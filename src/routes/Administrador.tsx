@@ -285,264 +285,264 @@ export function Administrador() {
             Adicionar Dívida / Mensalidade
           </h3>
 
-        <div className="grid grid-cols-2 gap-3">
-          <label className="block col-span-2">
-            <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
-              Jogador
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block col-span-2">
+              <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
+                Jogador
+              </span>
+              <select
+                value={fJogador}
+                onChange={(e) => setFJogador(e.target.value)}
+                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz shadow-xs"
+              >
+                <option value="">Selecione…</option>
+                {jogadores.map((j) => (
+                  <option key={j.id} value={j.id}>
+                    {j.nome}
+                    {j.is_mensalista ? ' (mensalista)' : ''}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block">
+              <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
+                Tipo
+              </span>
+              <select
+                value={fTipo}
+                onChange={(e) => setFTipo(e.target.value as TipoDivida)}
+                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz shadow-xs"
+              >
+                {TIPOS_DIVIDA.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block">
+              <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
+                Valor (R$)
+              </span>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                inputMode="decimal"
+                value={fValor}
+                onChange={(e) => setFValor(e.target.value)}
+                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz font-mono shadow-xs"
+                required
+              />
+            </label>
+
+            <label className="block">
+              <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
+                Data
+              </span>
+              <input
+                type="date"
+                value={fData}
+                onChange={(e) => setFData(e.target.value)}
+                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz font-mono shadow-xs"
+              />
+            </label>
+
+            <label className="block">
+              <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
+                Referência {fTipo === 'mensalidade' ? '(mês)' : '(opcional)'}
+              </span>
+              <input
+                type="text"
+                value={fReferencia}
+                onChange={(e) => setFReferencia(e.target.value)}
+                placeholder="ex.: 2026-08"
+                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz font-mono shadow-xs"
+              />
+            </label>
+
+            <label className="block col-span-2">
+              <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
+                Descrição (opcional)
+              </span>
+              <input
+                type="text"
+                value={fDescricao}
+                onChange={(e) => setFDescricao(e.target.value)}
+                placeholder="ex.: Mensalidade Agosto/2026"
+                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz shadow-xs"
+              />
+            </label>
+          </div>
+
+          <button
+            type="submit"
+            disabled={salvando}
+            className="w-full min-h-[44px] flex items-center justify-center gap-1.5 rounded-[4px] border border-destaque bg-destaque px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo transition active:translate-y-px disabled:opacity-50"
+          >
+            <Plus className="size-4" />
+            {salvando ? 'Adicionando…' : 'Adicionar dívida'}
+          </button>
+        </form>
+
+        {/* Dívidas em aberto */}
+        <div className="space-y-3">
+          <div className="flex items-baseline justify-between sumula-header pb-1.5">
+            <h3 className="font-display font-bold text-sm uppercase tracking-wider text-giz">
+              Dívidas em aberto
+            </h3>
+            <span className="font-mono text-base font-bold text-destaque tabular-nums">
+              {formatarReais(totalGeral)}
             </span>
-            <select
-              value={fJogador}
-              onChange={(e) => setFJogador(e.target.value)}
-              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz shadow-xs"
-            >
-              <option value="">Selecione…</option>
-              {jogadores.map((j) => (
-                <option key={j.id} value={j.id}>
-                  {j.nome}
-                  {j.is_mensalista ? ' (mensalista)' : ''}
-                </option>
-              ))}
-            </select>
-          </label>
+          </div>
 
-          <label className="block">
-            <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
-              Tipo
-            </span>
-            <select
-              value={fTipo}
-              onChange={(e) => setFTipo(e.target.value as TipoDivida)}
-              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz shadow-xs"
-            >
-              {TIPOS_DIVIDA.map((t) => (
-                <option key={t.value} value={t.value}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
-              Valor (R$)
-            </span>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              inputMode="decimal"
-              value={fValor}
-              onChange={(e) => setFValor(e.target.value)}
-              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz font-mono shadow-xs"
-              required
-            />
-          </label>
-
-          <label className="block">
-            <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
-              Data
-            </span>
-            <input
-              type="date"
-              value={fData}
-              onChange={(e) => setFData(e.target.value)}
-              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz font-mono shadow-xs"
-            />
-          </label>
-
-          <label className="block">
-            <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
-              Referência {fTipo === 'mensalidade' ? '(mês)' : '(opcional)'}
-            </span>
-            <input
-              type="text"
-              value={fReferencia}
-              onChange={(e) => setFReferencia(e.target.value)}
-              placeholder="ex.: 2026-08"
-              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz font-mono shadow-xs"
-            />
-          </label>
-
-          <label className="block col-span-2">
-            <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
-              Descrição (opcional)
-            </span>
-            <input
-              type="text"
-              value={fDescricao}
-              onChange={(e) => setFDescricao(e.target.value)}
-              placeholder="ex.: Mensalidade Agosto/2026"
-              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz shadow-xs"
-            />
-          </label>
-        </div>
-
-        <button
-          type="submit"
-          disabled={salvando}
-          className="w-full min-h-[44px] flex items-center justify-center gap-1.5 rounded-[4px] border border-destaque bg-destaque px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo transition active:translate-y-px disabled:opacity-50"
-        >
-          <Plus className="size-4" />
-          {salvando ? 'Adicionando…' : 'Adicionar dívida'}
-        </button>
-      </form>
-
-      {/* Dívidas em aberto */}
-      <div className="space-y-3">
-        <div className="flex items-baseline justify-between sumula-header pb-1.5">
-          <h3 className="font-display font-bold text-sm uppercase tracking-wider text-giz">
-            Dívidas em aberto
-          </h3>
-          <span className="font-mono text-base font-bold text-destaque tabular-nums">
-            {formatarReais(totalGeral)}
-          </span>
-        </div>
-
-        {/* Recarregamentos pós-mutação mantêm a lista visível (sem flash de
+          {/* Recarregamentos pós-mutação mantêm a lista visível (sem flash de
             skeleton); o Carregando só aparece no primeiro load da tela. */}
-        {carregando && grupos.length === 0 ? (
-          <Carregando>Carregando dívidas…</Carregando>
-        ) : grupos.length === 0 ? (
-          <MensagemEstado tipo="info">
-            Ninguém devendo 🎉 Todo mundo em dia com a quinta.
-          </MensagemEstado>
-        ) : (
-          <ul className="space-y-2">
-            {grupos.map((g) => {
-              const aberto = expandido === g.jogador_id;
-              return (
-                <li
-                  key={g.jogador_id}
-                  className="rounded-[4px] border border-borda bg-superficie overflow-hidden shadow-carimbo"
-                >
-                  {/* Cabeçalho do acordeão */}
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setExpandido(aberto ? null : g.jogador_id)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setExpandido(aberto ? null : g.jogador_id);
-                      }
-                    }}
-                    className="flex min-h-[44px] items-center gap-2 px-3 py-2 cursor-pointer hover:bg-superficie-2 transition"
+          {carregando && grupos.length === 0 ? (
+            <Carregando>Carregando dívidas…</Carregando>
+          ) : grupos.length === 0 ? (
+            <MensagemEstado tipo="info">
+              Ninguém devendo 🎉 Todo mundo em dia com a quinta.
+            </MensagemEstado>
+          ) : (
+            <ul className="space-y-2">
+              {grupos.map((g) => {
+                const aberto = expandido === g.jogador_id;
+                return (
+                  <li
+                    key={g.jogador_id}
+                    className="rounded-[4px] border border-borda bg-superficie overflow-hidden shadow-carimbo"
                   >
-                    <ChevronDown
-                      className={`size-4 shrink-0 text-destaque transition-transform ${
-                        aberto ? 'rotate-180' : ''
-                      }`}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className="truncate text-sm font-bold text-giz">{g.nome}</span>
-                        {g.is_mensalista && (
-                          <span className="shrink-0 rounded-[2px] border border-destaque/40 bg-destaque/15 px-1.5 py-0.5 text-[9px] font-display uppercase tracking-wider font-bold text-destaque">
-                            mensalista
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-xs font-mono text-giz-fraco">
-                        {g.dividas.length} {g.dividas.length === 1 ? 'dívida' : 'dívidas'}
-                      </span>
-                    </div>
-                    <span className="shrink-0 font-mono text-sm font-bold text-perigo tabular-nums">
-                      {formatarReais(g.total_devido)}
-                    </span>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <button
-                        type="button"
-                        onClick={(e) => copiarLembreteWhatsApp(e, g)}
-                        title="Copiar lembrete WhatsApp"
-                        aria-label={`Copiar cobrança de ${g.nome} para WhatsApp`}
-                        className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-[3px] border border-borda bg-superficie-2 p-2 text-giz-fraco hover:text-destaque hover:border-destaque/50 transition"
-                      >
-                        <MessageSquare className="size-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(e) => handleQuitarTodas(e, g.jogador_id, g.nome)}
-                        title="Quitar todas"
-                        className="min-h-[44px] rounded-[3px] border border-borda bg-superficie-2 px-2.5 py-1 text-xs font-display uppercase tracking-wider font-semibold text-giz hover:border-destaque transition"
-                      >
-                        Quitar todas
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Itens (drill-down) */}
-                  {aberto && (
-                    <ul className="divide-y divide-borda border-t border-borda bg-fundo/40">
-                      {g.dividas.map((d) => (
-                        <li key={d.id} className="flex items-start gap-2 px-3 py-2.5">
-                          <div className="min-w-0 flex-1 space-y-1">
-                            <div className="flex flex-wrap items-center gap-1.5">
-                              <span
-                                className={`rounded-[2px] border px-1.5 py-0.5 text-[9px] font-display uppercase tracking-wider font-bold ${COR_TIPO[d.tipo]}`}
-                              >
-                                {TIPOS_DIVIDA.find((t) => t.value === d.tipo)?.label ?? d.tipo}
-                              </span>
-
-                              {d.referencia && (
-                                <span className="text-[11px] font-mono text-giz-fraco">
-                                  ref. {d.referencia}
-                                </span>
-                              )}
-                              <span className="text-[11px] font-mono text-giz-fraco">
-                                {formatarDataLista(d.data_divida)}
-                              </span>
-                            </div>
-                            {d.descricao && <p className="text-xs text-giz">{d.descricao}</p>}
-                            {d.partida_id && (
-                              <Link
-                                to={`/partida/${d.partida_id}`}
-                                className="inline-block text-[11px] font-mono text-destaque hover:underline"
-                              >
-                                ver partida →
-                              </Link>
-                            )}
-                          </div>
-                          <div className="flex shrink-0 flex-col items-end gap-1.5">
-                            <span className="font-mono text-sm font-bold text-giz tabular-nums">
-                              {formatarReais(Number(d.valor))}
+                    {/* Cabeçalho do acordeão */}
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setExpandido(aberto ? null : g.jogador_id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setExpandido(aberto ? null : g.jogador_id);
+                        }
+                      }}
+                      className="flex min-h-[44px] items-center gap-2 px-3 py-2 cursor-pointer hover:bg-superficie-2 transition"
+                    >
+                      <ChevronDown
+                        className={`size-4 shrink-0 text-destaque transition-transform ${
+                          aberto ? 'rotate-180' : ''
+                        }`}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="truncate text-sm font-bold text-giz">{g.nome}</span>
+                          {g.is_mensalista && (
+                            <span className="shrink-0 rounded-[2px] border border-destaque/40 bg-destaque/15 px-1.5 py-0.5 text-[9px] font-display uppercase tracking-wider font-bold text-destaque">
+                              mensalista
                             </span>
-                            <button
-                              type="button"
-                              onClick={(e) => handleQuitar(e, d.id, g.nome)}
-                              className="min-h-[44px] flex items-center gap-1 rounded-[3px] border border-ok bg-ok px-3 py-1.5 text-xs font-display uppercase tracking-wider font-bold text-white shadow-xs hover:brightness-110"
-                            >
-                              <Check className="size-3.5" />
-                              Pagar
-                            </button>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
+                          )}
+                        </div>
+                        <span className="text-xs font-mono text-giz-fraco">
+                          {g.dividas.length} {g.dividas.length === 1 ? 'dívida' : 'dívidas'}
+                        </span>
+                      </div>
+                      <span className="shrink-0 font-mono text-sm font-bold text-perigo tabular-nums">
+                        {formatarReais(g.total_devido)}
+                      </span>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={(e) => copiarLembreteWhatsApp(e, g)}
+                          title="Copiar lembrete WhatsApp"
+                          aria-label={`Copiar cobrança de ${g.nome} para WhatsApp`}
+                          className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-[3px] border border-borda bg-superficie-2 p-2 text-giz-fraco hover:text-destaque hover:border-destaque/50 transition"
+                        >
+                          <MessageSquare className="size-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => handleQuitarTodas(e, g.jogador_id, g.nome)}
+                          title="Quitar todas"
+                          className="min-h-[44px] rounded-[3px] border border-borda bg-superficie-2 px-2.5 py-1 text-xs font-display uppercase tracking-wider font-semibold text-giz hover:border-destaque transition"
+                        >
+                          Quitar todas
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Itens (drill-down) */}
+                    {aberto && (
+                      <ul className="divide-y divide-borda border-t border-borda bg-fundo/40">
+                        {g.dividas.map((d) => (
+                          <li key={d.id} className="flex items-start gap-2 px-3 py-2.5">
+                            <div className="min-w-0 flex-1 space-y-1">
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <span
+                                  className={`rounded-[2px] border px-1.5 py-0.5 text-[9px] font-display uppercase tracking-wider font-bold ${COR_TIPO[d.tipo]}`}
+                                >
+                                  {TIPOS_DIVIDA.find((t) => t.value === d.tipo)?.label ?? d.tipo}
+                                </span>
+
+                                {d.referencia && (
+                                  <span className="text-[11px] font-mono text-giz-fraco">
+                                    ref. {d.referencia}
+                                  </span>
+                                )}
+                                <span className="text-[11px] font-mono text-giz-fraco">
+                                  {formatarDataLista(d.data_divida)}
+                                </span>
+                              </div>
+                              {d.descricao && <p className="text-xs text-giz">{d.descricao}</p>}
+                              {d.partida_id && (
+                                <Link
+                                  to={`/partida/${d.partida_id}`}
+                                  className="inline-block text-[11px] font-mono text-destaque hover:underline"
+                                >
+                                  ver partida →
+                                </Link>
+                              )}
+                            </div>
+                            <div className="flex shrink-0 flex-col items-end gap-1.5">
+                              <span className="font-mono text-sm font-bold text-giz tabular-nums">
+                                {formatarReais(Number(d.valor))}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={(e) => handleQuitar(e, d.id, g.nome)}
+                                className="min-h-[44px] flex items-center gap-1 rounded-[3px] border border-ok bg-ok px-3 py-1.5 text-xs font-display uppercase tracking-wider font-bold text-white shadow-xs hover:brightness-110"
+                              >
+                                <Check className="size-3.5" />
+                                Pagar
+                              </button>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+
+        {confirmacao && (
+          <ConfirmDialog
+            open={confirmacao.open}
+            onClose={() => setConfirmacao(null)}
+            onConfirm={confirmacao.onConfirm}
+            titulo={confirmacao.titulo}
+            mensagem={confirmacao.mensagem}
+          />
         )}
-      </div>
 
-      {confirmacao && (
-        <ConfirmDialog
-          open={confirmacao.open}
-          onClose={() => setConfirmacao(null)}
-          onConfirm={confirmacao.onConfirm}
-          titulo={confirmacao.titulo}
-          mensagem={confirmacao.mensagem}
+        <Snackbar
+          mensagem={snackbar.mensagem}
+          tipo={snackbar.tipo}
+          visivel={snackbar.visivel}
+          onFechar={() => setSnackbar((s) => ({ ...s, visivel: false }))}
         />
-      )}
-
-      <Snackbar
-        mensagem={snackbar.mensagem}
-        tipo={snackbar.tipo}
-        visivel={snackbar.visivel}
-        onFechar={() => setSnackbar((s) => ({ ...s, visivel: false }))}
-      />
-    </div>
+      </div>
     </PullToRefresh>
   );
 }
