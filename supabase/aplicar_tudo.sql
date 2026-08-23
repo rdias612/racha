@@ -1342,8 +1342,8 @@ $$;
 
 GRANT EXECUTE ON FUNCTION parcerias_destaque_jogador(bigint, integer) TO anon, authenticated;
 
--- 049_update_resumo_ano_sequencias_atuais.sql
--- Atualiza resumo_ano(p_ano) para calcular sequencias de vitorias e secas considerando o momento atual (sequencia ativa) em vez da maior sequencia historica do ano.
+-- 049_update_resumo_ano_sequencias_atuais.sql / 073_resumo_ano_minimo_33_porcento.sql
+-- Atualiza resumo_ano(p_ano) para considerar somente jogadores com pelo menos 33% das partidas jogadas no ano.
 
 CREATE OR REPLACE FUNCTION resumo_ano(p_ano integer)
 RETURNS TABLE (
@@ -1401,7 +1401,15 @@ AS $$
     JOIN partidas_ano pa ON pa.id = p.id
     JOIN partida_placar pl ON pl.partida_id = pp.partida_id
     JOIN jogadores j ON j.id = pp.jogador_id
+    WHERE j.posicao <> 'random'
     GROUP BY pp.jogador_id, j.nome
+  ),
+  stats_elegiveis AS (
+    SELECT s.*
+    FROM stats s
+    CROSS JOIN total t
+    WHERE t.partidas > 0
+      AND (s.partidas::numeric / t.partidas) >= 0.33
   ),
   jogador_partidas AS (
     SELECT
@@ -1419,6 +1427,7 @@ AS $$
     JOIN partidas p ON p.id = pa.id
     JOIN partida_placar pl ON pl.partida_id = pp.partida_id
     JOIN jogadores j ON j.id = pp.jogador_id
+    WHERE j.posicao <> 'random'
   ),
   jogador_primeira_derrota AS (
     SELECT
@@ -1455,7 +1464,7 @@ AS $$
   maior_sequencia_vitorias AS (
     SELECT sv.jogador_id, sv.nome, sv.tamanho
     FROM sequencias_vitorias_atuais sv
-    JOIN stats s ON s.jogador_id = sv.jogador_id
+    JOIN stats_elegiveis s ON s.jogador_id = sv.jogador_id
     WHERE sv.tamanho > 0
     ORDER BY sv.tamanho DESC, s.partidas DESC, sv.nome ASC
     LIMIT 1
@@ -1463,30 +1472,28 @@ AS $$
   maior_seca_vitorias AS (
     SELECT sv.jogador_id, sv.nome, sv.tamanho
     FROM secas_vitorias_atuais sv
-    JOIN stats s ON s.jogador_id = sv.jogador_id
+    JOIN stats_elegiveis s ON s.jogador_id = sv.jogador_id
     WHERE sv.tamanho > 0
     ORDER BY sv.tamanho DESC, s.partidas DESC, sv.nome ASC
     LIMIT 1
   ),
   artilheiro AS (
-    SELECT s.* FROM stats s
+    SELECT s.* FROM stats_elegiveis s
     ORDER BY s.gols DESC, s.partidas DESC, s.nome ASC
     LIMIT 1
   ),
   maestro AS (
-    SELECT s.* FROM stats s
+    SELECT s.* FROM stats_elegiveis s
     ORDER BY s.assistencias DESC, s.partidas DESC, s.nome ASC
     LIMIT 1
   ),
   participante AS (
-    SELECT s.* FROM stats s
+    SELECT s.* FROM stats_elegiveis s
     ORDER BY s.partidas DESC, s.gols DESC, s.nome ASC
     LIMIT 1
   ),
   eficiente AS (
-    SELECT s.* FROM stats s
-    CROSS JOIN total t
-    WHERE s.partidas * 2 >= t.partidas
+    SELECT s.* FROM stats_elegiveis s
     ORDER BY s.vitorias::numeric / NULLIF(s.partidas, 0) DESC,
              s.partidas DESC, s.nome ASC
     LIMIT 1
