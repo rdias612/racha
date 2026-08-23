@@ -156,7 +156,7 @@ Antes de criar, estilizar ou refatorar qualquer componente, tela ou fluxo visual
 ### 4.2 Resumo dos Pilares Invioláveis de Interface
 
 1. **Padrão Estrutural (Listas Contínuas vs. Cards)**: O padrão visual primário para rankings, histórico de jogos e listas de presença é a **lista contínua minimalista** (`divide-y divide-borda/40 border-y border-borda`). Cards com `shadow-carimbo` e borda são reservados **apenas para destaques semânticos reais** (ex: Próxima Partida, Craque da Partida, Banners Push/Offline, Pódio).
-2. **Tokens Semânticos**: Proibido hardcodar hexadecimais ou cores Tailwind genéricas (`bg-blue-600`, `text-gray-900`) no JSX. Utilize exclusivamente os tokens semânticos (`bg-fundo`, `bg-superficie`, `bg-superficie-2`, `border-borda`, `text-giz`, `text-giz-fraco`, `bg-destaque`, `text-destaque-tinta`, `bg-ok`, `bg-perigo`, `bg-campo`, `bg-preto-time`, `bg-branco-time`).
+2. **Tokens Semânticos**: Proibido hardcodar hexadecimais ou cores Tailwind genéricas (`bg-blue-600`, `text-gray-900`) no JSX. Utilize exclusivamente os tokens semânticos (`bg-fundo`, `bg-superficie`, `bg-superficie-2`, `border-borda`, `text-giz`, `text-giz-fraco`, `bg-destaque`, `text-destaque`, `text-destaque-tinta`, `bg-ok`, `bg-perigo`, `bg-campo`, `bg-preto-time`, `bg-branco-time`).
 3. **Tríade Tipográfica Estrita**:
    - **`font-display` (`Barlow Condensed`)**: Títulos, nomes de jogadores, cabeçalhos de súmula, badges, crachás e botões (com `uppercase tracking-wider` ou `tracking-widest`).
    - **`font-sans` (`Archivo`)**: Corpo de texto, formulários, alertas, modais e descrições.

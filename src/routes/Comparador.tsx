@@ -57,6 +57,11 @@ const classeAba = ({ isActive }: { isActive: boolean }) =>
       : 'text-giz-fraco hover:text-giz hover:bg-superficie-2'
   }`;
 
+// Badge compacta neutra (relação do confronto e empate) — mesmo padrão das
+// badges de Estatisticas.tsx/Perfil.tsx.
+const classeBadgeNeutra =
+  'rounded-[2px] border border-borda bg-superficie-2 px-1.5 py-0.5 font-display text-[10px] font-bold uppercase tracking-wider text-giz-fraco';
+
 function aproveitamento(stats: StatsComparativo | null): number | null {
   if (!stats || stats.partidas <= 0) return null;
   return (stats.vitorias / stats.partidas) * 100;
@@ -75,6 +80,22 @@ interface MetricaComparativa {
 function exibirValorMetrica(metrica: MetricaComparativa, valor: number | null): string {
   if (metrica.exibir) return metrica.exibir(valor);
   return String(valor ?? 0);
+}
+
+/**
+ * Primeiro nome do atleta que levou a melhor no duelo, ou null quando não há
+ * vencedor (juntos/empate) ou quando o nome do lado não foi resolvido (fallback
+ * '—'): sem dono identificado, o troféu não renderiza — só o placar âmbar.
+ */
+function primeiroNomeVencedor(
+  vencedor: 'a' | 'b' | null,
+  nomeLadoA: string,
+  nomeLadoB: string
+): string | null {
+  if (vencedor === null) return null;
+  const nome = (vencedor === 'a' ? nomeLadoA : nomeLadoB).trim();
+  if (!nome || nome === '—') return null;
+  return nome.split(/\s+/)[0];
 }
 
 export function Comparador() {
@@ -418,7 +439,7 @@ export function Comparador() {
                       vencedor = p.vencedor === p.time_a ? 'a' : 'b';
                     }
                     const empate = p.relacao === 'adversos' && p.vencedor === 'empate';
-                    const nomeVencedor = (vencedor === 'a' ? nomeA : nomeB).split(' ')[0];
+                    const nomeVencedor = primeiroNomeVencedor(vencedor, nomeA, nomeB);
                     return (
                       <Link
                         key={p.partida_id}
@@ -441,21 +462,17 @@ export function Comparador() {
                           </span>
                         </span>
                         <span className="flex shrink-0 items-center gap-1">
-                          <span className="rounded-[2px] border border-borda bg-superficie-2 px-1.5 py-0.5 font-display text-[10px] font-bold uppercase tracking-wider text-giz-fraco">
+                          <span className={classeBadgeNeutra}>
                             {p.relacao === 'juntos' ? 'Juntos' : 'Rival'}
                           </span>
-                          {vencedor && (
+                          {nomeVencedor && (
                             <span className="inline-flex max-w-28 items-center gap-1 rounded-[2px] bg-destaque px-1.5 py-0.5 font-display text-[10px] font-bold uppercase tracking-wider text-destaque-tinta">
                               <Trophy className="size-3 shrink-0" aria-hidden="true" />
                               <span className="truncate">{nomeVencedor}</span>
                               <span className="sr-only">venceu o duelo</span>
                             </span>
                           )}
-                          {empate && (
-                            <span className="rounded-[2px] border border-borda bg-superficie-2 px-1.5 py-0.5 font-display text-[10px] font-bold uppercase tracking-wider text-giz-fraco">
-                              Empate
-                            </span>
-                          )}
+                          {empate && <span className={classeBadgeNeutra}>Empate</span>}
                         </span>
                       </Link>
                     );

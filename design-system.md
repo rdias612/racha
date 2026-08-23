@@ -79,22 +79,23 @@ Configurados nativamente via Tailwind v4 e variáveis CSS em `src/index.css`.
 
 ### 2.1 Paleta de Cores Semânticas
 
-| Token Tailwind                  | Variável CSS           | Modo Claro (`:root`)       | Modo Escuro (`.dark`) | Uso Semântico                       |
-| :------------------------------ | :--------------------- | :------------------------- | :-------------------- | :---------------------------------- |
-| `bg-fundo`                      | `--cor-fundo`          | `#f3efe4` (papel marfim)   | `#12100d` (noturno)   | Fundo global da aplicação           |
-| `bg-superficie`                 | `--cor-superficie`     | `#faf7ee`                  | `#1b1814`             | Blocos, cabeçalhos, diálogos        |
-| `bg-superficie-2`               | `--cor-superficie-2`   | `#ece7d8`                  | `#242019`             | Linhas alternadas, inputs, hover    |
-| `border-borda`                  | `--cor-borda`          | `#d8d2c0`                  | `#35302a`             | Bordas e divisórias sólidas         |
-| `text-giz`                      | `--cor-giz`            | `#1e1c18` (tinta escura)   | `#f2efe6` (giz claro) | Texto principal / títulos           |
-| `text-giz-fraco`                | `--cor-giz-fraco`      | `#6b6759`                  | `#a39f92`             | Metadados, labels, subtítulos       |
-| `bg-destaque` / `text-destaque` | `--cor-destaque`       | `#ffb300` (âmbar refletor) | `#ffb300`             | Ações primárias, 1º lugar, foco     |
-| `text-destaque-tinta`           | `--cor-destaque-tinta` | `#1a1200`                  | `#1a1200`             | Texto de alto contraste sobre âmbar |
-| `bg-ok` / `text-ok`             | `--cor-ok`             | `#58b368` (verde campo)    | `#58b368`             | Vitórias, confirmações, quitado     |
-| `bg-perigo` / `text-perigo`     | `--cor-perigo`         | `#e4572e` (laranja alerta) | `#e4572e`             | Derrotas, dívidas, exclusões        |
-| `bg-preto-time`                 | `--cor-preto-time`     | `#0d0d0e`                  | `#0d0d0e`             | Identidade do Time Preto            |
-| `bg-branco-time`                | `--cor-branco-time`    | `#f4f1e8`                  | `#f4f1e8`             | Identidade do Time Branco           |
-| `bg-campo`                      | `--cor-campo`          | `#dfe8dc`                  | `#16281c`             | Fundo do campo tático               |
-| `border-campo-linha`            | `--cor-campo-linha`    | `#b9cbb6`                  | `#2c4433`             | Linhas da prancheta tática          |
+| Token Tailwind                  | Variável CSS           | Modo Claro (`:root`)       | Modo Escuro (`.dark`) | Uso Semântico                                     |
+| :------------------------------ | :--------------------- | :------------------------- | :-------------------- | :------------------------------------------------ |
+| `bg-fundo`                      | `--cor-fundo`          | `#f3efe4` (papel marfim)   | `#12100d` (noturno)   | Fundo global da aplicação                         |
+| `bg-superficie`                 | `--cor-superficie`     | `#faf7ee`                  | `#1b1814`             | Blocos, cabeçalhos, diálogos                      |
+| `bg-superficie-2`               | `--cor-superficie-2`   | `#ece7d8`                  | `#242019`             | Linhas alternadas, inputs, hover                  |
+| `border-borda`                  | `--cor-borda`          | `#d8d2c0`                  | `#35302a`             | Bordas e divisórias sólidas                       |
+| `text-giz`                      | `--cor-giz`            | `#1e1c18` (tinta escura)   | `#f2efe6` (giz claro) | Texto principal / títulos                         |
+| `text-giz-fraco`                | `--cor-giz-fraco`      | `#6b6759`                  | `#a39f92`             | Metadados, labels, subtítulos                     |
+| `bg-destaque`                   | `--cor-destaque`       | `#ffb300` (âmbar refletor) | `#ffb300`             | Fundo de ações primárias, badges, abas ativas     |
+| `text-destaque` / `outline-destaque` | `--cor-destaque-texto` | `#92400e` (âmbar escuro)   | `#ffb300` (âmbar)     | Texto/números em destaque e foco visível (WCAG AA) |
+| `text-destaque-tinta`           | `--cor-destaque-tinta` | `#1a1200`                  | `#1a1200`             | Texto de alto contraste sobre `bg-destaque`       |
+| `bg-ok` / `text-ok`             | `--cor-ok`             | `#58b368` (verde campo)    | `#58b368`             | Vitórias, confirmações, quitado                   |
+| `bg-perigo` / `text-perigo`     | `--cor-perigo`         | `#e4572e` (laranja alerta) | `#e4572e`             | Derrotas, dívidas, exclusões                      |
+| `bg-preto-time`                 | `--cor-preto-time`     | `#0d0d0e`                  | `#0d0d0e`             | Identidade do Time Preto                          |
+| `bg-branco-time`                | `--cor-branco-time`    | `#f4f1e8`                  | `#f4f1e8`             | Identidade do Time Branco                         |
+| `bg-campo`                      | `--cor-campo`          | `#dfe8dc`                  | `#16281c`             | Fundo do campo tático                             |
+| `border-campo-linha`            | `--cor-campo-linha`    | `#b9cbb6`                  | `#2c4433`             | Linhas da prancheta tática                        |
 
 ### 2.2 Tipografia & Emparelhamento
 
@@ -273,7 +274,7 @@ Cards com borda e sombra são utilizados **apenas** quando houver necessidade se
 
 ### 4.2 Acessibilidade & Inclusão (a11y)
 
-- **Contraste de Cores:** Todos os pares de texto/fundo (giz sobre fundo, destaque-tinta sobre âmbar) atendem ao critério de contraste mínimo WCAG AA (>= 4.5:1).
+- **Contraste de Cores:** Todos os pares de texto/fundo atendem ao critério de contraste mínimo WCAG AA (≥ 4.5:1 para texto normal e ≥ 3:1 para foco/UI). O token de destaque é desacoplado entre fundo e texto: enquanto fundos e botões (`bg-destaque`) utilizam o âmbar refletor (`#ffb300`) com tinta escura (`text-destaque-tinta`: `#1a1200`), textos, números e foco visível (`text-destaque`, `outline-destaque`) utilizam `--cor-destaque-texto`, que resolve dinamicamente para âmbar escurecido (`#92400e`, contraste ≥ 5,8:1) no tema claro e para âmbar refletor (`#ffb300`, contraste ≥ 10,6:1) no tema escuro.
 - **Comunicação Multimodal:** Nunca use apenas cor para indicar status. Sempre acompanhe com ícones (`Check`, `Clock`, `AlertTriangle`, `X`) e texto legível por leitores de tela.
 - **Teclado & Leitores de Tela:** Todos os botões, abas e modais possuem marcação semântica (`aria-expanded`, `aria-selected`, `aria-current="page"`, `role="tab"`).
 

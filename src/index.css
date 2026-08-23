@@ -17,6 +17,7 @@
   --color-preto-time: var(--cor-preto-time);
   --color-branco-time: var(--cor-branco-time);
   --color-destaque: var(--cor-destaque);
+  --color-destaque-texto: var(--cor-destaque-texto);
   --color-destaque-tinta: var(--cor-destaque-tinta);
 
   --color-campo: var(--cor-campo);
@@ -38,6 +39,7 @@
   --cor-preto-time: #0d0d0e;
   --cor-branco-time: #f4f1e8;
   --cor-destaque: #ffb300;
+  --cor-destaque-texto: #92400e;
   --cor-destaque-tinta: #1a1200;
   --cor-campo: #dfe8dc;
   --cor-campo-linha: #b9cbb6;
@@ -57,6 +59,7 @@
   --cor-preto-time: #0d0d0e;
   --cor-branco-time: #f4f1e8;
   --cor-destaque: #ffb300;
+  --cor-destaque-texto: #ffb300;
   --cor-destaque-tinta: #1a1200;
   --cor-campo: #16281c;
   --cor-campo-linha: #2c4433;
@@ -133,7 +136,7 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid var(--cor-destaque);
+  outline: 2px solid var(--cor-destaque-texto);
   outline-offset: 2px;
 }
 
@@ -146,6 +149,14 @@ textarea:focus-visible {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+@utility text-destaque {
+  color: var(--cor-destaque-texto);
+}
+
+@utility outline-destaque {
+  outline-color: var(--cor-destaque-texto);
 }
 
 @utility no-scrollbar {

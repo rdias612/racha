@@ -23,6 +23,15 @@ Plataforma progressiva (PWA) para gerenciamento completo e engajamento da pelada
 
 ---
 
+## 📚 Documentação e Guias
+
+- **[`GUIA/`](./GUIA/)**: Manuais passo a passo de configuração de ambiente, execução local e migrações do Supabase.
+- **[`docs/`](./docs/)**: Planos técnicos, especificações de novas funcionalidades e documentação de evolução.
+- **[`AGENTS.md`](./AGENTS.md)**: Diretrizes canônicas de arquitetura, regras de negócio, banco de dados e padrões de desenvolvimento.
+- **[`design-system.md`](./design-system.md)**: Guia completo de UI/UX, tokens visuais e componentes ("Súmula de Quinta").
+
+---
+
 ## 📦 Como Rodar Localmente
 
 ### 1. Clonar e instalar dependências
@@ -50,15 +59,6 @@ npm run dev
 ```
 
 Acesse [http://localhost:5173](http://localhost:5173) no seu navegador.
-
----
-
-## 📚 Documentação e Guias
-
-- **[`GUIA/`](./GUIA/)**: Manuais passo a passo de configuração de ambiente, execução local e migrações do Supabase.
-- **[`docs/`](./docs/)**: Planos técnicos, especificações de novas funcionalidades e documentação de evolução.
-- **[`AGENTS.md`](./AGENTS.md)**: Diretrizes canônicas de arquitetura, regras de negócio, banco de dados e padrões de desenvolvimento.
-- **[`design-system.md`](./design-system.md)**: Guia completo de UI/UX, tokens visuais e componentes ("Súmula de Quinta").
 
 ---
 
