@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { ArrowLeftRight } from 'lucide-react';
+import { ArrowLeftRight, Trophy } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import {
   compararJogadores,
@@ -411,6 +411,14 @@ export function Comparador() {
                     const golsA = p.time_a === 'a' ? p.gols_time_a : p.gols_time_b;
                     const golsB = p.time_a === 'a' ? p.gols_time_b : p.gols_time_a;
                     const destino = `/partida/${p.partida_id}`;
+                    // Em times opostos, marca qual atleta levou a melhor no duelo
+                    // (vencedor é o time 'a'/'b' da partida; time_a é o lado de A).
+                    let vencedor: 'a' | 'b' | null = null;
+                    if (p.relacao === 'adversos' && p.vencedor !== 'empate') {
+                      vencedor = p.vencedor === p.time_a ? 'a' : 'b';
+                    }
+                    const empate = p.relacao === 'adversos' && p.vencedor === 'empate';
+                    const nomeVencedor = (vencedor === 'a' ? nomeA : nomeB).split(' ')[0];
                     return (
                       <Link
                         key={p.partida_id}
@@ -424,16 +432,30 @@ export function Comparador() {
                           {formatarDataLista(p.data_jogo)}
                         </span>
                         <span className="font-mono text-sm font-bold tabular-nums text-giz">
-                          {golsA} × {golsB}
+                          <span className={vencedor === 'a' ? 'text-destaque' : undefined}>
+                            {golsA}
+                          </span>
+                          {' × '}
+                          <span className={vencedor === 'b' ? 'text-destaque' : undefined}>
+                            {golsB}
+                          </span>
                         </span>
-                        <span
-                          className={`rounded-[2px] px-1.5 py-0.5 font-display text-[10px] font-bold uppercase tracking-wider ${
-                            p.relacao === 'juntos'
-                              ? 'border border-borda bg-superficie-2 text-giz-fraco'
-                              : 'bg-destaque text-destaque-tinta'
-                          }`}
-                        >
-                          {p.relacao === 'juntos' ? 'Juntos' : 'Rival'}
+                        <span className="flex shrink-0 items-center gap-1">
+                          <span className="rounded-[2px] border border-borda bg-superficie-2 px-1.5 py-0.5 font-display text-[10px] font-bold uppercase tracking-wider text-giz-fraco">
+                            {p.relacao === 'juntos' ? 'Juntos' : 'Rival'}
+                          </span>
+                          {vencedor && (
+                            <span className="inline-flex max-w-28 items-center gap-1 rounded-[2px] bg-destaque px-1.5 py-0.5 font-display text-[10px] font-bold uppercase tracking-wider text-destaque-tinta">
+                              <Trophy className="size-3 shrink-0" aria-hidden="true" />
+                              <span className="truncate">{nomeVencedor}</span>
+                              <span className="sr-only">venceu o duelo</span>
+                            </span>
+                          )}
+                          {empate && (
+                            <span className="rounded-[2px] border border-borda bg-superficie-2 px-1.5 py-0.5 font-display text-[10px] font-bold uppercase tracking-wider text-giz-fraco">
+                              Empate
+                            </span>
+                          )}
                         </span>
                       </Link>
                     );
