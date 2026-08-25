@@ -1,4 +1,4 @@
--- 078_eventos_financeiros_automaticos.sql
+-- 079_eventos_financeiros_automaticos.sql
 -- Eventos financeiros configuráveis (mensal / fim de partida).
 -- Substitui o INSERT hardcoded do cron de mensalidades e adiciona:
 --   - Despesa Campo R$1050 no dia 01 (caixa do racha)

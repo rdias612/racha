@@ -1,4 +1,4 @@
--- 077_dividas_natureza_despesa.sql
+-- 078_dividas_natureza_despesa.sql
 -- Controle financeiro: diferencia receita (racha a receber) de despesa
 -- (racha a pagar) e amplia os tipos de lançamento.
 --

@@ -2524,3 +2524,1669 @@ $$;
 
 GRANT EXECUTE ON FUNCTION alterar_username(bigint, text) TO anon, authenticated;
 
+-- 076_remover_coluna_nome_jogadores.sql
+-- Remove a coluna `nome` da tabela `jogadores` e unifica a identidade dos atletas exclusivamente em `username`.
+-- Recria views e RPCs dependentes de `nome`.
+
+-- 1. Recriação da view `partida_notas` sem a coluna `nome`
+DROP VIEW IF EXISTS partida_notas CASCADE;
+
+CREATE OR REPLACE VIEW partida_notas AS
+WITH raw_agg AS (
+  SELECT
+    v.partida_id,
+    v.target_id,
+    j.username,
+    CASE
+      WHEN COUNT(*) >= 3 THEN (SUM(v.rating) - MIN(v.rating) - MAX(v.rating))::numeric / (COUNT(*) - 2)
+      ELSE AVG(v.rating)::numeric
+    END                                                        AS avg_rating,
+    COUNT(*)::bigint                                           AS vote_count
+  FROM votes v
+  JOIN jogadores j ON j.id = v.target_id
+  GROUP BY v.partida_id, v.target_id, j.username
+),
+agg AS (
+  SELECT
+    partida_id,
+    target_id,
+    username,
+    avg_rating,
+    vote_count,
+    RANK() OVER (
+      PARTITION BY partida_id
+      ORDER BY avg_rating DESC, vote_count DESC, username ASC
+    )                                                          AS rk
+  FROM raw_agg
+)
+SELECT
+  partida_id,
+  target_id,
+  username,
+  avg_rating,
+  vote_count,
+  (rk = 1) AS is_craque
+FROM agg;
+
+GRANT SELECT ON partida_notas TO anon, authenticated;
+
+-- 2. Recriação da view `ranking` sem a coluna `nome`
+DROP VIEW IF EXISTS ranking CASCADE;
+
+CREATE OR REPLACE VIEW ranking AS
+SELECT
+  pp.jogador_id,
+  j.username,
+  (
+    COUNT(*) FILTER (
+      WHERE pl.vencedor = pp.time
+    ) * 3
+    +
+    COUNT(*) FILTER (
+      WHERE pl.vencedor = 'empate'
+    ) * 1
+  )                                                         AS pontos,
+  COUNT(*) FILTER (WHERE pl.vencedor = pp.time)             AS vitorias,
+  COUNT(*) FILTER (WHERE pl.vencedor = 'empate')            AS empates,
+  COUNT(*) FILTER (WHERE pl.vencedor <> pp.time
+                    AND pl.vencedor <> 'empate')            AS derrotas,
+  COUNT(*)                                                  AS partidas,
+  COALESCE(SUM(pp.gols), 0)                                 AS gols,
+  COALESCE(SUM(pp.assistencias), 0)                         AS assistencias,
+  COALESCE(SUM(pp.gols_contra), 0)                          AS gols_contra,
+  j.posicao
+FROM partidas_participantes pp
+JOIN partidas      p  ON p.id  = pp.partida_id
+JOIN partida_placar pl ON pl.partida_id = pp.partida_id
+JOIN jogadores     j  ON j.id  = pp.jogador_id
+WHERE p.status IN ('published','closed')
+GROUP BY pp.jogador_id, j.username, j.posicao;
+
+GRANT SELECT ON ranking TO anon, authenticated;
+
+-- 3. Recriação da view `dividas_resumo` sem a coluna `nome`
+DROP VIEW IF EXISTS dividas_resumo CASCADE;
+
+CREATE OR REPLACE VIEW dividas_resumo AS
+SELECT
+  j.id            AS jogador_id,
+  j.username      AS username,
+  j.is_mensalista AS is_mensalista,
+  COALESCE(SUM(d.valor) FILTER (WHERE d.paga = false), 0)::numeric AS total_devido,
+  COUNT(d.id)     FILTER (WHERE d.paga = false)::bigint          AS qtd_dividas
+FROM jogadores j
+LEFT JOIN dividas d ON d.jogador_id = j.id
+GROUP BY j.id, j.username, j.is_mensalista;
+
+GRANT SELECT ON dividas_resumo TO anon, authenticated;
+
+-- 4. Recriação da RPC `fazer_login` sem a coluna `nome`
+DROP FUNCTION IF EXISTS fazer_login(text, text);
+
+CREATE OR REPLACE FUNCTION fazer_login(p_username text, p_senha text)
+RETURNS TABLE (
+  id             bigint,
+  username       text,
+  posicao        text,
+  is_admin       boolean,
+  is_ativo       boolean,
+  is_mensalista  boolean,
+  posicao_b      text
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_jogador jogadores%ROWTYPE;
+BEGIN
+  SELECT * INTO v_jogador
+  FROM jogadores
+  WHERE username = p_username
+    AND is_ativo = true
+  LIMIT 1;
+
+  IF v_jogador.id IS NULL THEN
+    RETURN;
+  END IF;
+
+  IF p_senha <> v_jogador.senha_hash THEN
+    RETURN;
+  END IF;
+
+  RETURN QUERY
+  SELECT
+    v_jogador.id,
+    v_jogador.username,
+    v_jogador.posicao,
+    v_jogador.is_admin,
+    v_jogador.is_ativo,
+    v_jogador.is_mensalista,
+    v_jogador.posicao_b;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION fazer_login(text, text) TO anon, authenticated;
+
+-- 5. Recriação da RPC `criar_jogador` sem o parâmetro `p_nome`
+DROP FUNCTION IF EXISTS criar_jogador(text, text, text, boolean, text, boolean);
+DROP FUNCTION IF EXISTS criar_jogador(text, text, boolean, text, boolean);
+
+CREATE OR REPLACE FUNCTION criar_jogador(
+  p_username      text,
+  p_posicao       text,
+  p_is_admin      boolean,
+  p_posicao_b     text DEFAULT 'meia',
+  p_is_mensalista boolean DEFAULT false
+)
+RETURNS bigint
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_id bigint;
+  v_posicao_b text;
+  v_is_mensalista boolean;
+BEGIN
+  v_posicao_b := CASE WHEN p_posicao = 'goleiro' THEN NULL ELSE p_posicao_b END;
+  v_is_mensalista := CASE WHEN p_posicao = 'goleiro' THEN false ELSE COALESCE(p_is_mensalista, false) END;
+
+  INSERT INTO jogadores (username, senha_hash, posicao, is_admin, is_ativo, posicao_b, is_mensalista)
+  VALUES (p_username, '123', p_posicao, p_is_admin, true, v_posicao_b, v_is_mensalista)
+  RETURNING id INTO v_id;
+
+  RETURN v_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION criar_jogador(text, text, boolean, text, boolean) TO anon, authenticated;
+
+-- 6. Recriação da RPC `resumo_ano` com campos `*_username`
+DROP FUNCTION IF EXISTS resumo_ano(integer);
+
+CREATE OR REPLACE FUNCTION resumo_ano(p_ano integer)
+RETURNS TABLE (
+  ano integer,
+  total_partidas bigint,
+  artilheiro_jogador_id bigint,
+  artilheiro_username text,
+  artilheiro_gols bigint,
+  artilheiro_partidas bigint,
+  maestro_jogador_id bigint,
+  maestro_username text,
+  maestro_assistencias bigint,
+  maestro_partidas bigint,
+  participante_jogador_id bigint,
+  participante_username text,
+  participante_partidas bigint,
+  eficiente_jogador_id bigint,
+  eficiente_username text,
+  eficiente_vitorias bigint,
+  eficiente_partidas bigint,
+  eficiente_percentual numeric,
+  sequencia_vitorias_jogador_id bigint,
+  sequencia_vitorias_username text,
+  sequencia_vitorias bigint,
+  seca_vitorias_jogador_id bigint,
+  seca_vitorias_username text,
+  seca_vitorias bigint
+)
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  WITH partidas_ano AS (
+    SELECT p.id, p.data_jogo
+    FROM partidas p
+    WHERE p.status IN ('published', 'closed')
+      AND EXTRACT(
+        YEAR FROM p.data_jogo AT TIME ZONE 'America/Sao_Paulo'
+      )::integer = p_ano
+  ),
+  total AS (
+    SELECT COUNT(*)::bigint AS partidas
+    FROM partidas_ano
+  ),
+  stats AS (
+    SELECT
+      pp.jogador_id,
+      j.username,
+      COUNT(*)::bigint AS partidas,
+      COALESCE(SUM(pp.gols), 0)::bigint AS gols,
+      COALESCE(SUM(pp.assistencias), 0)::bigint AS assistencias,
+      COUNT(*) FILTER (WHERE pl.vencedor = pp.time)::bigint AS vitorias
+    FROM partidas_participantes pp
+    JOIN partidas p ON p.id = pp.partida_id
+    JOIN partidas_ano pa ON pa.id = p.id
+    JOIN partida_placar pl ON pl.partida_id = pp.partida_id
+    JOIN jogadores j ON j.id = pp.jogador_id
+    WHERE j.posicao <> 'random'
+    GROUP BY pp.jogador_id, j.username
+  ),
+  stats_elegiveis AS (
+    SELECT s.*
+    FROM stats s
+    CROSS JOIN total t
+    WHERE t.partidas > 0
+      AND (s.partidas::numeric / t.partidas) >= 0.33
+  ),
+  jogador_partidas AS (
+    SELECT
+      pp.jogador_id,
+      j.username,
+      p.id AS partida_id,
+      p.data_jogo,
+      (pl.vencedor = pp.time) AS venceu,
+      ROW_NUMBER() OVER (
+        PARTITION BY pp.jogador_id
+        ORDER BY p.data_jogo DESC, p.id DESC
+      ) AS rn
+    FROM partidas_participantes pp
+    JOIN partidas_ano pa ON pa.id = pp.partida_id
+    JOIN partidas p ON p.id = pa.id
+    JOIN partida_placar pl ON pl.partida_id = pp.partida_id
+    JOIN jogadores j ON j.id = pp.jogador_id
+    WHERE j.posicao <> 'random'
+  ),
+  jogador_primeira_derrota AS (
+    SELECT
+      jogador_id,
+      username,
+      MIN(rn) FILTER (WHERE NOT venceu) AS first_loss_rn,
+      MAX(rn) AS total_jogos
+    FROM jogador_partidas
+    GROUP BY jogador_id, username
+  ),
+  sequencias_vitorias_atuais AS (
+    SELECT
+      jogador_id,
+      username,
+      COALESCE(first_loss_rn - 1, total_jogos)::bigint AS tamanho
+    FROM jogador_primeira_derrota
+  ),
+  jogador_primeira_vitoria AS (
+    SELECT
+      jogador_id,
+      username,
+      MIN(rn) FILTER (WHERE venceu) AS first_win_rn,
+      MAX(rn) AS total_jogos
+    FROM jogador_partidas
+    GROUP BY jogador_id, username
+  ),
+  secas_vitorias_atuais AS (
+    SELECT
+      jogador_id,
+      username,
+      COALESCE(first_win_rn - 1, total_jogos)::bigint AS tamanho
+    FROM jogador_primeira_vitoria
+  ),
+  artilheiro AS (
+    SELECT s.jogador_id, s.username, s.gols, s.partidas
+    FROM stats_elegiveis s
+    WHERE s.gols > 0
+    ORDER BY s.gols DESC, s.partidas DESC, s.username ASC
+    LIMIT 1
+  ),
+  maestro AS (
+    SELECT s.jogador_id, s.username, s.assistencias, s.partidas
+    FROM stats_elegiveis s
+    WHERE s.assistencias > 0
+    ORDER BY s.assistencias DESC, s.partidas DESC, s.username ASC
+    LIMIT 1
+  ),
+  participante AS (
+    SELECT s.jogador_id, s.username, s.partidas
+    FROM stats s
+    ORDER BY s.partidas DESC, s.gols DESC, s.username ASC
+    LIMIT 1
+  ),
+  eficiente AS (
+    SELECT
+      s.jogador_id,
+      s.username,
+      s.vitorias,
+      s.partidas,
+      ROUND((s.vitorias::numeric / NULLIF(s.partidas, 0)) * 100, 1) AS percentual
+    FROM stats_elegiveis s
+    ORDER BY (s.vitorias::numeric / NULLIF(s.partidas, 0)) DESC,
+             s.vitorias DESC,
+             s.partidas DESC,
+             s.username ASC
+    LIMIT 1
+  ),
+  sequencia_vitorias AS (
+    SELECT sva.jogador_id, sva.username, sva.tamanho
+    FROM sequencias_vitorias_atuais sva
+    ORDER BY sva.tamanho DESC, sva.username ASC
+    LIMIT 1
+  ),
+  seca_vitorias AS (
+    SELECT sva.jogador_id, sva.username, sva.tamanho
+    FROM secas_vitorias_atuais sva
+    ORDER BY sva.tamanho DESC, sva.username ASC
+    LIMIT 1
+  )
+  SELECT
+    p_ano,
+    COALESCE((SELECT partidas FROM total), 0::bigint),
+    a.jogador_id,
+    a.username,
+    a.gols,
+    a.partidas,
+    m.jogador_id,
+    m.username,
+    m.assistencias,
+    m.partidas,
+    pt.jogador_id,
+    pt.username,
+    pt.partidas,
+    e.jogador_id,
+    e.username,
+    e.vitorias,
+    e.partidas,
+    e.percentual,
+    sv.jogador_id,
+    sv.username,
+    sv.tamanho,
+    sc.jogador_id,
+    sc.username,
+    sc.tamanho
+  FROM (SELECT 1) _
+  LEFT JOIN artilheiro a ON true
+  LEFT JOIN maestro m ON true
+  LEFT JOIN participante pt ON true
+  LEFT JOIN eficiente e ON true
+  LEFT JOIN sequencia_vitorias sv ON true
+  LEFT JOIN seca_vitorias sc ON true;
+$$;
+
+GRANT EXECUTE ON FUNCTION resumo_ano(integer) TO anon, authenticated;
+
+-- 7. Recriação da RPC `parcerias_jogador`
+DROP FUNCTION IF EXISTS parcerias_jogador(bigint, integer);
+
+CREATE OR REPLACE FUNCTION parcerias_jogador(
+  p_jogador_id    bigint,
+  p_min_partidas  integer DEFAULT 5
+)
+RETURNS TABLE (
+  tipo             text,
+  outro_jogador_id bigint,
+  username         text,
+  partidas         bigint,
+  vitorias         bigint,
+  empates          bigint,
+  derrotas         bigint,
+  pontos           bigint,
+  percentual       numeric
+)
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  WITH jogador_partidas AS (
+    SELECT pp.partida_id, pp.time, pl.vencedor
+    FROM partidas_participantes pp
+    JOIN partidas       p  ON p.id  = pp.partida_id
+    JOIN partida_placar pl ON pl.partida_id = pp.partida_id
+    WHERE pp.jogador_id = p_jogador_id
+      AND p.status IN ('published','closed')
+  ),
+  companheiros AS (
+    SELECT
+      'companheiro'::text AS tipo,
+      outp.jogador_id,
+      j.username,
+      COUNT(*)::bigint                                          AS partidas,
+      COUNT(*) FILTER (WHERE jp.vencedor = jp.time)::bigint     AS vitorias,
+      COUNT(*) FILTER (WHERE jp.vencedor = 'empate')::bigint    AS empates,
+      COUNT(*) FILTER (WHERE jp.vencedor <> jp.time
+                        AND jp.vencedor <> 'empate')::bigint     AS derrotas
+    FROM jogador_partidas jp
+    JOIN partidas_participantes outp
+      ON outp.partida_id = jp.partida_id
+     AND outp.time       = jp.time
+     AND outp.jogador_id <> p_jogador_id
+    JOIN jogadores j ON j.id = outp.jogador_id
+    GROUP BY outp.jogador_id, j.username
+    HAVING COUNT(*) >= p_min_partidas
+  ),
+  adversarios AS (
+    SELECT
+      'adversario'::text AS tipo,
+      outp.jogador_id,
+      j.username,
+      COUNT(*)::bigint                                          AS partidas,
+      COUNT(*) FILTER (WHERE jp.vencedor = jp.time)::bigint     AS vitorias,
+      COUNT(*) FILTER (WHERE jp.vencedor = 'empate')::bigint    AS empates,
+      COUNT(*) FILTER (WHERE jp.vencedor <> jp.time
+                        AND jp.vencedor <> 'empate')::bigint     AS derrotas
+    FROM jogador_partidas jp
+    JOIN partidas_participantes outp
+      ON outp.partida_id = jp.partida_id
+     AND outp.time       <> jp.time
+     AND outp.jogador_id <> p_jogador_id
+    JOIN jogadores j ON j.id = outp.jogador_id
+    GROUP BY outp.jogador_id, j.username
+    HAVING COUNT(*) >= p_min_partidas
+  ),
+  todos AS (
+    SELECT * FROM companheiros
+    UNION ALL
+    SELECT * FROM adversarios
+  )
+  SELECT
+    tipo,
+    jogador_id AS outro_jogador_id,
+    username,
+    partidas,
+    vitorias,
+    empates,
+    derrotas,
+    (vitorias * 3 + empates)::bigint AS pontos,
+    (vitorias * 3 + empates)::numeric
+      / NULLIF(partidas * 3, 0) AS percentual
+  FROM todos
+  ORDER BY
+    tipo ASC,
+    pontos DESC,
+    partidas DESC,
+    vitorias DESC,
+    username ASC;
+$$;
+
+GRANT EXECUTE ON FUNCTION parcerias_jogador(bigint, integer) TO anon, authenticated;
+
+-- 8. Recriação da RPC `parcerias_destaque_jogador`
+DROP FUNCTION IF EXISTS parcerias_destaque_jogador(bigint, integer);
+
+CREATE OR REPLACE FUNCTION parcerias_destaque_jogador(
+  p_jogador_id   bigint,
+  p_min_partidas integer DEFAULT 3
+)
+RETURNS TABLE (
+  metrica          text,
+  outro_jogador_id bigint,
+  username         text,
+  partidas         bigint,
+  valor            numeric
+)
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  WITH jogador_partidas AS (
+    SELECT pp.partida_id, pp.time
+    FROM partidas_participantes pp
+    JOIN partidas p ON p.id = pp.partida_id
+    WHERE pp.jogador_id = p_jogador_id
+      AND p.status IN ('published', 'closed')
+  ),
+  usuario_gols AS (
+    SELECT pp.partida_id, COALESCE(pp.gols, 0) AS gols
+    FROM partidas_participantes pp
+    WHERE pp.jogador_id = p_jogador_id
+  ),
+  usuario_notas AS (
+    SELECT partida_id, avg_rating
+    FROM partida_notas
+    WHERE target_id = p_jogador_id
+  ),
+  companheiros AS (
+    SELECT
+      outp.jogador_id,
+      j.username,
+      COUNT(*)::bigint                                       AS partidas,
+      COALESCE(SUM(ug.gols), 0)::numeric                     AS gols_usuario,
+      AVG(un.avg_rating)::numeric                            AS nota_media_usuario
+    FROM jogador_partidas jp
+    JOIN partidas_participantes outp
+      ON outp.partida_id = jp.partida_id
+     AND outp.time       = jp.time
+     AND outp.jogador_id <> p_jogador_id
+    JOIN jogadores      j   ON j.id  = outp.jogador_id
+    LEFT JOIN usuario_gols  ug ON ug.partida_id = jp.partida_id
+    LEFT JOIN usuario_notas un ON un.partida_id = jp.partida_id
+    WHERE j.posicao <> 'random'
+    GROUP BY outp.jogador_id, j.username
+    HAVING COUNT(*) >= p_min_partidas
+  )
+  (SELECT 'mais_gols'::text   AS metrica,
+          jogador_id          AS outro_jogador_id,
+          username,
+          partidas,
+          gols_usuario        AS valor
+   FROM companheiros
+   ORDER BY gols_usuario DESC NULLS LAST, partidas DESC, username ASC
+   LIMIT 1)
+  UNION ALL
+  (SELECT 'melhor_nota'::text AS metrica,
+          jogador_id          AS outro_jogador_id,
+          username,
+          partidas,
+          nota_media_usuario  AS valor
+   FROM companheiros
+   WHERE nota_media_usuario IS NOT NULL
+   ORDER BY nota_media_usuario DESC NULLS LAST, partidas DESC, username ASC
+   LIMIT 1)
+  UNION ALL
+  (SELECT 'pior_nota'::text   AS metrica,
+          jogador_id          AS outro_jogador_id,
+          username,
+          partidas,
+          nota_media_usuario  AS valor
+   FROM companheiros
+   WHERE nota_media_usuario IS NOT NULL
+   ORDER BY nota_media_usuario ASC NULLS LAST, partidas DESC, username ASC
+   LIMIT 1);
+$$;
+
+GRANT EXECUTE ON FUNCTION parcerias_destaque_jogador(bigint, integer) TO anon, authenticated;
+
+-- 9. Recriação da RPC `pares_racha`
+DROP FUNCTION IF EXISTS pares_racha(integer);
+
+CREATE OR REPLACE FUNCTION pares_racha(
+  p_min_partidas integer DEFAULT 5
+)
+RETURNS TABLE (
+  jogador_a_id   bigint,
+  jogador_b_id   bigint,
+  jogador_a_username text,
+  jogador_b_username text,
+  partidas       bigint,
+  vitorias       bigint,
+  empates        bigint,
+  derrotas       bigint,
+  pontos         bigint,
+  percentual     numeric
+)
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  WITH participacoes AS (
+    SELECT
+      pp.partida_id,
+      pp.time,
+      pp.jogador_id,
+      pl.vencedor
+    FROM partidas_participantes pp
+    JOIN partidas       p  ON p.id  = pp.partida_id
+    JOIN partida_placar pl ON pl.partida_id = pp.partida_id
+    JOIN jogadores      j  ON j.id  = pp.jogador_id
+    WHERE p.status IN ('published','closed')
+      AND j.posicao <> 'random'
+  ),
+  pares AS (
+    SELECT
+      a.jogador_id AS jogador_a_id,
+      b.jogador_id AS jogador_b_id,
+      a.vencedor   AS vencedor,
+      a.time       AS time
+    FROM participacoes a
+    JOIN participacoes b
+      ON b.partida_id = a.partida_id
+     AND b.time       = a.time
+     AND b.jogador_id > a.jogador_id
+  ),
+  agregado AS (
+    SELECT
+      jogador_a_id,
+      jogador_b_id,
+      COUNT(*)::bigint                                      AS partidas,
+      COUNT(*) FILTER (WHERE vencedor = time)::bigint       AS vitorias,
+      COUNT(*) FILTER (WHERE vencedor = 'empate')::bigint   AS empates,
+      COUNT(*) FILTER (WHERE vencedor <> time
+                        AND vencedor <> 'empate')::bigint    AS derrotas
+    FROM pares
+    GROUP BY jogador_a_id, jogador_b_id
+    HAVING COUNT(*) >= p_min_partidas
+  )
+  SELECT
+    a.jogador_a_id,
+    a.jogador_b_id,
+    ja.username AS jogador_a_username,
+    jb.username AS jogador_b_username,
+    a.partidas,
+    a.vitorias,
+    a.empates,
+    a.derrotas,
+    (a.vitorias * 3 + a.empates)::bigint AS pontos,
+    (a.vitorias * 3 + a.empates)::numeric
+      / NULLIF(a.partidas * 3, 0) AS percentual
+  FROM todos
+  JOIN jogadores ja ON ja.id = a.jogador_a_id
+  JOIN jogadores jb ON jb.id = a.jogador_b_id
+  ORDER BY
+    pontos             DESC,
+    partidas           DESC,
+    vitorias           DESC,
+    jogador_a_username ASC,
+    jogador_b_username ASC;
+$$;
+
+GRANT EXECUTE ON FUNCTION pares_racha(integer) TO anon, authenticated;
+
+-- 10. Remoção da coluna `nome` da tabela `jogadores`
+ALTER TABLE jogadores DROP COLUMN IF EXISTS nome;
+
+-- 11. Atualização dos Grants de Leitura
+REVOKE SELECT ON jogadores FROM anon, authenticated;
+
+GRANT SELECT (
+  id,
+  username,
+  posicao,
+  posicao_b,
+  is_admin,
+  is_ativo,
+  is_mensalista,
+  created_at
+) ON jogadores TO anon, authenticated;
+
+-- 077_configuracoes_notificacoes.sql
+--
+-- Gestão de Notificações Push no Painel de Administração:
+-- 1. Cria a tabela singleton `notificacoes_config`.
+-- 2. Relaxa o CHECK de `reminder_key` em `push_reminder_deliveries` para suportar 'reforco'.
+-- 3. RPC `obter_configuracoes_notificacoes(p_admin_id bigint)` (STABLE).
+-- 4. RPC `salvar_configuracoes_notificacoes(p_admin_id bigint, p_config jsonb)` (VOLATILE).
+-- 5. RPC `disparar_confirmacao_manual(p_admin_id bigint, p_partida_id bigint)`.
+-- 6. RPC `disparar_push_teste(p_admin_id bigint)`.
+-- 7. Reagendamento do cron `enviar-push-reminders-1min` (votação + reforço).
+
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+CREATE EXTENSION IF NOT EXISTS pg_net;
+
+-- 1. Tabela singleton notificacoes_config
+CREATE TABLE IF NOT EXISTS notificacoes_config (
+  id                          integer PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+  confirmacao_ativo           boolean NOT NULL DEFAULT true,
+  confirmacao_dia_semana      smallint NOT NULL DEFAULT 1 CHECK (confirmacao_dia_semana BETWEEN 1 AND 3),
+  confirmacao_horario         time NOT NULL DEFAULT '10:00' CHECK (confirmacao_horario < time '21:00'),
+  confirmacao_titulo          text CHECK (char_length(confirmacao_titulo) <= 120),
+  confirmacao_mensagem        text CHECK (char_length(confirmacao_mensagem) <= 500),
+  reforco_ativo               boolean NOT NULL DEFAULT true,
+  reforco_horas_antes_prazo   smallint NOT NULL DEFAULT 4 CHECK (reforco_horas_antes_prazo BETWEEN 1 AND 48),
+  reforco_titulo              text CHECK (char_length(reforco_titulo) <= 120),
+  reforco_mensagem            text CHECK (char_length(reforco_mensagem) <= 500),
+  votacao_ativo               boolean NOT NULL DEFAULT true,
+  votacao_bucket_6h           boolean NOT NULL DEFAULT true,
+  votacao_bucket_3h           boolean NOT NULL DEFAULT true,
+  votacao_bucket_1h           boolean NOT NULL DEFAULT true,
+  votacao_bucket_30m          boolean NOT NULL DEFAULT true,
+  votacao_template_6h_titulo  text CHECK (char_length(votacao_template_6h_titulo) <= 120),
+  votacao_template_6h_msg     text CHECK (char_length(votacao_template_6h_msg) <= 500),
+  votacao_template_3h_titulo  text CHECK (char_length(votacao_template_3h_titulo) <= 120),
+  votacao_template_3h_msg     text CHECK (char_length(votacao_template_3h_msg) <= 500),
+  votacao_template_1h_titulo  text CHECK (char_length(votacao_template_1h_titulo) <= 120),
+  votacao_template_1h_msg     text CHECK (char_length(votacao_template_1h_msg) <= 500),
+  votacao_template_30m_titulo text CHECK (char_length(votacao_template_30m_titulo) <= 120),
+  votacao_template_30m_msg    text CHECK (char_length(votacao_template_30m_msg) <= 500),
+  updated_at                  timestamptz NOT NULL DEFAULT now(),
+  updated_by                  bigint REFERENCES jogadores(id),
+  CONSTRAINT notificacoes_config_dia_hora_valido CHECK (
+    confirmacao_dia_semana < 3 OR confirmacao_horario < time '16:00'
+  )
+);
+
+-- Seed singleton (garante existência da linha padrão)
+INSERT INTO notificacoes_config (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
+
+-- Restringe escrita direta: client só altera via RPC; Edge Functions lêem via service_role
+REVOKE ALL ON notificacoes_config FROM anon, authenticated;
+GRANT SELECT ON notificacoes_config TO service_role;
+
+-- 2. Relaxa o CHECK de reminder_key em push_reminder_deliveries (preservando o formato histórico)
+ALTER TABLE push_reminder_deliveries
+  DROP CONSTRAINT IF EXISTS push_reminder_deliveries_reminder_key_check;
+
+ALTER TABLE push_reminder_deliveries
+  ADD CONSTRAINT push_reminder_deliveries_reminder_key_check
+  CHECK (
+    reminder_key IN ('6h','3h','1h','30m','confirmacao','reforco')
+    OR reminder_key ~ '^([01][0-9]|2[0-3]):(00|15|30|45)$'
+  );
+
+-- 3. RPC obter_configuracoes_notificacoes(p_admin_id bigint)
+CREATE OR REPLACE FUNCTION obter_configuracoes_notificacoes(p_admin_id bigint)
+RETURNS jsonb
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_is_admin boolean;
+  v_res jsonb;
+BEGIN
+  SELECT is_admin INTO v_is_admin FROM jogadores WHERE id = p_admin_id;
+  IF v_is_admin IS NOT TRUE THEN
+    RAISE EXCEPTION 'Acesso restrito a administradores.';
+  END IF;
+
+  SELECT to_jsonb(c) INTO v_res FROM notificacoes_config c WHERE c.id = 1;
+  RETURN v_res;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION obter_configuracoes_notificacoes(bigint) TO anon, authenticated;
+
+-- 4. RPC salvar_configuracoes_notificacoes(p_admin_id bigint, p_config jsonb)
+CREATE OR REPLACE FUNCTION salvar_configuracoes_notificacoes(
+  p_admin_id bigint,
+  p_config   jsonb
+)
+RETURNS boolean
+LANGUAGE plpgsql
+VOLATILE
+SECURITY DEFINER
+SET search_path = public
+AS $rpc$
+DECLARE
+  v_is_admin   boolean;
+  v_dia_semana smallint;
+  v_horario    time;
+  v_minuto     integer;
+  v_hora_utc   integer;
+  v_cron_expr  text;
+  v_reagendar  boolean := false;
+BEGIN
+  SELECT is_admin INTO v_is_admin FROM jogadores WHERE id = p_admin_id;
+  IF v_is_admin IS NOT TRUE THEN
+    RAISE EXCEPTION 'Acesso restrito a administradores.';
+  END IF;
+
+  IF p_config IS NULL THEN
+    RETURN false;
+  END IF;
+
+  IF p_config ? 'confirmacao_dia_semana' OR p_config ? 'confirmacao_horario' THEN
+    v_reagendar := true;
+  END IF;
+
+  UPDATE notificacoes_config
+  SET
+    confirmacao_ativo = COALESCE((p_config->>'confirmacao_ativo')::boolean, confirmacao_ativo),
+    confirmacao_dia_semana = COALESCE((p_config->>'confirmacao_dia_semana')::smallint, confirmacao_dia_semana),
+    confirmacao_horario = COALESCE((p_config->>'confirmacao_horario')::time, confirmacao_horario),
+    confirmacao_titulo = CASE WHEN p_config ? 'confirmacao_titulo' THEN (p_config->>'confirmacao_titulo') ELSE confirmacao_titulo END,
+    confirmacao_mensagem = CASE WHEN p_config ? 'confirmacao_mensagem' THEN (p_config->>'confirmacao_mensagem') ELSE confirmacao_mensagem END,
+    reforco_ativo = COALESCE((p_config->>'reforco_ativo')::boolean, reforco_ativo),
+    reforco_horas_antes_prazo = COALESCE((p_config->>'reforco_horas_antes_prazo')::smallint, reforco_horas_antes_prazo),
+    reforco_titulo = CASE WHEN p_config ? 'reforco_titulo' THEN (p_config->>'reforco_titulo') ELSE reforco_titulo END,
+    reforco_mensagem = CASE WHEN p_config ? 'reforco_mensagem' THEN (p_config->>'reforco_mensagem') ELSE reforco_mensagem END,
+    votacao_ativo = COALESCE((p_config->>'votacao_ativo')::boolean, votacao_ativo),
+    votacao_bucket_6h = COALESCE((p_config->>'votacao_bucket_6h')::boolean, votacao_bucket_6h),
+    votacao_bucket_3h = COALESCE((p_config->>'votacao_bucket_3h')::boolean, votacao_bucket_3h),
+    votacao_bucket_1h = COALESCE((p_config->>'votacao_bucket_1h')::boolean, votacao_bucket_1h),
+    votacao_bucket_30m = COALESCE((p_config->>'votacao_bucket_30m')::boolean, votacao_bucket_30m),
+    votacao_template_6h_titulo = CASE WHEN p_config ? 'votacao_template_6h_titulo' THEN (p_config->>'votacao_template_6h_titulo') ELSE votacao_template_6h_titulo END,
+    votacao_template_6h_msg = CASE WHEN p_config ? 'votacao_template_6h_msg' THEN (p_config->>'votacao_template_6h_msg') ELSE votacao_template_6h_msg END,
+    votacao_template_3h_titulo = CASE WHEN p_config ? 'votacao_template_3h_titulo' THEN (p_config->>'votacao_template_3h_titulo') ELSE votacao_template_3h_titulo END,
+    votacao_template_3h_msg = CASE WHEN p_config ? 'votacao_template_3h_msg' THEN (p_config->>'votacao_template_3h_msg') ELSE votacao_template_3h_msg END,
+    votacao_template_1h_titulo = CASE WHEN p_config ? 'votacao_template_1h_titulo' THEN (p_config->>'votacao_template_1h_titulo') ELSE votacao_template_1h_titulo END,
+    votacao_template_1h_msg = CASE WHEN p_config ? 'votacao_template_1h_msg' THEN (p_config->>'votacao_template_1h_msg') ELSE votacao_template_1h_msg END,
+    votacao_template_30m_titulo = CASE WHEN p_config ? 'votacao_template_30m_titulo' THEN (p_config->>'votacao_template_30m_titulo') ELSE votacao_template_30m_titulo END,
+    votacao_template_30m_msg = CASE WHEN p_config ? 'votacao_template_30m_msg' THEN (p_config->>'votacao_template_30m_msg') ELSE votacao_template_30m_msg END,
+    updated_at = now(),
+    updated_by = p_admin_id
+  WHERE id = 1
+  RETURNING confirmacao_dia_semana, confirmacao_horario INTO v_dia_semana, v_horario;
+
+  IF v_reagendar THEN
+    v_minuto := EXTRACT(MINUTE FROM v_horario)::integer;
+    v_hora_utc := (EXTRACT(HOUR FROM v_horario)::integer + 3) % 24;
+    v_cron_expr := format('%s %s * * %s', v_minuto, v_hora_utc, v_dia_semana);
+
+    IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'agendar-partida-semanal') THEN
+      PERFORM cron.unschedule('agendar-partida-semanal');
+    END IF;
+
+    PERFORM cron.schedule(
+      'agendar-partida-semanal',
+      v_cron_expr,
+      $semanal$
+      DO $$
+      DECLARE
+        v_partida_id bigint;
+        v_secret     text;
+      BEGIN
+        SELECT criar_partida_semanal_mensalistas() INTO v_partida_id;
+        IF v_partida_id IS NOT NULL THEN
+          SELECT decrypted_secret INTO v_secret
+            FROM vault.decrypted_secrets
+            WHERE name = 'push_cron_secret'
+            LIMIT 1;
+          PERFORM net.http_post(
+            url := 'https://jtavmrlllyctkuxefhpc.supabase.co/functions/v1/send-confirmation-requests',
+            headers := jsonb_build_object(
+              'Content-Type', 'application/json',
+              'x-push-cron-secret', v_secret
+            ),
+            body := jsonb_build_object('partida_id', v_partida_id)
+          );
+        END IF;
+      END $$;
+      $semanal$
+    );
+  END IF;
+
+  RETURN true;
+END;
+$rpc$;
+
+GRANT EXECUTE ON FUNCTION salvar_configuracoes_notificacoes(bigint, jsonb) TO anon, authenticated;
+
+-- 5. RPC disparar_confirmacao_manual(p_admin_id bigint, p_partida_id bigint)
+CREATE OR REPLACE FUNCTION disparar_confirmacao_manual(
+  p_admin_id   bigint,
+  p_partida_id bigint
+)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_is_admin   boolean;
+  v_status     text;
+  v_secret     text;
+BEGIN
+  SELECT is_admin INTO v_is_admin FROM jogadores WHERE id = p_admin_id;
+  IF v_is_admin IS NOT TRUE THEN
+    RAISE EXCEPTION 'Acesso restrito a administradores.';
+  END IF;
+
+  SELECT status INTO v_status FROM partidas WHERE id = p_partida_id;
+  IF v_status IS NULL OR v_status <> 'draft' THEN
+    RAISE EXCEPTION 'Partida inválida ou não está em rascunho (draft).';
+  END IF;
+
+  SELECT decrypted_secret INTO v_secret
+    FROM vault.decrypted_secrets
+    WHERE name = 'push_cron_secret'
+    LIMIT 1;
+
+  PERFORM net.http_post(
+    url := 'https://jtavmrlllyctkuxefhpc.supabase.co/functions/v1/send-confirmation-requests',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'x-push-cron-secret', v_secret
+    ),
+    body := jsonb_build_object('partida_id', p_partida_id, 'reenviar', true)
+  );
+
+  RETURN true;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION disparar_confirmacao_manual(bigint, bigint) TO anon, authenticated;
+
+-- 6. RPC disparar_push_teste(p_admin_id bigint)
+CREATE OR REPLACE FUNCTION disparar_push_teste(
+  p_admin_id bigint
+)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_is_admin boolean;
+  v_secret   text;
+BEGIN
+  SELECT is_admin INTO v_is_admin FROM jogadores WHERE id = p_admin_id;
+  IF v_is_admin IS NOT TRUE THEN
+    RAISE EXCEPTION 'Acesso restrito a administradores.';
+  END IF;
+
+  SELECT decrypted_secret INTO v_secret
+    FROM vault.decrypted_secrets
+    WHERE name = 'push_cron_secret'
+    LIMIT 1;
+
+  PERFORM net.http_post(
+    url := 'https://jtavmrlllyctkuxefhpc.supabase.co/functions/v1/send-test-push',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'x-push-cron-secret', v_secret
+    ),
+    body := jsonb_build_object('jogador_id', p_admin_id)
+  );
+
+  RETURN true;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION disparar_push_teste(bigint) TO anon, authenticated;
+
+-- 7. Reagendamento do cron de 1 minuto para push reminders (Votação + Reforço de Confirmação)
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'enviar-lembretes-votacao-1min') THEN
+    PERFORM cron.unschedule('enviar-lembretes-votacao-1min');
+  END IF;
+  IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'enviar-lembretes-votacao-15min') THEN
+    PERFORM cron.unschedule('enviar-lembretes-votacao-15min');
+  END IF;
+  IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'enviar-push-reminders-1min') THEN
+    PERFORM cron.unschedule('enviar-push-reminders-1min');
+  END IF;
+END;
+$$;
+
+SELECT cron.schedule(
+  'enviar-push-reminders-1min',
+  '* * * * *',
+  $push_job$
+  DO $$
+  DECLARE
+    v_secret text;
+  BEGIN
+    SELECT decrypted_secret INTO v_secret
+      FROM vault.decrypted_secrets
+      WHERE name = 'push_cron_secret'
+      LIMIT 1;
+
+    -- 1. Lembretes de Votação
+    PERFORM net.http_post(
+      url := 'https://jtavmrlllyctkuxefhpc.supabase.co/functions/v1/send-voting-reminders',
+      headers := jsonb_build_object(
+        'Content-Type', 'application/json',
+        'x-push-cron-secret', v_secret
+      ),
+      body := '{}'::jsonb
+    );
+
+    -- 2. Reforço de Confirmação de Presença
+    PERFORM net.http_post(
+      url := 'https://jtavmrlllyctkuxefhpc.supabase.co/functions/v1/send-confirmation-requests',
+      headers := jsonb_build_object(
+        'Content-Type', 'application/json',
+        'x-push-cron-secret', v_secret
+      ),
+      body := '{}'::jsonb
+    );
+  END $$;
+  $push_job$
+);
+
+-- 078_dividas_natureza_despesa.sql
+-- Controle financeiro: diferencia receita (racha a receber) de despesa
+-- (racha a pagar) e amplia os tipos de lançamento.
+--
+-- Novos tipos: goleiro | campo | eventos (além de mensalidade | avulso | outro).
+-- Natureza: receita (default, compatível com dados existentes) | despesa.
+-- jogador_id fica opcional em despesas (ex.: aluguel de campo sem atleta).
+-- Depende de 076 (remoção da coluna nome): a view usa apenas username.
+
+ALTER TABLE dividas
+  ADD COLUMN IF NOT EXISTS natureza text NOT NULL DEFAULT 'receita';
+
+ALTER TABLE dividas
+  DROP CONSTRAINT IF EXISTS dividas_natureza_check;
+
+ALTER TABLE dividas
+  ADD CONSTRAINT dividas_natureza_check
+  CHECK (natureza IN ('receita', 'despesa'));
+
+ALTER TABLE dividas
+  DROP CONSTRAINT IF EXISTS dividas_tipo_check;
+
+ALTER TABLE dividas
+  ADD CONSTRAINT dividas_tipo_check
+  CHECK (tipo IN ('mensalidade', 'avulso', 'outro', 'goleiro', 'campo', 'eventos'));
+
+ALTER TABLE dividas
+  ALTER COLUMN jogador_id DROP NOT NULL;
+
+-- Receita exige jogador; despesa pode ficar sem (caixa do racha).
+ALTER TABLE dividas
+  DROP CONSTRAINT IF EXISTS dividas_receita_exige_jogador;
+
+ALTER TABLE dividas
+  ADD CONSTRAINT dividas_receita_exige_jogador
+  CHECK (natureza <> 'receita' OR jogador_id IS NOT NULL);
+
+CREATE INDEX IF NOT EXISTS idx_dividas_natureza_abertas
+  ON dividas (natureza)
+  WHERE paga = false;
+
+-- Resumo de cobrança: só receitas em aberto (despesas não entram no "total devido").
+CREATE OR REPLACE VIEW dividas_resumo AS
+SELECT
+  j.id            AS jogador_id,
+  j.username      AS username,
+  j.is_mensalista AS is_mensalista,
+  COALESCE(
+    SUM(d.valor) FILTER (WHERE d.paga = false AND d.natureza = 'receita'),
+    0
+  )::numeric AS total_devido,
+  COUNT(d.id) FILTER (WHERE d.paga = false AND d.natureza = 'receita')::bigint AS qtd_dividas
+FROM jogadores j
+LEFT JOIN dividas d ON d.jogador_id = j.id
+GROUP BY j.id, j.username, j.is_mensalista;
+
+GRANT SELECT ON dividas_resumo TO anon, authenticated;
+
+DROP FUNCTION IF EXISTS registrar_divida(bigint, text, numeric, date, text, text, bigint);
+
+CREATE OR REPLACE FUNCTION registrar_divida(
+  p_jogador_id  bigint,
+  p_tipo        text,
+  p_valor       numeric,
+  p_data_divida date,
+  p_descricao   text,
+  p_referencia  text,
+  p_partida_id  bigint,
+  p_natureza    text DEFAULT 'receita'
+)
+RETURNS bigint
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_id       bigint;
+  v_natureza text;
+BEGIN
+  IF p_valor IS NULL OR p_valor <= 0 THEN
+    RAISE EXCEPTION 'Valor do lançamento deve ser maior que zero.';
+  END IF;
+
+  v_natureza := COALESCE(NULLIF(trim(p_natureza), ''), 'receita');
+  IF v_natureza NOT IN ('receita', 'despesa') THEN
+    RAISE EXCEPTION 'Natureza inválida. Use receita ou despesa.';
+  END IF;
+
+  IF p_tipo NOT IN ('mensalidade', 'avulso', 'outro', 'goleiro', 'campo', 'eventos') THEN
+    RAISE EXCEPTION 'Tipo de lançamento inválido.';
+  END IF;
+
+  IF v_natureza = 'receita' AND p_jogador_id IS NULL THEN
+    RAISE EXCEPTION 'Receita exige um jogador.';
+  END IF;
+
+  INSERT INTO dividas (
+    jogador_id, tipo, valor, data_divida, descricao, referencia, partida_id, natureza
+  )
+  VALUES (
+    p_jogador_id,
+    p_tipo,
+    p_valor,
+    COALESCE(p_data_divida, current_date),
+    p_descricao,
+    p_referencia,
+    p_partida_id,
+    v_natureza
+  )
+  RETURNING id INTO v_id;
+
+  RETURN v_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION registrar_divida(bigint, text, numeric, date, text, text, bigint, text)
+  TO anon, authenticated;
+
+-- "Quitar todas" no acordeão de cobrança: só receitas daquele jogador.
+CREATE OR REPLACE FUNCTION quitar_dividas_jogador(p_jogador_id bigint)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  UPDATE dividas
+     SET paga = true, data_pagamento = current_date
+   WHERE jogador_id = p_jogador_id
+     AND paga = false
+     AND natureza = 'receita';
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION quitar_dividas_jogador(bigint) TO anon, authenticated;
+
+-- 079_eventos_financeiros_automaticos.sql
+-- Eventos financeiros configuráveis (mensal / fim de partida).
+-- Substitui o INSERT hardcoded do cron de mensalidades e adiciona:
+--   - Despesa Campo R$1050 no dia 01 (caixa do racha)
+--   - Despesa Goleiro R$30 por goleiro ao finalizar a partida
+--
+-- Placeholders em descricao_template / referencia_template:
+--   {data} {mes} {ano} {mes_ano} {referencia} {nome} {username}
+-- ({nome} e {username} recebem o username do atleta — coluna nome foi removida).
+
+-- 1) Tabela de configuração
+CREATE TABLE IF NOT EXISTS eventos_financeiros_automaticos (
+  id                   bigserial     PRIMARY KEY,
+  nome                 text          NOT NULL,
+  gatilho              text          NOT NULL
+                         CHECK (gatilho IN ('mensal', 'fim_partida')),
+  natureza             text          NOT NULL
+                         CHECK (natureza IN ('receita', 'despesa')),
+  tipo                 text          NOT NULL
+                         CHECK (tipo IN (
+                           'mensalidade', 'avulso', 'outro',
+                           'goleiro', 'campo', 'eventos'
+                         )),
+  valor                numeric(10,2) NOT NULL CHECK (valor > 0),
+  destino              text          NOT NULL
+                         CHECK (destino IN (
+                           'caixa',
+                           'mensalistas',
+                           'goleiros_partida',
+                           'jogador_fixo'
+                         )),
+  jogador_id           bigint        REFERENCES jogadores(id) ON DELETE SET NULL,
+  descricao_template   text          NOT NULL,
+  referencia_template  text,
+  ativo                boolean       NOT NULL DEFAULT true,
+  created_at           timestamptz   NOT NULL DEFAULT now(),
+  CONSTRAINT eventos_auto_jogador_fixo CHECK (
+    destino <> 'jogador_fixo' OR jogador_id IS NOT NULL
+  ),
+  CONSTRAINT eventos_auto_goleiros_so_partida CHECK (
+    destino <> 'goleiros_partida' OR gatilho = 'fim_partida'
+  ),
+  CONSTRAINT eventos_auto_mensalistas_so_mensal CHECK (
+    destino <> 'mensalistas' OR gatilho = 'mensal'
+  )
+);
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON eventos_financeiros_automaticos
+  TO anon, authenticated;
+GRANT USAGE, SELECT ON SEQUENCE eventos_financeiros_automaticos_id_seq
+  TO anon, authenticated;
+
+-- 2) Rastreio nos lançamentos gerados (histórico permanece se a config for apagada)
+ALTER TABLE dividas
+  ADD COLUMN IF NOT EXISTS evento_automatico_id bigint
+    REFERENCES eventos_financeiros_automaticos(id) ON DELETE SET NULL;
+
+CREATE INDEX IF NOT EXISTS idx_dividas_evento_automatico
+  ON dividas (evento_automatico_id)
+  WHERE evento_automatico_id IS NOT NULL;
+
+-- Idempotência mensal: mesmo evento + referência + jogador (0 = caixa)
+CREATE UNIQUE INDEX IF NOT EXISTS uq_dividas_evento_auto_mensal
+  ON dividas (evento_automatico_id, referencia, (COALESCE(jogador_id, 0)))
+  WHERE evento_automatico_id IS NOT NULL
+    AND partida_id IS NULL
+    AND referencia IS NOT NULL;
+
+-- Idempotência fim de partida: mesmo evento + partida + jogador (0 = caixa)
+CREATE UNIQUE INDEX IF NOT EXISTS uq_dividas_evento_auto_partida
+  ON dividas (evento_automatico_id, partida_id, (COALESCE(jogador_id, 0)))
+  WHERE evento_automatico_id IS NOT NULL
+    AND partida_id IS NOT NULL;
+
+-- 3) Substituição de placeholders
+CREATE OR REPLACE FUNCTION substituir_template_financeiro(
+  p_template text,
+  p_data     date,
+  p_nome     text DEFAULT NULL
+)
+RETURNS text
+LANGUAGE plpgsql
+IMMUTABLE
+SET search_path = public
+AS $$
+DECLARE
+  v_out text;
+  v_data text;
+  v_mes text;
+  v_ano text;
+  v_mes_ano text;
+  v_ref text;
+BEGIN
+  IF p_template IS NULL THEN
+    RETURN NULL;
+  END IF;
+
+  v_data := to_char(p_data, 'DD/MM/YYYY');
+  v_mes := to_char(p_data, 'MM');
+  v_ano := to_char(p_data, 'YYYY');
+  v_mes_ano := to_char(p_data, 'MM/YYYY');
+  v_ref := to_char(p_data, 'YYYY-MM');
+
+  v_out := p_template;
+  v_out := replace(v_out, '{data}', v_data);
+  v_out := replace(v_out, '{mes}', v_mes);
+  v_out := replace(v_out, '{ano}', v_ano);
+  v_out := replace(v_out, '{mes_ano}', v_mes_ano);
+  v_out := replace(v_out, '{referencia}', v_ref);
+  v_out := replace(v_out, '{nome}', COALESCE(p_nome, ''));
+  v_out := replace(v_out, '{username}', COALESCE(p_nome, ''));
+  RETURN v_out;
+END;
+$$;
+
+-- 4) Geração mensal (cron dia 01 10h BRT)
+CREATE OR REPLACE FUNCTION gerar_lancamentos_mensais()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  r RECORD;
+  v_hoje date;
+  v_ref text;
+  v_desc text;
+  j RECORD;
+BEGIN
+  v_hoje := (now() AT TIME ZONE 'America/Sao_Paulo')::date;
+
+  FOR r IN
+    SELECT *
+    FROM eventos_financeiros_automaticos
+    WHERE ativo = true AND gatilho = 'mensal'
+  LOOP
+    v_ref := COALESCE(
+      NULLIF(trim(substituir_template_financeiro(r.referencia_template, v_hoje)), ''),
+      to_char(v_hoje, 'YYYY-MM')
+    );
+
+    IF r.destino = 'caixa' THEN
+      v_desc := substituir_template_financeiro(r.descricao_template, v_hoje);
+      INSERT INTO dividas (
+        jogador_id, tipo, natureza, valor, referencia, data_divida,
+        descricao, evento_automatico_id
+      )
+      SELECT
+        NULL, r.tipo, r.natureza, r.valor, v_ref, v_hoje, v_desc, r.id
+      WHERE NOT EXISTS (
+        SELECT 1 FROM dividas d
+        WHERE d.evento_automatico_id = r.id
+          AND d.referencia = v_ref
+          AND d.jogador_id IS NULL
+          AND d.partida_id IS NULL
+      );
+
+    ELSIF r.destino = 'mensalistas' THEN
+      FOR j IN
+        SELECT id, username
+        FROM jogadores
+        WHERE is_mensalista = true
+          AND is_ativo = true
+          AND posicao <> 'goleiro'
+      LOOP
+        v_desc := substituir_template_financeiro(r.descricao_template, v_hoje, j.username);
+        INSERT INTO dividas (
+          jogador_id, tipo, natureza, valor, referencia, data_divida,
+          descricao, evento_automatico_id
+        )
+        SELECT
+          j.id, r.tipo, r.natureza, r.valor, v_ref, v_hoje, v_desc, r.id
+        WHERE NOT EXISTS (
+          SELECT 1 FROM dividas d
+          WHERE d.evento_automatico_id = r.id
+            AND d.referencia = v_ref
+            AND d.jogador_id = j.id
+            AND d.partida_id IS NULL
+        );
+      END LOOP;
+
+    ELSIF r.destino = 'jogador_fixo' AND r.jogador_id IS NOT NULL THEN
+      SELECT username INTO v_desc FROM jogadores WHERE id = r.jogador_id;
+      v_desc := substituir_template_financeiro(r.descricao_template, v_hoje, v_desc);
+      INSERT INTO dividas (
+        jogador_id, tipo, natureza, valor, referencia, data_divida,
+        descricao, evento_automatico_id
+      )
+      SELECT
+        r.jogador_id, r.tipo, r.natureza, r.valor, v_ref, v_hoje, v_desc, r.id
+      WHERE NOT EXISTS (
+        SELECT 1 FROM dividas d
+        WHERE d.evento_automatico_id = r.id
+          AND d.referencia = v_ref
+          AND d.jogador_id = r.jogador_id
+          AND d.partida_id IS NULL
+      );
+    END IF;
+  END LOOP;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION gerar_lancamentos_mensais() TO anon, authenticated;
+
+-- 5) Geração ao finalizar/publicar partida
+CREATE OR REPLACE FUNCTION gerar_lancamentos_fim_partida(p_partida_id bigint)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  r RECORD;
+  v_data date;
+  v_ref text;
+  v_desc text;
+  v_nome text;
+  g RECORD;
+BEGIN
+  SELECT (data_jogo AT TIME ZONE 'America/Sao_Paulo')::date
+    INTO v_data
+  FROM partidas
+  WHERE id = p_partida_id;
+
+  IF v_data IS NULL THEN
+    RETURN;
+  END IF;
+
+  FOR r IN
+    SELECT *
+    FROM eventos_financeiros_automaticos
+    WHERE ativo = true AND gatilho = 'fim_partida'
+  LOOP
+    v_ref := COALESCE(
+      NULLIF(trim(substituir_template_financeiro(r.referencia_template, v_data)), ''),
+      to_char(v_data, 'YYYY-MM')
+    );
+
+    IF r.destino = 'goleiros_partida' THEN
+      FOR g IN
+        SELECT pp.jogador_id, j.username
+        FROM partidas_participantes pp
+        JOIN jogadores j ON j.id = pp.jogador_id
+        WHERE pp.partida_id = p_partida_id
+          AND pp.posicao = 'goleiro'
+      LOOP
+        v_desc := substituir_template_financeiro(r.descricao_template, v_data, g.username);
+        INSERT INTO dividas (
+          jogador_id, tipo, natureza, valor, referencia, data_divida,
+          descricao, partida_id, evento_automatico_id
+        )
+        SELECT
+          g.jogador_id, r.tipo, r.natureza, r.valor, v_ref, v_data,
+          v_desc, p_partida_id, r.id
+        WHERE NOT EXISTS (
+          SELECT 1 FROM dividas d
+          WHERE d.evento_automatico_id = r.id
+            AND d.partida_id = p_partida_id
+            AND d.jogador_id = g.jogador_id
+        );
+      END LOOP;
+
+    ELSIF r.destino = 'caixa' THEN
+      v_desc := substituir_template_financeiro(r.descricao_template, v_data);
+      INSERT INTO dividas (
+        jogador_id, tipo, natureza, valor, referencia, data_divida,
+        descricao, partida_id, evento_automatico_id
+      )
+      SELECT
+        NULL, r.tipo, r.natureza, r.valor, v_ref, v_data,
+        v_desc, p_partida_id, r.id
+      WHERE NOT EXISTS (
+        SELECT 1 FROM dividas d
+        WHERE d.evento_automatico_id = r.id
+          AND d.partida_id = p_partida_id
+          AND d.jogador_id IS NULL
+      );
+
+    ELSIF r.destino = 'jogador_fixo' AND r.jogador_id IS NOT NULL THEN
+      SELECT username INTO v_nome FROM jogadores WHERE id = r.jogador_id;
+      v_desc := substituir_template_financeiro(r.descricao_template, v_data, v_nome);
+      INSERT INTO dividas (
+        jogador_id, tipo, natureza, valor, referencia, data_divida,
+        descricao, partida_id, evento_automatico_id
+      )
+      SELECT
+        r.jogador_id, r.tipo, r.natureza, r.valor, v_ref, v_data,
+        v_desc, p_partida_id, r.id
+      WHERE NOT EXISTS (
+        SELECT 1 FROM dividas d
+        WHERE d.evento_automatico_id = r.id
+          AND d.partida_id = p_partida_id
+          AND d.jogador_id = r.jogador_id
+      );
+    END IF;
+  END LOOP;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION gerar_lancamentos_fim_partida(bigint) TO anon, authenticated;
+
+-- 6) Hooks em finalizar / publicar
+CREATE OR REPLACE FUNCTION finalizar_partida(p_partida_id bigint)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE v_status text;
+BEGIN
+  SELECT status INTO v_status FROM partidas WHERE id = p_partida_id;
+  IF v_status IS NULL OR v_status <> 'live' THEN
+    RETURN false;
+  END IF;
+
+  PERFORM sincronizar_contadores_partida(p_partida_id);
+  PERFORM gerar_avulsos_partida(p_partida_id);
+  PERFORM gerar_lancamentos_fim_partida(p_partida_id);
+
+  UPDATE partidas
+     SET status = 'published',
+         voting_closes_at = now() + interval '24 hours'
+   WHERE id = p_partida_id;
+  RETURN true;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION finalizar_partida(bigint) TO anon, authenticated;
+
+CREATE OR REPLACE FUNCTION publicar_partida(p_partida_id bigint)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE v_status text;
+BEGIN
+  SELECT status INTO v_status FROM partidas WHERE id = p_partida_id;
+  IF v_status IS NULL OR v_status <> 'draft' THEN
+    RETURN false;
+  END IF;
+
+  PERFORM gerar_avulsos_partida(p_partida_id);
+  PERFORM gerar_lancamentos_fim_partida(p_partida_id);
+
+  UPDATE partidas
+     SET status = 'published',
+         voting_closes_at = now() + interval '24 hours'
+   WHERE id = p_partida_id;
+  RETURN true;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION publicar_partida(bigint) TO anon, authenticated;
+
+-- Em edição de súmula já publicada: re-gera (idempotente) diárias de goleiro etc.
+CREATE OR REPLACE FUNCTION salvar_edicao_partida(
+  p_partida_id    bigint,
+  p_participantes jsonb,
+  p_primeira_vez   boolean DEFAULT false
+)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_status text;
+  elem jsonb;
+  v_novos_ids bigint[];
+BEGIN
+  SELECT status INTO v_status FROM partidas WHERE id = p_partida_id;
+  IF v_status IS NULL THEN
+    RETURN false;
+  END IF;
+
+  SELECT array_agg((e->>'jogador_id')::bigint)
+    INTO v_novos_ids
+    FROM jsonb_array_elements(p_participantes) e;
+
+  IF v_novos_ids IS NOT NULL THEN
+    DELETE FROM partida_eventos
+     WHERE partida_id = p_partida_id
+       AND (
+         jogador_id NOT IN (SELECT unnest(v_novos_ids))
+         OR (assistencia_jogador_id IS NOT NULL
+             AND assistencia_jogador_id NOT IN (SELECT unnest(v_novos_ids)))
+       );
+
+    DELETE FROM votes
+     WHERE partida_id = p_partida_id
+       AND (
+         voter_id NOT IN (SELECT unnest(v_novos_ids))
+         OR target_id NOT IN (SELECT unnest(v_novos_ids))
+       );
+
+    DELETE FROM dividas
+     WHERE partida_id = p_partida_id
+       AND tipo = 'avulso'
+       AND paga = false
+       AND jogador_id NOT IN (SELECT unnest(v_novos_ids));
+
+    DELETE FROM dividas
+     WHERE partida_id = p_partida_id
+       AND tipo = 'avulso'
+       AND paga = false
+       AND jogador_id IN (
+         SELECT (elem->>'jogador_id')::bigint
+         FROM jsonb_array_elements(p_participantes) elem
+         WHERE (elem->>'posicao')::text = 'goleiro'
+       );
+
+    -- Remove diárias de goleiro em aberto se o atleta saiu ou deixou de ser goleiro
+    DELETE FROM dividas
+     WHERE partida_id = p_partida_id
+       AND natureza = 'despesa'
+       AND tipo = 'goleiro'
+       AND paga = false
+       AND evento_automatico_id IS NOT NULL
+       AND jogador_id NOT IN (
+         SELECT (elem->>'jogador_id')::bigint
+         FROM jsonb_array_elements(p_participantes) elem
+         WHERE (elem->>'posicao')::text = 'goleiro'
+       );
+
+    DELETE FROM partidas_participantes
+     WHERE partida_id = p_partida_id
+       AND jogador_id NOT IN (SELECT unnest(v_novos_ids));
+  END IF;
+
+  FOR elem IN SELECT * FROM jsonb_array_elements(p_participantes)
+  LOOP
+    INSERT INTO partidas_participantes (
+      partida_id, jogador_id, time, posicao, gols, assistencias, gols_contra,
+      status_confirmacao
+    )
+    VALUES (
+      p_partida_id,
+      (elem->>'jogador_id')::bigint,
+      (elem->>'time')::char(1),
+      (elem->>'posicao')::text,
+      COALESCE((elem->>'gols')::integer, 0),
+      COALESCE((elem->>'assistencias')::integer, 0),
+      COALESCE((elem->>'gols_contra')::integer, 0),
+      COALESCE((elem->>'status_confirmacao')::text, 'confirmado')
+    )
+    ON CONFLICT (partida_id, jogador_id) DO UPDATE SET
+      time               = EXCLUDED.time,
+      posicao            = EXCLUDED.posicao,
+      gols               = EXCLUDED.gols,
+      assistencias       = EXCLUDED.assistencias,
+      gols_contra        = EXCLUDED.gols_contra,
+      status_confirmacao = EXCLUDED.status_confirmacao;
+  END LOOP;
+
+  IF p_primeira_vez THEN
+    IF NOT publicar_partida(p_partida_id) THEN
+      RAISE EXCEPTION 'Não foi possível publicar a partida (ela precisa estar em rascunho).';
+    END IF;
+  ELSIF v_status IN ('published', 'closed') THEN
+    PERFORM gerar_avulsos_partida(p_partida_id);
+    PERFORM gerar_lancamentos_fim_partida(p_partida_id);
+  END IF;
+
+  RETURN true;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION salvar_edicao_partida(bigint, jsonb, boolean)
+  TO anon, authenticated;
+
+-- 7) Reagenda cron mensal para a função unificada
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'gerar-mensalidades-mensal') THEN
+    PERFORM cron.unschedule('gerar-mensalidades-mensal');
+  END IF;
+END;
+$$;
+
+SELECT cron.schedule(
+  'gerar-mensalidades-mensal',
+  '0 13 1 * *',
+  $$SELECT gerar_lancamentos_mensais();$$
+);
+
+-- 8) Seeds (idempotentes por nome)
+INSERT INTO eventos_financeiros_automaticos (
+  nome, gatilho, natureza, tipo, valor, destino,
+  descricao_template, referencia_template, ativo
+)
+SELECT
+  'Mensalidade',
+  'mensal',
+  'receita',
+  'mensalidade',
+  90.00,
+  'mensalistas',
+  'Mensalidade {mes_ano}',
+  '{referencia}',
+  true
+WHERE NOT EXISTS (
+  SELECT 1 FROM eventos_financeiros_automaticos WHERE nome = 'Mensalidade' AND gatilho = 'mensal'
+);
+
+INSERT INTO eventos_financeiros_automaticos (
+  nome, gatilho, natureza, tipo, valor, destino,
+  descricao_template, referencia_template, ativo
+)
+SELECT
+  'Aluguel do campo',
+  'mensal',
+  'despesa',
+  'campo',
+  1050.00,
+  'caixa',
+  'Aluguel campo {mes_ano}',
+  '{referencia}',
+  true
+WHERE NOT EXISTS (
+  SELECT 1 FROM eventos_financeiros_automaticos WHERE nome = 'Aluguel do campo' AND gatilho = 'mensal'
+);
+
+INSERT INTO eventos_financeiros_automaticos (
+  nome, gatilho, natureza, tipo, valor, destino,
+  descricao_template, referencia_template, ativo
+)
+SELECT
+  'Diária goleiro',
+  'fim_partida',
+  'despesa',
+  'goleiro',
+  30.00,
+  'goleiros_partida',
+  'Diária goleiro racha dia {data}',
+  '{referencia}',
+  true
+WHERE NOT EXISTS (
+  SELECT 1 FROM eventos_financeiros_automaticos WHERE nome = 'Diária goleiro' AND gatilho = 'fim_partida'
+);
