@@ -40,7 +40,11 @@ async function buscarJogosDuasQueries(): Promise<DadosJogos> {
     .order('data_jogo', { ascending: false });
   if (error) throw error;
 
-  const partidas = ps ?? [];
+  const partidas: Partida[] = (ps ?? []).map((p) => ({
+    id: p.id,
+    data_jogo: p.data_jogo,
+    status: p.status as StatusPartida,
+  }));
   const placares: Record<number, Placar> = {};
   if (partidas.length > 0) {
     const ids = partidas.map((p) => p.id);
@@ -48,7 +52,15 @@ async function buscarJogosDuasQueries(): Promise<DadosJogos> {
       .from('partida_placar')
       .select('partida_id, gols_time_a, gols_time_b')
       .in('partida_id', ids);
-    for (const pl of pls ?? []) placares[pl.partida_id] = pl;
+    for (const pl of pls ?? []) {
+      if (pl.partida_id != null) {
+        placares[pl.partida_id] = {
+          partida_id: pl.partida_id,
+          gols_time_a: pl.gols_time_a ?? 0,
+          gols_time_b: pl.gols_time_b ?? 0,
+        };
+      }
+    }
   }
   return { partidas, placares };
 }
@@ -83,10 +95,14 @@ export function Jogos() {
       const partidas: Partida[] = [];
       const placares: Record<number, Placar> = {};
       for (const { id, data_jogo, status, gols_time_a, gols_time_b } of data) {
-        partidas.push({ id, data_jogo, status });
-        // O COALESCE da view garante placar 0x0 para jogos sem gols; o render
-        // continua exibindo '— × —' para partidas 'draft' via checagem de status.
-        placares[id] = { partida_id: id, gols_time_a, gols_time_b };
+        if (id != null && data_jogo != null && status != null) {
+          partidas.push({ id, data_jogo, status: status as StatusPartida });
+          placares[id] = {
+            partida_id: id,
+            gols_time_a: gols_time_a ?? 0,
+            gols_time_b: gols_time_b ?? 0,
+          };
+        }
       }
       return { partidas, placares };
     }
@@ -120,6 +136,7 @@ export function Jogos() {
       if (ok) {
         setIdsExcluidos((anteriores) => new Set(anteriores).add(alvo.id));
         invalidarCache('jogos');
+        invalidarCache('resumo');
         mostrarSnackbar('sucesso', 'Partida excluída da súmula');
       } else {
         mostrarSnackbar('erro', 'Não foi possível excluir a partida');

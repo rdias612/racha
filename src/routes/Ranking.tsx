@@ -111,7 +111,21 @@ export function Ranking() {
 
     const { data, error } = await query;
     if (error) throw error;
-    return data ?? [];
+    return (data ?? [])
+      .filter((r) => r.jogador_id != null && r.username != null)
+      .map((r) => ({
+        jogador_id: r.jogador_id!,
+        username: r.username!,
+        posicao: (r.posicao as PosicaoId) ?? 'random',
+        pontos: r.pontos ?? 0,
+        vitorias: r.vitorias ?? 0,
+        empates: r.empates ?? 0,
+        derrotas: r.derrotas ?? 0,
+        partidas: r.partidas ?? 0,
+        gols: r.gols ?? 0,
+        assistencias: r.assistencias ?? 0,
+        gols_contra: r.gols_contra ?? 0,
+      }));
   }, [posicaoFiltro]);
 
   const { dados, carregando, erro, recarregar } = useCache<LinhaRanking[]>(

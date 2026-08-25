@@ -5,6 +5,8 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { DialogoEvento } from '../components/DialogoEvento';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { useAdmin } from '../hooks/useAdmin';
+import { useJogadorLogado } from '../hooks/useJogadorLogado';
+import { invalidarCache } from '../hooks/useCache';
 import { formatarDataMobile, formatarDataCompleta } from '../lib/formatacao';
 import { voltar } from '../lib/navegacao';
 import {
@@ -35,6 +37,7 @@ export function PartidaAoVivo() {
   const partidaId = Number(id);
   const navigate = useNavigate();
   const isAdmin = useAdmin();
+  const jogadorLogado = useJogadorLogado();
 
   const [partida, setPartida] = useState<Partida | null>(null);
   const [participantes, setParticipantes] = useState<Participante[]>([]);
@@ -116,13 +119,15 @@ export function PartidaAoVivo() {
     setAbrindo(true);
     setErro(null);
     try {
-      const ok = await abrirPartida(partida.id);
+      const ok = await abrirPartida(partida.id, jogadorLogado?.id ?? null);
       if (!ok) {
         setErro(
           'Não foi possível abrir. Confira se os dois times têm 7 jogadores de linha e 1 goleiro escalados.'
         );
         return;
       }
+      invalidarCache('jogos');
+      invalidarCache('resumo');
       await recarregar();
     } catch (e: unknown) {
       setErro(e instanceof Error ? e.message : String(e));
@@ -196,6 +201,8 @@ export function PartidaAoVivo() {
         setConfirmandoFim(false);
         return;
       }
+      invalidarCache('jogos');
+      invalidarCache('resumo');
       navigate(`/partida/${partida.id}`, { replace: true });
     } catch (e: unknown) {
       setErro(e instanceof Error ? e.message : String(e));

@@ -12,23 +12,60 @@ const emVoo = new Map<string, Promise<unknown>>();
 // ANTES de uma mutação não repovoque o cache com dado obsoleto ao resolver.
 const geracoes = new Map<string, number>();
 
+// Ouvintes ativos por chave: componentes montados recebem notificação para
+// revalidar dados quando invalidarCache() é chamado.
+type Ouvinte = () => void;
+const ouvintes = new Map<string, Set<Ouvinte>>();
+
+function inscrever(chave: string, ouvinte: Ouvinte): () => void {
+  let conjunto = ouvintes.get(chave);
+  if (!conjunto) {
+    conjunto = new Set();
+    ouvintes.set(chave, conjunto);
+  }
+  conjunto.add(ouvinte);
+  return () => {
+    conjunto?.delete(ouvinte);
+    if (conjunto && conjunto.size === 0) {
+      ouvintes.delete(chave);
+    }
+  };
+}
+
 /**
- * Remove uma chave do cache. Chame após mutações (ex: excluir partida) para
- * garantir que a próxima visita busque na rede em vez de servir dado obsoleto.
+ * Remove uma chave (ou todas as chaves) do cache e notifica os componentes
+ * montados inscritos para revalidarem seus dados em background.
  */
-export function invalidarCache(chave: string): void {
-  geracoes.set(chave, (geracoes.get(chave) ?? 0) + 1);
-  emVoo.delete(chave);
-  cache.delete(chave);
+export function invalidarCache(chave?: string): void {
+  if (chave) {
+    geracoes.set(chave, (geracoes.get(chave) ?? 0) + 1);
+    emVoo.delete(chave);
+    cache.delete(chave);
+    const conjunto = ouvintes.get(chave);
+    if (conjunto) {
+      Array.from(conjunto).forEach((ouvinte) => ouvinte());
+    }
+  } else {
+    for (const k of cache.keys()) {
+      geracoes.set(k, (geracoes.get(k) ?? 0) + 1);
+    }
+    emVoo.clear();
+    cache.clear();
+    ouvintes.forEach((conjunto) => {
+      Array.from(conjunto).forEach((ouvinte) => ouvinte());
+    });
+  }
 }
 
 function lerCache<T>(chave: string): T | undefined {
   return cache.get(chave) as T | undefined;
 }
 
-function executar<T>(chave: string, buscar: () => Promise<T>): Promise<T> {
-  const emAndamento = emVoo.get(chave);
-  if (emAndamento) return emAndamento as Promise<T>;
+function executar<T>(chave: string, buscar: () => Promise<T>, forcar = false): Promise<T> {
+  if (!forcar) {
+    const emAndamento = emVoo.get(chave);
+    if (emAndamento) return emAndamento as Promise<T>;
+  }
 
   const geracao = geracoes.get(chave) ?? 0;
   const promessa = buscar().then(
@@ -90,25 +127,37 @@ export function useCache<T>(chave: string, buscar: () => Promise<T>): RetornoUse
   useEffect(() => {
     let ativo = true;
 
-    executar(chave, buscar).then(
-      (resultado) => {
-        if (ativo) {
-          setEstado((anterior) => ({ ...anterior, dados: resultado, erro: null }));
+    function revalidar(forcar = false) {
+      const geracaoInicio = geracoes.get(chave) ?? 0;
+      executar(chave, buscar, forcar).then(
+        (resultado) => {
+          if (ativo && (geracoes.get(chave) ?? 0) === geracaoInicio) {
+            setEstado((anterior) => ({ ...anterior, dados: resultado, erro: null }));
+          }
+        },
+        (motivo) => {
+          if (ativo && (geracoes.get(chave) ?? 0) === geracaoInicio) {
+            setEstado((anterior) =>
+              anterior.dados === undefined
+                ? { ...anterior, erro: formatarMensagemErro(motivo) }
+                : anterior
+            );
+          }
         }
-      },
-      (motivo) => {
-        if (ativo) {
-          setEstado((anterior) =>
-            anterior.dados === undefined
-              ? { ...anterior, erro: formatarMensagemErro(motivo) }
-              : anterior
-          );
-        }
+      );
+    }
+
+    revalidar(false);
+
+    const cancelarInscricao = inscrever(chave, () => {
+      if (ativo) {
+        revalidar(true);
       }
-    );
+    });
 
     return () => {
       ativo = false;
+      cancelarInscricao();
     };
   }, [chave, buscar]);
 
@@ -116,7 +165,7 @@ export function useCache<T>(chave: string, buscar: () => Promise<T>): RetornoUse
   // disso para segurar o indicador até o fim da atualização). Nunca rejeita.
   const recarregar = useCallback(async () => {
     try {
-      const resultado = await executar(chave, buscar);
+      const resultado = await executar(chave, buscar, true);
       setEstado((anterior) =>
         anterior.chave === chave ? { ...anterior, dados: resultado, erro: null } : anterior
       );

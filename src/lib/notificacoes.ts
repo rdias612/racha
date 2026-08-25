@@ -73,7 +73,7 @@ export async function obterConfiguracoesNotificacoes(adminId: number): Promise<N
     };
   }
 
-  return data as NotificacoesConfig;
+  return data as unknown as NotificacoesConfig;
 }
 
 export async function salvarConfiguracoesNotificacoes(

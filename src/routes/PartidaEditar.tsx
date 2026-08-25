@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { UserPlus, Trash2, ArrowLeftRight, Search, X } from 'lucide-react';
 import { useAdmin } from '../hooks/useAdmin';
+import { invalidarCache } from '../hooks/useCache';
 import { listarJogadoresAtivos, type JogadorLista } from '../lib/jogadores';
 import { TIMES, POSICOES, type TimeId } from '../lib/times';
 import {
@@ -224,6 +225,9 @@ export function PartidaEditar() {
         partida!.status,
         primeiraVez
       );
+
+      invalidarCache('jogos');
+      invalidarCache('resumo');
 
       setFeedback(
         primeiraVez

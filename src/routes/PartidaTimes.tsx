@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
 import { useEscalacaoTimes } from '../hooks/useEscalacaoTimes';
+import { invalidarCache } from '../hooks/useCache';
 import {
   carregarPartida,
   carregarParticipantes,
@@ -186,6 +187,8 @@ export function PartidaTimes() {
 
       if (errRpc) throw errRpc;
 
+      invalidarCache('jogos');
+      invalidarCache('resumo');
       setFeedback('Times e goleiros salvos com sucesso.');
       setTimeout(() => navigate(`/partida/${partidaId}`, { replace: true }), 600);
     } catch (e) {

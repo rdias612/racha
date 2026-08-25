@@ -130,8 +130,19 @@ export function Estatisticas() {
       if (resParcerias.error) throw resParcerias.error;
       if (resDestaques.error) throw resDestaques.error;
 
-      setStats(resStats.data);
-      setParcerias(resParcerias.data ?? []);
+      setStats(
+        resStats.data
+          ? {
+              jogador_id: resStats.data.jogador_id ?? jogadorSelecionadoId,
+              partidas: resStats.data.partidas ?? 0,
+              gols: resStats.data.gols ?? 0,
+              assistencias: resStats.data.assistencias ?? 0,
+              gols_contra: resStats.data.gols_contra ?? 0,
+              vitorias: resStats.data.vitorias ?? 0,
+            }
+          : null
+      );
+      setParcerias((resParcerias.data ?? []) as unknown as Parceria[]);
 
       // Mapeia array de destaques para lookup facil por metrica
       const mapaDestaques: Record<MetricaDestaque, ParceriaDestaque | undefined> = {

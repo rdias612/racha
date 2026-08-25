@@ -64,6 +64,8 @@ export async function listarJogadoresAtivos(): Promise<JogadorLista[]> {
   if (error) throw error;
   return (data ?? []).map((j) => ({
     ...j,
+    posicao: j.posicao as PosicaoId,
+    posicao_b: (j.posicao_b as PosicaoId | null) ?? null,
     is_admin: j.is_admin || isSuperAdmin(j.username),
   }));
 }
@@ -81,6 +83,8 @@ export async function listarTodosJogadores(): Promise<JogadorLista[]> {
     .filter((j) => !isRandomUsername(j.username))
     .map((j) => ({
       ...j,
+      posicao: j.posicao as PosicaoId,
+      posicao_b: (j.posicao_b as PosicaoId | null) ?? null,
       is_admin: j.is_admin || isSuperAdmin(j.username),
     }));
 }
@@ -350,8 +354,8 @@ export async function criarGoleiroRapido(
 ): Promise<number> {
   const { data, error } = await supabase.rpc('criar_goleiro_rapido', {
     p_nome: dados.nome.trim(),
-    p_telefone: dados.telefone?.trim() || null,
-    p_chave_pix: dados.chave_pix?.trim() || null,
+    p_telefone: dados.telefone?.trim() || undefined,
+    p_chave_pix: dados.chave_pix?.trim() || undefined,
     p_admin_id: adminId,
   });
 
@@ -366,8 +370,8 @@ export async function atualizarDadosPixTelefone(
 ): Promise<void> {
   const { error } = await supabase.rpc('atualizar_dados_pix_telefone', {
     p_jogador_id: jogadorId,
-    p_chave_pix: dados.chave_pix ? dados.chave_pix.trim() : null,
-    p_telefone: dados.telefone ? dados.telefone.trim() : null,
+    p_chave_pix: dados.chave_pix ? dados.chave_pix.trim() : '',
+    p_telefone: dados.telefone ? dados.telefone.trim() : '',
     p_operador_id: operadorId,
   });
 
@@ -401,6 +405,8 @@ export async function listarGoleiros(): Promise<JogadorLista[]> {
   if (error) throw error;
   return (data ?? []).map((j) => ({
     ...j,
+    posicao: j.posicao as PosicaoId,
+    posicao_b: (j.posicao_b as PosicaoId | null) ?? null,
     is_admin: j.is_admin || isSuperAdmin(j.username),
   }));
 }

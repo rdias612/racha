@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useSessao } from '../context/SessaoContext';
 import { MensagemEstado } from '../components/Estado';
 import { listarUsernames } from '../lib/jogadores';
+import { type PosicaoId } from '../lib/times';
 import { Logo } from '../components/Logo';
 
 export function Login() {
@@ -90,7 +91,12 @@ export function Login() {
       return;
     }
 
-    setJogador(data[0]);
+    const ret = data[0];
+    setJogador({
+      ...ret,
+      posicao: ret.posicao as PosicaoId,
+      posicao_b: (ret.posicao_b as PosicaoId | null) ?? null,
+    });
     navigate('/', { replace: true });
   }
 

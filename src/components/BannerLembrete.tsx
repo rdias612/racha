@@ -58,7 +58,12 @@ export function BannerLembrete() {
       if (erroVotados || geracao !== geracaoRef.current) return;
 
       const idsVotados = new Set((votados ?? []).map((v) => v.partida_id));
-      setPendentes(data.filter((p) => !idsVotados.has(p.id)));
+      setPendentes(
+        data.filter(
+          (p): p is { id: number; voting_closes_at: string } =>
+            p.voting_closes_at != null && !idsVotados.has(p.id)
+        )
+      );
     } catch {
       // Falha de rede durante o polling: mantém o último estado conhecido.
     }

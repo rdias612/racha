@@ -5,6 +5,7 @@ import { obterMediasNotasJogadores, type JogadorLista } from '../lib/jogadores';
 import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
 import { useEscalacaoTimes } from '../hooks/useEscalacaoTimes';
+import { invalidarCache } from '../hooks/useCache';
 import { formatarDataCompleta } from '../lib/formatacao';
 import { EscalacaoTimesEditor } from '../components/EscalacaoTimesEditor';
 import { voltar } from '../lib/navegacao';
@@ -113,6 +114,8 @@ export function PartidaNovaTimes() {
       // Storage indisponível — ignora silenciosamente.
     }
 
+    invalidarCache('jogos');
+    invalidarCache('resumo');
     setFeedback(`Partida #${data} criada.`);
     setTimeout(() => navigate(`/partida/${data}`, { replace: true }), 800);
   }

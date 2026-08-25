@@ -105,13 +105,13 @@ export async function registrarDivida(input: {
   partida_id?: number;
 }): Promise<number> {
   const { data, error } = await supabase.rpc('registrar_divida', {
-    p_jogador_id: input.jogador_id ?? null,
+    p_jogador_id: input.jogador_id ?? undefined,
     p_tipo: input.tipo,
     p_valor: input.valor,
-    p_data_divida: input.data_divida ?? null,
-    p_descricao: input.descricao ?? null,
-    p_referencia: input.referencia ?? null,
-    p_partida_id: input.partida_id ?? null,
+    p_data_divida: input.data_divida ?? undefined,
+    p_descricao: input.descricao ?? undefined,
+    p_referencia: input.referencia ?? undefined,
+    p_partida_id: input.partida_id ?? undefined,
     p_natureza: input.natureza ?? 'receita',
   });
   if (error) throw error;

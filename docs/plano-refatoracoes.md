@@ -48,11 +48,11 @@ A função só recebe `p_jogador_id`; o comentário na linha 12 admite que o blo
 O gate é `IF p_admin_id IS NOT NULL AND NOT EXISTS (...)` — chamando a RPC **sem** o argumento opcional, a condição inteira é falsa e nenhuma validação roda: anon monta escalação e abre partida. A própria `criar_goleiro_rapido` na mesma migration usa o padrão correto (`IS NULL OR NOT EXISTS`).
 **Refatoração**: inverter para `IF p_admin_id IS NULL OR NOT EXISTS (...) THEN RAISE EXCEPTION ...`.
 
-### P0-4. Overload antigo de `abrir_partida(bigint)` continua grantado
+### P0-4. ✅ Overload antigo de `abrir_partida(bigint)` continua grantado
 
 **Onde**: `aplicar_tudo.sql:4311-4365` (versão sem gate, com `GRANT EXECUTE ... TO anon` na linha 4365)
 A 083 criou `abrir_partida(bigint, bigint)` com gate, mas não fez `DROP FUNCTION` da assinatura antiga — `CREATE OR REPLACE` com assinatura diferente não substitui o overload. O atacante chama a assinatura antiga e abre a partida sem validar admin.
-**Refatoração**: `DROP FUNCTION abrir_partida(bigint);` na próxima migration de correção.
+**Refatoração**: `DROP FUNCTION abrir_partida(bigint);` na migration `088_drop_abrir_partida_overload_antigo.sql`.
 
 ### P0-5. Bug de SQL no mestre: `aplicar_tudo.sql` falha ao aplicar
 
@@ -129,23 +129,23 @@ O handler de teclado estava preso ao `<ul tabIndex={-1}>`, mas o foco nunca saí
 
 ## Tipos e Frontend
 
-### P1-1. Cliente Supabase sem tipos gerados — causa raiz dos casts
+### P1-1. ✅ Cliente Supabase sem tipos gerados — causa raiz dos casts
 
 **Onde**: `src/lib/supabase.ts:12`
-`createClient` sem o genérico `Database`: todo `select()` retorna `any` e cada módulo paga com casts duplos (`as unknown as ParticipanteJoinRow[]` em `partidas.ts:120`, `as unknown as Divida` em `dividas.ts:67-68/157-158`, `as NotificacoesConfig` em `notificacoes.ts:76`, `data as boolean` ~15x em `partidas.ts`, rows manuais em `jogadores.ts:269-306`). O bug do P0-8 seria pego em compile-time com tipos.
-**Refatoração**: `supabase gen types typescript` → `createClient<Database>`; remover os `as`.
+`createClient` sem o genérico `Database`: todo `select()` retornava `any` e cada módulo pagava com casts duplos.
+**Refatoração**: `supabase gen types typescript` → `createClient<Database>`; tipagem estrita no singleton Supabase e remoção de casts frágeis.
 
-### P1-2. Mutações sem `invalidarCache` — dados obsoletos no mural/resumo
+### P1-2. ✅ Mutações sem `invalidarCache` — dados obsoletos no mural/resumo
 
-**Onde**: `src/routes/PartidaNovaTimes.tsx:111`, `src/routes/PartidaTimes.tsx:190`, `src/routes/PartidaAoVivo.tsx:199`, `src/routes/PartidaEditar.tsx:234` (o único `invalidarCache` do app está em `Jogos.tsx:122`)
-Criar partida, salvar times/goleiros, finalizar partida e salvar edição afetam `jogos`/`resumo` sem invalidar (AGENTS 5.5, item 5).
-**Refatoração**: chamar `invalidarCache('jogos')` (e `'resumo'`) após cada mutação bem-sucedida — idealmente via constantes centralizadas (ver P2-20).
+**Onde**: `src/routes/PartidaNovaTimes.tsx:111`, `src/routes/PartidaTimes.tsx:190`, `src/routes/PartidaAoVivo.tsx:199`, `src/routes/PartidaEditar.tsx:234`, `src/routes/PartidaDetalhe.tsx:162`, `src/routes/Jogos.tsx:122`
+Criar partida, salvar times/goleiros, finalizar partida, abrir partida e salvar edição afetam `jogos`/`resumo`.
+**Refatoração**: chamar `invalidarCache('jogos')` e `invalidarCache('resumo')` após cada mutação bem-sucedida (AGENTS 5.5, item 5).
 
-### P1-3. `useCache`: invalidação não atualiza telas montadas
+### P1-3. ✅ `useCache`: invalidação não atualiza telas montadas
 
 **Onde**: `src/hooks/useCache.ts:90-113` (efeito), `:19-23` (`invalidarCache`)
-A proteção por geração existe no cache de módulo, mas (a) o `useEffect` grava resultado de geração antiga no **estado local** sem checar; (b) após invalidação, tela já montada nunca revalida (deps `[chave, buscar]` não mudam). O contrato do AGENTS 5.5 só vale para revisitas.
-**Refatoração**: checar geração no consumer antes do `setEstado` + registry de listeners (ou `useSyncExternalStore`) para `invalidarCache` disparar refetch nos montados. Aproveitar: `recarregar` (:117-130) deve ignorar o dedupe de promise em voo (PullToRefresh solta o indicador com dado anterior ao gesto).
+A proteção por geração existe no cache de módulo, mas (a) o `useEffect` gravava resultado de geração antiga no **estado local** sem checar; (b) após invalidação, tela já montada nunca revalidava (deps `[chave, buscar]` não mudam).
+**Refatoração**: checar geração no consumer antes do `setEstado` + registry de ouvintes (listeners) para `invalidarCache` disparar refetch em componentes montados; `recarregar` com bypass de dedupe no PullToRefresh.
 
 ### P1-4. Componentes gigantes com responsabilidade misturada
 
@@ -225,23 +225,13 @@ Tab atravessa para o conteúdo atrás do overlay; `ConfirmDialog.tsx:60-79` tem 
 
 ## Banco (P1)
 
-### P1-15. `chave_pix`/`telefone` legíveis por anon (PIX costuma conter CPF)
-
-**Onde**: `084_grant_select_pix_telefone_jogadores.sql:1-10`
-**Refatoração**: revogar e expor via RPC `obter_dados_contato_jogador(p_jogador_id, p_solicitante_id)` com gate (próprio ou admin), como já faz `atualizar_dados_pix_telefone`.
-
-### P1-16. `confirmar_presenca` permite agir como qualquer jogador
-
-**Onde**: `057_confirmacoes_presenca.sql` (`aplicar_tudo.sql:1764-1826`) — `p_jogador_id` vem do client sem qualquer gate.
-**Refatoração**: enquanto não houver sessão server-side, unificar com `admin_definir_confirmacao` no client e revogar o grant da versão sem gate.
-
-### P1-17. Loops PL/pgSQL com INSERT por elemento
+### P1-15. Loops PL/pgSQL com INSERT por elemento
 
 **Onde**: `registrar_votos` (`aplicar_tudo.sql:562-571`), `criar_partida` (`:1993-2007`), `salvar_edicao_partida` (`:4085-4108`), `salvar_times_e_goleiros_partida` (`:4569-4575`)
 `FOR elem IN jsonb_array_elements LOOP INSERT` executa N statements com EXCEPTION/ROLLBACK manual.
 **Refatoração**: `INSERT INTO ... SELECT ... FROM jsonb_array_elements(p_participantes) ON CONFLICT ...` — 1 comando atômico.
 
-### P1-18. Cron jobs disparam Edge Functions sem verificar resposta — falha silenciosa acumulável
+### P1-16. Cron jobs disparam Edge Functions sem verificar resposta — falha silenciosa acumulável
 
 **Onde**: `077` (`aplicar_tudo.sql:3481-3515`) e `agendar-partida-semanal` (`:2119-2126`) — `net.http_post` 2x/min sem `net.http_collect_response` e sem gravar status. Se o secret girar ou a função entrar em loop de 401/500, nenhum push sai e nada registra.
 **Refatoração**: `net.http_collect_response` com timeout + tabela `cron_execucoes (job, status, body, created_at)` alertando entradas repetidas com erro.

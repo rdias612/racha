@@ -64,7 +64,18 @@ export function Perfil() {
         .eq('jogador_id', jogadorId)
         .maybeSingle();
       if (!ativo) return;
-      if (!error) setStats(data);
+      if (!error && data) {
+        setStats({
+          jogador_id: data.jogador_id ?? jogadorId,
+          partidas: data.partidas ?? 0,
+          gols: data.gols ?? 0,
+          assistencias: data.assistencias ?? 0,
+          gols_contra: data.gols_contra ?? 0,
+          vitorias: data.vitorias ?? 0,
+        });
+      } else if (!error) {
+        setStats(null);
+      }
       setCarregandoStats(false);
     }
     carregarStats();

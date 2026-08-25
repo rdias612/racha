@@ -220,7 +220,7 @@ export function placarDeEventos(
 export async function abrirPartida(partidaId: number, adminId?: number | null) {
   const { data, error } = await supabase.rpc('abrir_partida', {
     p_partida_id: partidaId,
-    p_admin_id: adminId ?? null,
+    p_admin_id: adminId ?? undefined,
   });
   if (error) throw error;
   return data as boolean;
@@ -236,7 +236,7 @@ export async function registrarEvento(
     p_partida_id: partidaId,
     p_tipo: tipo,
     p_jogador_id: jogadorId,
-    p_assistencia_jogador_id: assistenciaJogadorId,
+    p_assistencia_jogador_id: assistenciaJogadorId ?? undefined,
   });
   if (error) throw error;
   return data as number | null;
@@ -260,7 +260,7 @@ export async function editarEvento(
     p_evento_id: eventoId,
     p_tipo: tipo,
     p_jogador_id: jogadorId,
-    p_assistencia_jogador_id: assistenciaJogadorId,
+    p_assistencia_jogador_id: assistenciaJogadorId ?? undefined,
   });
   if (error) throw error;
   return data as boolean;

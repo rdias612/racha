@@ -45,7 +45,7 @@ export function NovoJogador() {
       p_username: usernameLimpo,
       p_posicao: posicao,
       p_is_admin: isAdminNovo,
-      p_posicao_b: posicao === 'goleiro' ? null : posicaoB,
+      p_posicao_b: posicao === 'goleiro' ? undefined : (posicaoB ?? undefined),
       p_is_mensalista: isMensalista,
     });
     setCriando(false);

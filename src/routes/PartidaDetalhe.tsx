@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
+import { invalidarCache } from '../hooks/useCache';
 import { TIMES, POSICOES, type TimeId } from '../lib/times';
 import {
   isRandomUsername,
@@ -152,13 +153,15 @@ export function PartidaDetalhe() {
     setAbrindo(true);
     setErro(null);
     try {
-      const ok = await abrirPartida(partida.id);
+      const ok = await abrirPartida(partida.id, jogadorLogado?.id ?? null);
       if (!ok) {
         setErro(
           'Não foi possível abrir. Confira se os dois times têm 7 jogadores de linha e 1 goleiro escalados.'
         );
         return;
       }
+      invalidarCache('jogos');
+      invalidarCache('resumo');
       navigate(`/partida/${partida.id}/ao-vivo`, { replace: true });
     } catch (e) {
       setErro(e instanceof Error ? e.message : String(e));
