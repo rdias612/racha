@@ -25,10 +25,20 @@ export function Login() {
   const indiceAtivo = usernamesFiltrados.indexOf(username);
 
   useEffect(() => {
+    let ativo = true;
     listarUsernames()
-      .then(setUsernames)
-      .catch(() => setErroUsernames('Não foi possível carregar os usuários.'))
-      .finally(() => setCarregandoUsernames(false));
+      .then((nomes) => {
+        if (ativo) setUsernames(nomes);
+      })
+      .catch(() => {
+        if (ativo) setErroUsernames('Não foi possível carregar os usuários.');
+      })
+      .finally(() => {
+        if (ativo) setCarregandoUsernames(false);
+      });
+    return () => {
+      ativo = false;
+    };
   }, []);
 
   function selecionar(nome: string) {

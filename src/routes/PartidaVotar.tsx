@@ -5,7 +5,12 @@ import { useSessao } from '../context/SessaoContext';
 import { SeletorNota } from '../components/SeletorNota';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { ConfirmDialog } from '../components/ConfirmDialog';
-import { carregarParticipantes, type Partida, type Participante } from '../lib/partidas';
+import {
+  carregarParticipantes,
+  carregarMeusVotos,
+  type Partida,
+  type Participante,
+} from '../lib/partidas';
 import { TIMES, POSICOES, type TimeId } from '../lib/times';
 import { isRandomUsername } from '../lib/jogadores';
 import { voltar } from '../lib/navegacao';
@@ -112,18 +117,14 @@ export function PartidaVotar() {
 
         const outros = participantes.filter((x) => x.jogador_id !== jogador.id && x.time !== null);
 
-        const { data: meusVotos } = await supabase
-          .from('votes')
-          .select('target_id, rating')
-          .eq('match_id', partidaId)
-          .eq('voter_id', jogador.id);
+        const meusVotos = await carregarMeusVotos(partidaId, jogador.id);
 
         if (!ativo) return;
 
         let mapaNotas: Record<number, number> = {};
         const mapaOriginais = new Map<number, number>();
 
-        if (meusVotos && meusVotos.length > 0) {
+        if (meusVotos.length > 0) {
           for (const v of meusVotos) {
             mapaNotas[v.target_id] = v.rating;
             mapaOriginais.set(v.target_id, v.rating);

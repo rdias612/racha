@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAdmin } from '../hooks/useAdmin';
+import { useJogadorLogado } from '../hooks/useJogadorLogado';
 import {
   listarTodosJogadores,
-  atualizarCaracteristicasJogador,
+  salvarCaracteristicasJogadores,
   resetarSenhaJogador,
   isSuperAdmin,
   MAX_MENSALISTAS,
@@ -40,6 +41,7 @@ interface AlteracaoRascunho {
 
 export function GestaoJogadores() {
   const isAdmin = useAdmin();
+  const adminLogado = useJogadorLogado();
   const navigate = useNavigate();
 
   const [jogadores, setJogadores] = useState<JogadorLista[]>([]);
@@ -230,33 +232,28 @@ export function GestaoJogadores() {
   }
 
   async function salvarTodasAlteracoes() {
-    if (!temAlteracoes) return;
+    if (!temAlteracoes || !adminLogado) return;
 
     setSalvandoLote(true);
     setMensagemErro(null);
     setMensagemSucesso(null);
 
     try {
-      // Salva cada jogador modificado no Supabase
-      const idsModificados = Object.keys(rascunhos).map(Number);
+      // Lote transacional numa única RPC: o servidor aplica tudo ou nada
+      // (AGENTS 7.4) — uma falha no meio não deixa metade dos jogadores alterada.
+      const lote = Object.entries(rascunhos).map(([idStr, draft]) => ({
+        id: Number(idStr),
+        is_mensalista: draft.is_mensalista,
+        is_admin: draft.is_admin,
+      }));
 
-      for (const id of idsModificados) {
-        const jOriginal = jogadores.find((j) => j.id === id);
-        const draft = rascunhos[id];
+      await salvarCaracteristicasJogadores(adminLogado.id, lote);
 
-        if (jOriginal && draft) {
-          await atualizarCaracteristicasJogador(id, jOriginal.username, {
-            is_mensalista: draft.is_mensalista,
-            is_admin: draft.is_admin,
-          });
-        }
-      }
-
-      // Atualiza a lista original local com os rascunhos confirmados
+      // Estado local só é commitado após o servidor confirmar o lote inteiro.
       setJogadores(jogadoresDraft);
       setRascunhos({});
 
-      setMensagemSucesso(`Sucesso! ${idsModificados.length} alteração(ões) salva(s) com sucesso.`);
+      setMensagemSucesso(`Sucesso! ${lote.length} alteração(ões) salva(s) com sucesso.`);
     } catch (err) {
       setMensagemErro(
         err instanceof Error ? err.message : 'Erro ao salvar alterações no servidor.'

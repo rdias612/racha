@@ -85,58 +85,22 @@ export async function listarTodosJogadores(): Promise<JogadorLista[]> {
     }));
 }
 
-export async function atualizarCaracteristicasJogador(
-  id: number,
-  username: string,
-  dados: { is_mensalista?: boolean; is_admin?: boolean }
+// Salva um lote de alterações de mensalista/admin numa única RPC transacional
+// (AGENTS 7.4): falha no meio não deixa metade dos jogadores alterada, e o
+// teto de mensalistas é validado no servidor sobre o estado final do lote.
+export async function salvarCaracteristicasJogadores(
+  adminId: number,
+  alteracoes: Array<{ id: number; is_mensalista: boolean; is_admin: boolean }>
 ): Promise<void> {
-  const payload: { is_mensalista?: boolean; is_admin?: boolean } = { ...dados };
-
-  if (isSuperAdmin(username)) {
-    // Superadmins sempre mantêm is_admin e is_mensalista como true
-    payload.is_admin = true;
-    payload.is_mensalista = true;
-  } else {
-    // Regra: se o status de mensalista for removido, remove também o status de admin
-    if (payload.is_mensalista === false) {
-      payload.is_admin = false;
-    }
-    // Regra: não permite ativar is_admin se for não-mensalista
-    if (payload.is_admin === true && payload.is_mensalista === false) {
-      throw new Error('Apenas jogadores mensalistas podem ser administradores.');
-    }
-  }
-
-  // Validação do limite de mensalistas se estiver ativando mensalista
-  if (payload.is_mensalista === true) {
-    const { data: jogadorAtual } = await supabase
-      .from('jogadores')
-      .select('posicao, is_mensalista')
-      .eq('id', id)
-      .maybeSingle();
-
-    if (jogadorAtual?.posicao === 'goleiro') {
-      throw new Error('Goleiros não pagam para jogar e não podem ser mensalistas.');
-    }
-
-    if (jogadorAtual && !jogadorAtual.is_mensalista) {
-      const { count, error: countErr } = await supabase
-        .from('jogadores')
-        .select('id', { count: 'exact', head: true })
-        .eq('is_mensalista', true);
-
-      if (countErr) throw countErr;
-      if ((count ?? 0) >= MAX_MENSALISTAS) {
-        throw new Error(
-          `Limite máximo de ${MAX_MENSALISTAS} mensalistas atingido. Remova o status de mensalista de outro jogador antes de adicionar.`
-        );
-      }
-    }
-  }
-
-  const { error } = await supabase.from('jogadores').update(payload).eq('id', id);
+  const { data, error } = await supabase.rpc('salvar_caracteristicas_jogadores', {
+    p_admin_id: adminId,
+    p_jogadores: alteracoes,
+  });
 
   if (error) throw error;
+  if (data !== true) {
+    throw new Error('Não foi possível salvar as alterações dos jogadores.');
+  }
 }
 
 export async function atualizarUsernameJogador(id: number, novoUsername: string): Promise<void> {

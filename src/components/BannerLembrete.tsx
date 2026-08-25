@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
@@ -21,16 +21,25 @@ export function BannerLembrete() {
   const [pendentes, setPendentes] = useState<PartidaAberta[]>([]);
   const [agora, setAgora] = useState(Date.now());
 
-  // Recarrega a cada 30s se houver pendentes, senão a cada 5min
-  useEffect(() => {
-    async function verificar() {
-      if (!jogadorId) return;
+  // Geração de requisição: resposta de um polling antigo (troca de jogador
+  // logado) nunca sobrescreve o estado de um polling mais novo.
+  const geracaoRef = useRef(0);
+
+  const verificar = useCallback(async () => {
+    // Aba em segundo plano não gasta quota: o listener de visibilitychange
+    // re-verifica assim que o usuário volta.
+    if (!jogadorId || document.hidden) return;
+    const geracao = ++geracaoRef.current;
+
+    try {
       // Busca partidas published com votação aberta
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('partidas')
         .select('id, voting_closes_at')
         .eq('status', 'published')
         .gt('voting_closes_at', new Date().toISOString());
+
+      if (error || geracao !== geracaoRef.current) return;
 
       if (!data || data.length === 0) {
         setPendentes([]);
@@ -38,7 +47,7 @@ export function BannerLembrete() {
       }
 
       // Filtra as que o usuário ainda não votou (LEFT JOIN virtual)
-      const { data: votados } = await supabase
+      const { data: votados, error: erroVotados } = await supabase
         .from('votes')
         .select('partida_id')
         .eq('voter_id', jogadorId)
@@ -46,16 +55,36 @@ export function BannerLembrete() {
           'partida_id',
           data.map((p) => p.id)
         );
+      if (erroVotados || geracao !== geracaoRef.current) return;
+
       const idsVotados = new Set((votados ?? []).map((v) => v.partida_id));
-      const pendentesLista = data.filter((p) => !idsVotados.has(p.id));
-      setPendentes(pendentesLista);
+      setPendentes(data.filter((p) => !idsVotados.has(p.id)));
+    } catch {
+      // Falha de rede durante o polling: mantém o último estado conhecido.
     }
+  }, [jogadorId]);
+
+  // Busca imediata ao montar ou trocar de jogador logado.
+  useEffect(() => {
     verificar();
-    const temPendentes = pendentes.length > 0;
-    const intervalo = temPendentes ? 30_000 : 5 * 60_000;
-    const i = setInterval(verificar, intervalo);
+  }, [verificar]);
+
+  // Recarrega a cada 30s se houver pendentes, senão a cada 5min. O intervalo
+  // mora num efeito próprio para não refazer a busca quando `pendentes` muda.
+  useEffect(() => {
+    const intervalo = pendentes.length > 0 ? 30_000 : 5 * 60_000;
+    const i = setInterval(() => verificar(), intervalo);
     return () => clearInterval(i);
-  }, [jogadorId, pendentes.length]);
+  }, [verificar, pendentes.length]);
+
+  // Ao voltar para a aba, atualiza na hora (o polling foi pulado em background).
+  useEffect(() => {
+    function aoMudarVisibilidade() {
+      if (!document.hidden) verificar();
+    }
+    document.addEventListener('visibilitychange', aoMudarVisibilidade);
+    return () => document.removeEventListener('visibilitychange', aoMudarVisibilidade);
+  }, [verificar]);
 
   // Tick a cada 1min para atualizar o countdown
   useEffect(() => {

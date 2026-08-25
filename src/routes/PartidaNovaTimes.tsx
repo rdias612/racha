@@ -30,11 +30,17 @@ export function PartidaNovaTimes() {
   const [erro, setErro] = useState<string | null>(null);
 
   useEffect(() => {
+    let ativo = true;
     obterMediasNotasJogadores()
-      .then(setMediasNotas)
+      .then((medias) => {
+        if (ativo) setMediasNotas(medias);
+      })
       .catch(() => {
         // Falha silenciosa: assume nota 6.0 padrao se falhar busca
       });
+    return () => {
+      ativo = false;
+    };
   }, []);
 
   // Apenas os confirmados recebidos via state.

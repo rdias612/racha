@@ -55,6 +55,7 @@ export function Perfil() {
   const jogadorId = jogador?.id;
 
   useEffect(() => {
+    let ativo = true;
     async function carregarStats() {
       if (!jogadorId) return;
       const { data, error } = await supabase
@@ -62,10 +63,14 @@ export function Perfil() {
         .select('jogador_id, partidas, gols, assistencias, gols_contra, vitorias')
         .eq('jogador_id', jogadorId)
         .maybeSingle();
+      if (!ativo) return;
       if (!error) setStats(data);
       setCarregandoStats(false);
     }
     carregarStats();
+    return () => {
+      ativo = false;
+    };
   }, [jogadorId]);
 
   if (!jogador) return null;

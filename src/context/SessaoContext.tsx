@@ -53,6 +53,11 @@ export function SessaoProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!jogador) return;
+    // Snapshot capturado antes do await: blinda contra o `jogador` mudar
+    // enquanto a sincronização está em voo (resposta antiga sobrescrevendo
+    // estado novo) e elimina os non-null assertions dentro da closure.
+    const snapshot = jogador;
+    let ativo = true;
 
     async function sincronizarJogador() {
       const { data, error } = await supabase
@@ -60,10 +65,10 @@ export function SessaoProvider({ children }: { children: ReactNode }) {
         .select(
           'id, username, posicao, is_admin, is_ativo, is_mensalista, posicao_b, chave_pix, telefone'
         )
-        .eq('id', jogador!.id)
+        .eq('id', snapshot.id)
         .maybeSingle();
 
-      if (error || !data || !data.is_ativo) return;
+      if (!ativo || error || !data || !data.is_ativo) return;
 
       const jogadorAtualizado = data as JogadorLogado;
       if (isSuperAdmin(jogadorAtualizado.username)) {
@@ -71,11 +76,11 @@ export function SessaoProvider({ children }: { children: ReactNode }) {
       }
 
       if (
-        jogadorAtualizado.id !== jogador!.id ||
-        jogadorAtualizado.username !== jogador!.username ||
-        jogadorAtualizado.is_admin !== jogador!.is_admin ||
-        jogadorAtualizado.is_mensalista !== jogador!.is_mensalista ||
-        jogadorAtualizado.posicao !== jogador!.posicao
+        jogadorAtualizado.id !== snapshot.id ||
+        jogadorAtualizado.username !== snapshot.username ||
+        jogadorAtualizado.is_admin !== snapshot.is_admin ||
+        jogadorAtualizado.is_mensalista !== snapshot.is_mensalista ||
+        jogadorAtualizado.posicao !== snapshot.posicao
       ) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(jogadorAtualizado));
         setJogadorState(jogadorAtualizado);
@@ -83,6 +88,9 @@ export function SessaoProvider({ children }: { children: ReactNode }) {
     }
 
     sincronizarJogador();
+    return () => {
+      ativo = false;
+    };
   }, [jogador]);
 
   // Referências estáveis: evitam que todo consumidor do contexto re-renderize

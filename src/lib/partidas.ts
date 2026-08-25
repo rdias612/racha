@@ -162,6 +162,23 @@ export async function carregarParesRacha(minPartidas: number = 5) {
   return (data ?? []) as ParRacha[];
 }
 
+export interface VotoEnviado {
+  target_id: number;
+  rating: number;
+}
+
+// Lê os votos já enviados pelo votante numa partida (para pré-popular a cédula
+// em modo edição). A tabela `votes` referencia a partida por `partida_id`.
+export async function carregarMeusVotos(partidaId: number, voterId: number) {
+  const { data, error } = await supabase
+    .from('votes')
+    .select('target_id, rating')
+    .eq('partida_id', partidaId)
+    .eq('voter_id', voterId);
+  if (error) throw error;
+  return (data ?? []) as VotoEnviado[];
+}
+
 // Apaga TODOS os votos do jogador logado numa partida (descartar p/ refazer).
 // Retorna true se o servidor aceitou (votacao aberta); false caso contrario.
 export async function descartarVotos(partidaId: number, voterId: number) {

@@ -12,6 +12,7 @@ export interface ParticipanteForm {
 }
 
 const NOTA_PADRAO = 6.0;
+const JITTER_NOTA = 0.1;
 
 function embaralhar<T>(array: T[]): T[] {
   const arr = [...array];
@@ -29,6 +30,10 @@ function embaralhar<T>(array: T[]): T[] {
 
 interface JogadorComRating extends JogadorLista {
   nota: number;
+  // Nota com variação aleatória sorteada uma única vez por jogador, antes de
+  // qualquer ordenação: ruído dentro do comparator do sort viola o contrato
+  // (o mesmo par pode inverter entre chamadas e a ordem fica não especificada).
+  notaEfetiva: number;
 }
 
 /**
@@ -41,16 +46,18 @@ export function gerarEscalacaoAutomatica(
 ): ParticipanteForm[] {
   const limitePorTime = Math.ceil(jogadores.length / 2);
 
-  // Atribuição de notas (padrão 6.0 se não tiver avaliação)
+  // Atribuição de notas (padrão 6.0 se não tiver avaliação) com jitter fixo
   const jogadoresComNota: JogadorComRating[] = jogadores.map((j) => {
     const notaCalculada = j.media_nota ?? mediasNotas?.[j.id] ?? NOTA_PADRAO;
+    const nota = Number(notaCalculada.toFixed(2));
     return {
       ...j,
-      nota: Number(notaCalculada.toFixed(2)),
+      nota,
+      notaEfetiva: nota + (Math.random() * 2 * JITTER_NOTA - JITTER_NOTA),
     };
   });
 
-  const goleiros = embaralhar(jogadoresComNota.filter((j) => j.posicao === 'goleiro'));
+  const goleiros = jogadoresComNota.filter((j) => j.posicao === 'goleiro');
   const linha = embaralhar(jogadoresComNota.filter((j) => j.posicao !== 'goleiro'));
 
   const timeA: JogadorComRating[] = [];
@@ -61,7 +68,7 @@ export function gerarEscalacaoAutomatica(
   }
 
   // 1. Distribuir Goleiros alternadamente (atribuindo o melhor goleiro ao time com menor saldo)
-  goleiros.sort((a, b) => b.nota - a.nota);
+  goleiros.sort((a, b) => b.notaEfetiva - a.notaEfetiva);
   for (const g of goleiros) {
     if (
       timeA.length < limitePorTime &&
@@ -87,10 +94,8 @@ export function gerarEscalacaoAutomatica(
 
   // 3. Pares por posição primária usando ABBA equilibrado pela soma das notas
   for (const pos in gruposPosicao) {
-    // Ordena por nota (maior para menor) com pequena variação aleatória para não ser 100% estático
-    const lista = (gruposPosicao[pos] ?? []).sort(
-      (a, b) => b.nota - a.nota + (Math.random() * 0.2 - 0.1)
-    );
+    // Ordena por nota efetiva (jitter já sorteado por jogador) para não ser 100% estático
+    const lista = (gruposPosicao[pos] ?? []).sort((a, b) => b.notaEfetiva - a.notaEfetiva);
 
     while (lista.length >= 2) {
       const p1 = lista.shift();

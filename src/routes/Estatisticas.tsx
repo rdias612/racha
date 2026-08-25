@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { isRandomUsername } from '../lib/jogadores';
@@ -80,22 +80,32 @@ export function Estatisticas() {
   // Carrega lista de jogadores ativos uma vez, filtrando os "random".
   useEffect(() => {
     if (!jogadorId) return;
+    let ativo = true;
     supabase
       .from('jogadores')
       .select('id, username')
       .eq('is_ativo', true)
       .order('username')
       .then(({ data, error }) => {
-        if (error || !data) return;
+        if (!ativo || error || !data) return;
         const filtrados = data.filter((j) => !isRandomUsername(j.username));
         setJogadores(filtrados);
         // default: o proprio jogador logado
         setJogadorSelecionadoId((curr) => (curr === null ? jogadorId : curr));
       });
+    return () => {
+      ativo = false;
+    };
   }, [jogadorId]);
+
+  // Geração de requisição: `carregar` também é usado pelo PullToRefresh (fora
+  // do ciclo de useEffect), então a proteção contra resposta obsoleta — trocar
+  // o jogador selecionado durante o fetch — vive aqui, não na flag do efeito.
+  const geracaoRef = useRef(0);
 
   const carregar = useCallback(async () => {
     if (jogadorSelecionadoId === null) return;
+    const geracao = ++geracaoRef.current;
     setCarregando(true);
     setErro(null);
 
@@ -115,6 +125,7 @@ export function Estatisticas() {
         }),
       ]);
 
+      if (geracao !== geracaoRef.current) return;
       if (resStats.error) throw resStats.error;
       if (resParcerias.error) throw resParcerias.error;
       if (resDestaques.error) throw resDestaques.error;
@@ -135,9 +146,11 @@ export function Estatisticas() {
       }
       setDestaques(mapaDestaques);
     } catch (e) {
-      setErro(e instanceof Error ? e.message : 'Erro ao carregar dados.');
+      if (geracao === geracaoRef.current) {
+        setErro(e instanceof Error ? e.message : 'Erro ao carregar dados.');
+      }
     } finally {
-      setCarregando(false);
+      if (geracao === geracaoRef.current) setCarregando(false);
     }
   }, [jogadorSelecionadoId]);
 

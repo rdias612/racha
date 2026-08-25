@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
 import { MensagemEstado } from '../components/Estado';
@@ -79,16 +79,24 @@ export function EstatisticasRacha() {
     activeTab: '/estatisticas/racha',
   });
 
+  // Geração de requisição: `carregar` também é usado pelo PullToRefresh (fora
+  // do ciclo de useEffect), então a proteção contra resposta obsoleta vive
+  // aqui, não na flag do efeito.
+  const geracaoRef = useRef(0);
+
   const carregar = useCallback(async () => {
+    const geracao = ++geracaoRef.current;
     setCarregando(true);
     setErro(null);
     try {
       const dados = await carregarParesRacha(MIN_PARTIDAS);
-      setPares(dados);
+      if (geracao === geracaoRef.current) setPares(dados);
     } catch (e: unknown) {
-      setErro(e instanceof Error ? e.message : 'Erro ao carregar dados.');
+      if (geracao === geracaoRef.current) {
+        setErro(e instanceof Error ? e.message : 'Erro ao carregar dados.');
+      }
     } finally {
-      setCarregando(false);
+      if (geracao === geracaoRef.current) setCarregando(false);
     }
   }, []);
 

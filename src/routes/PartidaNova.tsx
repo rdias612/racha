@@ -35,6 +35,7 @@ export function PartidaNova() {
 
   // Hidratação no mount: lê localStorage e lista jogadores ativos.
   useEffect(() => {
+    let ativo = true;
     let estadoInicial: EstadoPersistido | null = null;
     try {
       const cru = localStorage.getItem(STORAGE_KEY);
@@ -57,17 +58,24 @@ export function PartidaNova() {
     }
     Promise.all([listarJogadoresAtivos(), obterPartidasRecentesJogadores(2)])
       .then(([jogadoresCarregados, recentesCarregadas]) => {
+        if (!ativo) return;
         const comRecentes = jogadoresCarregados.map((j) => ({
           ...j,
           partidas_ultimos_2_meses: recentesCarregadas[j.id] ?? 0,
         }));
         setJogadores(comRecentes);
       })
-      .catch((e) => setErro(e.message))
+      .catch((e) => {
+        if (ativo) setErro(e.message);
+      })
       .finally(() => {
+        if (!ativo) return;
         setHidratado(true);
         setCarregando(false);
       });
+    return () => {
+      ativo = false;
+    };
   }, []);
 
   // Persiste a cada mudança (só depois de hidratado).
