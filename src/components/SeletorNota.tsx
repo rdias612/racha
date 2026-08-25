@@ -162,7 +162,7 @@ export function SeletorNota({
           tabIndex={-1}
           aria-label="Notas de 1 a 10"
           onKeyDown={onKeyDownLista}
-          className={`absolute z-30 mt-1 max-h-64 overflow-auto rounded-[4px] border border-borda bg-superficie p-1 shadow-carimbo-preto ${
+          className={`absolute z-30 mt-1 max-h-64 overflow-auto rounded-[4px] border border-borda bg-superficie p-1 shadow-carimbo-preto scrollbar-sumula ${
             compact ? 'right-0 min-w-[11rem] sm:left-0 sm:right-auto' : 'w-full'
           }`}
         >

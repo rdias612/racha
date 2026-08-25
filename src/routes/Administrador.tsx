@@ -1,23 +1,47 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type FormEvent,
+} from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { Wallet, ChevronDown, Plus, Check, MessageSquare } from 'lucide-react';
+import {
+  Wallet,
+  ChevronDown,
+  Plus,
+  Check,
+  MessageSquare,
+  FileSpreadsheet,
+} from 'lucide-react';
 import { useAdmin } from '../hooks/useAdmin';
+import { Badge } from '../components/Badge';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { EventosAutomaticosFinanceiro } from '../components/EventosAutomaticosFinanceiro';
 import { PullToRefresh } from '../components/PullToRefresh';
+import { SelectSumula } from '../components/SelectSumula';
 import { Snackbar, type TipoSnackbar } from '../components/Snackbar';
 import { formatarReais, formatarDataLista } from '../lib/formatacao';
-import { listarJogadoresAtivos, type JogadorLista } from '../lib/jogadores';
+import {
+  isRandomUsername,
+  listarJogadoresAtivos,
+  type JogadorLista,
+} from '../lib/jogadores';
 import { voltar } from '../lib/navegacao';
 import {
+  NATUREZAS_LANCAMENTO,
   TIPOS_DIVIDA,
+  baixarExcelLancamentos,
+  labelTipoDivida,
   listarDividasEmAberto,
+  listarLancamentosPorPeriodo,
   listarResumoDevedores,
   quitarDivida,
   quitarDividasJogador,
   registrarDivida,
   type Divida,
   type DividaPorJogador,
+  type NaturezaLancamento,
   type TipoDivida,
 } from '../lib/dividas';
 
@@ -31,10 +55,17 @@ function mesAtualStr() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
+function primeiroDiaMesStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+}
 
 const COR_TIPO: Record<TipoDivida, string> = {
   mensalidade: 'bg-destaque/15 text-destaque border-destaque/40',
   avulso: 'bg-ok/15 text-ok border-ok/40',
+  goleiro: 'bg-campo/20 text-giz border-borda',
+  campo: 'bg-superficie-2 text-giz border-borda',
+  eventos: 'bg-destaque/10 text-destaque border-destaque/30',
   outro: 'bg-superficie-2 text-giz-fraco border-borda',
 };
 
@@ -43,6 +74,7 @@ export function Administrador() {
   const navigate = useNavigate();
 
   const [grupos, setGrupos] = useState<DividaPorJogador[]>([]);
+  const [despesas, setDespesas] = useState<Divida[]>([]);
   const [jogadores, setJogadores] = useState<JogadorLista[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
@@ -63,7 +95,7 @@ export function Administrador() {
     setSnackbar({ visivel: true, tipo, mensagem });
   }
 
-  // formulário "adicionar dívida"
+  const [fNatureza, setFNatureza] = useState<NaturezaLancamento>('receita');
   const [fJogador, setFJogador] = useState('');
   const [fTipo, setFTipo] = useState<TipoDivida>('mensalidade');
   const [fValor, setFValor] = useState('90');
@@ -71,6 +103,9 @@ export function Administrador() {
   const [fReferencia, setFReferencia] = useState(mesAtualStr());
   const [fDescricao, setFDescricao] = useState('');
   const [salvando, setSalvando] = useState(false);
+  const [exportDe, setExportDe] = useState(primeiroDiaMesStr());
+  const [exportAte, setExportAte] = useState(hojeStr());
+  const [exportando, setExportando] = useState(false);
 
   const carregar = useCallback(
     async (isAtivo?: () => boolean) => {
@@ -78,33 +113,75 @@ export function Administrador() {
       setCarregando(true);
       setErro(null);
       try {
-        const [resumo, dividas, jogs] = await Promise.all([
+        // Jogadores carregam à parte: falha na coluna `natureza` (migração 075)
+        // não pode esvaziar o dropdown do formulário.
+        const [rResumo, rLancamentos, rJogs] = await Promise.allSettled([
           listarResumoDevedores(),
           listarDividasEmAberto(),
           listarJogadoresAtivos(),
         ]);
         if (isAtivo && !isAtivo()) return;
-        setJogadores(jogs);
 
-        // A view `dividas_resumo` dita totais e ordem; os itens (drill-down) casam pelo jogador_id.
-        const itensPorJogador = new Map<number, Divida[]>();
-        for (const d of dividas) {
-          const arr = itensPorJogador.get(d.jogador_id) ?? [];
-          arr.push(d);
-          itensPorJogador.set(d.jogador_id, arr);
+        if (rJogs.status === 'fulfilled') {
+          setJogadores(rJogs.value.filter((j) => !isRandomUsername(j.username)));
+        } else {
+          setJogadores([]);
         }
-        setGrupos(
-          resumo.map((r) => ({
-            jogador_id: r.jogador_id,
-            username: r.username,
-            is_mensalista: r.is_mensalista,
-            total_devido: Number(r.total_devido),
-            dividas: itensPorJogador.get(r.jogador_id) ?? [],
-          }))
-        );
+
+        const erros: string[] = [];
+        if (rJogs.status === 'rejected') {
+          erros.push(
+            rJogs.reason instanceof Error
+              ? rJogs.reason.message
+              : 'Erro ao carregar jogadores.'
+          );
+        }
+
+        if (rResumo.status === 'rejected' || rLancamentos.status === 'rejected') {
+          const motivo =
+            rLancamentos.status === 'rejected'
+              ? rLancamentos.reason
+              : rResumo.status === 'rejected'
+                ? rResumo.reason
+                : null;
+          const msg =
+            motivo instanceof Error ? motivo.message : 'Erro ao carregar lançamentos.';
+          erros.push(
+            /natureza|column|schema|PGRST/i.test(msg)
+              ? 'Aplique a migration 077_dividas_natureza_despesa.sql no Supabase para receitas/despesas.'
+              : msg
+          );
+          setGrupos([]);
+          setDespesas([]);
+        } else {
+          const resumo = rResumo.value;
+          const lancamentos = rLancamentos.value;
+          const receitas = lancamentos.filter((d) => d.natureza !== 'despesa');
+          const despesasAbertas = lancamentos.filter((d) => d.natureza === 'despesa');
+          setDespesas(despesasAbertas);
+
+          const itensPorJogador = new Map<number, Divida[]>();
+          for (const d of receitas) {
+            if (d.jogador_id == null) continue;
+            const arr = itensPorJogador.get(d.jogador_id) ?? [];
+            arr.push(d);
+            itensPorJogador.set(d.jogador_id, arr);
+          }
+          setGrupos(
+            resumo.map((r) => ({
+              jogador_id: r.jogador_id,
+              username: r.username,
+              is_mensalista: r.is_mensalista,
+              total_devido: Number(r.total_devido),
+              dividas: itensPorJogador.get(r.jogador_id) ?? [],
+            }))
+          );
+        }
+
+        if (erros.length > 0) setErro(erros.join(' '));
       } catch (e) {
         if (isAtivo && !isAtivo()) return;
-        setErro(e instanceof Error ? e.message : 'Erro ao carregar dívidas.');
+        setErro(e instanceof Error ? e.message : 'Erro ao carregar lançamentos.');
       } finally {
         if (!isAtivo || isAtivo()) setCarregando(false);
       }
@@ -122,17 +199,30 @@ export function Administrador() {
 
   if (!isAdmin) return <Navigate to="/" replace />;
 
+  function aoTrocarNatureza(natureza: NaturezaLancamento) {
+    setFNatureza(natureza);
+    if (natureza === 'receita') {
+      setFTipo('mensalidade');
+      setFValor('90');
+      setFReferencia(mesAtualStr());
+    } else {
+      setFTipo('campo');
+      setFValor('');
+      setFReferencia('');
+    }
+  }
+
   function handleQuitar(e: React.MouseEvent, dividaId: number, username: string) {
     e.stopPropagation();
     setConfirmacao({
       open: true,
-      titulo: 'Quitar dívida?',
-      mensagem: `Marcar a dívida de @${username} como paga na súmula financeira?`,
+      titulo: 'Quitar lançamento?',
+      mensagem: `Marcar o lançamento de @${username} como quitado na súmula financeira?`,
       onConfirm: async () => {
         setConfirmacao(null);
         const gruposAnteriores = grupos;
+        const despesasAnteriores = despesas;
 
-        // Atualização Otimista: remove a dívida e atualiza total ou jogador
         setGrupos((prev) =>
           prev
             .map((g) => {
@@ -148,15 +238,20 @@ export function Administrador() {
             })
             .filter((g) => g.dividas.length > 0 && g.total_devido > 0)
         );
+        setDespesas((prev) => prev.filter((d) => d.id !== dividaId));
 
-        mostrarSnackbar('sucesso', 'Dívida marcada como paga.');
+        mostrarSnackbar('sucesso', 'Lançamento marcado como quitado.');
 
         try {
           await quitarDivida(dividaId);
           await carregar();
-        } catch (e) {
+        } catch (err) {
           setGrupos(gruposAnteriores);
-          mostrarSnackbar('erro', e instanceof Error ? e.message : 'Erro ao quitar dívida.');
+          setDespesas(despesasAnteriores);
+          mostrarSnackbar(
+            'erro',
+            err instanceof Error ? err.message : 'Erro ao quitar lançamento.'
+          );
         }
       },
     });
@@ -166,26 +261,28 @@ export function Administrador() {
     e.stopPropagation();
     setConfirmacao({
       open: true,
-      titulo: 'Quitar todas as dívidas?',
+      titulo: 'Quitar todas as receitas?',
       mensagem: `Quitar TODAS as pendências em aberto de @${username}?`,
       onConfirm: async () => {
         setConfirmacao(null);
         const gruposAnteriores = grupos;
 
-        // Atualização Otimista: remove jogador devedor imediatamente
         setGrupos((prev) => prev.filter((g) => g.jogador_id !== jogadorId));
         if (expandido === jogadorId) {
           setExpandido(null);
         }
 
-        mostrarSnackbar('sucesso', `Dívidas de @${username} quitadas.`);
+        mostrarSnackbar('sucesso', `Receitas de @${username} quitadas.`);
 
         try {
           await quitarDividasJogador(jogadorId);
           await carregar();
-        } catch (e) {
+        } catch (err) {
           setGrupos(gruposAnteriores);
-          mostrarSnackbar('erro', e instanceof Error ? e.message : 'Erro ao quitar dívidas.');
+          mostrarSnackbar(
+            'erro',
+            err instanceof Error ? err.message : 'Erro ao quitar receitas.'
+          );
         }
       },
     });
@@ -196,8 +293,8 @@ export function Administrador() {
     setErro(null);
 
     const valor = Number(fValor.replace(',', '.'));
-    if (!fJogador) {
-      setErro('Selecione o jogador.');
+    if (fNatureza === 'receita' && !fJogador) {
+      setErro('Selecione o jogador da receita.');
       return;
     }
     if (!Number.isFinite(valor) || valor <= 0) {
@@ -208,20 +305,56 @@ export function Administrador() {
     setSalvando(true);
     try {
       await registrarDivida({
-        jogador_id: Number(fJogador),
+        jogador_id: fJogador ? Number(fJogador) : null,
         tipo: fTipo,
+        natureza: fNatureza,
         valor,
         data_divida: fData,
         referencia: fReferencia ? fReferencia.trim() : undefined,
         descricao: fDescricao ? fDescricao.trim() : undefined,
       });
-      mostrarSnackbar('sucesso', 'Dívida registrada com sucesso.');
+      mostrarSnackbar(
+        'sucesso',
+        fNatureza === 'despesa' ? 'Despesa registrada.' : 'Receita registrada.'
+      );
       setFDescricao('');
       await carregar();
-    } catch (e) {
-      setErro(e instanceof Error ? e.message : 'Erro ao registrar dívida.');
+    } catch (err) {
+      setErro(err instanceof Error ? err.message : 'Erro ao registrar lançamento.');
     } finally {
       setSalvando(false);
+    }
+  }
+
+  async function handleExportar() {
+    if (!exportDe || !exportAte) {
+      mostrarSnackbar('erro', 'Informe o período de exportação.');
+      return;
+    }
+    if (exportDe > exportAte) {
+      mostrarSnackbar('erro', 'A data inicial não pode ser maior que a final.');
+      return;
+    }
+
+    setExportando(true);
+    try {
+      const lancamentos = await listarLancamentosPorPeriodo(exportDe, exportAte);
+      if (lancamentos.length === 0) {
+        mostrarSnackbar('erro', 'Nenhum lançamento nesse período.');
+        return;
+      }
+      baixarExcelLancamentos(lancamentos, exportDe, exportAte);
+      mostrarSnackbar(
+        'sucesso',
+        `Excel gerado com ${lancamentos.length} lançamento${lancamentos.length === 1 ? '' : 's'}.`
+      );
+    } catch (err) {
+      mostrarSnackbar(
+        'erro',
+        err instanceof Error ? err.message : 'Erro ao exportar o período.'
+      );
+    } finally {
+      setExportando(false);
     }
   }
 
@@ -230,7 +363,7 @@ export function Administrador() {
     const linhas = g.dividas
       .map(
         (d) =>
-          `• ${d.tipo === 'mensalidade' ? 'Mensalidade' : d.tipo === 'avulso' ? 'Avulso' : 'Taxa'} (${formatarDataLista(d.data_divida)}): ${formatarReais(Number(d.valor))}${d.descricao ? ` — ${d.descricao}` : ''}`
+          `• ${labelTipoDivida(d.tipo)} (${formatarDataLista(d.data_divida)}): ${formatarReais(Number(d.valor))}${d.descricao ? ` — ${d.descricao}` : ''}`
       )
       .join('\n');
 
@@ -248,19 +381,20 @@ export function Administrador() {
     }
   }
 
-  const totalGeral = grupos.reduce((acc, g) => acc + g.total_devido, 0);
+  const totalReceitas = grupos.reduce((acc, g) => acc + g.total_devido, 0);
+  const totalDespesas = despesas.reduce((acc, d) => acc + Number(d.valor), 0);
 
   return (
     <PullToRefresh onRefresh={() => carregar()}>
       <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
         <button
+          type="button"
           onClick={() => voltar(navigate, '/')}
           className="text-xs font-mono text-giz-fraco hover:text-giz transition"
         >
           ← voltar
         </button>
 
-        {/* Cabeçalho da Súmula Financeira */}
         <div className="flex items-center justify-between sumula-header pb-2">
           <div className="flex items-center gap-2">
             <Wallet className="size-5 text-destaque" />
@@ -275,54 +409,81 @@ export function Administrador() {
 
         {erro && <MensagemEstado>{erro}</MensagemEstado>}
 
-        {/* Adicionar dívida */}
         <form
           onSubmit={handleAdicionar}
           className="space-y-3 rounded-[4px] border border-borda bg-superficie p-3.5 shadow-carimbo"
         >
           <h3 className="font-display font-bold text-sm uppercase tracking-wider text-giz">
-            Adicionar Dívida / Mensalidade
+            Novo lançamento
           </h3>
+
+          <fieldset>
+            <legend className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1.5">
+              Natureza
+            </legend>
+            <div className="grid grid-cols-2 gap-2">
+              {NATUREZAS_LANCAMENTO.map((n) => {
+                const ativo = fNatureza === n.value;
+                return (
+                  <button
+                    key={n.value}
+                    type="button"
+                    onClick={() => aoTrocarNatureza(n.value)}
+                    className={`min-h-[44px] rounded-[4px] border px-3 py-2 font-display text-xs font-bold uppercase tracking-wider transition active:translate-y-px ${
+                      ativo
+                        ? n.value === 'receita'
+                          ? 'border-ok bg-ok/15 text-ok'
+                          : 'border-perigo bg-perigo/15 text-perigo'
+                        : 'border-borda bg-superficie-2 text-giz-fraco'
+                    }`}
+                  >
+                    {n.label}
+                  </button>
+                );
+              })}
+            </div>
+          </fieldset>
 
           <div className="grid grid-cols-2 gap-3">
             <label className="block col-span-2">
               <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
                 Jogador
+                {fNatureza === 'despesa' ? ' (opcional)' : ''}
               </span>
-              <select
+              <SelectSumula
                 value={fJogador}
-                onChange={(e) => setFJogador(e.target.value)}
-                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz shadow-xs"
-              >
-                <option value="">Selecione…</option>
-                {jogadores.map((j) => (
-                  <option key={j.id} value={j.id}>
-                    @{j.username}
-                    {j.posicao === 'goleiro'
-                      ? ' (goleiro — isento)'
-                      : j.is_mensalista
-                        ? ' (mensalista)'
-                        : ''}
-                  </option>
-                ))}
-              </select>
+                onChange={setFJogador}
+                placeholder={fNatureza === 'despesa' ? 'Caixa do racha…' : 'Selecione…'}
+                aria-label="Jogador"
+                opcoes={[
+                  {
+                    value: '',
+                    label: fNatureza === 'despesa' ? 'Caixa do racha…' : 'Selecione…',
+                  },
+                  ...jogadores.map((j) => ({
+                    value: String(j.id),
+                    label: `@${j.username}${
+                      j.posicao === 'goleiro'
+                        ? ' (goleiro — isento)'
+                        : j.is_mensalista
+                          ? ' (mensalista)'
+                          : ''
+                    }`,
+                  })),
+                ]}
+              />
             </label>
 
             <label className="block">
               <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
                 Tipo
               </span>
-              <select
+              <SelectSumula
                 value={fTipo}
-                onChange={(e) => setFTipo(e.target.value as TipoDivida)}
-                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz shadow-xs"
-              >
-                {TIPOS_DIVIDA.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
+                onChange={(v) => setFTipo(v as TipoDivida)}
+                aria-label="Tipo"
+                opcoes={TIPOS_DIVIDA.map((t) => ({ value: t.value, label: t.label }))}
+              />
             </label>
 
             <label className="block">
@@ -336,7 +497,7 @@ export function Administrador() {
                 inputMode="decimal"
                 value={fValor}
                 onChange={(e) => setFValor(e.target.value)}
-                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz font-mono shadow-xs"
+                className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz font-mono shadow-xs focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2"
                 required
               />
             </label>
@@ -349,7 +510,7 @@ export function Administrador() {
                 type="date"
                 value={fData}
                 onChange={(e) => setFData(e.target.value)}
-                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz font-mono shadow-xs"
+                className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz font-mono shadow-xs focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2"
               />
             </label>
 
@@ -362,7 +523,7 @@ export function Administrador() {
                 value={fReferencia}
                 onChange={(e) => setFReferencia(e.target.value)}
                 placeholder="ex.: 2026-08"
-                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz font-mono shadow-xs"
+                className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz font-mono shadow-xs focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2"
               />
             </label>
 
@@ -374,8 +535,12 @@ export function Administrador() {
                 type="text"
                 value={fDescricao}
                 onChange={(e) => setFDescricao(e.target.value)}
-                placeholder="ex.: Mensalidade Agosto/2026"
-                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz shadow-xs"
+                placeholder={
+                  fNatureza === 'despesa'
+                    ? 'ex.: Aluguel do campo — agosto'
+                    : 'ex.: Mensalidade Agosto/2026'
+                }
+                className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2"
               />
             </label>
           </div>
@@ -383,31 +548,89 @@ export function Administrador() {
           <button
             type="submit"
             disabled={salvando}
-            className="w-full min-h-[44px] flex items-center justify-center gap-1.5 rounded-[4px] border border-destaque bg-destaque px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo transition active:translate-y-px disabled:opacity-50"
+            className={`w-full min-h-[44px] flex items-center justify-center gap-1.5 rounded-[4px] border px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs shadow-carimbo transition active:translate-y-px disabled:opacity-50 ${
+              fNatureza === 'despesa'
+                ? 'border-perigo bg-perigo text-white'
+                : 'border-destaque bg-destaque text-destaque-tinta'
+            }`}
           >
             <Plus className="size-4" />
-            {salvando ? 'Adicionando…' : 'Adicionar dívida'}
+            {salvando
+              ? 'Salvando…'
+              : fNatureza === 'despesa'
+                ? 'Adicionar despesa'
+                : 'Adicionar receita'}
           </button>
         </form>
 
-        {/* Dívidas em aberto */}
+        {/* Exportação do histórico */}
+        <section className="space-y-3 rounded-[4px] border border-borda bg-superficie p-3.5 shadow-carimbo">
+          <div className="flex items-center gap-2">
+            <FileSpreadsheet className="size-4 text-destaque" />
+            <h3 className="font-display font-bold text-sm uppercase tracking-wider text-giz">
+              Exportar período
+            </h3>
+          </div>
+          <p className="text-xs text-giz-fraco font-sans">
+            Baixa o histórico completo (receitas e despesas, quitados e em aberto)
+            da tabela financeira no intervalo escolhido.
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block">
+              <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
+                De
+              </span>
+              <input
+                type="date"
+                value={exportDe}
+                onChange={(e) => setExportDe(e.target.value)}
+                className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz font-mono shadow-xs focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2"
+              />
+            </label>
+            <label className="block">
+              <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
+                Até
+              </span>
+              <input
+                type="date"
+                value={exportAte}
+                onChange={(e) => setExportAte(e.target.value)}
+                className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz font-mono shadow-xs focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2"
+              />
+            </label>
+          </div>
+          <button
+            type="button"
+            onClick={handleExportar}
+            disabled={exportando}
+            className="w-full min-h-[44px] flex items-center justify-center gap-1.5 rounded-[4px] border border-borda bg-superficie-2 px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-giz shadow-carimbo transition active:translate-y-px hover:border-destaque disabled:opacity-50"
+          >
+            <FileSpreadsheet className="size-4 text-destaque" />
+            {exportando ? 'Gerando…' : 'Exportar Excel'}
+          </button>
+        </section>
+
+        <EventosAutomaticosFinanceiro
+          jogadores={jogadores}
+          onMensagem={(tipo, mensagem) => mostrarSnackbar(tipo, mensagem)}
+        />
+
+        {/* Receitas em aberto (por jogador) */}
         <div className="space-y-3">
           <div className="flex items-baseline justify-between sumula-header pb-1.5">
             <h3 className="font-display font-bold text-sm uppercase tracking-wider text-giz">
-              Dívidas em aberto
+              Receitas em aberto
             </h3>
-            <span className="font-mono text-base font-bold text-destaque tabular-nums">
-              {formatarReais(totalGeral)}
+            <span className="font-mono text-base font-bold text-ok tabular-nums">
+              {formatarReais(totalReceitas)}
             </span>
           </div>
 
-          {/* Recarregamentos pós-mutação mantêm a lista visível (sem flash de
-            skeleton); o Carregando só aparece no primeiro load da tela. */}
-          {carregando && grupos.length === 0 ? (
-            <Carregando>Carregando dívidas…</Carregando>
+          {carregando && grupos.length === 0 && despesas.length === 0 ? (
+            <Carregando>Carregando lançamentos…</Carregando>
           ) : grupos.length === 0 ? (
             <MensagemEstado tipo="info">
-              Ninguém devendo 🎉 Todo mundo em dia com a quinta.
+              Nenhuma receita em aberto. Todo mundo em dia com a quinta.
             </MensagemEstado>
           ) : (
             <ul className="space-y-2">
@@ -418,7 +641,6 @@ export function Administrador() {
                     key={g.jogador_id}
                     className="rounded-[4px] border border-borda bg-superficie overflow-hidden shadow-carimbo"
                   >
-                    {/* Cabeçalho do acordeão */}
                     <div
                       role="button"
                       tabIndex={0}
@@ -446,7 +668,8 @@ export function Administrador() {
                           )}
                         </div>
                         <span className="text-xs font-mono text-giz-fraco">
-                          {g.dividas.length} {g.dividas.length === 1 ? 'dívida' : 'dívidas'}
+                          {g.dividas.length}{' '}
+                          {g.dividas.length === 1 ? 'lançamento' : 'lançamentos'}
                         </span>
                       </div>
                       <span className="shrink-0 font-mono text-sm font-bold text-perigo tabular-nums">
@@ -473,19 +696,18 @@ export function Administrador() {
                       </div>
                     </div>
 
-                    {/* Itens (drill-down) */}
                     {aberto && (
                       <ul className="divide-y divide-borda border-t border-borda bg-fundo/40">
                         {g.dividas.map((d) => (
                           <li key={d.id} className="flex items-start gap-2 px-3 py-2.5">
                             <div className="min-w-0 flex-1 space-y-1">
                               <div className="flex flex-wrap items-center gap-1.5">
+                                <Badge variante="ok">Receita</Badge>
                                 <span
                                   className={`rounded-[2px] border px-1.5 py-0.5 text-[9px] font-display uppercase tracking-wider font-bold ${COR_TIPO[d.tipo]}`}
                                 >
-                                  {TIPOS_DIVIDA.find((t) => t.value === d.tipo)?.label ?? d.tipo}
+                                  {labelTipoDivida(d.tipo)}
                                 </span>
-
                                 {d.referencia && (
                                   <span className="text-[11px] font-mono text-giz-fraco">
                                     ref. {d.referencia}
@@ -506,8 +728,8 @@ export function Administrador() {
                               )}
                             </div>
                             <div className="flex shrink-0 flex-col items-end gap-1.5">
-                              <span className="font-mono text-sm font-bold text-giz tabular-nums">
-                                {formatarReais(Number(d.valor))}
+                              <span className="font-mono text-sm font-bold text-ok tabular-nums">
+                                +{formatarReais(Number(d.valor))}
                               </span>
                               <button
                                 type="button"
@@ -527,6 +749,72 @@ export function Administrador() {
               })}
             </ul>
           )}
+        </div>
+
+        {/* Despesas em aberto */}
+        <div className="space-y-3">
+          <div className="flex items-baseline justify-between sumula-header pb-1.5">
+            <h3 className="font-display font-bold text-sm uppercase tracking-wider text-giz">
+              Despesas em aberto
+            </h3>
+            <span className="font-mono text-base font-bold text-perigo tabular-nums">
+              {formatarReais(totalDespesas)}
+            </span>
+          </div>
+
+          {!carregando && despesas.length === 0 ? (
+            <MensagemEstado tipo="info">Nenhuma despesa pendente no caixa.</MensagemEstado>
+          ) : despesas.length > 0 ? (
+            <ul className="divide-y divide-borda/40 border-y border-borda bg-superficie">
+              {despesas.map((d) => {
+                const rotulo =
+                  d.jogadores?.username != null
+                    ? `@${d.jogadores.username}`
+                    : d.jogador_id != null
+                      ? `#${d.jogador_id}`
+                      : 'Caixa do racha';
+                return (
+                  <li key={d.id} className="flex items-start gap-2 px-3 py-2.5 min-h-[44px]">
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <Badge variante="perigo">Despesa</Badge>
+                        <span
+                          className={`rounded-[2px] border px-1.5 py-0.5 text-[9px] font-display uppercase tracking-wider font-bold ${COR_TIPO[d.tipo]}`}
+                        >
+                          {labelTipoDivida(d.tipo)}
+                        </span>
+                        {d.referencia && (
+                          <span className="text-[11px] font-mono text-giz-fraco">
+                            ref. {d.referencia}
+                          </span>
+                        )}
+                        <span className="text-[11px] font-mono text-giz-fraco">
+                          {formatarDataLista(d.data_divida)}
+                        </span>
+                      </div>
+                      <p className="text-sm font-display font-bold uppercase tracking-wide text-giz">
+                        {rotulo}
+                      </p>
+                      {d.descricao && <p className="text-xs text-giz-fraco">{d.descricao}</p>}
+                    </div>
+                    <div className="flex shrink-0 flex-col items-end gap-1.5">
+                      <span className="font-mono text-sm font-bold text-perigo tabular-nums">
+                        −{formatarReais(Number(d.valor))}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => handleQuitar(e, d.id, d.jogadores?.username ?? 'caixa')}
+                        className="min-h-[44px] flex items-center gap-1 rounded-[3px] border border-borda bg-superficie-2 px-3 py-1.5 text-xs font-display uppercase tracking-wider font-bold text-giz hover:border-perigo hover:text-perigo transition"
+                      >
+                        <Check className="size-3.5" />
+                        Pagar
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null}
         </div>
 
         {confirmacao && (
