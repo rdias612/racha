@@ -21,7 +21,7 @@ export interface JogadorLista {
 }
 
 export const SUPERADMINS = ['dico', 'tadeu', 'natal'];
-export const MAX_MENSALISTAS = 16;
+export const MAX_MENSALISTAS = 14;
 
 export function isSuperAdmin(username?: string | null): boolean {
   if (!username) return false;
