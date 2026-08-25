@@ -13,6 +13,7 @@ import {
   WifiOff,
   Sun,
   Moon,
+  Bell,
 } from 'lucide-react';
 import { useSessao } from '../context/SessaoContext';
 import { useAdmin } from '../hooks/useAdmin';
@@ -26,6 +27,7 @@ import {
   SkeletonEstatisticas,
   SkeletonGestao,
   SkeletonJogos,
+  SkeletonNotificacoes,
   SkeletonPerfil,
   SkeletonRanking,
   SkeletonResumo,
@@ -47,6 +49,7 @@ const SKELETONS_POR_ROTA: Array<{ padrao: RegExp; Skeleton: ComponentType }> = [
   { padrao: /^\/perfil/, Skeleton: SkeletonPerfil },
   { padrao: /^\/partida\/\d+\/?$/, Skeleton: SkeletonDetalhe },
   { padrao: /^\/gestao-jogadores/, Skeleton: SkeletonGestao },
+  { padrao: /^\/notificacoes/, Skeleton: SkeletonNotificacoes },
 ];
 
 function obterSkeletonRota(pathname: string): ComponentType {
@@ -194,6 +197,17 @@ export function Layout() {
                         <Wallet className="size-4 text-destaque shrink-0" />
                         <span className="font-display font-bold uppercase tracking-wider text-xs">
                           Financeiro & Súmula
+                        </span>
+                      </Link>
+
+                      <Link
+                        to="/notificacoes"
+                        onClick={() => setMenuAberto(false)}
+                        className="flex min-h-[44px] items-center gap-2.5 rounded-[3px] px-3 py-2 text-xs font-medium text-giz hover:bg-superficie-2 hover:text-destaque transition-fast"
+                      >
+                        <Bell className="size-4 text-destaque shrink-0" />
+                        <span className="font-display font-bold uppercase tracking-wider text-xs">
+                          Notificações Push
                         </span>
                       </Link>
                     </div>

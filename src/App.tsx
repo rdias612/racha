@@ -23,6 +23,7 @@ import {
   NovoJogador,
   GestaoJogadores,
   Administrador,
+  Notificacoes,
 } from './lib/rotas';
 
 export function App() {
@@ -60,6 +61,7 @@ export function App() {
           <Route path="/jogador/novo" element={<NovoJogador />} />
           <Route path="/gestao-jogadores" element={<GestaoJogadores />} />
           <Route path="/administrador" element={<Administrador />} />
+          <Route path="/notificacoes" element={<Notificacoes />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -350,6 +350,69 @@ export function SkeletonGestao() {
   );
 }
 
+export function SkeletonNotificacoes() {
+  return (
+    <div
+      role="status"
+      aria-busy="true"
+      aria-label="Carregando configurações de notificações..."
+      className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-4 animate-pulse text-giz"
+    >
+      <span className="sr-only">Carregando painel de notificações push...</span>
+
+      {/* Voltar */}
+      <div className="h-3 w-16 bg-superficie-2 border border-borda rounded-[2px]" />
+
+      {/* Header */}
+      <div className="flex items-center justify-between sumula-header pb-2">
+        <div className="flex items-center gap-2">
+          <div className="size-5 rounded-[2px] bg-superficie-2 border border-borda" />
+          <div className="h-6 w-48 bg-superficie-2 border border-borda rounded-[3px]" />
+        </div>
+        <div className="h-3 w-20 bg-superficie-2 border border-borda rounded-[2px]" />
+      </div>
+
+      {/* Card 1: Confirmação de Presença */}
+      <div className="rounded-[4px] border border-borda bg-superficie p-3.5 space-y-3 shadow-carimbo">
+        <div className="flex items-center justify-between">
+          <div className="h-4 w-44 bg-superficie-2 border border-borda rounded-[2px]" />
+          <div className="h-6 w-12 bg-superficie-2 border border-borda rounded-[3px]" />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="h-10 bg-superficie-2 border border-borda rounded-[4px]" />
+          <div className="h-10 bg-superficie-2 border border-borda rounded-[4px]" />
+        </div>
+        <div className="h-16 bg-superficie-2 border border-borda rounded-[4px]" />
+      </div>
+
+      {/* Card 2: Lembretes de Votação */}
+      <div className="rounded-[4px] border border-borda bg-superficie p-3.5 space-y-3 shadow-carimbo">
+        <div className="flex items-center justify-between">
+          <div className="h-4 w-40 bg-superficie-2 border border-borda rounded-[2px]" />
+          <div className="h-6 w-12 bg-superficie-2 border border-borda rounded-[3px]" />
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-10 bg-superficie-2 border border-borda rounded-[4px]" />
+          ))}
+        </div>
+      </div>
+
+      {/* Card 3: Ações e Testes */}
+      <div className="rounded-[4px] border border-borda bg-superficie p-3.5 space-y-3 shadow-carimbo">
+        <div className="h-4 w-32 bg-superficie-2 border border-borda rounded-[2px]" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="h-20 bg-superficie-2 border border-borda rounded-[4px]" />
+          <div className="h-20 bg-superficie-2 border border-borda rounded-[4px]" />
+        </div>
+      </div>
+
+      {/* Botão Salvar */}
+      <div className="h-11 w-full bg-superficie-2 border border-borda rounded-[4px]" />
+    </div>
+  );
+}
+
 /**
  * Fallback genérico para o Suspense de rotas do App.
  */

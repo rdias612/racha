@@ -11,14 +11,15 @@
 Permitir que cada atleta autenticado possa **alterar seu nome de usuário (`username`)** diretamente na aba de **Perfil** (`/perfil`), sem necessidade de intervenção manual de administradores no banco de dados.
 
 ### 🔍 Distinção Conceitual no Sistema:
+
 No ecossistema do Racha Gragoatá CBO, o atleta possui duas formas de identificação com propósitos distintos:
 
 1. **`username` (Login / `@handle`)**:
    - Identificador textual único utilizado para autenticação no combo de Login (`/login`) e menções (`@usuario`).
    - Não contém espaços; padronizado em minúsculas (`lowercase`).
 2. **`nome` (Nome de Súmula / Camisa)**:
-   - Nome social / apelido do atleta exibido na prancheta tática, na súmula oficial, no ranking de artilharia e nos boletins (ex: *"Dico"*, *"João Felipe"*, *"Victor Guimarães"*).
-   - Já pode ser editado pelo próprio atleta na seção *"Alterar Nome na Súmula"*.
+   - Nome social / apelido do atleta exibido na prancheta tática, na súmula oficial, no ranking de artilharia e nos boletins (ex: _"Dico"_, _"João Felipe"_, _"Victor Guimarães"_).
+   - Já pode ser editado pelo próprio atleta na seção _"Alterar Nome na Súmula"_.
 
 Com esta implementação, o atleta passa a ter **controle completo sobre seus dois identificadores** (seu nome de súmula e seu usuário de acesso), além de sua senha.
 
@@ -47,16 +48,16 @@ Com esta implementação, o atleta passa a ter **controle completo sobre seus do
 
 Para preservar a governança, a segurança e a usabilidade do racha, a alteração de username obedecerá às seguintes regras estritas:
 
-| Regra / Validação | Restrição | Justificativa Técnica / Regra de Negócio |
-| :--- | :--- | :--- |
-| **Normalização** | `LOWER(TRIM(novo_username))` | Evita contas duplicadas que divirjam apenas por maiúsculas/espaços. |
-| **Comprimento** | Entre 2 e 30 caracteres | Garante compatibilidade com telas mobile e legibilidade. |
-| **Formato / Caracteres** | `^[a-z0-9._-]+$` | Permite apenas letras minúsculas, números, pontos, sublinhados e hífens (sem espaços ou caracteres especiais). |
-| **Unicidade** | `UNIQUE` no banco | Não permite que dois atletas ativos ou inativos possuam o mesmo username. |
-| **Prefixos Reservados** | Proibido `random*` (`^random\d*$`) | O prefixo `random` é reservado exclusivamente para os 6 atletas convidados/placeholders temporários do sistema (`isRandomUsername`). |
-| **Proteção de Superadmins** | Proibido assumir `dico`, `tadeu`, `natal` | Impede que qualquer atleta comum assuma o username reservado de governança dos superadmins. |
-| **Imutabilidade de Superadmins** | Superadmins têm username fixo | Como o array de superadmins é auditado e validado em tempo de execução, superadmins não alteram seu username pela UI (deve ser feito via migration se necessário). |
-| **Sem Alteração Fictícia** | `novo_username != username_atual` | Evita requisições redundantes se o usuário submeter o mesmo valor atual. |
+| Regra / Validação                | Restrição                                 | Justificativa Técnica / Regra de Negócio                                                                                                                           |
+| :------------------------------- | :---------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Normalização**                 | `LOWER(TRIM(novo_username))`              | Evita contas duplicadas que divirjam apenas por maiúsculas/espaços.                                                                                                |
+| **Comprimento**                  | Entre 2 e 30 caracteres                   | Garante compatibilidade com telas mobile e legibilidade.                                                                                                           |
+| **Formato / Caracteres**         | `^[a-z0-9._-]+$`                          | Permite apenas letras minúsculas, números, pontos, sublinhados e hífens (sem espaços ou caracteres especiais).                                                     |
+| **Unicidade**                    | `UNIQUE` no banco                         | Não permite que dois atletas ativos ou inativos possuam o mesmo username.                                                                                          |
+| **Prefixos Reservados**          | Proibido `random*` (`^random\d*$`)        | O prefixo `random` é reservado exclusivamente para os 6 atletas convidados/placeholders temporários do sistema (`isRandomUsername`).                               |
+| **Proteção de Superadmins**      | Proibido assumir `dico`, `tadeu`, `natal` | Impede que qualquer atleta comum assuma o username reservado de governança dos superadmins.                                                                        |
+| **Imutabilidade de Superadmins** | Superadmins têm username fixo             | Como o array de superadmins é auditado e validado em tempo de execução, superadmins não alteram seu username pela UI (deve ser feito via migration se necessário). |
+| **Sem Alteração Fictícia**       | `novo_username != username_atual`         | Evita requisições redundantes se o usuário submeter o mesmo valor atual.                                                                                           |
 
 ---
 
@@ -228,14 +229,16 @@ GRANT EXECUTE ON FUNCTION alterar_username(bigint, text) TO anon, authenticated;
    - Dispara haptic de erro se inválido.
    - Chama `atualizarUsernameJogador(jogador.id, usernameNovo)`.
    - Atualiza `setJogador({ ...jogador, username: usernameFormatado })`.
-   - Dispara `vibrateSuccess()` e exibe feedback: *"Usuário alterado com sucesso. Use @novo_usuario no próximo login."*.
+   - Dispara `vibrateSuccess()` e exibe feedback: _"Usuário alterado com sucesso. Use @novo_usuario no próximo login."_.
 3. **Novo Bloco Visual no Padrão "Súmula de Quinta"**:
    - Posicionado de forma coesa junto às configurações de conta.
    - Se o atleta for Superadmin (`isSuperAdmin(jogador.username)`), exibe card informativo/desabilitado explicando que o identificador é permanente para fins de governança.
    - Para os demais atletas, renderiza o formulário com o prefixo visual `@` estilizado em `font-mono text-giz-fraco`.
 
 ```tsx
-{/* Alterar Usuário de Acesso */}
+{
+  /* Alterar Usuário de Acesso */
+}
 <section className="rounded-[4px] border border-borda bg-superficie p-3.5 shadow-carimbo space-y-3">
   <div>
     <h3 className="text-xs font-display font-bold uppercase tracking-wider text-giz">
@@ -248,7 +251,8 @@ GRANT EXECUTE ON FUNCTION alterar_username(bigint, text) TO anon, authenticated;
 
   {isSuperAdmin(jogador.username) ? (
     <div className="rounded-[4px] border border-borda/60 bg-superficie-2 p-2.5 text-xs font-mono text-giz-fraco">
-      🛡️ Usuário Superadmin permanente. O identificador de acesso não pode ser alterado na interface.
+      🛡️ Usuário Superadmin permanente. O identificador de acesso não pode ser alterado na
+      interface.
     </div>
   ) : (
     <form onSubmit={alterarUsername} className="space-y-3">
@@ -280,27 +284,28 @@ GRANT EXECUTE ON FUNCTION alterar_username(bigint, text) TO anon, authenticated;
       </button>
     </form>
   )}
-</section>
+</section>;
 ```
 
 ---
 
 ## 🌐 5. Mapeamento de Impacto nos Demais Módulos
 
-| Tela / Módulo | Como é Afetado | Ação Necessária |
-| :--- | :--- | :--- |
-| **Login (`Login.tsx`)** | A lista suspensa consome `listarUsernames()`, que consulta diretamente a coluna `username` da tabela `jogadores`. | Nenhuma alteração de código necessária; o novo username aparecerá automaticamente na lista do login. |
-| **Ranking Anual (`Ranking.tsx`)** | O ranking consome a view `ranking` baseada em `pp.jogador_id = j.id`. | Nenhum impacto nos pontos ou dados; integridade 100% mantida. |
-| **Partidas e Súmulas (`PartidaDetalhe.tsx`, `PartidaAoVivo.tsx`)** | Todas as súmulas e eventos utilizam `jogador_id`. | Nenhum impacto no histórico de gols ou participações. |
-| **Votação Pós-Jogo (`PartidaVotar.tsx`)** | Utiliza `jogador.id` e `isRandomUsername(jogador.username)`. | Como a RPC impede renomear para `random*`, o fluxo de votação segue protegido. |
-| **Gestão de Jogadores (`GestaoJogadores.tsx`)** | Exibe `@username` e permite busca textual por nome ou username. | A lista de atletas e o campo de busca refletirão o novo username atualizado. |
-| **Módulo Financeiro (`Administrador.tsx`)** | A view `dividas_resumo` faz join por `j.id = d.jogador_id`. | O extrato financeiro e quitações continuam vinculados perfeitamente ao atleta. |
+| Tela / Módulo                                                      | Como é Afetado                                                                                                    | Ação Necessária                                                                                      |
+| :----------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------- |
+| **Login (`Login.tsx`)**                                            | A lista suspensa consome `listarUsernames()`, que consulta diretamente a coluna `username` da tabela `jogadores`. | Nenhuma alteração de código necessária; o novo username aparecerá automaticamente na lista do login. |
+| **Ranking Anual (`Ranking.tsx`)**                                  | O ranking consome a view `ranking` baseada em `pp.jogador_id = j.id`.                                             | Nenhum impacto nos pontos ou dados; integridade 100% mantida.                                        |
+| **Partidas e Súmulas (`PartidaDetalhe.tsx`, `PartidaAoVivo.tsx`)** | Todas as súmulas e eventos utilizam `jogador_id`.                                                                 | Nenhum impacto no histórico de gols ou participações.                                                |
+| **Votação Pós-Jogo (`PartidaVotar.tsx`)**                          | Utiliza `jogador.id` e `isRandomUsername(jogador.username)`.                                                      | Como a RPC impede renomear para `random*`, o fluxo de votação segue protegido.                       |
+| **Gestão de Jogadores (`GestaoJogadores.tsx`)**                    | Exibe `@username` e permite busca textual por nome ou username.                                                   | A lista de atletas e o campo de busca refletirão o novo username atualizado.                         |
+| **Módulo Financeiro (`Administrador.tsx`)**                        | A view `dividas_resumo` faz join por `j.id = d.jogador_id`.                                                       | O extrato financeiro e quitações continuam vinculados perfeitamente ao atleta.                       |
 
 ---
 
 ## 🧪 6. Plano de Verificação e Testes
 
 ### 6.1. Testes Automatizados e Build
+
 - `npm run lint`: Validação sem erros no ESLint Flat Config e no TypeScript (`strict: true`).
 - `npm run build`: Compilação de produção via Vite sem falhas.
 
@@ -312,7 +317,7 @@ GRANT EXECUTE ON FUNCTION alterar_username(bigint, text) TO anon, authenticated;
    - Realizar logout e verificar se `@novo_handle` está disponível no combobox de Login e autentica com a senha existente.
 2. **Tentativa de Duplicidade**:
    - Tentar alterar para o username de outro atleta já cadastrado.
-   - Verificar se a mensagem amigável *"Este usuário @... já está sendo utilizado por outro atleta"* é exibida.
+   - Verificar se a mensagem amigável _"Este usuário @... já está sendo utilizado por outro atleta"_ é exibida.
 3. **Validação de Formato e Espaços**:
    - Tentar inserir espaços, caracteres especiais ou menos de 2 caracteres.
    - Verificar bloqueio na validação client-side e na RPC.

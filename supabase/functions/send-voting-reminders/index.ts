@@ -21,7 +21,7 @@ const supabase = createClient(supabaseUrl, serviceRoleKey, {
 
 // 4 buckets fixos: últimos 6h, 3h, 1h e 30min antes de fechar a votação.
 // Cada bucket tem janela de 10 min para ser capturado pelo cron (1 min).
-const reminders = [
+const allReminders = [
   { key: '6h', offsetMs: 6 * 60 * 60 * 1000, label: '6 horas' },
   { key: '3h', offsetMs: 3 * 60 * 60 * 1000, label: '3 horas' },
   { key: '1h', offsetMs: 60 * 60 * 1000, label: '1 hora' },
@@ -30,11 +30,13 @@ const reminders = [
 
 const reminderWindowMs = 10 * 60 * 1000;
 
+type ReminderKey = (typeof allReminders)[number]['key'];
+
 type Candidate = {
   partida_id: number;
   jogador_id: number;
   voting_closes_at: string;
-  reminder_key: (typeof reminders)[number]['key'];
+  reminder_key: ReminderKey;
   label: string;
 };
 
@@ -51,23 +53,26 @@ function errorMessage(error: unknown) {
   return String(error);
 }
 
-async function findCandidates(): Promise<Candidate[]> {
+async function findCandidates(activeReminders: typeof allReminders): Promise<Candidate[]> {
+  if (activeReminders.length === 0) return [];
+
   const now = Date.now();
-  // Partidas publicadas cuja votação ainda está aberta e dentro dos próximos 6h
-  // (janela máxima coberta pelos buckets 6h/3h/1h/30m).
+  // Janela máxima coberta pelos buckets ativos
+  const maxOffset = Math.max(...activeReminders.map((r) => r.offsetMs));
+
   const { data: partidas, error } = await supabase
     .from('partidas')
     .select('id, voting_closes_at')
     .eq('status', 'published')
     .gt('voting_closes_at', new Date(now).toISOString())
-    .lte('voting_closes_at', new Date(now + 6 * 60 * 60 * 1000 + reminderWindowMs).toISOString());
+    .lte('voting_closes_at', new Date(now + maxOffset + reminderWindowMs).toISOString());
 
   if (error) throw error;
 
   const candidates: Candidate[] = [];
   for (const partida of partidas ?? []) {
     const remaining = new Date(partida.voting_closes_at).getTime() - now;
-    const reminder = reminders.find(
+    const reminder = activeReminders.find(
       (item) => remaining <= item.offsetMs && remaining > item.offsetMs - reminderWindowMs
     );
     if (!reminder) continue;
@@ -141,36 +146,17 @@ async function claim(candidate: Candidate) {
   return Boolean(data);
 }
 
-const notificationTemplates: Record<
-  (typeof reminders)[number]['key'],
-  { title: string; body: string }
-> = {
-  '6h': {
-    title: 'Faltam 6 horas para fechar a votação!',
-    body: 'Avalie a partida de ontem e deixe suas notas para o ranking.',
-  },
-  '3h': {
-    title: 'Vote, ou então não reclama depois que a divisão tá ruim!',
-    body: 'Faltam apenas 3 horas para fechar a súmula da partida de ontem.',
-  },
-  '1h': {
-    title: 'Os analfabetos da bola já votaram, e você?',
-    body: 'Acesse a partida de ontem antes que o tempo de votação esgote.',
-  },
-  '30m': {
-    title: 'Ainda não votou, vai deixar Tchuca avacalhar as notas!?',
-    body: 'Últimos 30 minutos para registrar seu voto na partida de ontem!',
-  },
-};
-
-async function send(candidate: Candidate) {
+async function send(
+  candidate: Candidate,
+  templates: Record<ReminderKey, { title: string; body: string }>
+) {
   const { data: subscriptions, error } = await supabase
     .from('push_subscriptions')
     .select('endpoint, p256dh, auth')
     .eq('jogador_id', candidate.jogador_id);
   if (error) throw error;
 
-  const template = notificationTemplates[candidate.reminder_key];
+  const template = templates[candidate.reminder_key];
   const payload = JSON.stringify({
     title: template.title,
     body: template.body,
@@ -181,16 +167,15 @@ async function send(candidate: Candidate) {
   let lastError: string | null = null;
 
   for (const subscription of subscriptions ?? []) {
-    // web-push espera o formato { endpoint, keys: { p256dh, auth } }.
     const pushSubscription = {
       endpoint: subscription.endpoint,
       keys: { p256dh: subscription.p256dh, auth: subscription.auth },
     };
     try {
       await webpush.sendNotification(pushSubscription, payload);
-    } catch (error) {
-      lastError = error instanceof Error ? error.message : String(error);
-      const statusCode = (error as { statusCode?: number }).statusCode;
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : String(err);
+      const statusCode = (err as { statusCode?: number }).statusCode;
       if (statusCode === 404 || statusCode === 410) {
         await supabase.from('push_subscriptions').delete().eq('endpoint', subscription.endpoint);
       }
@@ -211,13 +196,74 @@ Deno.serve(async (request) => {
     return json({ error: 'Unauthorized' }, 401);
   }
 
+  // 1. Lê configurações de notificações
+  const { data: config, error: cfgErr } = await supabase
+    .from('notificacoes_config')
+    .select('*')
+    .eq('id', 1)
+    .maybeSingle();
+
+  if (cfgErr) {
+    console.error('Erro ao ler notificacoes_config:', cfgErr);
+  }
+
+  if (config?.votacao_ativo === false) {
+    return json({ ok: true, skipped: true, motivo: 'votacao_ativo=false' }, 200);
+  }
+
+  // 2. Filtra buckets ativos
+  const activeReminders = allReminders.filter((r) => {
+    if (r.key === '6h') return config?.votacao_bucket_6h ?? true;
+    if (r.key === '3h') return config?.votacao_bucket_3h ?? true;
+    if (r.key === '1h') return config?.votacao_bucket_1h ?? true;
+    if (r.key === '30m') return config?.votacao_bucket_30m ?? true;
+    return true;
+  });
+
+  if (activeReminders.length === 0) {
+    return json({ ok: true, skipped: true, motivo: 'nenhum bucket ativo' }, 200);
+  }
+
+  // 3. Monta templates por bucket
+  const templates: Record<ReminderKey, { title: string; body: string }> = {
+    '6h': {
+      title: config?.votacao_template_6h_titulo?.trim() || 'Faltam 6 horas para fechar a votação!',
+      body:
+        config?.votacao_template_6h_msg?.trim() ||
+        'Avalie a partida de ontem e deixe suas notas para o ranking.',
+    },
+    '3h': {
+      title:
+        config?.votacao_template_3h_titulo?.trim() ||
+        'Vote, ou então não reclama depois que a divisão tá ruim!',
+      body:
+        config?.votacao_template_3h_msg?.trim() ||
+        'Faltam apenas 3 horas para fechar a súmula da partida de ontem.',
+    },
+    '1h': {
+      title:
+        config?.votacao_template_1h_titulo?.trim() || 'Os analfabetos da bola já votaram, e você?',
+      body:
+        config?.votacao_template_1h_msg?.trim() ||
+        'Acesse a partida de ontem antes que o tempo de votação esgote.',
+    },
+    '30m': {
+      title:
+        config?.votacao_template_30m_titulo?.trim() ||
+        'Ainda não votou, vai deixar Tchuca avacalhar as notas!?',
+      body:
+        config?.votacao_template_30m_msg?.trim() ||
+        'Últimos 30 minutos para registrar seu voto na partida de ontem!',
+    },
+  };
+
   try {
-    const candidates = await findCandidates();
+    const candidates = await findCandidates(activeReminders);
     let claimed = 0;
     for (const candidate of candidates) {
       if (await claim(candidate)) {
         claimed++;
-        await send(candidate);
+        await send(candidate, templates);
       }
     }
     return json({ candidates: candidates.length, claimed });

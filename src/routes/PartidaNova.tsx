@@ -74,20 +74,14 @@ export function PartidaNova() {
   const termo = busca.trim().toLowerCase();
   const goleiros = useMemo(
     () =>
-      jogadores.filter(
-        (j) =>
-          j.posicao === 'goleiro' &&
-          j.username.toLowerCase().includes(termo)
-      ),
+      jogadores.filter((j) => j.posicao === 'goleiro' && j.username.toLowerCase().includes(termo)),
     [jogadores, termo]
   );
   const mensalistas = useMemo(
     () =>
       jogadores.filter(
         (j) =>
-          j.is_mensalista &&
-          j.posicao !== 'goleiro' &&
-          j.username.toLowerCase().includes(termo)
+          j.is_mensalista && j.posicao !== 'goleiro' && j.username.toLowerCase().includes(termo)
       ),
     [jogadores, termo]
   );
@@ -95,9 +89,7 @@ export function PartidaNova() {
     () =>
       jogadores.filter(
         (j) =>
-          !j.is_mensalista &&
-          j.posicao !== 'goleiro' &&
-          j.username.toLowerCase().includes(termo)
+          !j.is_mensalista && j.posicao !== 'goleiro' && j.username.toLowerCase().includes(termo)
       ),
     [jogadores, termo]
   );
@@ -352,7 +344,9 @@ function GrupoJogadores({
                   bloqueado ? 'opacity-40 bg-superficie' : 'bg-superficie hover:bg-superficie-2'
                 }`}
               >
-                <span className="flex-1 min-w-0 truncate text-sm font-bold text-giz">@{j.username}</span>
+                <span className="flex-1 min-w-0 truncate text-sm font-bold text-giz">
+                  @{j.username}
+                </span>
                 <div className="shrink-0">
                   <button
                     type="button"

@@ -132,7 +132,6 @@ export async function atualizarCaracteristicasJogador(
   if (error) throw error;
 }
 
-
 export async function atualizarUsernameJogador(id: number, novoUsername: string): Promise<void> {
   const { data, error } = await supabase.rpc('alterar_username', {
     p_jogador_id: id,

@@ -31,8 +31,8 @@ Criação de duas funções no PostgreSQL:
      - Ordena os arrays de entrada para comparação canônica: `v_elenco_a` e `v_elenco_b`.
      - Analisa todas as partidas históricas com status `'published'` ou `'closed'` (excluindo `p_partida_id_ignorar`).
      - Detecta partidas com os **exatos mesmos elencos**:
-       - *Mesma camisa*: `elenco_preto = v_elenco_a` e `elenco_branco = v_elenco_b` (Elenco A jogou de Preto e Elenco B de Branco).
-       - *Camisa invertida*: `elenco_preto = v_elenco_b` e `elenco_branco = v_elenco_a` (Elenco A jogou de Branco e Elenco B de Preto).
+       - _Mesma camisa_: `elenco_preto = v_elenco_a` e `elenco_branco = v_elenco_b` (Elenco A jogou de Preto e Elenco B de Branco).
+       - _Camisa invertida_: `elenco_preto = v_elenco_b` e `elenco_branco = v_elenco_a` (Elenco A jogou de Branco e Elenco B de Preto).
      - Contabiliza:
        - `jogos_exatos`: quantidade de vezes que esses dois elencos exatos se enfrentaram.
        - `vitorias_a`: vitórias do Elenco A (Time Preto no jogo atual).
@@ -71,6 +71,7 @@ Criação de duas funções no PostgreSQL:
 #### [NEW] [HistoricoConfrontoTimes.tsx](file:///c:/Users/PC/Documents/GitHub/racha/src/components/HistoricoConfrontoTimes.tsx)
 
 Componente dedicado no padrão "Súmula de Quinta":
+
 - **Estado de Carregamento**: Skeleton sutil e limpo.
 - **Caso 1: Confronto com Histórico (`jogos_exatos > 0`)**:
   - Cabeçalho com placa "RAIO-X DO CONFRONTO" e contagem (`N confrontos anteriores`).
@@ -90,12 +91,15 @@ Componente dedicado no padrão "Súmula de Quinta":
 ### 4. Integração nas Telas
 
 #### [MODIFY] [PartidaDetalhe.tsx](file:///c:/Users/PC/Documents/GitHub/racha/src/routes/PartidaDetalhe.tsx)
+
 - Exibe o `HistoricoConfrontoTimes` automaticamente quando a partida possui os dois times escalados (em `draft` com 8x8 ou `live`/`published`/`closed`).
 
 #### [MODIFY] [EscalacaoTimesEditor.tsx](file:///c:/Users/PC/Documents/GitHub/racha/src/components/EscalacaoTimesEditor.tsx)
+
 - No momento em que a escalação atinge 8 no Preto e 8 no Branco (manual ou após o "Auto-escalar"), renderiza em tempo real o card de Raio-X do Confronto antes de salvar, permitindo ao organizador conferir a rivalidade histórica antes de confirmar a escalação.
 
 #### [MODIFY] [PartidaAoVivo.tsx](file:///c:/Users/PC/Documents/GitHub/racha/src/routes/PartidaAoVivo.tsx)
+
 - Exibe o histórico do confronto dos elencos para consulta rápida durante o jogo ao vivo.
 
 ---
@@ -103,13 +107,16 @@ Componente dedicado no padrão "Súmula de Quinta":
 ## 🧪 Plano de Verificação
 
 ### 1. Testes Automatizados e Integridade de Tipagem
+
 - `npm run lint`: Validação estrita do ESLint e verificação de tipos (`tsc -b`).
 - `npm run build`: Validação do bundle e build do Vite.
 
 ### 2. Validação da Migration SQL
+
 - Testar a execução e funcionamento das RPCs `historico_confronto_times` e `historico_confronto_times_partidas` com diferentes combinações de elencos (tanto elencos que já jogaram quanto elencos inéditos).
 
 ### 3. Validação Visual e de Interação
+
 - Navegação para `/partida/:id` com times definidos: verificar renderização correta do painel de histórico.
 - Tela de escalação `/partida/:id/times` e `/partida/nova/times`: selecionar 8 no Time Preto e 8 no Time Branco e verificar atualização em tempo real do histórico.
 - Verificar tema escuro/claro e visualização em viewport mobile (375px) e desktop.

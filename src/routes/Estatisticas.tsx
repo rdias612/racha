@@ -169,8 +169,7 @@ export function Estatisticas() {
 
   const maximoPartidas = Math.max(DEFAULT_MIN_PARTIDAS, ...parcerias.map((p) => p.partidas));
 
-  const usernameSelecionado =
-    jogadores.find((j) => j.id === jogadorSelecionadoId)?.username ?? '';
+  const usernameSelecionado = jogadores.find((j) => j.id === jogadorSelecionadoId)?.username ?? '';
 
   const semParcerias = !melhorComp && !piorComp && !melhorAdv && !piorAdv;
 

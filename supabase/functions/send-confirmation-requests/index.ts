@@ -1,13 +1,16 @@
 // Edge Function: send-confirmation-requests
 //
-// Disparada pelo pg_cron semanal (migration 060) logo após a criação automática
-// da partida. Envia um push pedindo que cada mensalista PENDENTE confirme
-// presença. Idempotente via push_reminder_deliveries (reminder_key='confirmacao'):
-// re-execuções não reenviam o push para o mesmo (partida, jogador).
-//
-// Body esperado: { "partida_id": 123 }. Header obrigatório: x-push-cron-secret.
-//
-// Espelha o esqueleto de send-voting-reminders (mesmo web-push, mesmas env vars).
+// Suporta 3 modos:
+// 1. { "partida_id": X } -> Disparo semanal automático (cron semanal).
+//    Idempotente via push_reminder_deliveries (reminder_key='confirmacao').
+//    Se confirmacao_ativo = false, aborta com 200 sem enviar.
+// 2. { } -> Modo reforço automático (cron 1min).
+//    Localiza a partida draft com maior id e prazo NOT NULL.
+//    Se now estiver na janela [prazo - horas_reforco, prazo), envia aos pendentes.
+//    Idempotente via push_reminder_deliveries (reminder_key='reforco').
+//    Se reforco_ativo = false, aborta com 200 sem enviar.
+// 3. { "partida_id": X, "reenviar": true } -> Reenvio manual do admin.
+//    Ação explícita do admin: sempre liberada, não consulta nem escreve no ledger.
 
 import webpush from 'npm:web-push@3.6.7';
 import { createClient } from 'npm:@supabase/supabase-js@2';
@@ -35,6 +38,13 @@ type Target = {
   jogador_id: number;
 };
 
+type PartidaInfo = {
+  id: number;
+  data_jogo: string;
+  confirmacao_closes_at: string | null;
+  status: string;
+};
+
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -46,6 +56,57 @@ function errorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
   if (typeof error === 'object' && error !== null) return JSON.stringify(error);
   return String(error);
+}
+
+function formatarDataJogo(dataStr: string): { dia: string; hora: string } {
+  try {
+    const d = new Date(dataStr);
+    const dia = new Intl.DateTimeFormat('pt-BR', {
+      timeZone: 'America/Sao_Paulo',
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    }).format(d);
+    const hora = new Intl.DateTimeFormat('pt-BR', {
+      timeZone: 'America/Sao_Paulo',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).format(d);
+    return { dia, hora: `${hora}h` };
+  } catch {
+    return { dia: 'quinta-feira', hora: '19h' };
+  }
+}
+
+function formatarPrazo(prazoStr: string | null): string {
+  if (!prazoStr) return 'quarta às 16h';
+  try {
+    const d = new Date(prazoStr);
+    const diaSemana = new Intl.DateTimeFormat('pt-BR', {
+      timeZone: 'America/Sao_Paulo',
+      weekday: 'long',
+    }).format(d);
+    const hora = new Intl.DateTimeFormat('pt-BR', {
+      timeZone: 'America/Sao_Paulo',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).format(d);
+    return `${diaSemana} às ${hora}h`;
+  } catch {
+    return 'quarta às 16h';
+  }
+}
+
+function interpolar(
+  template: string,
+  vars: { dia_jogo: string; hora_jogo: string; prazo: string }
+): string {
+  return template
+    .replace(/{dia_jogo}/g, vars.dia_jogo)
+    .replace(/{hora_jogo}/g, vars.hora_jogo)
+    .replace(/{prazo}/g, vars.prazo);
 }
 
 // Mensalistas PENDENTES da partida, ativos, e com inscrição push ativa.
@@ -88,14 +149,14 @@ async function findTargets(partidaId: number): Promise<Target[]> {
     .map((id) => ({ partida_id: partidaId, jogador_id: id }));
 }
 
-// Idempotência: insert-or-nothing em (partida_id, jogador_id, 'confirmacao').
-async function claim(t: Target): Promise<boolean> {
+// Idempotência no ledger de entregas
+async function claim(t: Target, reminderKey: 'confirmacao' | 'reforco'): Promise<boolean> {
   const { data, error } = await supabase
     .from('push_reminder_deliveries')
     .insert({
       partida_id: t.partida_id,
       jogador_id: t.jogador_id,
-      reminder_key: 'confirmacao',
+      reminder_key: reminderKey,
     })
     .select('partida_id')
     .maybeSingle();
@@ -103,7 +164,12 @@ async function claim(t: Target): Promise<boolean> {
   return Boolean(data);
 }
 
-async function send(t: Target) {
+async function sendNotification(
+  t: Target,
+  titulo: string,
+  mensagem: string,
+  reminderKey?: 'confirmacao' | 'reforco'
+) {
   const { data: subscriptions, error } = await supabase
     .from('push_subscriptions')
     .select('endpoint, p256dh, auth')
@@ -111,8 +177,8 @@ async function send(t: Target) {
   if (error) throw error;
 
   const payload = JSON.stringify({
-    title: 'Confirme sua presença',
-    body: 'Tem racha quinta 19h! Reserve sua vaga até quarta 16h.',
+    title: titulo,
+    body: mensagem,
     url: `/partida/${t.partida_id}`,
     partida_id: t.partida_id,
     tag: `confirmacao-${t.partida_id}`,
@@ -126,21 +192,23 @@ async function send(t: Target) {
     };
     try {
       await webpush.sendNotification(pushSubscription, payload);
-    } catch (error) {
-      lastError = error instanceof Error ? error.message : String(error);
-      const statusCode = (error as { statusCode?: number }).statusCode;
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : String(err);
+      const statusCode = (err as { statusCode?: number }).statusCode;
       if (statusCode === 404 || statusCode === 410) {
         await supabase.from('push_subscriptions').delete().eq('endpoint', subscription.endpoint);
       }
     }
   }
 
-  await supabase
-    .from('push_reminder_deliveries')
-    .update({ sent_at: new Date().toISOString(), error_message: lastError })
-    .eq('partida_id', t.partida_id)
-    .eq('jogador_id', t.jogador_id)
-    .eq('reminder_key', 'confirmacao');
+  if (reminderKey) {
+    await supabase
+      .from('push_reminder_deliveries')
+      .update({ sent_at: new Date().toISOString(), error_message: lastError })
+      .eq('partida_id', t.partida_id)
+      .eq('jogador_id', t.jogador_id)
+      .eq('reminder_key', reminderKey);
+  }
 }
 
 Deno.serve(async (request) => {
@@ -149,29 +217,170 @@ Deno.serve(async (request) => {
     return json({ error: 'Unauthorized' }, 401);
   }
 
-  let partidaId: number | null = null;
+  // 1. Carrega configurações de notificações
+  const { data: config, error: cfgErr } = await supabase
+    .from('notificacoes_config')
+    .select('*')
+    .eq('id', 1)
+    .maybeSingle();
+
+  if (cfgErr) {
+    console.error('Erro ao ler notificacoes_config:', cfgErr);
+  }
+
+  let bodyData: { partida_id?: unknown; reenviar?: boolean } = {};
   try {
-    const body = await request.json().catch(() => ({}));
-    const raw = (body as { partida_id?: unknown })?.partida_id;
-    if (typeof raw === 'number') partidaId = raw;
-    else if (typeof raw === 'string' && raw.trim() !== '') partidaId = Number(raw);
+    bodyData = await request.json().catch(() => ({}));
   } catch {
     /* body vazio */
   }
-  if (partidaId === null || !Number.isFinite(partidaId)) {
-    return json({ error: 'partida_id ausente ou inválido' }, 400);
-  }
+
+  let partidaId: number | null = null;
+  const rawId = bodyData.partida_id;
+  if (typeof rawId === 'number') partidaId = rawId;
+  else if (typeof rawId === 'string' && rawId.trim() !== '') partidaId = Number(rawId);
+
+  const isReenvioManual = Boolean(bodyData.reenviar) && partidaId !== null;
 
   try {
-    const targets = await findTargets(partidaId);
+    // MODO 3: Reenvio manual do admin
+    if (isReenvioManual && partidaId !== null) {
+      const { data: partida, error: pErr } = await supabase
+        .from('partidas')
+        .select('id, data_jogo, confirmacao_closes_at, status')
+        .eq('id', partidaId)
+        .maybeSingle();
+      if (pErr) throw pErr;
+      if (!partida || partida.status !== 'draft') {
+        return json({ error: 'Partida não encontrada ou não está em draft' }, 400);
+      }
+
+      const { dia, hora } = formatarDataJogo(partida.data_jogo);
+      const prazo = formatarPrazo(partida.confirmacao_closes_at);
+      const vars = { dia_jogo: dia, hora_jogo: hora, prazo };
+
+      const tituloTemplate = config?.confirmacao_titulo?.trim() || 'Confirme sua presença';
+      const msgTemplate =
+        config?.confirmacao_mensagem?.trim() ||
+        'Tem racha {dia_jogo} {hora_jogo}! Reserve sua vaga até {prazo}.';
+
+      const titulo = interpolar(tituloTemplate, vars);
+      const mensagem = interpolar(msgTemplate, vars);
+
+      const targets = await findTargets(partidaId);
+      for (const target of targets) {
+        await sendNotification(target, titulo, mensagem);
+      }
+      return json({
+        modo: 'reenvio_manual',
+        partida_id: partidaId,
+        targets: targets.length,
+        sent: targets.length,
+      });
+    }
+
+    // MODO 1: Disparo semanal automático para partida específica
+    if (partidaId !== null) {
+      if (config?.confirmacao_ativo === false) {
+        return json({ ok: true, skipped: true, motivo: 'confirmacao_ativo=false' }, 200);
+      }
+
+      const { data: partida, error: pErr } = await supabase
+        .from('partidas')
+        .select('id, data_jogo, confirmacao_closes_at, status')
+        .eq('id', partidaId)
+        .maybeSingle();
+      if (pErr) throw pErr;
+      if (!partida || partida.status !== 'draft') {
+        return json({ error: 'Partida não encontrada ou não está em draft' }, 400);
+      }
+
+      const { dia, hora } = formatarDataJogo(partida.data_jogo);
+      const prazo = formatarPrazo(partida.confirmacao_closes_at);
+      const vars = { dia_jogo: dia, hora_jogo: hora, prazo };
+
+      const tituloTemplate = config?.confirmacao_titulo?.trim() || 'Confirme sua presença';
+      const msgTemplate =
+        config?.confirmacao_mensagem?.trim() ||
+        'Tem racha {dia_jogo} {hora_jogo}! Reserve sua vaga até {prazo}.';
+
+      const titulo = interpolar(tituloTemplate, vars);
+      const mensagem = interpolar(msgTemplate, vars);
+
+      const targets = await findTargets(partidaId);
+      let claimed = 0;
+      for (const target of targets) {
+        if (await claim(target, 'confirmacao')) {
+          claimed++;
+          await sendNotification(target, titulo, mensagem, 'confirmacao');
+        }
+      }
+      return json({
+        modo: 'confirmacao_semanal',
+        partida_id: partidaId,
+        targets: targets.length,
+        claimed,
+      });
+    }
+
+    // MODO 2: Modo reforço automático (cron 1min)
+    if (config?.reforco_ativo === false) {
+      return json({ ok: true, skipped: true, motivo: 'reforco_ativo=false' }, 200);
+    }
+
+    // Busca o draft atual com maior ID e prazo NOT NULL
+    const { data: draft, error: dErr } = await supabase
+      .from('partidas')
+      .select('id, data_jogo, confirmacao_closes_at, status')
+      .eq('status', 'draft')
+      .not('confirmacao_closes_at', 'is', null)
+      .order('id', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (dErr) throw dErr;
+    if (!draft || !draft.confirmacao_closes_at) {
+      return json({ ok: true, targets: 0, motivo: 'sem draft ativo com prazo' }, 200);
+    }
+
+    const agora = Date.now();
+    const prazoMs = new Date(draft.confirmacao_closes_at).getTime();
+    const horasAntes = config?.reforco_horas_antes_prazo ?? 4;
+    const janelaInicioMs = prazoMs - horasAntes * 3600 * 1000;
+
+    // Está dentro da janela [prazo - horas, prazo)?
+    if (agora < janelaInicioMs || agora >= prazoMs) {
+      return json({ ok: true, targets: 0, motivo: 'fora da janela de reforco' }, 200);
+    }
+
+    const { dia, hora } = formatarDataJogo(draft.data_jogo);
+    const prazo = formatarPrazo(draft.confirmacao_closes_at);
+    const vars = { dia_jogo: dia, hora_jogo: hora, prazo };
+
+    const tituloTemplate =
+      config?.reforco_titulo?.trim() || 'Últimas horas para confirmar presença';
+    const msgTemplate =
+      config?.reforco_mensagem?.trim() ||
+      'O prazo para confirmação encerra em {prazo}. Garanta sua vaga no racha!';
+
+    const titulo = interpolar(tituloTemplate, vars);
+    const mensagem = interpolar(msgTemplate, vars);
+
+    const targets = await findTargets(draft.id);
     let claimed = 0;
     for (const target of targets) {
-      if (await claim(target)) {
+      if (await claim(target, 'reforco')) {
         claimed++;
-        await send(target);
+        await sendNotification(target, titulo, mensagem, 'reforco');
       }
     }
-    return json({ partida_id: partidaId, targets: targets.length, claimed });
+
+    return json({
+      modo: 'reforco_automatico',
+      partida_id: draft.id,
+      targets: targets.length,
+      claimed,
+    });
   } catch (error) {
     console.error(error);
     return json({ error: errorMessage(error) }, 500);

@@ -3,11 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useSessao } from '../context/SessaoContext';
 import { POSICOES } from '../lib/times';
-import {
-  atualizarUsernameJogador,
-  isSuperAdmin,
-  validarFormatoUsername,
-} from '../lib/jogadores';
+import { atualizarUsernameJogador, isSuperAdmin, validarFormatoUsername } from '../lib/jogadores';
 import { vibrateError, vibrateSuccess } from '../lib/haptics';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { Avatar } from '../components/Avatar';
@@ -208,7 +204,8 @@ export function Perfil() {
 
         {isSuperAdmin(jogador.username) ? (
           <div className="rounded-[4px] border border-borda/60 bg-superficie-2 p-2.5 text-xs font-mono text-giz-fraco">
-            🛡️ Usuário Superadmin permanente. O identificador de acesso não pode ser alterado na interface.
+            🛡️ Usuário Superadmin permanente. O identificador de acesso não pode ser alterado na
+            interface.
           </div>
         ) : (
           <form onSubmit={alterarUsername} className="space-y-3">

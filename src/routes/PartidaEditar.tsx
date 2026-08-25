@@ -131,10 +131,7 @@ export function PartidaEditar() {
         if (filtroModal === 'avulsos') return !j.is_mensalista;
         return true;
       })
-      .filter(
-        (j) =>
-          !termo || j.username.toLowerCase().includes(termo)
-      );
+      .filter((j) => !termo || j.username.toLowerCase().includes(termo));
   }, [jogadoresAtivos, participantes, buscaJogador, filtroModal]);
 
   if (!isAdmin) return <Navigate to="/" replace />;

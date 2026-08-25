@@ -129,7 +129,9 @@ export function Resumo() {
         {
           titulo: 'Maior Sequência',
           badge: '🔥 EMBALADO',
-          nome: resumo.sequencia_vitorias_username ? `@${resumo.sequencia_vitorias_username}` : null,
+          nome: resumo.sequencia_vitorias_username
+            ? `@${resumo.sequencia_vitorias_username}`
+            : null,
           valor: `${resumo.sequencia_vitorias ?? 0} ${resumo.sequencia_vitorias === 1 ? 'vitória' : 'vitórias'}`,
           detalhe: 'Embalado na temporada',
         },

@@ -30,6 +30,7 @@ const carregarPartidaVotar = () => import('../routes/PartidaVotar');
 const carregarNovoJogador = () => import('../routes/NovoJogador');
 const carregarGestaoJogadores = () => import('../routes/GestaoJogadores');
 const carregarAdministrador = () => import('../routes/Administrador');
+const carregarNotificacoes = () => import('../routes/Notificacoes');
 
 // Componentes lazy consumidos pela declaração de rotas em App.tsx.
 export const Login = lazy(() => carregarLogin().then((m) => ({ default: m.Login })));
@@ -77,6 +78,9 @@ export const GestaoJogadores = lazy(() =>
 export const Administrador = lazy(() =>
   carregarAdministrador().then((m) => ({ default: m.Administrador }))
 );
+export const Notificacoes = lazy(() =>
+  carregarNotificacoes().then((m) => ({ default: m.Notificacoes }))
+);
 
 /**
  * Tabela de prefetch: padrão ancorado no início do pathname (semântica de
@@ -105,6 +109,7 @@ const TABELA_PRE_CARREGAMENTO: Array<{
   { padrao: /^\/gestao-jogadores/, carregar: carregarGestaoJogadores },
   { padrao: /^\/jogador\/novo/, carregar: carregarNovoJogador },
   { padrao: /^\/administrador/, carregar: carregarAdministrador },
+  { padrao: /^\/notificacoes/, carregar: carregarNotificacoes },
   { padrao: /^\/login/, carregar: carregarLogin },
   { padrao: /^\/$/, carregar: carregarResumo },
 ];

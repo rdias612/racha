@@ -12,14 +12,14 @@
 
 O âmbar de destaque (`--cor-destaque: #ffb300`) usado como **cor de texto** (`text-destaque`) sobre as superfícies claras do tema claro (`--cor-fundo: #f3efe4`, `--cor-superficie: #faf7ee`, `--cor-superficie-2: #ece7d8`) tinha contraste de **≈ 1,6:1** — muito abaixo do mínimo **4,5:1** do WCAG AA para texto normal (e até do 3:1 para texto grande/UI). No tema escuro o mesmo par rende **≈ 10,6:1** e estava correto; o problema manifestava-se apenas no tema claro.
 
-| Combinação                                                                            | Contraste Anterior | Contraste Atual (`#92400e`) | Exigência WCAG                       | Situação                             |
-| ------------------------------------------------------------------------------------- | ------------------ | --------------------------- | ------------------------------------ | ------------------------------------ |
-| `text-destaque` sobre `bg-fundo` claro (`#f3efe4`)                                    | ≈ 1,6:1 ❌         | **6,25:1**                  | 4,5:1 (texto normal)                 | ✅ Aprovado (WCAG AA)                |
-| `text-destaque` sobre `bg-superficie` clara (`#faf7ee`)                               | ≈ 1,5:1 ❌         | **6,73:1**                  | 4,5:1 (texto normal)                 | ✅ Aprovado (WCAG AA)                |
-| `text-destaque` sobre `bg-superficie-2` clara (`#ece7d8`)                             | ≈ 1,7:1 ❌         | **5,79:1**                  | 4,5:1 (texto normal)                 | ✅ Aprovado (WCAG AA)                |
-| `text-destaque` sobre `bg-fundo` escuro (`#12100d`)                                   | ≈ 10,6:1           | **10,6:1**                  | 4,5:1 (texto normal)                 | ✅ Aprovado                          |
-| `outline-destaque` / `:focus-visible` sobre superfícies claras                        | ≈ 1,6:1 ❌         | **> 5,5:1**                 | 3:1 (não-texto, WCAG 1.4.11 / 2.4.11)| ✅ Aprovado (WCAG AA)                |
-| `text-destaque-tinta` (`#1a1200`) sobre `bg-destaque` (`#ffb300`)                     | alto (10,2:1)      | **10,2:1**                  | 4,5:1 (texto normal)                 | ✅ Aprovado (badges/botões mantidos) |
+| Combinação                                                        | Contraste Anterior | Contraste Atual (`#92400e`) | Exigência WCAG                        | Situação                             |
+| ----------------------------------------------------------------- | ------------------ | --------------------------- | ------------------------------------- | ------------------------------------ |
+| `text-destaque` sobre `bg-fundo` claro (`#f3efe4`)                | ≈ 1,6:1 ❌         | **6,25:1**                  | 4,5:1 (texto normal)                  | ✅ Aprovado (WCAG AA)                |
+| `text-destaque` sobre `bg-superficie` clara (`#faf7ee`)           | ≈ 1,5:1 ❌         | **6,73:1**                  | 4,5:1 (texto normal)                  | ✅ Aprovado (WCAG AA)                |
+| `text-destaque` sobre `bg-superficie-2` clara (`#ece7d8`)         | ≈ 1,7:1 ❌         | **5,79:1**                  | 4,5:1 (texto normal)                  | ✅ Aprovado (WCAG AA)                |
+| `text-destaque` sobre `bg-fundo` escuro (`#12100d`)               | ≈ 10,6:1           | **10,6:1**                  | 4,5:1 (texto normal)                  | ✅ Aprovado                          |
+| `outline-destaque` / `:focus-visible` sobre superfícies claras    | ≈ 1,6:1 ❌         | **> 5,5:1**                 | 3:1 (não-texto, WCAG 1.4.11 / 2.4.11) | ✅ Aprovado (WCAG AA)                |
+| `text-destaque-tinta` (`#1a1200`) sobre `bg-destaque` (`#ffb300`) | alto (10,2:1)      | **10,2:1**                  | 4,5:1 (texto normal)                  | ✅ Aprovado (badges/botões mantidos) |
 
 ## 2. Por que foi resolvido via arquitetura de tokens (e não fix pontual)
 

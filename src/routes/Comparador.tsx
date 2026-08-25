@@ -194,12 +194,16 @@ export function Comparador() {
     idA === null
       ? undefined
       : (jogadores.find((j) => j.id === idA) ??
-        (jogador?.id === idA ? { username: jogador.username, posicao: jogador.posicao } : undefined));
+        (jogador?.id === idA
+          ? { username: jogador.username, posicao: jogador.posicao }
+          : undefined));
   const infoB =
     idB === null
       ? undefined
       : (jogadores.find((j) => j.id === idB) ??
-        (jogador?.id === idB ? { username: jogador.username, posicao: jogador.posicao } : undefined));
+        (jogador?.id === idB
+          ? { username: jogador.username, posicao: jogador.posicao }
+          : undefined));
   const usernameA = infoA?.username ?? '—';
   const usernameB = infoB?.username ?? '—';
 
