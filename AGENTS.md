@@ -414,7 +414,7 @@ O daemon do `pg_cron` no Supabase avalia expressões em **UTC**. O fuso de Bras�
 - **Mensalidade**: Valor padrão de **R$ 90,00**. Gerada mensalmente no dia 01 às 10h BRT para todos os mensalistas ativos, com competência `YYYY-MM`.
 - **Avulso**: Valor padrão de **R$ 20,00**. Gerado automaticamente ao finalizar/publicar a partida para participantes com `is_mensalista = false`.
 - **Outro**: Lançamento manual avulso (churrasco, coletes, multas).
-- **Teto de Mensalistas**: Máximo de **16 mensalistas ativos** (`MAX_MENSALISTAS = 16`).
+- **Teto de Mensalistas**: Máximo de **14 mensalistas ativos** (`MAX_MENSALISTAS = 14`).
 - **Regra de Administradores**: **Apenas mensalistas podem ser Administradores**. Se o status de mensalista de um atleta for desativado, o privilégio de administrador é revogado automaticamente.
 - **Superadministradores Hardcoded (`SUPERADMINS`)**:
   Os usuários `'dico'`, `'tadeu'` e `'natal'` são **permanentemente administradores e mensalistas** no código e no banco, não podendo ter seus privilégios alterados.
