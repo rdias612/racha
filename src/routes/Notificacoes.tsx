@@ -18,9 +18,10 @@ import { Carregando, MensagemEstado } from '../components/Estado';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { ModalSelecionarAgendamento } from '../components/ModalSelecionarAgendamento';
 import { ModalSelecionarOpcao } from '../components/ModalSelecionarOpcao';
-import { Snackbar, type TipoSnackbar } from '../components/Snackbar';
+import { Snackbar } from '../components/Snackbar';
+import { useSnackbar } from '../hooks/useSnackbar';
 import { BotaoVoltar } from '../components/BotaoVoltar';
-import { vibrateSuccess, vibrateError, vibrateLight } from '../lib/haptics';
+import { vibrateLight, vibrateError } from '../lib/haptics';
 import { statusPush, type StatusPush } from '../lib/pwa';
 import {
   obterConfiguracoesNotificacoes,
@@ -76,17 +77,7 @@ export function Notificacoes() {
   const [confirmReenvioAberto, setConfirmReenvioAberto] = useState(false);
   const [modalAgendamentoAberto, setModalAgendamentoAberto] = useState(false);
   const [modalReforcoAberto, setModalReforcoAberto] = useState(false);
-  const [snackbar, setSnackbar] = useState<{
-    visivel: boolean;
-    tipo: TipoSnackbar;
-    mensagem: string;
-  }>({ visivel: false, tipo: 'sucesso', mensagem: '' });
-
-  function mostrarSnackbar(tipo: TipoSnackbar, mensagem: string) {
-    if (tipo === 'sucesso') vibrateSuccess();
-    else if (tipo === 'erro') vibrateError();
-    setSnackbar({ visivel: true, tipo, mensagem });
-  }
+  const { snackbarProps, mostrarSnackbar } = useSnackbar();
 
   // Carregamento de dados
   const carregar = useCallback(
@@ -751,12 +742,7 @@ export function Notificacoes() {
       />
 
       {/* Feedback Toast */}
-      <Snackbar
-        visivel={snackbar.visivel}
-        tipo={snackbar.tipo}
-        mensagem={snackbar.mensagem}
-        onFechar={() => setSnackbar((s) => ({ ...s, visivel: false }))}
-      />
+      <Snackbar {...snackbarProps} />
     </div>
   );
 }

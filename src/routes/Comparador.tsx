@@ -2,14 +2,15 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeftRight, Trophy } from 'lucide-react';
 import { AbasEstatisticas } from '../components/AbasEstatisticas';
-import { supabase } from '../lib/supabase';
 import {
+  carregarStatsJogador,
   compararJogadores,
   listarTodosJogadores,
   obterMediasNotasJogadores,
   type ComparativoConfronto,
   type JogadorLista,
   type LinhaConfronto,
+  type StatsJogador,
 } from '../lib/jogadores';
 import type { PosicaoId } from '../lib/times';
 import { useSessao } from '../context/SessaoContext';
@@ -23,23 +24,13 @@ import { formatarDataLista } from '../lib/formatacao';
 import { vibrateLight } from '../lib/haptics';
 import { preCarregarRota } from '../lib/rotas';
 
-// Linha da view stats_jogador (mesma fonte do Perfil e da aba Jogador).
-interface StatsComparativo {
-  jogador_id: number;
-  partidas: number;
-  gols: number;
-  assistencias: number;
-  gols_contra: number;
-  vitorias: number;
-}
-
 // Tudo o que a tela precisa em uma ida só: confronto direto (RPCs 072) +
 // números gerais da temporada + mapa de médias aparadas (RPC 070).
 // `confronto === null` = par incompleto (B ainda não escolhido): sem rede.
 interface ComparativoTela {
   confronto: ComparativoConfronto | null;
-  statsA: StatsComparativo | null;
-  statsB: StatsComparativo | null;
+  statsA: StatsJogador | null;
+  statsB: StatsJogador | null;
   medias: Record<number, number>;
 }
 
@@ -50,13 +41,12 @@ const COMPARATIVO_VAZIO: ComparativoTela = {
   medias: {},
 };
 
-
 // Badge compacta neutra (relação do confronto e empate) — mesmo padrão das
 // badges de Estatisticas.tsx/Perfil.tsx.
 const classeBadgeNeutra =
   'rounded-[2px] border border-borda bg-superficie-2 px-1.5 py-0.5 font-display text-[10px] font-bold uppercase tracking-wider text-giz-fraco';
 
-function aproveitamento(stats: StatsComparativo | null): number | null {
+function aproveitamento(stats: StatsJogador | null): number | null {
   if (!stats || stats.partidas <= 0) return null;
   return (stats.vitorias / stats.partidas) * 100;
 }
@@ -132,18 +122,12 @@ export function Comparador() {
   const buscar = useCallback(async (): Promise<ComparativoTela> => {
     if (idA === null || idB === null) return COMPARATIVO_VAZIO;
 
-    const [confronto, resStats, medias] = await Promise.all([
+    const [confronto, linhasStats, medias] = await Promise.all([
       compararJogadores(idA, idB),
-      supabase
-        .from('stats_jogador')
-        .select('jogador_id, partidas, gols, assistencias, gols_contra, vitorias')
-        .in('jogador_id', [idA, idB]),
+      carregarStatsJogador([idA, idB]),
       obterMediasNotasJogadores(),
     ]);
 
-    if (resStats.error) throw resStats.error;
-
-    const linhasStats = (resStats.data ?? []) as StatsComparativo[];
     return {
       confronto,
       statsA: linhasStats.find((s) => s.jogador_id === idA) ?? null,

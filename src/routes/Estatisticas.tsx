@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { isRandomUsername } from '../lib/jogadores';
+import { carregarStatsJogador, isRandomUsername, type StatsJogador } from '../lib/jogadores';
 import { useSessao } from '../context/SessaoContext';
 import { useSwipeTabs } from '../hooks/useSwipeTabs';
 import { MensagemEstado } from '../components/Estado';
@@ -8,18 +8,9 @@ import { SkeletonEstatisticas } from '../components/Skeletons';
 import { PullToRefresh } from '../components/PullToRefresh';
 import { Avatar } from '../components/Avatar';
 import { AbasEstatisticas } from '../components/AbasEstatisticas';
+import { StatBox } from '../components/StatBox';
 
 const DEFAULT_MIN_PARTIDAS = 5;
-
-// Stats básicas (mesma fonte do Perfil: view stats_jogador)
-interface Stats {
-  jogador_id: number;
-  partidas: number;
-  gols: number;
-  assistencias: number;
-  gols_contra: number;
-  vitorias: number;
-}
 
 // Parcerias (RPC nova)
 interface Parceria {
@@ -58,7 +49,7 @@ export function Estatisticas() {
   const [jogadores, setJogadores] = useState<JogadorOpcao[]>([]);
   const [jogadorSelecionadoId, setJogadorSelecionadoId] = useState<number | null>(null);
   const [minimoPartidas, setMinimoPartidas] = useState(DEFAULT_MIN_PARTIDAS);
-  const [stats, setStats] = useState<Stats | null>(null);
+  const [stats, setStats] = useState<StatsJogador | null>(null);
   const [parcerias, setParcerias] = useState<Parceria[]>([]);
   const [destaques, setDestaques] = useState<Record<MetricaDestaque, ParceriaDestaque | undefined>>(
     {
@@ -111,12 +102,8 @@ export function Estatisticas() {
 
     try {
       // Busca stats basicas, parcerias e destaques em paralelo
-      const [resStats, resParcerias, resDestaques] = await Promise.all([
-        supabase
-          .from('stats_jogador')
-          .select('jogador_id, partidas, gols, assistencias, gols_contra, vitorias')
-          .eq('jogador_id', jogadorSelecionadoId)
-          .maybeSingle(),
+      const [dadosStats, resParcerias, resDestaques] = await Promise.all([
+        carregarStatsJogador(jogadorSelecionadoId),
         supabase.rpc('parcerias_jogador', {
           p_jogador_id: jogadorSelecionadoId,
         }),
@@ -126,22 +113,10 @@ export function Estatisticas() {
       ]);
 
       if (geracao !== geracaoRef.current) return;
-      if (resStats.error) throw resStats.error;
       if (resParcerias.error) throw resParcerias.error;
       if (resDestaques.error) throw resDestaques.error;
 
-      setStats(
-        resStats.data
-          ? {
-              jogador_id: resStats.data.jogador_id ?? jogadorSelecionadoId,
-              partidas: resStats.data.partidas ?? 0,
-              gols: resStats.data.gols ?? 0,
-              assistencias: resStats.data.assistencias ?? 0,
-              gols_contra: resStats.data.gols_contra ?? 0,
-              vitorias: resStats.data.vitorias ?? 0,
-            }
-          : null
-      );
+      setStats(dadosStats);
       setParcerias((resParcerias.data ?? []) as unknown as Parceria[]);
 
       // Mapeia array de destaques para lookup facil por metrica
@@ -390,19 +365,6 @@ function ParceriaDestaqueCard({
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function StatBox({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-[4px] border border-borda bg-superficie px-2 py-2.5 text-center shadow-carimbo">
-      <div className="font-mono text-xl sm:text-2xl font-black text-destaque tabular-nums">
-        {value}
-      </div>
-      <div className="font-display text-[10px] font-bold uppercase tracking-wider text-giz-fraco">
-        {label}
-      </div>
     </div>
   );
 }

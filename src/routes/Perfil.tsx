@@ -6,29 +6,23 @@ import { POSICOES } from '../lib/times';
 import {
   atualizarUsernameJogador,
   atualizarDadosPixTelefone,
+  carregarStatsJogador,
   isSuperAdmin,
   validarFormatoUsername,
+  type StatsJogador,
 } from '../lib/jogadores';
 import { vibrateError, vibrateSuccess } from '../lib/haptics';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { Avatar } from '../components/Avatar';
+import { StatBox } from '../components/StatBox';
 import { SkeletonPerfil } from '../components/Skeletons';
 import { CreditCard, Phone } from 'lucide-react';
-
-interface Stats {
-  jogador_id: number;
-  partidas: number;
-  gols: number;
-  assistencias: number;
-  gols_contra: number;
-  vitorias: number;
-}
 
 export function Perfil() {
   const { jogador, setJogador, logout } = useSessao();
   const navigate = useNavigate();
 
-  const [stats, setStats] = useState<Stats | null>(null);
+  const [stats, setStats] = useState<StatsJogador | null>(null);
   const [carregandoStats, setCarregandoStats] = useState(true);
 
   // formulário de alteração de username
@@ -58,25 +52,20 @@ export function Perfil() {
     let ativo = true;
     async function carregarStats() {
       if (!jogadorId) return;
-      const { data, error } = await supabase
-        .from('stats_jogador')
-        .select('jogador_id, partidas, gols, assistencias, gols_contra, vitorias')
-        .eq('jogador_id', jogadorId)
-        .maybeSingle();
-      if (!ativo) return;
-      if (!error && data) {
-        setStats({
-          jogador_id: data.jogador_id ?? jogadorId,
-          partidas: data.partidas ?? 0,
-          gols: data.gols ?? 0,
-          assistencias: data.assistencias ?? 0,
-          gols_contra: data.gols_contra ?? 0,
-          vitorias: data.vitorias ?? 0,
-        });
-      } else if (!error) {
-        setStats(null);
+      try {
+        const dados = await carregarStatsJogador(jogadorId);
+        if (ativo) {
+          setStats(dados);
+        }
+      } catch {
+        if (ativo) {
+          setStats(null);
+        }
+      } finally {
+        if (ativo) {
+          setCarregandoStats(false);
+        }
       }
-      setCarregandoStats(false);
     }
     carregarStats();
     return () => {
@@ -401,19 +390,6 @@ export function Perfil() {
         <p className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
           Racha Gragoatá · desde 2024 · toda quinta, CBO
         </p>
-      </div>
-    </div>
-  );
-}
-
-function StatBox({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-[4px] border border-borda bg-superficie px-2 py-2.5 text-center shadow-carimbo">
-      <div className="font-mono text-xl sm:text-2xl font-black text-destaque tabular-nums">
-        {value}
-      </div>
-      <div className="font-display text-[10px] font-bold uppercase tracking-wider text-giz-fraco">
-        {label}
       </div>
     </div>
   );

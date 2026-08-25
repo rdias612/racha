@@ -16,7 +16,8 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { EventosAutomaticosFinanceiro } from '../components/EventosAutomaticosFinanceiro';
 import { PullToRefresh } from '../components/PullToRefresh';
 import { SelectSumula } from '../components/SelectSumula';
-import { Snackbar, type TipoSnackbar } from '../components/Snackbar';
+import { Snackbar } from '../components/Snackbar';
+import { useSnackbar } from '../hooks/useSnackbar';
 import { formatarReais, formatarDataLista } from '../lib/formatacao';
 import { isRandomUsername, listarJogadoresAtivos, type JogadorLista } from '../lib/jogadores';
 import { BotaoVoltar } from '../components/BotaoVoltar';
@@ -70,21 +71,13 @@ export function Administrador() {
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [expandido, setExpandido] = useState<number | null>(null);
-  const [snackbar, setSnackbar] = useState<{
-    visivel: boolean;
-    tipo: TipoSnackbar;
-    mensagem: string;
-  }>({ visivel: false, tipo: 'sucesso', mensagem: '' });
+  const { snackbarProps, mostrarSnackbar } = useSnackbar();
   const [confirmacao, setConfirmacao] = useState<{
     open: boolean;
     titulo: string;
     mensagem: string;
     onConfirm: () => void;
   } | null>(null);
-
-  function mostrarSnackbar(tipo: TipoSnackbar, mensagem: string) {
-    setSnackbar({ visivel: true, tipo, mensagem });
-  }
 
   const [fNatureza, setFNatureza] = useState<NaturezaLancamento>('receita');
   const [fJogador, setFJogador] = useState('');
@@ -824,12 +817,7 @@ export function Administrador() {
           />
         )}
 
-        <Snackbar
-          mensagem={snackbar.mensagem}
-          tipo={snackbar.tipo}
-          visivel={snackbar.visivel}
-          onFechar={() => setSnackbar((s) => ({ ...s, visivel: false }))}
-        />
+        <Snackbar {...snackbarProps} />
       </div>
     </PullToRefresh>
   );

@@ -410,3 +410,58 @@ export async function listarGoleiros(): Promise<JogadorLista[]> {
     is_admin: j.is_admin || isSuperAdmin(j.username),
   }));
 }
+
+export interface StatsJogador {
+  jogador_id: number;
+  partidas: number;
+  gols: number;
+  assistencias: number;
+  gols_contra: number;
+  vitorias: number;
+}
+
+/**
+ * Consulta os números gerais da temporada a partir da view `stats_jogador`.
+ * Suporta consulta individual (retorna StatsJogador ou null) ou em lote (retorna StatsJogador[]).
+ */
+export async function carregarStatsJogador(jogadorId: number): Promise<StatsJogador | null>;
+export async function carregarStatsJogador(jogadorIds: number[]): Promise<StatsJogador[]>;
+export async function carregarStatsJogador(
+  idOuIds: number | number[]
+): Promise<StatsJogador | null | StatsJogador[]> {
+  if (Array.isArray(idOuIds)) {
+    if (idOuIds.length === 0) return [];
+    const { data, error } = await supabase
+      .from('stats_jogador')
+      .select('jogador_id, partidas, gols, assistencias, gols_contra, vitorias')
+      .in('jogador_id', idOuIds);
+
+    if (error) throw error;
+    return (data ?? []).map((row) => ({
+      jogador_id: row.jogador_id ?? 0,
+      partidas: row.partidas ?? 0,
+      gols: row.gols ?? 0,
+      assistencias: row.assistencias ?? 0,
+      gols_contra: row.gols_contra ?? 0,
+      vitorias: row.vitorias ?? 0,
+    }));
+  }
+
+  const { data, error } = await supabase
+    .from('stats_jogador')
+    .select('jogador_id, partidas, gols, assistencias, gols_contra, vitorias')
+    .eq('jogador_id', idOuIds)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) return null;
+
+  return {
+    jogador_id: data.jogador_id ?? idOuIds,
+    partidas: data.partidas ?? 0,
+    gols: data.gols ?? 0,
+    assistencias: data.assistencias ?? 0,
+    gols_contra: data.gols_contra ?? 0,
+    vitorias: data.vitorias ?? 0,
+  };
+}

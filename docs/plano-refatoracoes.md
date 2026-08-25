@@ -254,11 +254,11 @@ Tab atravessa para o conteúdo atrás do overlay; `ConfirmDialog.tsx:60-79` tem 
 
 `Estatisticas.tsx:193-230`, `EstatisticasRacha.tsx:146-183`, `Comparador.tsx:260-270` (mesmos 3 `NavLink` com ~30 linhas de classes; `Comparador` já tem `classeAba` em `:53-58`).
 
-### P2-4. `StatBox` + fetcher de `stats_jogador` triplicados
+### P2-4. ✅ `StatBox` + fetcher de `stats_jogador` triplicados
 
 Componente idêntico em `Perfil.tsx:393-404` e `Estatisticas.tsx:410-421`; interface `Stats` + query em `Perfil.tsx:18-25/60-64`, `Estatisticas.tsx:15-22/104-109`, `Comparador.tsx:26-33/141-147` → `components/StatBox.tsx` + `lib/jogadores.ts → carregarStatsJogador(ids)`.
 
-### P2-5. `useSnackbar` — estado+helper de snackbar duplicado 5x
+### P2-5. ✅ `useSnackbar` — estado+helper de snackbar duplicado 5x
 
 `Administrador.tsx:74-88`, `Notificacoes.tsx:80-90`, `GestaoJogadores.tsx:60-64`, `GestaoGoleiros.tsx:56-59`, `Jogos.tsx:62-70` → hook com haptics padronizados (hoje só `Notificacoes` vibra).
 

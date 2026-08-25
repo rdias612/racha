@@ -10,11 +10,12 @@ import {
   type JogadorLista,
 } from '../lib/jogadores';
 import { formatarMensagemErro } from '../lib/erros';
-import { vibrateLight, vibrateSuccess, vibrateError } from '../lib/haptics';
+import { vibrateLight } from '../lib/haptics';
 import { MensagemEstado } from '../components/Estado';
 import { ModalNovoGoleiro } from '../components/ModalNovoGoleiro';
 import { ConfirmDialog } from '../components/ConfirmDialog';
-import { Snackbar, type TipoSnackbar } from '../components/Snackbar';
+import { Snackbar } from '../components/Snackbar';
+import { useSnackbar } from '../hooks/useSnackbar';
 import { BotaoVoltar } from '../components/BotaoVoltar';
 import {
   UserPlus,
@@ -51,10 +52,7 @@ export function GestaoGoleiros() {
     novoStatus: boolean;
   } | null>(null);
 
-  const [snackbar, setSnackbar] = useState<{
-    mensagem: string;
-    tipo?: TipoSnackbar;
-  } | null>(null);
+  const { snackbarProps, mostrarSnackbar } = useSnackbar();
 
   useEffect(() => {
     let ativo = true;
@@ -92,8 +90,7 @@ export function GestaoGoleiros() {
     await criarGoleiroRapido(dados, jogadorLogado.id);
     const lista = await listarGoleiros();
     setGoleiros(lista);
-    vibrateSuccess();
-    setSnackbar({ mensagem: 'Goleiro cadastrado com sucesso!', tipo: 'sucesso' });
+    mostrarSnackbar('sucesso', 'Goleiro cadastrado com sucesso!');
   }
 
   function iniciarEdicao(g: JogadorLista) {
@@ -125,14 +122,9 @@ export function GestaoGoleiros() {
       const lista = await listarGoleiros();
       setGoleiros(lista);
       setEditandoId(null);
-      vibrateSuccess();
-      setSnackbar({ mensagem: 'Dados atualizados com sucesso!', tipo: 'sucesso' });
+      mostrarSnackbar('sucesso', 'Dados atualizados com sucesso!');
     } catch (err) {
-      vibrateError();
-      setSnackbar({
-        mensagem: formatarMensagemErro(err, 'Erro ao atualizar goleiro.'),
-        tipo: 'erro',
-      });
+      mostrarSnackbar('erro', formatarMensagemErro(err, 'Erro ao atualizar goleiro.'));
     } finally {
       setSalvandoEdicao(false);
     }
@@ -147,17 +139,12 @@ export function GestaoGoleiros() {
       await alternarStatusAtivoJogador(goleiro.id, novoStatus, jogadorLogado.id);
       const lista = await listarGoleiros();
       setGoleiros(lista);
-      vibrateSuccess();
-      setSnackbar({
-        mensagem: `Goleiro @${goleiro.username} ${novoStatus ? 'ativado' : 'desativado'}.`,
-        tipo: 'sucesso',
-      });
+      mostrarSnackbar(
+        'sucesso',
+        `Goleiro @${goleiro.username} ${novoStatus ? 'ativado' : 'desativado'}.`
+      );
     } catch (err) {
-      vibrateError();
-      setSnackbar({
-        mensagem: formatarMensagemErro(err, 'Erro ao alterar status do atleta.'),
-        tipo: 'erro',
-      });
+      mostrarSnackbar('erro', formatarMensagemErro(err, 'Erro ao alterar status do atleta.'));
     }
   }
 
@@ -167,10 +154,9 @@ export function GestaoGoleiros() {
       setCopiadoId(id);
       setTimeout(() => setCopiadoId(null), 2500);
       vibrateLight();
-      setSnackbar({ mensagem: 'Chave PIX copiada!', tipo: 'sucesso' });
+      mostrarSnackbar('sucesso', 'Chave PIX copiada!');
     } catch {
-      vibrateError();
-      setSnackbar({ mensagem: 'Não foi possível copiar a chave PIX.', tipo: 'erro' });
+      mostrarSnackbar('erro', 'Não foi possível copiar a chave PIX.');
     }
   }
 
@@ -479,12 +465,7 @@ export function GestaoGoleiros() {
       />
 
       {/* Toast Feedback */}
-      <Snackbar
-        mensagem={snackbar?.mensagem ?? ''}
-        tipo={snackbar?.tipo}
-        visivel={Boolean(snackbar)}
-        onFechar={() => setSnackbar(null)}
-      />
+      <Snackbar {...snackbarProps} />
     </div>
   );
 }

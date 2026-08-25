@@ -15,7 +15,8 @@ import { Avatar } from '../components/Avatar';
 import { MensagemEstado } from '../components/Estado';
 import { SkeletonGestao } from '../components/Skeletons';
 import { ConfirmDialog } from '../components/ConfirmDialog';
-import { Snackbar, type TipoSnackbar } from '../components/Snackbar';
+import { Snackbar } from '../components/Snackbar';
+import { useSnackbar } from '../hooks/useSnackbar';
 import { BotaoVoltar } from '../components/BotaoVoltar';
 import {
   Users,
@@ -57,11 +58,7 @@ export function GestaoJogadores() {
   // Reset de senha (ação imediata, fora do fluxo de rascunhos)
   const [resetandoId, setResetandoId] = useState<number | null>(null);
   const [alvoReset, setAlvoReset] = useState<JogadorLista | null>(null);
-  const [snackbar, setSnackbar] = useState<{
-    visivel: boolean;
-    tipo: TipoSnackbar;
-    mensagem: string;
-  }>({ visivel: false, tipo: 'sucesso', mensagem: '' });
+  const { snackbarProps, mostrarSnackbar } = useSnackbar();
 
   useEffect(() => {
     let ativo = true;
@@ -212,18 +209,10 @@ export function GestaoJogadores() {
     setResetandoId(alvoReset.id);
     try {
       await resetarSenhaJogador(alvoReset.id);
-      setSnackbar({
-        visivel: true,
-        tipo: 'sucesso',
-        mensagem: `Senha de @${alvoReset.username} resetada para "123".`,
-      });
+      mostrarSnackbar('sucesso', `Senha de @${alvoReset.username} resetada para "123".`);
       setAlvoReset(null);
     } catch (err) {
-      setSnackbar({
-        visivel: true,
-        tipo: 'erro',
-        mensagem: err instanceof Error ? err.message : 'Erro ao resetar senha.',
-      });
+      mostrarSnackbar('erro', err instanceof Error ? err.message : 'Erro ao resetar senha.');
     } finally {
       setResetandoId(null);
     }
@@ -723,12 +712,7 @@ export function GestaoJogadores() {
         textoConfirmar={resetandoId !== null ? 'Resetando...' : 'Resetar'}
       />
 
-      <Snackbar
-        mensagem={snackbar.mensagem}
-        tipo={snackbar.tipo}
-        visivel={snackbar.visivel}
-        onFechar={() => setSnackbar((s) => ({ ...s, visivel: false }))}
-      />
+      <Snackbar {...snackbarProps} />
     </div>
   );
 }

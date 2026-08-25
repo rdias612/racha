@@ -29,11 +29,7 @@ export function BarraAcaoInferior({
     >
       <div className={`max-w-2xl mx-auto space-y-1 ${innerClassName}`}>
         {children}
-        {legenda && (
-          <p className="text-center text-[10px] font-mono text-giz-fraco">
-            {legenda}
-          </p>
-        )}
+        {legenda && <p className="text-center text-[10px] font-mono text-giz-fraco">{legenda}</p>}
       </div>
     </div>
   );

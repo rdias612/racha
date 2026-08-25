@@ -8,7 +8,8 @@ import { useSessao } from '../context/SessaoContext';
 import { MensagemEstado } from '../components/Estado';
 import { SkeletonJogos } from '../components/Skeletons';
 import { ConfirmDialog } from '../components/ConfirmDialog';
-import { Snackbar, type TipoSnackbar } from '../components/Snackbar';
+import { Snackbar } from '../components/Snackbar';
+import { useSnackbar } from '../hooks/useSnackbar';
 import { formatarDataLista } from '../lib/formatacao';
 import { STATUS_LABEL, excluirPartida, type StatusPartida } from '../lib/partidas';
 import { PullToRefresh } from '../components/PullToRefresh';
@@ -71,15 +72,7 @@ export function Jogos() {
   const [idsExcluidos, setIdsExcluidos] = useState<Set<number>>(new Set());
   const [partidaParaExcluir, setPartidaParaExcluir] = useState<Partida | null>(null);
   const [excluindo, setExcluindo] = useState(false);
-  const [snackbar, setSnackbar] = useState<{
-    visivel: boolean;
-    tipo: TipoSnackbar;
-    mensagem: string;
-  }>({ visivel: false, tipo: 'sucesso', mensagem: '' });
-
-  function mostrarSnackbar(tipo: TipoSnackbar, mensagem: string) {
-    setSnackbar({ visivel: true, tipo, mensagem });
-  }
+  const { snackbarProps, mostrarSnackbar } = useSnackbar();
 
   // Mural completo (partidas + placares) cacheado em 'jogos': revisitas
   // renderizam na hora e revalidam em background. Uma unica query na view
@@ -283,12 +276,7 @@ export function Jogos() {
         />
       )}
 
-      <Snackbar
-        mensagem={snackbar.mensagem}
-        tipo={snackbar.tipo}
-        visivel={snackbar.visivel}
-        onFechar={() => setSnackbar((s) => ({ ...s, visivel: false }))}
-      />
+      <Snackbar {...snackbarProps} />
     </PullToRefresh>
   );
 }
