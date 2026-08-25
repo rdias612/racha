@@ -16,6 +16,8 @@ import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { ModalSelecionarAgendamento } from '../components/ModalSelecionarAgendamento';
+import { ModalSelecionarOpcao } from '../components/ModalSelecionarOpcao';
 import { Snackbar, type TipoSnackbar } from '../components/Snackbar';
 import { voltar } from '../lib/navegacao';
 import { vibrateSuccess, vibrateError, vibrateLight } from '../lib/haptics';
@@ -30,6 +32,28 @@ import {
   type PartidaDraftAtual,
 } from '../lib/notificacoes';
 import { formatarDataLista } from '../lib/formatacao';
+
+const DIAS_DISPARO = [
+  { value: '1', label: 'Segunda-feira', sublabel: 'Padrão recomendado' },
+  { value: '2', label: 'Terça-feira' },
+  { value: '3', label: 'Quarta-feira', sublabel: 'Atenção: antes das 16h' },
+];
+
+const OPCOES_REFORCO = [
+  { value: '2', label: '2 horas antes', sublabel: 'Quarta às 14h' },
+  { value: '4', label: '4 horas antes', sublabel: 'Quarta às 12h — padrão' },
+  { value: '6', label: '6 horas antes', sublabel: 'Quarta às 10h' },
+  { value: '12', label: '12 horas antes', sublabel: 'Quarta às 04h' },
+  { value: '24', label: '24 horas antes', sublabel: 'Terça às 16h' },
+];
+
+function nomeDiaSemana(dia: number): string {
+  return DIAS_DISPARO.find((d) => d.value === String(dia))?.label ?? `Dia ${dia}`;
+}
+
+function nomeReforcoHoras(horas: number): string {
+  return OPCOES_REFORCO.find((o) => o.value === String(horas))?.label ?? `${horas}h antes`;
+}
 
 export function Notificacoes() {
   const isAdmin = useAdmin();
@@ -51,6 +75,8 @@ export function Notificacoes() {
 
   // Modais e Toasts
   const [confirmReenvioAberto, setConfirmReenvioAberto] = useState(false);
+  const [modalAgendamentoAberto, setModalAgendamentoAberto] = useState(false);
+  const [modalReforcoAberto, setModalReforcoAberto] = useState(false);
   const [snackbar, setSnackbar] = useState<{
     visivel: boolean;
     tipo: TipoSnackbar;
@@ -239,45 +265,27 @@ export function Notificacoes() {
             </div>
           )}
 
-          {/* Dia e Horário do Disparo */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-            <label className="block">
-              <span className="flex items-center gap-1 text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
-                <Calendar className="size-3.5 text-destaque" />
-                Dia do Disparo
+          {/* Dia e Horário do Disparo — Botão que abre modal dedicado */}
+          <div className="pt-1">
+            <span className="flex items-center gap-1 text-xs font-display uppercase tracking-wider text-giz-fraco mb-1.5">
+              <Calendar className="size-3.5 text-destaque" />
+              Dia e Horário do Disparo
+            </span>
+            <button
+              type="button"
+              onClick={() => setModalAgendamentoAberto(true)}
+              className="w-full min-h-[48px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2.5 text-left font-mono transition flex items-center justify-between gap-2 shadow-xs active:translate-y-px hover:border-destaque"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <Clock className="size-4 text-destaque shrink-0" />
+                <span className="text-base sm:text-sm text-giz font-bold truncate">
+                  {nomeDiaSemana(config.confirmacao_dia_semana)} · {config.confirmacao_horario.slice(0, 5)}
+                </span>
+              </div>
+              <span className="text-[11px] font-display font-bold uppercase tracking-wider text-destaque shrink-0">
+                Alterar
               </span>
-              <select
-                value={config.confirmacao_dia_semana}
-                onChange={(e) =>
-                  setConfig((prev) =>
-                    prev ? { ...prev, confirmacao_dia_semana: Number(e.target.value) } : prev
-                  )
-                }
-                className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque"
-              >
-                <option value={1}>Segunda-feira (Padrão)</option>
-                <option value={2}>Terça-feira</option>
-                <option value={3}>Quarta-feira</option>
-              </select>
-            </label>
-
-            <label className="block">
-              <span className="flex items-center gap-1 text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
-                <Clock className="size-3.5 text-destaque" />
-                Horário do Disparo (BRT)
-              </span>
-              <input
-                type="time"
-                value={config.confirmacao_horario.slice(0, 5)}
-                onChange={(e) =>
-                  setConfig((prev) =>
-                    prev ? { ...prev, confirmacao_horario: e.target.value } : prev
-                  )
-                }
-                className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm text-giz font-mono shadow-xs focus-visible:outline-2 focus-visible:outline-destaque"
-                required
-              />
-            </label>
+            </button>
           </div>
 
           <p className="text-[11px] font-mono text-giz-fraco">
@@ -372,26 +380,23 @@ export function Notificacoes() {
 
             {config.reforco_ativo && (
               <div className="space-y-3 pt-1">
-                <label className="block">
+                <div>
                   <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
                     Horas de Antecedência do Prazo (quarta 16h)
                   </span>
-                  <select
-                    value={config.reforco_horas_antes_prazo}
-                    onChange={(e) =>
-                      setConfig((prev) =>
-                        prev ? { ...prev, reforco_horas_antes_prazo: Number(e.target.value) } : prev
-                      )
-                    }
-                    className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque"
+                  <button
+                    type="button"
+                    onClick={() => setModalReforcoAberto(true)}
+                    className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-left font-mono transition flex items-center justify-between gap-2 shadow-xs active:translate-y-px hover:border-destaque"
                   >
-                    <option value={2}>2 horas antes (quarta às 14h)</option>
-                    <option value={4}>4 horas antes (quarta às 12h — padrão)</option>
-                    <option value={6}>6 horas antes (quarta às 10h)</option>
-                    <option value={12}>12 horas antes (quarta às 04h)</option>
-                    <option value={24}>24 horas antes (terça às 16h)</option>
-                  </select>
-                </label>
+                    <span className="text-base sm:text-sm text-giz font-bold truncate">
+                      {nomeReforcoHoras(config.reforco_horas_antes_prazo)}
+                    </span>
+                    <span className="text-[11px] font-display font-bold uppercase tracking-wider text-destaque shrink-0">
+                      Alterar
+                    </span>
+                  </button>
+                </div>
 
                 <label className="block">
                   <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
@@ -719,6 +724,39 @@ export function Notificacoes() {
           onClose={() => setConfirmReenvioAberto(false)}
         />
       )}
+
+      {/* Modal de Dia + Horário de Disparo */}
+      <ModalSelecionarAgendamento
+        open={modalAgendamentoAberto}
+        titulo="Agendar Disparo"
+        subtitulo="Dia e horário do envio automático do convite de presença"
+        opcoesDia={DIAS_DISPARO}
+        diaAtual={String(config.confirmacao_dia_semana)}
+        horarioAtual={config.confirmacao_horario.slice(0, 5)}
+        onConfirmar={(dia, horario) => {
+          setConfig((prev) =>
+            prev
+              ? { ...prev, confirmacao_dia_semana: Number(dia), confirmacao_horario: horario }
+              : prev
+          );
+        }}
+        onClose={() => setModalAgendamentoAberto(false)}
+      />
+
+      {/* Modal de Horas de Antecedência do Reforço */}
+      <ModalSelecionarOpcao
+        open={modalReforcoAberto}
+        titulo="Antecedência do Reforço"
+        subtitulo="Quanto tempo antes do prazo (quarta 16h) enviar o 2º aviso?"
+        opcoes={OPCOES_REFORCO}
+        valorAtual={String(config.reforco_horas_antes_prazo)}
+        onSelecionar={(v) => {
+          setConfig((prev) =>
+            prev ? { ...prev, reforco_horas_antes_prazo: Number(v) } : prev
+          );
+        }}
+        onClose={() => setModalReforcoAberto(false)}
+      />
 
       {/* Feedback Toast */}
       <Snackbar
