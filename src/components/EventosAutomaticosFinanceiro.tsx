@@ -103,7 +103,7 @@ export function EventosAutomaticosFinanceiro({
       const msg = e instanceof Error ? e.message : 'Erro ao carregar eventos automáticos.';
       setErro(
         /eventos_financeiros_automaticos|schema|PGRST/i.test(msg)
-          ? 'Aplique a migration 078_eventos_financeiros_automaticos.sql no Supabase.'
+          ? 'Aplique a migration 079_eventos_financeiros_automaticos.sql no Supabase.'
           : msg
       );
       setEventos([]);
@@ -189,7 +189,10 @@ export function EventosAutomaticosFinanceiro({
         referencia_template: form.referencia_template || null,
         ativo: form.ativo,
       });
-      onMensagem('sucesso', form.id ? 'Evento automático atualizado.' : 'Evento automático criado.');
+      onMensagem(
+        'sucesso',
+        form.id ? 'Evento automático atualizado.' : 'Evento automático criado.'
+      );
       setMostrandoForm(false);
       setForm(formVazio());
       await carregar();
@@ -238,15 +241,16 @@ export function EventosAutomaticosFinanceiro({
 
       <p className="text-xs text-giz-fraco font-sans">
         Disparam sozinhos na virada do mês ou ao finalizar o racha. Placeholders da descrição:{' '}
-        <span className="font-mono">
-          {'{data} {mes} {ano} {mes_ano} {referencia} {username}'}
-        </span>
+        <span className="font-mono">{'{data} {mes} {ano} {mes_ano} {referencia} {username}'}</span>
       </p>
 
       {erro && <MensagemEstado>{erro}</MensagemEstado>}
 
       {mostrandoForm && (
-        <form onSubmit={handleSalvar} className="space-y-3 rounded-[4px] border border-borda bg-fundo/40 p-3">
+        <form
+          onSubmit={handleSalvar}
+          className="space-y-3 rounded-[4px] border border-borda bg-fundo/40 p-3"
+        >
           <h4 className="font-display font-bold text-xs uppercase tracking-wider text-giz">
             {form.id ? 'Editar evento' : 'Novo evento'}
           </h4>
@@ -381,9 +385,7 @@ export function EventosAutomaticosFinanceiro({
                 onChange={(e) => setForm((f) => ({ ...f, ativo: e.target.checked }))}
                 className="accent-[var(--cor-destaque)]"
               />
-              <span className="text-sm font-display uppercase tracking-wider text-giz">
-                Ativo
-              </span>
+              <span className="text-sm font-display uppercase tracking-wider text-giz">Ativo</span>
             </label>
           </div>
 

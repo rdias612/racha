@@ -113,6 +113,8 @@ BEGIN
 END;
 $$;
 
+GRANT EXECUTE ON FUNCTION substituir_template_financeiro(text, date, text) TO anon, authenticated;
+
 -- 4) Geração mensal (cron dia 01 10h BRT)
 CREATE OR REPLACE FUNCTION gerar_lancamentos_mensais()
 RETURNS void

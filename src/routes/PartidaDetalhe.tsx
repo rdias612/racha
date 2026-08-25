@@ -149,7 +149,9 @@ export function PartidaDetalhe() {
     try {
       const ok = await abrirPartida(partida.id);
       if (!ok) {
-        setErro('Não foi possível abrir. Confira se os dois times têm 8 jogadores.');
+        setErro(
+          'Não foi possível abrir. Confira se os dois times têm 7 jogadores de linha escalados.'
+        );
         return;
       }
       navigate(`/partida/${partida.id}/ao-vivo`, { replace: true });

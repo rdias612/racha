@@ -1810,7 +1810,7 @@ BEGIN
   v_alvo_ocupa := (p_status = 'confirmado')
                OR (p_status = 'pendente' AND now() < COALESCE(v_closes_at, now()));
 
-  IF v_alvo_ocupa AND v_ocupadas >= 16 THEN
+  IF v_alvo_ocupa AND v_ocupadas >= 14 THEN
     RETURN false;  -- vagas esgotadas
   END IF;
 
@@ -1850,7 +1850,7 @@ GRANT EXECUTE ON FUNCTION admin_definir_confirmacao(bigint, bigint, text, bigint
 
 -- 6) RPC: admin adiciona um avulso (típicamente após o prazo, para preencher
 --    vagas liberadas). Insere como 'confirmado', SEM time (admin atribui depois),
---    com posicao copiada de jogadores. Só se houver vaga livre (< 16 ocupadas).
+--    com posicao copiada de jogadores. Só se houver vaga livre (< 14 ocupadas).
 CREATE OR REPLACE FUNCTION adicionar_participante(
   p_partida_id bigint,
   p_jogador_id bigint
@@ -1887,7 +1887,7 @@ BEGIN
         pp.status_confirmacao = 'confirmado'
         OR (pp.status_confirmacao = 'pendente' AND now() < COALESCE(v_closes_at, now()))
       );
-  IF v_ocupadas >= 16 THEN
+  IF v_ocupadas >= 14 THEN
     RETURN false;  -- sem vagas
   END IF;
 
@@ -1904,7 +1904,7 @@ GRANT EXECUTE ON FUNCTION adicionar_participante(bigint, bigint) TO anon, authen
 -- 058_abrir_partida_so_confirmados.sql
 --
 -- Com a confirmação de presença (migration 057), o elenco que efetivamente
--- joga é o conjunto dos 'confirmado' (8 por time, 1 goleiro por time).
+-- joga é o conjunto dos 'confirmado' (7 por time, max 1 goleiro por time).
 -- `abrir_partida` agora filtra por status_confirmacao='confirmado' nas
 -- contagens e no reset de placar, ignorando pendente/recusado (que ficam
 -- apenas como registro na lista pública).
@@ -1940,12 +1940,12 @@ BEGIN
   WHERE partida_id = p_partida_id
     AND status_confirmacao = 'confirmado';
 
-  IF v_time_a <> 8 OR v_time_b <> 8 THEN
+  IF v_time_a <> 7 OR v_time_b <> 7 THEN
     RETURN false;
   END IF;
 
-  -- Cada time precisa de exatamente 1 goleiro (impede 2 vs 0).
-  IF v_gk_a <> 1 OR v_gk_b <> 1 THEN
+  -- Cada time pode ter no máximo 1 goleiro.
+  IF v_gk_a > 1 OR v_gk_b > 1 THEN
     RETURN false;
   END IF;
 
@@ -3764,6 +3764,8 @@ BEGIN
   RETURN v_out;
 END;
 $$;
+
+GRANT EXECUTE ON FUNCTION substituir_template_financeiro(text, date, text) TO anon, authenticated;
 
 -- 4) Geração mensal (cron dia 01 10h BRT)
 CREATE OR REPLACE FUNCTION gerar_lancamentos_mensais()

@@ -32,6 +32,7 @@ export function SelectSumula({
   opcoes,
   placeholder = 'Selecione…',
   disabled = false,
+  required,
   id,
   className = '',
   triggerClassName = '',
@@ -100,9 +101,7 @@ export function SelectSumula({
   }
 
   function onKeyDownLista(e: KeyboardEvent) {
-    const habilitadas = opcoes
-      .map((o, i) => ({ o, i }))
-      .filter(({ o }) => !o.disabled);
+    const habilitadas = opcoes.map((o, i) => ({ o, i })).filter(({ o }) => !o.disabled);
 
     function mover(delta: number) {
       const pos = habilitadas.findIndex(({ i }) => i === destaque);
@@ -152,6 +151,7 @@ export function SelectSumula({
         aria-expanded={aberto}
         aria-controls={aberto ? listaId : undefined}
         aria-label={ariaLabel}
+        aria-required={required || undefined}
         disabled={disabled}
         onClick={() => (aberto ? setAberto(false) : abrir())}
         onKeyDown={onKeyDownTrigger}

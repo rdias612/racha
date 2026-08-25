@@ -267,7 +267,7 @@ export async function publicarPartida(partidaId: number) {
 
 // --- Confirmação de presença ---
 
-export const CAPACIDADE_PARTIDA = 16;
+export const CAPACIDADE_PARTIDA = 14;
 
 // Regra de capacidade (espelha o RPC confirmar_presenca da migration 057):
 // ocupa vaga = 'confirmado', ou 'pendente' antes do prazo. 'recusado' nunca ocupa.

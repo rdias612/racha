@@ -6,13 +6,7 @@ import { supabase } from './supabase';
 
 export type NaturezaLancamento = 'receita' | 'despesa';
 
-export type TipoDivida =
-  | 'mensalidade'
-  | 'avulso'
-  | 'outro'
-  | 'goleiro'
-  | 'campo'
-  | 'eventos';
+export type TipoDivida = 'mensalidade' | 'avulso' | 'outro' | 'goleiro' | 'campo' | 'eventos';
 
 export const NATUREZAS_LANCAMENTO: { value: NaturezaLancamento; label: string }[] = [
   { value: 'receita', label: 'Receita' },

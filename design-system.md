@@ -68,7 +68,7 @@ A comunicação varia de acordo com o contexto funcional da tela:
 | Sequência de Vitórias | **Maior Sequência** (🔥 Embalado)     | Streak Positiva               |
 | Sequência sem Vencer  | **Maior Seca** (🧊 Jejum)             | Bad Streak / Sem Vitórias     |
 | Melhor da Partida     | **Craque da Rodada** (com Fita)       | MVP / Destaque do Jogo        |
-| Lista Semanal         | **Quadro de Presença (16 Titulares)** | Check-in / Formulário         |
+| Lista Semanal         | **Quadro de Presença (14 Titulares)** | Check-in / Formulário         |
 | Gestão de Dívidas     | **Controle de Mensalidades & Súmula** | Pagamentos / Cobranças SaaS   |
 
 ---

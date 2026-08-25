@@ -1,18 +1,6 @@
-import {
-  useCallback,
-  useEffect,
-  useState,
-  type FormEvent,
-} from 'react';
+import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import {
-  Wallet,
-  ChevronDown,
-  Plus,
-  Check,
-  MessageSquare,
-  FileSpreadsheet,
-} from 'lucide-react';
+import { Wallet, ChevronDown, Plus, Check, MessageSquare, FileSpreadsheet } from 'lucide-react';
 import { useAdmin } from '../hooks/useAdmin';
 import { Badge } from '../components/Badge';
 import { Carregando, MensagemEstado } from '../components/Estado';
@@ -22,11 +10,7 @@ import { PullToRefresh } from '../components/PullToRefresh';
 import { SelectSumula } from '../components/SelectSumula';
 import { Snackbar, type TipoSnackbar } from '../components/Snackbar';
 import { formatarReais, formatarDataLista } from '../lib/formatacao';
-import {
-  isRandomUsername,
-  listarJogadoresAtivos,
-  type JogadorLista,
-} from '../lib/jogadores';
+import { isRandomUsername, listarJogadoresAtivos, type JogadorLista } from '../lib/jogadores';
 import { voltar } from '../lib/navegacao';
 import {
   NATUREZAS_LANCAMENTO,
@@ -113,7 +97,7 @@ export function Administrador() {
       setCarregando(true);
       setErro(null);
       try {
-        // Jogadores carregam à parte: falha na coluna `natureza` (migração 075)
+        // Jogadores carregam à parte: falha na coluna `natureza` (migração 078)
         // não pode esvaziar o dropdown do formulário.
         const [rResumo, rLancamentos, rJogs] = await Promise.allSettled([
           listarResumoDevedores(),
@@ -131,9 +115,7 @@ export function Administrador() {
         const erros: string[] = [];
         if (rJogs.status === 'rejected') {
           erros.push(
-            rJogs.reason instanceof Error
-              ? rJogs.reason.message
-              : 'Erro ao carregar jogadores.'
+            rJogs.reason instanceof Error ? rJogs.reason.message : 'Erro ao carregar jogadores.'
           );
         }
 
@@ -144,11 +126,10 @@ export function Administrador() {
               : rResumo.status === 'rejected'
                 ? rResumo.reason
                 : null;
-          const msg =
-            motivo instanceof Error ? motivo.message : 'Erro ao carregar lançamentos.';
+          const msg = motivo instanceof Error ? motivo.message : 'Erro ao carregar lançamentos.';
           erros.push(
             /natureza|column|schema|PGRST/i.test(msg)
-              ? 'Aplique a migration 077_dividas_natureza_despesa.sql no Supabase para receitas/despesas.'
+              ? 'Aplique a migration 078_dividas_natureza_despesa.sql no Supabase para receitas/despesas.'
               : msg
           );
           setGrupos([]);
@@ -279,10 +260,7 @@ export function Administrador() {
           await carregar();
         } catch (err) {
           setGrupos(gruposAnteriores);
-          mostrarSnackbar(
-            'erro',
-            err instanceof Error ? err.message : 'Erro ao quitar receitas.'
-          );
+          mostrarSnackbar('erro', err instanceof Error ? err.message : 'Erro ao quitar receitas.');
         }
       },
     });
@@ -349,10 +327,7 @@ export function Administrador() {
         `Excel gerado com ${lancamentos.length} lançamento${lancamentos.length === 1 ? '' : 's'}.`
       );
     } catch (err) {
-      mostrarSnackbar(
-        'erro',
-        err instanceof Error ? err.message : 'Erro ao exportar o período.'
-      );
+      mostrarSnackbar('erro', err instanceof Error ? err.message : 'Erro ao exportar o período.');
     } finally {
       setExportando(false);
     }
@@ -572,8 +547,8 @@ export function Administrador() {
             </h3>
           </div>
           <p className="text-xs text-giz-fraco font-sans">
-            Baixa o histórico completo (receitas e despesas, quitados e em aberto)
-            da tabela financeira no intervalo escolhido.
+            Baixa o histórico completo (receitas e despesas, quitados e em aberto) da tabela
+            financeira no intervalo escolhido.
           </p>
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
@@ -668,8 +643,7 @@ export function Administrador() {
                           )}
                         </div>
                         <span className="text-xs font-mono text-giz-fraco">
-                          {g.dividas.length}{' '}
-                          {g.dividas.length === 1 ? 'lançamento' : 'lançamentos'}
+                          {g.dividas.length} {g.dividas.length === 1 ? 'lançamento' : 'lançamentos'}
                         </span>
                       </div>
                       <span className="shrink-0 font-mono text-sm font-bold text-perigo tabular-nums">

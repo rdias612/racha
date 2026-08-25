@@ -3,11 +3,7 @@ import type { NaturezaLancamento, TipoDivida } from './dividas';
 
 export type GatilhoEventoAuto = 'mensal' | 'fim_partida';
 
-export type DestinoEventoAuto =
-  | 'caixa'
-  | 'mensalistas'
-  | 'goleiros_partida'
-  | 'jogador_fixo';
+export type DestinoEventoAuto = 'caixa' | 'mensalistas' | 'goleiros_partida' | 'jogador_fixo';
 
 export interface EventoFinanceiroAutomatico {
   id: number;
@@ -101,10 +97,7 @@ export async function salvarEventoAutomatico(input: {
 }
 
 export async function excluirEventoAutomatico(id: number): Promise<void> {
-  const { error } = await supabase
-    .from('eventos_financeiros_automaticos')
-    .delete()
-    .eq('id', id);
+  const { error } = await supabase.from('eventos_financeiros_automaticos').delete().eq('id', id);
   if (error) throw error;
 }
 

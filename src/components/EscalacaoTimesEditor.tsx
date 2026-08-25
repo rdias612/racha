@@ -4,7 +4,7 @@ import { type JogadorLista } from '../lib/jogadores';
 import { type TimeId } from '../lib/times';
 import { MensagemEstado } from './Estado';
 
-export const LIMITE_POR_TIME = 8;
+export const LIMITE_POR_TIME = 7;
 
 export interface EscalacaoTimesEditorProps {
   titulo: string;
@@ -65,8 +65,8 @@ export function EscalacaoTimesEditor({
   const podeSalvar =
     contagemTime.a === LIMITE_POR_TIME &&
     contagemTime.b === LIMITE_POR_TIME &&
-    contagemGoleiros.a === 1 &&
-    contagemGoleiros.b === 1 &&
+    contagemGoleiros.a <= 1 &&
+    contagemGoleiros.b <= 1 &&
     !salvando;
 
   const totalConfirmados = jogadores.length;
@@ -118,7 +118,7 @@ export function EscalacaoTimesEditor({
         {(['a', 'b'] as TimeId[]).map((t) => {
           const count = contagemTime[t];
           const gCount = contagemGoleiros[t];
-          const completo = count === LIMITE_POR_TIME && gCount === 1;
+          const completo = count === LIMITE_POR_TIME && gCount <= 1;
           const ehPreto = t === 'a';
           return (
             <div
@@ -256,7 +256,7 @@ export function EscalacaoTimesEditor({
             <p className="mt-1 text-center text-xs font-mono text-giz-fraco">
               {contagemTime.a !== LIMITE_POR_TIME || contagemTime.b !== LIMITE_POR_TIME
                 ? `Aloque exatamente ${LIMITE_POR_TIME} jogadores em cada time.`
-                : 'Cada time precisa ter exatamente 1 goleiro.'}
+                : 'Cada time pode ter no máximo 1 goleiro.'}
             </p>
           )}
         </div>

@@ -27,7 +27,7 @@
 
 O **Racha Gragoatá CBO** é uma plataforma progressiva (PWA) de gerenciamento e engajamento para a tradicional pelada semanal realizada às quintas-feiras à noite. O sistema resolve o ciclo de vida completo do racha:
 
-- **Confirmação de Presença Semanal**: Limite estrito de 16 titulares com fila de espera e prioridade para mensalistas até quarta-feira às 16h BRT.
+- **Confirmação de Presença Semanal**: Limite de 14 jogadores de linha titulares com fila de espera e prioridade para mensalistas até quarta-feira às 16h BRT.
 - **Sorteio Balanceado Automático**: Divisão de times equilibrada por posição primária/secundária e média de notas históricas dos atletas.
 - **Súmula em Tempo Real**: Registro ao vivo de gols, assistências e gols contra durante o jogo.
 - **Votação e Notas com Média Aparada**: Cédula secreta pós-jogo onde cada atleta avalia os participantes (1 a 10), descartando extremos (menor e maior nota) e elegendo o Craque da Partida.
@@ -371,7 +371,7 @@ O daemon do `pg_cron` no Supabase avalia expressões em **UTC**. O fuso de Bras�
 
 ### 8.2 Capacidade, Confirmação de Presença e Prazos
 
-- **Capacidade Máxima**: **16 jogadores titulares** (`CAPACIDADE_PARTIDA = 16`).
+- **Capacidade Máxima**: **14 jogadores titulares de linha** (`CAPACIDADE_PARTIDA = 14`). Os 2 goleiros não fazem parte da divisão de times e confirmação nesta etapa.
 - **Reserva dos Mensalistas**: Ao criar a partida, todos os mensalistas ativos são pré-inscritos como `pendente`.
 - **Prazo Limite de Confirmação**: **Quarta-feira às 16:00 BRT** (`confirmacao_closes_at`).
 - **Regra da Fila Pós-Prazo**:
@@ -381,11 +381,11 @@ O daemon do `pg_cron` no Supabase avalia expressões em **UTC**. O fuso de Bras�
 
 ### 8.3 Times, Posições e Algoritmo de Sorteio Balanceado
 
-- **Times**: `a` (**Time Preto**) vs `b` (**Time Branco**) com **exatamente 8 jogadores por time**.
+- **Times**: `a` (**Time Preto**) vs `b` (**Time Branco**) com **7 jogadores de linha por time** (total 14).
 - **Posições Válidas**:
   - Primárias (`posicao`): `goleiro`, `zagueiro`, `lateral`, `meia`, `atacante`, `random`.
   - Secundárias (`posicao_b`): `goleiro`, `zagueiro`, `lateral`, `meia`, `atacante` (se primária for goleiro, secundária deve ser `null`).
-- **Restrição Estrita de Goleiros**: **Exatamente 1 goleiro por time**. É proibido iniciar partida com 2 goleiros no mesmo time ou sem goleiro.
+- **Restrição de Goleiros**: No máximo 1 goleiro por time.
 - **Algoritmo de Balanceamento (`src/lib/escalacao.ts`)**:
   1. Atribui nota técnica a cada atleta (média histórica agregada `media_nota` ou **Nota Padrão: 6.0** para estreantes).
   2. Distribui os 2 goleiros entre Time Preto e Branco alocando o de maior nota no time de menor saldo técnico.
