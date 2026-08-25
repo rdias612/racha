@@ -80,7 +80,7 @@ Para testar telas administrativas, financeiro, edição de súmula e novas parti
   - `natal`
 - **Telas Exclusivas de Admin Habilitadas**:
   - 💰 **`/administrador`**: Gestão financeira de débitos, mensalidades (R$ 90) e avulsos (R$ 20).
-  - 👥 **`/gestao-jogadores`**: Cadastro, ativação e controle de mensalistas (teto de 16).
+  - 👥 **`/gestao-jogadores`**: Cadastro, ativação e controle de mensalistas (teto de 14).
   - ⚽ **`/partida/nova`**: Criação manual e agendamento de novas partidas.
   - 📝 **`/partida/:id/editar`**: Edição atômica de súmula oficial.
 
