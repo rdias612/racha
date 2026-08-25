@@ -1,8 +1,9 @@
-import { type ReactNode, useMemo } from 'react';
+import { type ReactNode, useMemo, useState } from 'react';
 import { Wand2 } from 'lucide-react';
 import { type JogadorLista } from '../lib/jogadores';
 import { type TimeId } from '../lib/times';
 import { MensagemEstado } from './Estado';
+import { ModalSelecionarGoleiro } from './ModalSelecionarGoleiro';
 
 export const LIMITE_POR_TIME = 7;
 
@@ -56,6 +57,8 @@ export function EscalacaoTimesEditor({
   onSelecionarGoleiroB,
   onAbrirModalNovoGoleiro,
 }: EscalacaoTimesEditorProps) {
+  const [modalGoleiroTime, setModalGoleiroTime] = useState<TimeId | null>(null);
+
   const contagemTime = useMemo(() => {
     const c: Record<TimeId, number> = { a: 0, b: 0 };
     for (const t of Object.values(times)) {
@@ -129,9 +132,9 @@ export function EscalacaoTimesEditor({
           const count = contagemTime[t];
           const ehPreto = t === 'a';
           const goleiroId = ehPreto ? goleiroA : goleiroB;
-          const setGoleiro = ehPreto ? onSelecionarGoleiroA : onSelecionarGoleiroB;
-          const outroGoleiroId = ehPreto ? goleiroB : goleiroA;
           const temGoleiro = goleiroId !== null && goleiroId !== undefined;
+          const goleiroObj = goleirosDisponiveis.find((g) => g.id === goleiroId);
+          const nomeGoleiro = goleiroObj?.username;
           const completo = count === LIMITE_POR_TIME && (!temSelecaoGoleiros || temGoleiro);
 
           return (
@@ -157,7 +160,7 @@ export function EscalacaoTimesEditor({
                 </div>
               </div>
 
-              {/* Seletor de Goleiro dedicado */}
+              {/* Seletor de Goleiro dedicado com Modal */}
               {temSelecaoGoleiros && (
                 <div className="mt-3 pt-2.5 border-t border-borda text-left space-y-1.5">
                   <div className="flex items-center justify-between">
@@ -175,34 +178,26 @@ export function EscalacaoTimesEditor({
                     )}
                   </div>
 
-                  <select
-                    value={goleiroId ?? ''}
-                    onChange={(e) => {
-                      const val = e.target.value ? Number(e.target.value) : null;
-                      setGoleiro?.(val);
-                    }}
-                    className={`w-full rounded-[4px] border bg-superficie-2 px-3 py-2 text-base sm:text-xs font-mono text-giz focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2 min-h-[44px] ${
-                      temGoleiro ? 'border-ok/60 text-ok font-bold' : 'border-borda text-giz-fraco'
+                  <button
+                    type="button"
+                    onClick={() => setModalGoleiroTime(t)}
+                    aria-label={`Selecionar goleiro do time ${ehPreto ? 'Preto' : 'Branco'}`}
+                    className={`w-full rounded-[4px] border px-3 py-2 text-left font-mono transition flex items-center justify-between gap-2 min-h-[44px] shadow-xs active:translate-y-px ${
+                      temGoleiro
+                        ? 'border-ok/60 bg-superficie-2 text-ok font-bold hover:border-ok'
+                        : 'border-borda bg-superficie-2 text-giz-fraco hover:text-giz hover:border-destaque'
                     }`}
                   >
-                    <option value="">-- Selecionar Goleiro --</option>
-                    {goleirosDisponiveis.map((g) => {
-                      const ocupadoNoOutroTime = g.id === outroGoleiroId;
-                      const ocupadoNaLinha = Boolean(times[g.id]);
-                      const disabled = ocupadoNoOutroTime || ocupadoNaLinha;
-                      const labelExtra = ocupadoNoOutroTime
-                        ? ` (No time ${ehPreto ? 'Branco' : 'Preto'})`
-                        : ocupadoNaLinha
-                          ? ' (Escalado na linha)'
-                          : '';
-
-                      return (
-                        <option key={g.id} value={g.id} disabled={disabled}>
-                          {g.username} {labelExtra}
-                        </option>
-                      );
-                    })}
-                  </select>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-sm shrink-0">🧤</span>
+                      <span className="truncate text-base sm:text-xs">
+                        {nomeGoleiro ? nomeGoleiro : '-- Toque para escolher --'}
+                      </span>
+                    </div>
+                    <span className="text-[11px] font-display font-bold uppercase tracking-wider text-destaque shrink-0">
+                      {temGoleiro ? 'Trocar' : 'Escolher'}
+                    </span>
+                  </button>
                 </div>
               )}
             </div>
@@ -323,6 +318,34 @@ export function EscalacaoTimesEditor({
           )}
         </div>
       </div>
+
+      {temSelecaoGoleiros && modalGoleiroTime && (
+        <ModalSelecionarGoleiro
+          open={Boolean(modalGoleiroTime)}
+          time={modalGoleiroTime}
+          goleiroAtualId={modalGoleiroTime === 'a' ? goleiroA : goleiroB}
+          outroGoleiroId={modalGoleiroTime === 'a' ? goleiroB : goleiroA}
+          goleirosDisponiveis={goleirosDisponiveis}
+          jogadoresNaLinha={times}
+          onSelecionar={(novoId) => {
+            if (modalGoleiroTime === 'a') {
+              onSelecionarGoleiroA?.(novoId);
+            } else {
+              onSelecionarGoleiroB?.(novoId);
+            }
+          }}
+          onClose={() => setModalGoleiroTime(null)}
+          onAbrirNovoGoleiro={
+            onAbrirModalNovoGoleiro
+              ? () => {
+                  const t = modalGoleiroTime;
+                  setModalGoleiroTime(null);
+                  onAbrirModalNovoGoleiro(t);
+                }
+              : undefined
+          }
+        />
+      )}
     </div>
   );
 }

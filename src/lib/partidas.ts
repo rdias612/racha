@@ -299,9 +299,9 @@ export function podeConfirmar(
   _agora?: Date
 ): boolean {
   if (alvo !== 'confirmado') return true;
-  const outrosConfirmados = participantes
-    .filter((p) => p.jogador_id !== participante.jogador_id && p.status_confirmacao === 'confirmado')
-    .length;
+  const outrosConfirmados = participantes.filter(
+    (p) => p.jogador_id !== participante.jogador_id && p.status_confirmacao === 'confirmado'
+  ).length;
   return outrosConfirmados < CAPACIDADE_PARTIDA;
 }
 

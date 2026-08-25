@@ -212,9 +212,7 @@ export async function obterMediasNotasJogadores(): Promise<Record<number, number
   return medias;
 }
 
-export async function obterPartidasRecentesJogadores(
-  meses = 2
-): Promise<Record<number, number>> {
+export async function obterPartidasRecentesJogadores(meses = 2): Promise<Record<number, number>> {
   // 1) Tenta obter agregação direta do servidor via RPC
   try {
     const { data: rpcData, error: rpcError } = await supabase.rpc(
@@ -261,7 +259,6 @@ export async function obterPartidasRecentesJogadores(
     return {};
   }
 }
-
 
 // ---------------------------------------------------------------------------
 // Confronto direto (comparador cara-a-cara)
