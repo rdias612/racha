@@ -212,7 +212,9 @@ export function ModalSelecionarGoleiro({
           {goleirosFiltrados.length === 0 && (
             <div className="py-8 px-4 text-center space-y-2">
               <p className="text-xs font-mono text-giz-fraco">
-                {busca ? 'Nenhum goleiro encontrado para esta busca.' : 'Nenhum goleiro disponível.'}
+                {busca
+                  ? 'Nenhum goleiro encontrado para esta busca.'
+                  : 'Nenhum goleiro disponível.'}
               </p>
               {onAbrirNovoGoleiro && (
                 <button

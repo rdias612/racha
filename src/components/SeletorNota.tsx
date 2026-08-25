@@ -76,19 +76,17 @@ export function SeletorNota({
     setAberto(false);
   }
 
-  function onKeyDownTrigger(e: React.KeyboardEvent) {
-    switch (e.key) {
-      case 'ArrowDown':
-      case 'ArrowUp':
-      case 'Enter':
-      case ' ':
+  function onKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
+    if (disabled) return;
+
+    if (!aberto) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         abrirSeFechado();
-        break;
+      }
+      return;
     }
-  }
 
-  function onKeyDownLista(e: React.KeyboardEvent) {
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
@@ -107,6 +105,7 @@ export function SeletorNota({
         setDestaque(10);
         break;
       case 'Enter':
+      case ' ':
         e.preventDefault();
         selecionar(destaque);
         break;
@@ -128,11 +127,12 @@ export function SeletorNota({
         aria-haspopup="listbox"
         aria-expanded={aberto}
         aria-controls={aberto ? listaId : undefined}
+        aria-activedescendant={aberto ? `${listaId}-opcao-${destaque}` : undefined}
         aria-label="Selecionar nota"
         disabled={disabled}
         onClick={() => (aberto ? setAberto(false) : abrirSeFechado())}
-        onKeyDown={onKeyDownTrigger}
-        className={`flex items-center justify-between rounded-[4px] border border-borda bg-superficie text-left text-sm disabled:opacity-40 shadow-xs transition ${
+        onKeyDown={onKeyDown}
+        className={`flex items-center justify-between rounded-[4px] border border-borda bg-superficie text-left text-sm disabled:opacity-40 shadow-xs transition focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2 ${
           compact ? 'min-h-[44px] w-24 px-3' : 'min-h-[44px] w-full px-3'
         }`}
       >
@@ -161,7 +161,6 @@ export function SeletorNota({
           role="listbox"
           tabIndex={-1}
           aria-label="Notas de 1 a 10"
-          onKeyDown={onKeyDownLista}
           className={`absolute z-30 mt-1 max-h-64 overflow-auto rounded-[4px] border border-borda bg-superficie p-1 shadow-carimbo-preto scrollbar-sumula ${
             compact ? 'right-0 min-w-[11rem] sm:left-0 sm:right-auto' : 'w-full'
           }`}
@@ -172,6 +171,7 @@ export function SeletorNota({
             return (
               <li
                 key={n}
+                id={`${listaId}-opcao-${n}`}
                 ref={(el) => {
                   opcaoRefs.current[n - 1] = el;
                 }}

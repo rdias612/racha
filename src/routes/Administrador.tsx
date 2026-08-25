@@ -229,10 +229,9 @@ export function Administrador() {
         );
         setDespesas((prev) => prev.filter((d) => d.id !== dividaId));
 
-        mostrarSnackbar('sucesso', 'Lançamento marcado como quitado.');
-
         try {
           await quitarDivida(dividaId);
+          mostrarSnackbar('sucesso', 'Lançamento marcado como quitado.');
           await carregar();
         } catch (err) {
           setGrupos(gruposAnteriores);
@@ -261,10 +260,9 @@ export function Administrador() {
           setExpandido(null);
         }
 
-        mostrarSnackbar('sucesso', `Receitas de @${username} quitadas.`);
-
         try {
           await quitarDividasJogador(jogadorId);
+          mostrarSnackbar('sucesso', `Receitas de @${username} quitadas.`);
           await carregar();
         } catch (err) {
           setGrupos(gruposAnteriores);

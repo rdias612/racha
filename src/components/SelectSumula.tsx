@@ -88,26 +88,25 @@ export function SelectSumula({
     setAberto(false);
   }
 
-  function onKeyDownTrigger(e: KeyboardEvent) {
-    switch (e.key) {
-      case 'ArrowDown':
-      case 'ArrowUp':
-      case 'Enter':
-      case ' ':
-        e.preventDefault();
-        abrir();
-        break;
-    }
-  }
+  function onKeyDown(e: KeyboardEvent<HTMLButtonElement>) {
+    if (disabled) return;
 
-  function onKeyDownLista(e: KeyboardEvent) {
     const habilitadas = opcoes.map((o, i) => ({ o, i })).filter(({ o }) => !o.disabled);
 
     function mover(delta: number) {
+      if (habilitadas.length === 0) return;
       const pos = habilitadas.findIndex(({ i }) => i === destaque);
       const base = pos < 0 ? 0 : pos;
       const next = habilitadas[(base + delta + habilitadas.length) % habilitadas.length];
       if (next) setDestaque(next.i);
+    }
+
+    if (!aberto) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        abrir();
+      }
+      return;
     }
 
     switch (e.key) {
@@ -128,8 +127,11 @@ export function SelectSumula({
         if (habilitadas.length > 0) setDestaque(habilitadas[habilitadas.length - 1].i);
         break;
       case 'Enter':
+      case ' ':
         e.preventDefault();
-        if (opcoes[destaque]) selecionar(opcoes[destaque]);
+        if (opcoes[destaque] && !opcoes[destaque].disabled) {
+          selecionar(opcoes[destaque]);
+        }
         break;
       case 'Escape':
         e.preventDefault();
@@ -150,11 +152,14 @@ export function SelectSumula({
         aria-haspopup="listbox"
         aria-expanded={aberto}
         aria-controls={aberto ? listaId : undefined}
+        aria-activedescendant={
+          aberto && opcoes[destaque] ? `${listaId}-opcao-${destaque}` : undefined
+        }
         aria-label={ariaLabel}
         aria-required={required || undefined}
         disabled={disabled}
         onClick={() => (aberto ? setAberto(false) : abrir())}
-        onKeyDown={onKeyDownTrigger}
+        onKeyDown={onKeyDown}
         className={`select-sumula flex w-full min-h-[44px] items-center justify-between gap-2 rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-left text-base shadow-xs transition focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2 disabled:opacity-40 ${triggerClassName}`}
       >
         <span className={`min-w-0 truncate ${vazio ? 'text-giz-fraco' : 'text-giz'}`}>
@@ -172,7 +177,6 @@ export function SelectSumula({
           role="listbox"
           tabIndex={-1}
           aria-label={ariaLabel ?? 'Opções'}
-          onKeyDown={onKeyDownLista}
           className="absolute z-40 mt-1 max-h-56 w-full overflow-auto rounded-[4px] border border-borda bg-superficie p-1 shadow-carimbo scrollbar-sumula"
         >
           {opcoes.map((opcao, i) => {
@@ -181,6 +185,7 @@ export function SelectSumula({
             return (
               <li
                 key={`${opcao.value}-${i}`}
+                id={`${listaId}-opcao-${i}`}
                 ref={(el) => {
                   opcaoRefs.current[i] = el;
                 }}

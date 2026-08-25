@@ -279,7 +279,8 @@ export function Notificacoes() {
               <div className="flex items-center gap-2.5 min-w-0">
                 <Clock className="size-4 text-destaque shrink-0" />
                 <span className="text-base sm:text-sm text-giz font-bold truncate">
-                  {nomeDiaSemana(config.confirmacao_dia_semana)} · {config.confirmacao_horario.slice(0, 5)}
+                  {nomeDiaSemana(config.confirmacao_dia_semana)} ·{' '}
+                  {config.confirmacao_horario.slice(0, 5)}
                 </span>
               </div>
               <span className="text-[11px] font-display font-bold uppercase tracking-wider text-destaque shrink-0">
@@ -751,9 +752,7 @@ export function Notificacoes() {
         opcoes={OPCOES_REFORCO}
         valorAtual={String(config.reforco_horas_antes_prazo)}
         onSelecionar={(v) => {
-          setConfig((prev) =>
-            prev ? { ...prev, reforco_horas_antes_prazo: Number(v) } : prev
-          );
+          setConfig((prev) => (prev ? { ...prev, reforco_horas_antes_prazo: Number(v) } : prev));
         }}
         onClose={() => setModalReforcoAberto(false)}
       />

@@ -94,9 +94,7 @@ export function ModalSelecionarAgendamento({
             <h3 className="font-display font-bold text-sm uppercase tracking-wider text-giz truncate">
               {titulo}
             </h3>
-            {subtitulo && (
-              <p className="text-[11px] text-giz-fraco mt-0.5">{subtitulo}</p>
-            )}
+            {subtitulo && <p className="text-[11px] text-giz-fraco mt-0.5">{subtitulo}</p>}
           </div>
           <button
             type="button"
