@@ -4481,3 +4481,117 @@ $rpc$;
 
 GRANT EXECUTE ON FUNCTION salvar_configuracoes_notificacoes(bigint, jsonb) TO anon, authenticated;
 
+-- 082_goleiros_pix_e_escalacao.sql
+
+CREATE OR REPLACE FUNCTION criar_goleiro_rapido(
+  p_nome      text,
+  p_telefone  text DEFAULT NULL,
+  p_chave_pix text DEFAULT NULL
+)
+RETURNS bigint
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_username text;
+  v_base     text;
+  v_id       bigint;
+  v_count    integer := 1;
+BEGIN
+  v_base := lower(regexp_replace(trim(p_nome), '[^a-zA-Z0-9]', '', 'g'));
+  IF length(v_base) = 0 THEN
+    v_base := 'goleiro';
+  END IF;
+
+  v_username := v_base;
+  WHILE EXISTS (SELECT 1 FROM jogadores WHERE username = v_username) LOOP
+    v_count := v_count + 1;
+    v_username := v_base || v_count::text;
+  END LOOP;
+
+  INSERT INTO jogadores (
+    username,
+    senha_hash,
+    posicao,
+    is_admin,
+    is_ativo,
+    is_mensalista,
+    telefone,
+    chave_pix
+  )
+  VALUES (
+    v_username,
+    '123',
+    'goleiro',
+    false,
+    true,
+    false,
+    trim(p_telefone),
+    trim(p_chave_pix)
+  )
+  RETURNING id INTO v_id;
+
+  RETURN v_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION criar_goleiro_rapido(text, text, text) TO anon, authenticated;
+
+CREATE OR REPLACE FUNCTION salvar_times_e_goleiros_partida(
+  p_partida_id   bigint,
+  p_times_linha  jsonb,
+  p_goleiro_a_id bigint,
+  p_goleiro_b_id bigint
+)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  elem jsonb;
+BEGIN
+  FOR elem IN SELECT * FROM jsonb_array_elements(p_times_linha)
+  LOOP
+    UPDATE partidas_participantes
+    SET time = (elem->>'time')::char(1)
+    WHERE partida_id = p_partida_id
+      AND jogador_id = (elem->>'jogador_id')::bigint;
+  END LOOP;
+
+  DELETE FROM partidas_participantes
+  WHERE partida_id = p_partida_id
+    AND posicao = 'goleiro'
+    AND jogador_id NOT IN (p_goleiro_a_id, p_goleiro_b_id);
+
+  INSERT INTO partidas_participantes (
+    partida_id, jogador_id, time, posicao, status_confirmacao
+  )
+  VALUES (
+    p_partida_id, p_goleiro_a_id, 'a', 'goleiro', 'confirmado'
+  )
+  ON CONFLICT (partida_id, jogador_id)
+  DO UPDATE SET
+    time = 'a',
+    posicao = 'goleiro',
+    status_confirmacao = 'confirmado';
+
+  INSERT INTO partidas_participantes (
+    partida_id, jogador_id, time, posicao, status_confirmacao
+  )
+  VALUES (
+    p_partida_id, p_goleiro_b_id, 'b', 'goleiro', 'confirmado'
+  )
+  ON CONFLICT (partida_id, jogador_id)
+  DO UPDATE SET
+    time = 'b',
+    posicao = 'goleiro',
+    status_confirmacao = 'confirmado';
+
+  RETURN true;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION salvar_times_e_goleiros_partida(bigint, jsonb, bigint, bigint) TO anon, authenticated;
+

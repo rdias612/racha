@@ -1,4 +1,4 @@
--- 081_goleiros_pix_e_escalacao.sql
+-- 082_goleiros_pix_e_escalacao.sql
 --
 -- Unificação da gestão de goleiros na tabela jogadores com campos de PIX e Telefone,
 -- seleção dos 2 goleiros na divisão de times, bloqueio de voto para quem atuou no gol
