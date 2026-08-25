@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { NavLink } from 'react-router-dom';
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
+import { AbasEstatisticas } from '../components/AbasEstatisticas';
 import { MensagemEstado } from '../components/Estado';
 import { SkeletonEstatisticas } from '../components/Skeletons';
 import { DuplaCard } from '../components/DuplaCard';
@@ -151,44 +151,7 @@ export function EstatisticasRacha() {
         </div>
 
         {/* Abas */}
-        <div className="flex gap-1 overflow-x-auto rounded-[4px] border border-borda bg-superficie p-1 shadow-xs">
-          <NavLink
-            to="/estatisticas/jogador"
-            className={({ isActive }) =>
-              `flex-1 min-w-max rounded-[3px] px-3 py-1.5 text-center font-display font-bold uppercase tracking-wider text-xs whitespace-nowrap transition ${
-                isActive
-                  ? 'bg-destaque text-destaque-tinta shadow-xs'
-                  : 'text-giz-fraco hover:text-giz hover:bg-superficie-2'
-              }`
-            }
-          >
-            Jogador
-          </NavLink>
-          <NavLink
-            to="/estatisticas/racha"
-            className={({ isActive }) =>
-              `flex-1 min-w-max rounded-[3px] px-3 py-1.5 text-center font-display font-bold uppercase tracking-wider text-xs whitespace-nowrap transition ${
-                isActive
-                  ? 'bg-destaque text-destaque-tinta shadow-xs'
-                  : 'text-giz-fraco hover:text-giz hover:bg-superficie-2'
-              }`
-            }
-          >
-            Racha
-          </NavLink>
-          <NavLink
-            to="/estatisticas/comparar"
-            className={({ isActive }) =>
-              `flex-1 min-w-max rounded-[3px] px-3 py-1.5 text-center font-display font-bold uppercase tracking-wider text-xs whitespace-nowrap transition ${
-                isActive
-                  ? 'bg-destaque text-destaque-tinta shadow-xs'
-                  : 'text-giz-fraco hover:text-giz hover:bg-superficie-2'
-              }`
-            }
-          >
-            Comparar
-          </NavLink>
-        </div>
+        <AbasEstatisticas />
 
         {/* Seção de Duplas */}
         <SecaoRacha

@@ -250,7 +250,7 @@ Tab atravessa para o conteúdo atrás do overlay; `ConfirmDialog.tsx:60-79` tem 
 
 `PartidaEditar.tsx:484-506`, `PartidaNova.tsx:275-297`, `PartidaAoVivo.tsx:346-362/364-382` (as duas últimas quase idênticas entre si), `PartidaVotar.tsx:342-361`, `PartidaConfirma.tsx:90-111` → children + legenda opcional, com o `paddingBottom: calc(... + env(safe-area-inset-bottom))` interno.
 
-### P2-3. `AbasEstatisticas` — barra de abas triplicada
+### P2-3. ✅ `AbasEstatisticas` — barra de abas triplicada
 
 `Estatisticas.tsx:193-230`, `EstatisticasRacha.tsx:146-183`, `Comparador.tsx:260-270` (mesmos 3 `NavLink` com ~30 linhas de classes; `Comparador` já tem `classeAba` em `:53-58`).
 

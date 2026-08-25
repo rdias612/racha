@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { NavLink } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { isRandomUsername } from '../lib/jogadores';
 import { useSessao } from '../context/SessaoContext';
@@ -8,6 +7,7 @@ import { MensagemEstado } from '../components/Estado';
 import { SkeletonEstatisticas } from '../components/Skeletons';
 import { PullToRefresh } from '../components/PullToRefresh';
 import { Avatar } from '../components/Avatar';
+import { AbasEstatisticas } from '../components/AbasEstatisticas';
 
 const DEFAULT_MIN_PARTIDAS = 5;
 
@@ -214,44 +214,7 @@ export function Estatisticas() {
         </div>
 
         {/* Abas */}
-        <div className="flex gap-1 overflow-x-auto rounded-[4px] border border-borda bg-superficie p-1 shadow-xs">
-          <NavLink
-            to="/estatisticas/jogador"
-            className={({ isActive }) =>
-              `flex-1 min-w-max rounded-[3px] px-3 py-1.5 text-center font-display font-bold uppercase tracking-wider text-xs whitespace-nowrap transition ${
-                isActive
-                  ? 'bg-destaque text-destaque-tinta shadow-xs'
-                  : 'text-giz-fraco hover:text-giz hover:bg-superficie-2'
-              }`
-            }
-          >
-            Jogador
-          </NavLink>
-          <NavLink
-            to="/estatisticas/racha"
-            className={({ isActive }) =>
-              `flex-1 min-w-max rounded-[3px] px-3 py-1.5 text-center font-display font-bold uppercase tracking-wider text-xs whitespace-nowrap transition ${
-                isActive
-                  ? 'bg-destaque text-destaque-tinta shadow-xs'
-                  : 'text-giz-fraco hover:text-giz hover:bg-superficie-2'
-              }`
-            }
-          >
-            Racha
-          </NavLink>
-          <NavLink
-            to="/estatisticas/comparar"
-            className={({ isActive }) =>
-              `flex-1 min-w-max rounded-[3px] px-3 py-1.5 text-center font-display font-bold uppercase tracking-wider text-xs whitespace-nowrap transition ${
-                isActive
-                  ? 'bg-destaque text-destaque-tinta shadow-xs'
-                  : 'text-giz-fraco hover:text-giz hover:bg-superficie-2'
-              }`
-            }
-          >
-            Comparar
-          </NavLink>
-        </div>
+        <AbasEstatisticas />
 
         {/* Dropdown de jogador */}
         <div className="rounded-[4px] border border-borda bg-superficie p-3 shadow-carimbo space-y-1">

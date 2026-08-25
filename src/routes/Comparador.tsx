@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ArrowLeftRight, Trophy } from 'lucide-react';
+import { AbasEstatisticas } from '../components/AbasEstatisticas';
 import { supabase } from '../lib/supabase';
 import {
   compararJogadores,
@@ -49,13 +50,6 @@ const COMPARATIVO_VAZIO: ComparativoTela = {
   medias: {},
 };
 
-// Classes das abas de estatísticas (mesmo padrão visual de Estatisticas.tsx).
-const classeAba = ({ isActive }: { isActive: boolean }) =>
-  `flex-1 min-w-max rounded-[3px] px-3 py-1.5 text-center font-display font-bold uppercase tracking-wider text-xs whitespace-nowrap transition ${
-    isActive
-      ? 'bg-destaque text-destaque-tinta shadow-xs'
-      : 'text-giz-fraco hover:text-giz hover:bg-superficie-2'
-  }`;
 
 // Badge compacta neutra (relação do confronto e empate) — mesmo padrão das
 // badges de Estatisticas.tsx/Perfil.tsx.
@@ -257,17 +251,7 @@ export function Comparador() {
         </div>
 
         {/* Abas */}
-        <div className="flex gap-1 overflow-x-auto rounded-[4px] border border-borda bg-superficie p-1 shadow-xs">
-          <NavLink to="/estatisticas/jogador" className={classeAba}>
-            Jogador
-          </NavLink>
-          <NavLink to="/estatisticas/racha" className={classeAba}>
-            Racha
-          </NavLink>
-          <NavLink to="/estatisticas/comparar" className={classeAba}>
-            Comparar
-          </NavLink>
-        </div>
+        <AbasEstatisticas />
 
         {/* Card do Duelo */}
         <div className="rounded-[4px] border border-borda bg-superficie p-3 shadow-carimbo">
