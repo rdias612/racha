@@ -1,4 +1,4 @@
--- 080_fix_cron_partida_semanal_fallback_draft.sql
+-- 081_fix_cron_partida_semanal_fallback_draft.sql
 --
 -- Correção no cron `agendar-partida-semanal`:
 -- Se a partida da semana já existir em 'draft' (ex.: criada antes da alteração de horário ou manualmente),
@@ -119,7 +119,7 @@ $rpc$;
 
 GRANT EXECUTE ON FUNCTION salvar_configuracoes_notificacoes(bigint, jsonb) TO anon, authenticated;
 
--- Reagenda o cron atual imediatamente com o bloco corrigido
+-- Reagenda o cron atual imediatamente com o bloco corrigido (usando tag $outer$ para não colidir com DO $$)
 DO $outer$
 DECLARE
   v_dia_semana smallint;
