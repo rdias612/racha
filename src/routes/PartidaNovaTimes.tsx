@@ -9,6 +9,7 @@ import { invalidarCache } from '../hooks/useCache';
 import { formatarDataCompleta } from '../lib/formatacao';
 import { EscalacaoTimesEditor } from '../components/EscalacaoTimesEditor';
 import { voltar } from '../lib/navegacao';
+import { formatarMensagemErro } from '../lib/erros';
 
 interface EstadoPartida {
   selecionados: number[];
@@ -99,7 +100,7 @@ export function PartidaNovaTimes() {
     setSalvando(false);
 
     if (error) {
-      setErro('Erro ao criar partida: ' + error.message);
+      setErro(formatarMensagemErro(error, 'Erro ao criar partida.'));
       return;
     }
     if (data === null) {

@@ -11,6 +11,7 @@ import { obterProximaQuintaFeira } from '../lib/formatacao';
 import { BotaoVoltar } from '../components/BotaoVoltar';
 import { BarraAcaoInferior } from '../components/BarraAcaoInferior';
 import { CampoBusca } from '../components/CampoBusca';
+import { formatarMensagemErro } from '../lib/erros';
 
 const LIMITE_LINHA = 14;
 const LIMITE_GOLEIROS = 2;
@@ -68,7 +69,7 @@ export function PartidaNova() {
         setJogadores(comRecentes);
       })
       .catch((e) => {
-        if (ativo) setErro(e.message);
+        if (ativo) setErro(formatarMensagemErro(e, 'Não foi possível carregar os jogadores.'));
       })
       .finally(() => {
         if (!ativo) return;

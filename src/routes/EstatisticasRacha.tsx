@@ -9,6 +9,7 @@ import { Avatar } from '../components/Avatar';
 import { PullToRefresh } from '../components/PullToRefresh';
 import { carregarParesRacha, type ParRacha } from '../lib/partidas';
 import { useSwipeTabs } from '../hooks/useSwipeTabs';
+import { formatarMensagemErro } from '../lib/erros';
 
 const MIN_PARTIDAS = 5;
 
@@ -93,7 +94,7 @@ export function EstatisticasRacha() {
       if (geracao === geracaoRef.current) setPares(dados);
     } catch (e: unknown) {
       if (geracao === geracaoRef.current) {
-        setErro(e instanceof Error ? e.message : 'Erro ao carregar dados.');
+        setErro(formatarMensagemErro(e, 'Erro ao carregar dados.'));
       }
     } finally {
       if (geracao === geracaoRef.current) setCarregando(false);

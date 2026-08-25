@@ -36,9 +36,7 @@ export function CabecalhoTime({
     return (
       <div
         className={`rounded-[4px] px-3.5 py-2.5 flex items-center justify-between shadow-carimbo border border-borda ${
-          ehPreto
-            ? 'bg-preto-time text-branco-time'
-            : 'bg-branco-time text-preto-time'
+          ehPreto ? 'bg-preto-time text-branco-time' : 'bg-branco-time text-preto-time'
         } ${className}`}
       >
         <div className="flex items-center gap-2">
@@ -48,12 +46,11 @@ export function CabecalhoTime({
           {temContador && (
             <span
               className={`text-xs px-2 py-0.5 rounded-[2px] font-mono font-medium border border-borda ${
-                ehPreto
-                  ? 'bg-superficie text-giz'
-                  : 'bg-superficie-2 text-giz'
+                ehPreto ? 'bg-superficie text-giz' : 'bg-superficie-2 text-giz'
               }`}
             >
-              {totalJogadores} jogadores {typeof totalGoleiros === 'number' && totalGoleiros > 0 && `· 🧤 ${totalGoleiros}`}
+              {totalJogadores} jogadores{' '}
+              {typeof totalGoleiros === 'number' && totalGoleiros > 0 && `· 🧤 ${totalGoleiros}`}
             </span>
           )}
           {children}
@@ -67,17 +64,13 @@ export function CabecalhoTime({
   return (
     <div
       className={`px-3 py-2 text-xs font-display font-bold uppercase tracking-wider border-b border-borda flex items-center justify-between ${
-        ehPreto
-          ? 'bg-preto-time text-branco-time'
-          : 'bg-branco-time text-preto-time'
+        ehPreto ? 'bg-preto-time text-branco-time' : 'bg-branco-time text-preto-time'
       } ${className}`}
     >
       <div className="flex items-center gap-1.5">
         <span>{nomeTime}</span>
         {temContador && (
-          <span className="font-mono font-normal opacity-80">
-            ({totalJogadores})
-          </span>
+          <span className="font-mono font-normal opacity-80">({totalJogadores})</span>
         )}
       </div>
       {(acoes || children) && (

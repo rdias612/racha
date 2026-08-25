@@ -1,5 +1,4 @@
 import { supabase } from './supabase';
-import { formatarMensagemErro } from './erros';
 
 export interface NotificacoesConfig {
   id: number;
@@ -40,9 +39,7 @@ export async function obterConfiguracoesNotificacoes(adminId: number): Promise<N
     p_admin_id: adminId,
   });
 
-  if (error) {
-    throw new Error(formatarMensagemErro(error, 'Erro ao obter configurações de notificações.'));
-  }
+  if (error) throw error;
 
   if (!data) {
     // Defaults locais caso a linha singleton não exista no momento
@@ -85,9 +82,7 @@ export async function salvarConfiguracoesNotificacoes(
     p_config: config,
   });
 
-  if (error) {
-    throw new Error(formatarMensagemErro(error, 'Erro ao salvar configurações de notificações.'));
-  }
+  if (error) throw error;
 }
 
 export async function dispararPushTeste(adminId: number): Promise<void> {
@@ -95,9 +90,7 @@ export async function dispararPushTeste(adminId: number): Promise<void> {
     p_admin_id: adminId,
   });
 
-  if (error) {
-    throw new Error(formatarMensagemErro(error, 'Não foi possível enviar o push de teste.'));
-  }
+  if (error) throw error;
 }
 
 export async function dispararConfirmacaoManual(adminId: number, partidaId: number): Promise<void> {
@@ -106,11 +99,7 @@ export async function dispararConfirmacaoManual(adminId: number, partidaId: numb
     p_partida_id: partidaId,
   });
 
-  if (error) {
-    throw new Error(
-      formatarMensagemErro(error, 'Não foi possível disparar o reenvio de confirmação.')
-    );
-  }
+  if (error) throw error;
 }
 
 export async function obterPartidaDraftAtual(): Promise<PartidaDraftAtual | null> {
@@ -122,9 +111,7 @@ export async function obterPartidaDraftAtual(): Promise<PartidaDraftAtual | null
     .limit(1)
     .maybeSingle();
 
-  if (error) {
-    throw new Error(formatarMensagemErro(error, 'Erro ao buscar partida em agendamento.'));
-  }
+  if (error) throw error;
 
   return data as PartidaDraftAtual | null;
 }

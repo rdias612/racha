@@ -77,11 +77,7 @@ export function ModalSelecionarGoleiro({
     >
       {/* Barra de Busca e Ações Rápidas */}
       <div className="p-3 border-b border-borda space-y-2 shrink-0 bg-superficie">
-        <CampoBusca
-          valor={busca}
-          aoMudar={setBusca}
-          placeholder="Buscar goleiro por nome…"
-        />
+        <CampoBusca valor={busca} aoMudar={setBusca} placeholder="Buscar goleiro por nome…" />
 
         {onAbrirNovoGoleiro && (
           <button
@@ -169,9 +165,7 @@ export function ModalSelecionarGoleiro({
         {goleirosFiltrados.length === 0 && (
           <div className="py-8 px-4 text-center space-y-2">
             <p className="text-xs font-mono text-giz-fraco">
-              {busca
-                ? 'Nenhum goleiro encontrado para esta busca.'
-                : 'Nenhum goleiro disponível.'}
+              {busca ? 'Nenhum goleiro encontrado para esta busca.' : 'Nenhum goleiro disponível.'}
             </p>
             {onAbrirNovoGoleiro && (
               <button

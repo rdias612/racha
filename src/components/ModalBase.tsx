@@ -66,9 +66,7 @@ export function ModalBase({
         if (e.target === e.currentTarget) onClose();
       }}
       className={`fixed inset-0 z-50 flex justify-center bg-black/75 backdrop-blur-xs animate-fade-in ${
-        isBottomSheet
-          ? 'items-end sm:items-center p-0 sm:p-4'
-          : 'items-center p-3 sm:p-4'
+        isBottomSheet ? 'items-end sm:items-center p-0 sm:p-4' : 'items-center p-3 sm:p-4'
       }`}
     >
       <div

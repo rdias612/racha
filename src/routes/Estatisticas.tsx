@@ -9,6 +9,7 @@ import { PullToRefresh } from '../components/PullToRefresh';
 import { Avatar } from '../components/Avatar';
 import { AbasEstatisticas } from '../components/AbasEstatisticas';
 import { StatBox } from '../components/StatBox';
+import { formatarMensagemErro } from '../lib/erros';
 
 const DEFAULT_MIN_PARTIDAS = 5;
 
@@ -133,7 +134,7 @@ export function Estatisticas() {
       setDestaques(mapaDestaques);
     } catch (e) {
       if (geracao === geracaoRef.current) {
-        setErro(e instanceof Error ? e.message : 'Erro ao carregar dados.');
+        setErro(formatarMensagemErro(e, 'Erro ao carregar dados.'));
       }
     } finally {
       if (geracao === geracaoRef.current) setCarregando(false);

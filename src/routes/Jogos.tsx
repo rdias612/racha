@@ -15,6 +15,7 @@ import { STATUS_LABEL, excluirPartida, type StatusPartida } from '../lib/partida
 import { PullToRefresh } from '../components/PullToRefresh';
 import { Badge } from '../components/Badge';
 import { PainelPlacar } from '../components/PainelPlacar';
+import { formatarMensagemErro } from '../lib/erros';
 
 interface Partida {
   id: number;
@@ -133,10 +134,10 @@ export function Jogos() {
         invalidarCache('resumo');
         mostrarSnackbar('sucesso', 'Partida excluída da súmula');
       } else {
-        mostrarSnackbar('erro', 'Não foi possível excluir a partida');
+        mostrarSnackbar('erro', 'Não foi possível excluir a partida.');
       }
-    } catch {
-      mostrarSnackbar('erro', 'Não foi possível excluir a partida');
+    } catch (err) {
+      mostrarSnackbar('erro', formatarMensagemErro(err, 'Não foi possível excluir a partida.'));
     } finally {
       setExcluindo(false);
       setPartidaParaExcluir(null);

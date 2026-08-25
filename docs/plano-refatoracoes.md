@@ -195,10 +195,10 @@ O fallback client baixa `votes` completa (viola AGENTS 7.5), engole erros com `c
 > Em `atualizarCaracteristicasJogador`, `if (payload.is_mensalista === false) { payload.is_admin = false; }` força admin=false, tornando o `if` seguinte (`is_admin === true && is_mensalista === false`) **sempre falso** — o throw "Apenas mensalistas podem ser administradores" nunca dispara, e a guarda real não existe.
 > **Refatoração**: reordenar validação antes da mutação do payload e espelhar a regra no servidor (RPC).
 
-### P1-11. Tratamento de erros com três estratégias convivendo
+### P1-11. ✅ Tratamento de erros com três estratégias convivendo
 
-**Onde**: `lib/notificacoes.ts:43-44/88-90/98-100/110-112/125-127` (re-wrap com `new Error` que **descarta `code`/`details`**); `Login.tsx:75` (qualquer erro vira "a rede falhou", inclusive RPC inexistente); ~25 ocorrências de `error.message` cru nas telas (`PartidaDetalhe.tsx:105,128,164,703`; `Administrador.tsx:126,137,173,242,271,309,338`; `Notificacoes.tsx:113,150,167,183`; `GestaoJogadores.tsx:74,225,262`; `PartidaAoVivo.tsx:70,128,163,182,201`; `Perfil.tsx:101,133,176`; etc.)
-**Refatoração**: padronizar "lib lança cru, borda usa `formatarMensagemErro`" (AGENTS matriz). No `erros.ts:27-38`, checar `error.code` estável (`23505`, `42501`, `PGRST301`) antes do matching por substring e cobrir `row-level security`.
+> Corrigido em 2026-08-25: padronizada a estratégia canônica "lib lança cru, borda usa `formatarMensagemErro`". No `src/lib/erros.ts`, adicionada tipagem `ErroComCodigo` e checagem prioritária de códigos de status PostgreSQL (`23505`, `42501`, `23503`) e PostgREST (`PGRST301`, `PGRST116`), cobrindo violações de RLS e erros de conexão. Removido o re-wrap com `new Error` que descartava metadados em `src/lib/notificacoes.ts`. Substituídas todas as ocorrências de mensagens cruas (`error.message` / `err.message` / `e.message`) nas telas e componentes por `formatarMensagemErro`.
+> **Onde**: `src/lib/erros.ts`, `src/lib/notificacoes.ts`, `src/routes/Login.tsx`, `src/routes/Perfil.tsx`, `src/routes/PartidaVotar.tsx`, `src/routes/PartidaTimes.tsx`, `src/routes/PartidaNovaTimes.tsx`, `src/routes/PartidaNova.tsx`, `src/routes/PartidaEditar.tsx`, `src/routes/PartidaDetalhe.tsx`, `src/routes/PartidaAoVivo.tsx`, `src/routes/NovoJogador.tsx`, `src/routes/Notificacoes.tsx`, `src/routes/GestaoJogadores.tsx`, `src/routes/EstatisticasRacha.tsx`, `src/routes/Estatisticas.tsx`, `src/routes/Administrador.tsx`, `src/routes/Jogos.tsx`, `src/components/ModalNovoGoleiro.tsx`, `src/components/EventosAutomaticosFinanceiro.tsx`.
 
 ### P1-12. Alvos de toque abaixo de 44px (viola AGENTS 6.1)
 

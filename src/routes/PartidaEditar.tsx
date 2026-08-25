@@ -23,6 +23,7 @@ import { CampoBusca } from '../components/CampoBusca';
 import { PainelPlacar } from '../components/PainelPlacar';
 import { CabecalhoTime } from '../components/CabecalhoTime';
 import { ModalBase } from '../components/ModalBase';
+import { formatarMensagemErro } from '../lib/erros';
 
 type FiltroModal = 'todos' | 'goleiros' | 'linha' | 'mensalistas' | 'avulsos';
 
@@ -78,7 +79,7 @@ export function PartidaEditar() {
         );
       })
       .catch((e) => {
-        if (ativo) setErro(e.message ?? String(e));
+        if (ativo) setErro(formatarMensagemErro(e, 'Erro ao carregar partida.'));
       })
       .finally(() => {
         if (ativo) setCarregando(false);
@@ -243,7 +244,7 @@ export function PartidaEditar() {
         navigate(`/partida/${partidaId}`);
       }, 700);
     } catch (e) {
-      setErro('Erro ao salvar alterações: ' + (e instanceof Error ? e.message : String(e)));
+      setErro(formatarMensagemErro(e, 'Erro ao salvar alterações.'));
     } finally {
       setSalvando(false);
     }

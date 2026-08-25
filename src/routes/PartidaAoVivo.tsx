@@ -10,6 +10,7 @@ import { invalidarCache } from '../hooks/useCache';
 import { formatarDataMobile, formatarDataCompleta } from '../lib/formatacao';
 import { BotaoVoltar } from '../components/BotaoVoltar';
 import { BarraAcaoInferior } from '../components/BarraAcaoInferior';
+import { formatarMensagemErro } from '../lib/erros';
 import {
   abrirPartida,
   carregarEventos,
@@ -71,7 +72,7 @@ export function PartidaAoVivo() {
     setErro(null);
     recarregar()
       .catch((e: unknown) => {
-        if (ativo) setErro(e instanceof Error ? e.message : String(e));
+        if (ativo) setErro(formatarMensagemErro(e, 'Erro ao carregar partida.'));
       })
       .finally(() => {
         if (ativo) setCarregando(false);
@@ -131,7 +132,7 @@ export function PartidaAoVivo() {
       invalidarCache('resumo');
       await recarregar();
     } catch (e: unknown) {
-      setErro(e instanceof Error ? e.message : String(e));
+      setErro(formatarMensagemErro(e, 'Não foi possível iniciar a partida.'));
     } finally {
       setAbrindo(false);
     }
@@ -166,7 +167,7 @@ export function PartidaAoVivo() {
       setEventoEmEdicao(null);
       await recarregar();
     } catch (e: unknown) {
-      setErro(e instanceof Error ? e.message : String(e));
+      setErro(formatarMensagemErro(e, 'Não foi possível registrar o evento.'));
     } finally {
       setSalvando(false);
     }
@@ -185,7 +186,7 @@ export function PartidaAoVivo() {
       setEventoParaRemover(null);
       await recarregar();
     } catch (e: unknown) {
-      setErro(e instanceof Error ? e.message : String(e));
+      setErro(formatarMensagemErro(e, 'Não foi possível remover o evento.'));
     } finally {
       setSalvando(false);
     }
@@ -206,7 +207,7 @@ export function PartidaAoVivo() {
       invalidarCache('resumo');
       navigate(`/partida/${partida.id}`, { replace: true });
     } catch (e: unknown) {
-      setErro(e instanceof Error ? e.message : String(e));
+      setErro(formatarMensagemErro(e, 'Não foi possível finalizar a partida.'));
       setConfirmandoFim(false);
     } finally {
       setFinalizando(false);

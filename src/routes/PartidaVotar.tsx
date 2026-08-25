@@ -17,6 +17,7 @@ import { voltar } from '../lib/navegacao';
 import { BotaoVoltar } from '../components/BotaoVoltar';
 import { BarraAcaoInferior } from '../components/BarraAcaoInferior';
 import { CabecalhoTime } from '../components/CabecalhoTime';
+import { formatarMensagemErro } from '../lib/erros';
 
 export function PartidaVotar() {
   const { id } = useParams<{ id: string }>();
@@ -154,7 +155,7 @@ export function PartidaVotar() {
         setVotosOriginais(mapaOriginais);
       } catch (e) {
         if (ativo) {
-          setErro(e instanceof Error ? e.message : 'Erro ao carregar votação.');
+          setErro(formatarMensagemErro(e, 'Erro ao carregar votação.'));
         }
       } finally {
         if (ativo) setCarregando(false);
@@ -219,7 +220,7 @@ export function PartidaVotar() {
     setSalvando(false);
 
     if (error) {
-      setErro('Erro ao registrar votos: ' + error.message);
+      setErro(formatarMensagemErro(error, 'Erro ao registrar votos.'));
       return;
     }
     if (data === false) {

@@ -19,6 +19,7 @@ import { Snackbar } from '../components/Snackbar';
 import { useSnackbar } from '../hooks/useSnackbar';
 import { BotaoVoltar } from '../components/BotaoVoltar';
 import { CampoBusca } from '../components/CampoBusca';
+import { formatarMensagemErro } from '../lib/erros';
 import {
   Users,
   Shield,
@@ -68,7 +69,7 @@ export function GestaoJogadores() {
         if (ativo) setJogadores(lista);
       } catch (err) {
         if (ativo) {
-          setMensagemErro(err instanceof Error ? err.message : 'Erro ao carregar jogadores.');
+          setMensagemErro(formatarMensagemErro(err, 'Erro ao carregar jogadores.'));
         }
       } finally {
         if (ativo) setCarregando(false);
@@ -212,7 +213,7 @@ export function GestaoJogadores() {
       mostrarSnackbar('sucesso', `Senha de @${alvoReset.username} resetada para "123".`);
       setAlvoReset(null);
     } catch (err) {
-      mostrarSnackbar('erro', err instanceof Error ? err.message : 'Erro ao resetar senha.');
+      mostrarSnackbar('erro', formatarMensagemErro(err, 'Erro ao resetar senha.'));
     } finally {
       setResetandoId(null);
     }
@@ -242,9 +243,7 @@ export function GestaoJogadores() {
 
       setMensagemSucesso(`Sucesso! ${lote.length} alteração(ões) salva(s) com sucesso.`);
     } catch (err) {
-      setMensagemErro(
-        err instanceof Error ? err.message : 'Erro ao salvar alterações no servidor.'
-      );
+      setMensagemErro(formatarMensagemErro(err, 'Erro ao salvar alterações no servidor.'));
     } finally {
       setSalvandoLote(false);
     }

@@ -33,6 +33,7 @@ import {
   type NotificacoesConfig,
   type PartidaDraftAtual,
 } from '../lib/notificacoes';
+import { formatarMensagemErro } from '../lib/erros';
 import { formatarDataLista } from '../lib/formatacao';
 
 const DIAS_DISPARO = [
@@ -101,7 +102,7 @@ export function Notificacoes() {
         setPushStatus(status);
       } catch (err) {
         if (isAtivo && !isAtivo()) return;
-        setErro(err instanceof Error ? err.message : 'Erro ao carregar configurações.');
+        setErro(formatarMensagemErro(err, 'Erro ao carregar configurações.'));
       } finally {
         if (!isAtivo || isAtivo()) setCarregando(false);
       }
@@ -138,7 +139,7 @@ export function Notificacoes() {
       await salvarConfiguracoesNotificacoes(jogador.id, config);
       mostrarSnackbar('sucesso', 'Configurações de notificações salvas!');
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Erro ao salvar configurações.';
+      const msg = formatarMensagemErro(err, 'Erro ao salvar configurações.');
       setErro(msg);
       mostrarSnackbar('erro', msg);
     } finally {
@@ -155,7 +156,7 @@ export function Notificacoes() {
       await dispararPushTeste(jogador.id);
       mostrarSnackbar('sucesso', 'Push de teste enfileirado no servidor!');
     } catch (err) {
-      mostrarSnackbar('erro', err instanceof Error ? err.message : 'Falha ao enviar teste.');
+      mostrarSnackbar('erro', formatarMensagemErro(err, 'Falha ao enviar teste.'));
     } finally {
       setDisparandoTeste(false);
     }
@@ -171,7 +172,7 @@ export function Notificacoes() {
       await dispararConfirmacaoManual(jogador.id, partidaDraft.id);
       mostrarSnackbar('sucesso', 'Convite de presença reenviado aos mensalistas pendentes!');
     } catch (err) {
-      mostrarSnackbar('erro', err instanceof Error ? err.message : 'Falha ao reenviar convites.');
+      mostrarSnackbar('erro', formatarMensagemErro(err, 'Falha ao reenviar convites.'));
     } finally {
       setDisparandoReenvio(false);
     }

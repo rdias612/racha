@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { UserPlus, Phone, CreditCard } from 'lucide-react';
 import { MensagemEstado } from './Estado';
 import { ModalBase } from './ModalBase';
+import { formatarMensagemErro } from '../lib/erros';
 
 interface ModalNovoGoleiroProps {
   open: boolean;
@@ -38,7 +39,7 @@ export function ModalNovoGoleiro({ open, onClose, onSalvar }: ModalNovoGoleiroPr
       setChavePix('');
       onClose();
     } catch (err) {
-      setErro(err instanceof Error ? err.message : 'Erro ao cadastrar goleiro.');
+      setErro(formatarMensagemErro(err, 'Erro ao cadastrar goleiro.'));
     } finally {
       setSalvando(false);
     }

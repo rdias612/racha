@@ -6,6 +6,7 @@ import { POSICOES, POSICOES_B, type PosicaoId } from '../lib/times';
 import { MensagemEstado } from '../components/Estado';
 import { User, Shield, Star, Copy, Check, UserPlus } from 'lucide-react';
 import { BotaoVoltar } from '../components/BotaoVoltar';
+import { formatarMensagemErro } from '../lib/erros';
 
 export function NovoJogador() {
   const isAdmin = useAdmin();
@@ -53,7 +54,7 @@ export function NovoJogador() {
       if (error.code === '23505') {
         setErro(`Já existe um jogador cadastrado com o usuário "${usernameLimpo}".`);
       } else {
-        setErro('Erro ao criar jogador: ' + error.message);
+        setErro(formatarMensagemErro(error, 'Erro ao criar jogador.'));
       }
       return;
     }

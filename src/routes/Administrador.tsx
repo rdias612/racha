@@ -21,6 +21,7 @@ import { useSnackbar } from '../hooks/useSnackbar';
 import { formatarReais, formatarDataLista } from '../lib/formatacao';
 import { isRandomUsername, listarJogadoresAtivos, type JogadorLista } from '../lib/jogadores';
 import { BotaoVoltar } from '../components/BotaoVoltar';
+import { formatarMensagemErro } from '../lib/erros';
 import {
   NATUREZAS_LANCAMENTO,
   TIPOS_DIVIDA,
@@ -114,9 +115,7 @@ export function Administrador() {
 
         const erros: string[] = [];
         if (rJogs.status === 'rejected') {
-          erros.push(
-            rJogs.reason instanceof Error ? rJogs.reason.message : 'Erro ao carregar jogadores.'
-          );
+          erros.push(formatarMensagemErro(rJogs.reason, 'Erro ao carregar jogadores.'));
         }
 
         if (rResumo.status === 'rejected' || rLancamentos.status === 'rejected') {
@@ -126,7 +125,7 @@ export function Administrador() {
               : rResumo.status === 'rejected'
                 ? rResumo.reason
                 : null;
-          const msg = motivo instanceof Error ? motivo.message : 'Erro ao carregar lançamentos.';
+          const msg = formatarMensagemErro(motivo, 'Erro ao carregar lançamentos.');
           erros.push(
             /natureza|column|schema|PGRST/i.test(msg)
               ? 'Aplique a migration 078_dividas_natureza_despesa.sql no Supabase para receitas/despesas.'
@@ -162,7 +161,7 @@ export function Administrador() {
         if (erros.length > 0) setErro(erros.join(' '));
       } catch (e) {
         if (isAtivo && !isAtivo()) return;
-        setErro(e instanceof Error ? e.message : 'Erro ao carregar lançamentos.');
+        setErro(formatarMensagemErro(e, 'Erro ao carregar lançamentos.'));
       } finally {
         if (!isAtivo || isAtivo()) setCarregando(false);
       }
@@ -228,10 +227,7 @@ export function Administrador() {
         } catch (err) {
           setGrupos(gruposAnteriores);
           setDespesas(despesasAnteriores);
-          mostrarSnackbar(
-            'erro',
-            err instanceof Error ? err.message : 'Erro ao quitar lançamento.'
-          );
+          mostrarSnackbar('erro', formatarMensagemErro(err, 'Erro ao quitar lançamento.'));
         }
       },
     });
@@ -258,7 +254,7 @@ export function Administrador() {
           await carregar();
         } catch (err) {
           setGrupos(gruposAnteriores);
-          mostrarSnackbar('erro', err instanceof Error ? err.message : 'Erro ao quitar receitas.');
+          mostrarSnackbar('erro', formatarMensagemErro(err, 'Erro ao quitar receitas.'));
         }
       },
     });
@@ -296,7 +292,7 @@ export function Administrador() {
       setFDescricao('');
       await carregar();
     } catch (err) {
-      setErro(err instanceof Error ? err.message : 'Erro ao registrar lançamento.');
+      setErro(formatarMensagemErro(err, 'Erro ao registrar lançamento.'));
     } finally {
       setSalvando(false);
     }
@@ -325,7 +321,7 @@ export function Administrador() {
         `Excel gerado com ${lancamentos.length} lançamento${lancamentos.length === 1 ? '' : 's'}.`
       );
     } catch (err) {
-      mostrarSnackbar('erro', err instanceof Error ? err.message : 'Erro ao exportar o período.');
+      mostrarSnackbar('erro', formatarMensagemErro(err, 'Erro ao exportar o período.'));
     } finally {
       setExportando(false);
     }

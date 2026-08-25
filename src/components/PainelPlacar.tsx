@@ -82,9 +82,7 @@ export function PainelPlacar({
               Preto
             </p>
             {typeof jogadoresTimeA === 'number' && (
-              <p className="text-[10px] font-mono text-giz-fraco">
-                {jogadoresTimeA} jogadores
-              </p>
+              <p className="text-[10px] font-mono text-giz-fraco">{jogadoresTimeA} jogadores</p>
             )}
           </div>
         </div>
@@ -103,9 +101,7 @@ export function PainelPlacar({
               Branco
             </p>
             {typeof jogadoresTimeB === 'number' && (
-              <p className="text-[10px] font-mono text-giz-fraco">
-                {jogadoresTimeB} jogadores
-              </p>
+              <p className="text-[10px] font-mono text-giz-fraco">{jogadoresTimeB} jogadores</p>
             )}
           </div>
           <span className="w-3.5 h-3.5 rounded-[2px] bg-branco-time border border-borda shadow-xs shrink-0" />

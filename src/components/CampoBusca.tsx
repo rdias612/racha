@@ -75,9 +75,7 @@ export function CampoBusca({
   };
 
   const classeFundo =
-    variante === 'superficie'
-      ? 'bg-superficie shadow-carimbo'
-      : 'bg-superficie-2 shadow-xs';
+    variante === 'superficie' ? 'bg-superficie shadow-carimbo' : 'bg-superficie-2 shadow-xs';
 
   const classeFonte = fonte === 'mono' ? 'font-mono' : 'font-sans';
 

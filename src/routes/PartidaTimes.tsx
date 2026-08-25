@@ -24,6 +24,7 @@ import { Carregando, MensagemEstado } from '../components/Estado';
 import { EscalacaoTimesEditor, LIMITE_POR_TIME } from '../components/EscalacaoTimesEditor';
 import { ModalNovoGoleiro } from '../components/ModalNovoGoleiro';
 import { voltar } from '../lib/navegacao';
+import { formatarMensagemErro } from '../lib/erros';
 
 export function PartidaTimes() {
   const isAdmin = useAdmin();
@@ -104,7 +105,7 @@ export function PartidaTimes() {
       })
       .catch((e) => {
         if (!ativo) return;
-        setErro(e.message ?? String(e));
+        setErro(formatarMensagemErro(e, 'Erro ao carregar partida.'));
       })
       .finally(() => {
         if (!ativo) return;
@@ -192,7 +193,7 @@ export function PartidaTimes() {
       setFeedback('Times e goleiros salvos com sucesso.');
       setTimeout(() => navigate(`/partida/${partidaId}`, { replace: true }), 600);
     } catch (e) {
-      setErro('Erro ao salvar times: ' + (e instanceof Error ? e.message : String(e)));
+      setErro(formatarMensagemErro(e, 'Erro ao salvar times.'));
     } finally {
       setSalvando(false);
     }

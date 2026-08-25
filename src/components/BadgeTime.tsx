@@ -17,12 +17,7 @@ const TAMANHOS = {
 /**
  * Badge visual de time (Time Preto / Time Branco) com tokens semânticos.
  */
-export function BadgeTime({
-  time,
-  label,
-  tamanho = 'sm',
-  className = '',
-}: BadgeTimeProps) {
+export function BadgeTime({ time, label, tamanho = 'sm', className = '' }: BadgeTimeProps) {
   const ehPreto = time === 'a';
   const texto = label ?? TIMES[time].nome;
 

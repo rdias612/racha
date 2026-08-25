@@ -105,7 +105,7 @@ export function PartidaDetalhe() {
         }
       } catch (e) {
         if (isAtivo && !isAtivo()) return;
-        setErro(e instanceof Error ? e.message : String(e));
+        setErro(formatarMensagemErro(e, 'Não foi possível carregar a partida.'));
       } finally {
         if (!isAtivo || isAtivo()) setCarregando(false);
       }
@@ -128,7 +128,7 @@ export function PartidaDetalhe() {
       }
     } catch (e) {
       setConfirmandoDescarte(false);
-      setErro(e instanceof Error ? e.message : String(e));
+      setErro(formatarMensagemErro(e, 'Não foi possível descartar os votos.'));
     } finally {
       setDescartando(false);
     }
@@ -166,7 +166,7 @@ export function PartidaDetalhe() {
       invalidarCache('resumo');
       navigate(`/partida/${partida.id}/ao-vivo`, { replace: true });
     } catch (e) {
-      setErro(e instanceof Error ? e.message : String(e));
+      setErro(formatarMensagemErro(e, 'Não foi possível iniciar a partida.'));
     } finally {
       setAbrindo(false);
     }
@@ -654,7 +654,7 @@ function Confirmacoes({
         await onAtualizar();
       }
     } catch (e) {
-      setErroLocal(e instanceof Error ? e.message : String(e));
+      setErroLocal(formatarMensagemErro(e, 'Não foi possível adicionar o participante.'));
     } finally {
       setProcessando(null);
     }

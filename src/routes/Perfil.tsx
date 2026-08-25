@@ -17,6 +17,7 @@ import { Avatar } from '../components/Avatar';
 import { StatBox } from '../components/StatBox';
 import { SkeletonPerfil } from '../components/Skeletons';
 import { CreditCard, Phone } from 'lucide-react';
+import { formatarMensagemErro } from '../lib/erros';
 
 export function Perfil() {
   const { jogador, setJogador, logout } = useSessao();
@@ -103,7 +104,7 @@ export function Perfil() {
       setUsernameNovo('');
     } catch (error) {
       vibrateError();
-      setErroUsername('Erro: ' + (error instanceof Error ? error.message : 'falha ao salvar.'));
+      setErroUsername(formatarMensagemErro(error, 'Não foi possível alterar o nome de usuário.'));
     } finally {
       setSalvandoUsername(false);
     }
@@ -135,7 +136,7 @@ export function Perfil() {
       setOkContato('Dados de pagamento e contato salvos com sucesso.');
     } catch (error) {
       vibrateError();
-      setErroContato('Erro ao salvar: ' + (error instanceof Error ? error.message : String(error)));
+      setErroContato(formatarMensagemErro(error, 'Não foi possível salvar os dados de contato.'));
     } finally {
       setSalvandoContato(false);
     }
@@ -164,11 +165,10 @@ export function Perfil() {
       });
 
       if (error) {
-        throw new Error(
-          error.message.includes('incorreta')
-            ? 'Senha atual incorreta.'
-            : 'Não foi possível atualizar a senha.'
-        );
+        if (error.message && error.message.includes('incorreta')) {
+          throw new Error('Senha atual incorreta.');
+        }
+        throw error;
       }
 
       setSenhaAtual('');
@@ -178,7 +178,7 @@ export function Perfil() {
       vibrateSuccess();
     } catch (error) {
       vibrateError();
-      setErroSenha(error instanceof Error ? error.message : 'Erro ao trocar senha.');
+      setErroSenha(formatarMensagemErro(error, 'Não foi possível alterar a senha.'));
     } finally {
       setTrocando(false);
     }

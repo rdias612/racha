@@ -25,6 +25,7 @@ import {
 } from '../lib/eventosFinanceirosAutomaticos';
 import { formatarReais } from '../lib/formatacao';
 import type { JogadorLista } from '../lib/jogadores';
+import { formatarMensagemErro } from '../lib/erros';
 
 const INPUT_CLASS =
   'w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2';
@@ -100,7 +101,7 @@ export function EventosAutomaticosFinanceiro({
       setEventos(lista);
     } catch (e) {
       if (isAtivo && !isAtivo()) return;
-      const msg = e instanceof Error ? e.message : 'Erro ao carregar eventos automáticos.';
+      const msg = formatarMensagemErro(e, 'Erro ao carregar eventos automáticos.');
       setErro(
         /eventos_financeiros_automaticos|schema|PGRST/i.test(msg)
           ? 'Aplique a migration 079_eventos_financeiros_automaticos.sql no Supabase.'
@@ -197,7 +198,7 @@ export function EventosAutomaticosFinanceiro({
       setForm(formVazio());
       await carregar();
     } catch (err) {
-      onMensagem('erro', err instanceof Error ? err.message : 'Erro ao salvar evento.');
+      onMensagem('erro', formatarMensagemErro(err, 'Erro ao salvar evento.'));
     } finally {
       setSalvando(false);
     }
@@ -216,7 +217,7 @@ export function EventosAutomaticosFinanceiro({
       }
       await carregar();
     } catch (err) {
-      onMensagem('erro', err instanceof Error ? err.message : 'Erro ao excluir evento.');
+      onMensagem('erro', formatarMensagemErro(err, 'Erro ao excluir evento.'));
     }
   }
 

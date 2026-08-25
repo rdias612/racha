@@ -6,6 +6,7 @@ import { MensagemEstado } from '../components/Estado';
 import { listarUsernames } from '../lib/jogadores';
 import { type PosicaoId } from '../lib/times';
 import { Logo } from '../components/Logo';
+import { formatarMensagemErro } from '../lib/erros';
 
 export function Login() {
   const navigate = useNavigate();
@@ -31,8 +32,9 @@ export function Login() {
       .then((nomes) => {
         if (ativo) setUsernames(nomes);
       })
-      .catch(() => {
-        if (ativo) setErroUsernames('Não foi possível carregar os usuários.');
+      .catch((err) => {
+        if (ativo)
+          setErroUsernames(formatarMensagemErro(err, 'Não foi possível carregar os usuários.'));
       })
       .finally(() => {
         if (ativo) setCarregandoUsernames(false);
@@ -82,12 +84,12 @@ export function Login() {
     setCarregando(false);
 
     if (error) {
-      setErro('A rede falhou — nem aqui nem no campo. Tenta de novo.');
+      setErro(formatarMensagemErro(error, 'Não foi possível entrar. Tente novamente.'));
       return;
     }
 
     if (!data || data.length === 0) {
-      setErro('Não bateu. Confere o usuário e tenta de novo.');
+      setErro('Não bateu. Confere o usuário e a senha e tenta de novo.');
       return;
     }
 
