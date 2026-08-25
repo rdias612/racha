@@ -8,6 +8,19 @@ export function isRandomUsername(username?: string | null): boolean {
   return !!username && /^random\d*$/i.test(username.trim());
 }
 
+export function validarFormatoUsername(username: string): string | null {
+  const limpo = username.trim().toLowerCase();
+  if (!limpo || limpo.length < 2) return 'O usuário deve ter ao menos 2 caracteres.';
+  if (limpo.length > 30) return 'O usuário deve ter no máximo 30 caracteres.';
+  if (!/^[a-z0-9._-]+$/.test(limpo)) {
+    return 'Use apenas letras minúsculas, números, ponto, hífen ou sublinhado.';
+  }
+  if (isRandomUsername(limpo)) {
+    return 'O prefixo "random" é reservado para convidados temporários.';
+  }
+  return null;
+}
+
 export interface JogadorLista {
   id: number;
   username: string;
@@ -124,6 +137,16 @@ export async function atualizarNomeJogador(id: number, nome: string): Promise<vo
   const { error } = await supabase.from('jogadores').update({ nome }).eq('id', id);
 
   if (error) throw error;
+}
+
+export async function atualizarUsernameJogador(id: number, novoUsername: string): Promise<void> {
+  const { data, error } = await supabase.rpc('alterar_username', {
+    p_jogador_id: id,
+    p_novo_username: novoUsername.trim().toLowerCase(),
+  });
+
+  if (error) throw error;
+  if (data !== true) throw new Error('Não foi possível atualizar o usuário.');
 }
 
 // Redefine a senha do jogador para o padrão "123" (RPC resetar_senha).

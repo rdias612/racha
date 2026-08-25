@@ -3,7 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useSessao } from '../context/SessaoContext';
 import { POSICOES } from '../lib/times';
-import { atualizarNomeJogador } from '../lib/jogadores';
+import {
+  atualizarNomeJogador,
+  atualizarUsernameJogador,
+  isSuperAdmin,
+  validarFormatoUsername,
+} from '../lib/jogadores';
+import { vibrateError, vibrateSuccess } from '../lib/haptics';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { Avatar } from '../components/Avatar';
 import { SkeletonPerfil } from '../components/Skeletons';
@@ -29,6 +35,12 @@ export function Perfil() {
   const [salvandoNome, setSalvandoNome] = useState(false);
   const [erroNome, setErroNome] = useState<string | null>(null);
   const [okNome, setOkNome] = useState<string | null>(null);
+
+  // formulário de alteração de username
+  const [usernameNovo, setUsernameNovo] = useState('');
+  const [salvandoUsername, setSalvandoUsername] = useState(false);
+  const [erroUsername, setErroUsername] = useState<string | null>(null);
+  const [okUsername, setOkUsername] = useState<string | null>(null);
 
   // formulário de troca de senha
   const [senhaAtual, setSenhaAtual] = useState('');
@@ -85,6 +97,40 @@ export function Perfil() {
       setErroNome('Erro: ' + (error instanceof Error ? error.message : 'falha ao salvar.'));
     } finally {
       setSalvandoNome(false);
+    }
+  }
+
+  async function alterarUsername(e: React.FormEvent) {
+    e.preventDefault();
+    setErroUsername(null);
+    setOkUsername(null);
+
+    const erroValidacao = validarFormatoUsername(usernameNovo);
+    if (erroValidacao) {
+      setErroUsername(erroValidacao);
+      vibrateError();
+      return;
+    }
+
+    const limpo = usernameNovo.toLowerCase().trim();
+    if (limpo === jogador!.username.toLowerCase().trim()) {
+      setErroUsername('O novo usuário é igual ao atual.');
+      vibrateError();
+      return;
+    }
+
+    setSalvandoUsername(true);
+    try {
+      await atualizarUsernameJogador(jogador!.id, usernameNovo);
+      setJogador({ ...jogador!, username: limpo });
+      vibrateSuccess();
+      setOkUsername('Usuário alterado com sucesso. Use @' + limpo + ' no próximo login.');
+      setUsernameNovo('');
+    } catch (error) {
+      vibrateError();
+      setErroUsername('Erro: ' + (error instanceof Error ? error.message : 'falha ao salvar.'));
+    } finally {
+      setSalvandoUsername(false);
     }
   }
 
@@ -215,6 +261,53 @@ export function Perfil() {
             {salvandoNome ? 'Salvando…' : 'Atualizar camisa'}
           </button>
         </form>
+      </section>
+
+      {/* Alterar Usuário de Acesso */}
+      <section className="rounded-[4px] border border-borda bg-superficie p-3.5 shadow-carimbo space-y-3">
+        <div>
+          <h3 className="text-xs font-display font-bold uppercase tracking-wider text-giz">
+            Alterar Usuário de Acesso (@username)
+          </h3>
+          <p className="text-[11px] font-sans text-giz-fraco mt-0.5">
+            Identificador único utilizado para entrar no app e menções na súmula.
+          </p>
+        </div>
+
+        {isSuperAdmin(jogador.username) ? (
+          <div className="rounded-[4px] border border-borda/60 bg-superficie-2 p-2.5 text-xs font-mono text-giz-fraco">
+            🛡️ Usuário Superadmin permanente. O identificador de acesso não pode ser alterado na interface.
+          </div>
+        ) : (
+          <form onSubmit={alterarUsername} className="space-y-3">
+            <div className="relative flex items-center">
+              <span className="absolute left-3 text-sm font-mono font-bold text-giz-fraco select-none">
+                @
+              </span>
+              <input
+                type="text"
+                placeholder={jogador.username}
+                autoCapitalize="none"
+                autoCorrect="off"
+                autoComplete="username"
+                maxLength={30}
+                value={usernameNovo}
+                onChange={(e) => setUsernameNovo(e.target.value.toLowerCase().trim())}
+                className="w-full rounded-[4px] border border-borda bg-superficie-2 pl-7 pr-3 py-2 text-sm font-mono text-giz shadow-xs focus:outline-none focus:border-destaque focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2"
+                required
+              />
+            </div>
+            {erroUsername && <MensagemEstado>{erroUsername}</MensagemEstado>}
+            {okUsername && <MensagemEstado tipo="sucesso">{okUsername}</MensagemEstado>}
+            <button
+              type="submit"
+              disabled={salvandoUsername}
+              className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-50"
+            >
+              {salvandoUsername ? 'Atualizando usuário…' : 'Salvar novo @usuário'}
+            </button>
+          </form>
+        )}
       </section>
 
       {/* Trocar senha */}

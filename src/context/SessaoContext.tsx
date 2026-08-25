@@ -57,7 +57,7 @@ export function SessaoProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase
         .from('jogadores')
         .select('id, username, nome, posicao, is_admin, is_ativo, is_mensalista, posicao_b')
-        .eq('username', jogador!.username)
+        .eq('id', jogador!.id)
         .maybeSingle();
 
       if (error || !data || !data.is_ativo) return;
@@ -69,6 +69,7 @@ export function SessaoProvider({ children }: { children: ReactNode }) {
 
       if (
         jogadorAtualizado.id !== jogador!.id ||
+        jogadorAtualizado.username !== jogador!.username ||
         jogadorAtualizado.is_admin !== jogador!.is_admin ||
         jogadorAtualizado.is_mensalista !== jogador!.is_mensalista ||
         jogadorAtualizado.nome !== jogador!.nome ||
