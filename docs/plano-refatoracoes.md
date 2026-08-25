@@ -212,11 +212,10 @@ O fallback client baixa `votes` completa (viola AGENTS 7.5), engole erros com `c
 
 **Refatoração**: elevar para `min-h-[44px]`; o componente `BotaoVoltar` (P2-1) resolve os 11 voltar de uma vez.
 
-### P1-13. Modais sem focus trap / foco inicial (padrão existe só no ConfirmDialog)
+### P1-13. ✅ (resolvido por P2-11) Modais sem focus trap / foco inicial (padrão existe só no ConfirmDialog)
 
-**Onde**: `ModalSelecionarAgendamento.tsx:42-63`, `ModalSelecionarGoleiro.tsx:35-54`, `ModalSelecionarOpcao.tsx:37-55`, `ModalNovoGoleiro.tsx` (sem portal, sem lock, sem backdrop-click), `DialogoEvento.tsx:60`, e o modal inline `PartidaEditar.tsx:509-631`
-Tab atravessa para o conteúdo atrás do overlay; `ConfirmDialog.tsx:60-79` tem o trap completo para copiar.
-**Refatoração**: extrair `useModalA11y(open, onClose)` (Escape + scroll lock + foco inicial + trap) e `<ModalBase>` — resolve também a duplicação P2-11.
+> Corrigido em 2026-08-25: criado hook canônico `src/hooks/useModalA11y.ts` com gerenciamento de foco inicial, focus trap circular (`Tab`/`Shift+Tab`), restauração do foco anterior no fechamento, `Escape` e trava de scroll no `document.body`. Integrado ao componente unificado `src/components/ModalBase.tsx`, `ConfirmDialog.tsx` e `DialogoEvento.tsx`.
+> **Onde**: `ModalSelecionarAgendamento.tsx`, `ModalSelecionarGoleiro.tsx`, `ModalSelecionarOpcao.tsx`, `ModalNovoGoleiro.tsx`, `DialogoEvento.tsx` e `PartidaEditar.tsx`.
 
 ### P1-14. `Push`/`Sessao`: estado desativado silencia falhas e jogador inativo mantém sessão
 
@@ -270,23 +269,22 @@ Componente idêntico em `Perfil.tsx:393-404` e `Estatisticas.tsx:410-421`; inter
 
 > Corrigido em 2026-08-25: criado componente canônico `src/components/Toggle.tsx` com alvos de toque acessíveis (min-h-[44px]), anel de foco visível pelo teclado, transição suave e integração acessível com leitores de tela. Aplicado em `Notificacoes.tsx` nas seções de confirmação semanal, reforço e votação pós-jogo.
 
-### P2-8. `CabecalhoTime` + `BadgeTime` — cabeçalho/badge de time com hex inline triplicado
+### P2-8. ✅ `CabecalhoTime` + `BadgeTime` — cabeçalho/badge de time com hex inline triplicado
 
-`PartidaDetalhe.tsx:349-356`, `PartidaVotar.tsx:300-308`, `PartidaEditar.tsx:323-343` (cabeçalho com `TIMES[t].cor` + regra de contraste repetida); `ModalSelecionarGoleiro.tsx:94-98` e `EscalacaoTimesEditor.tsx:150-154/258/272` (badge com `style` hex). Tokens `bg-preto-time`/`bg-branco-time` já existem.
+> Corrigido em 2026-08-25: criados componentes canônicos `src/components/BadgeTime.tsx` e `src/components/CabecalhoTime.tsx` utilizando exclusivamente os tokens semânticos `bg-preto-time`, `bg-branco-time` e `font-display uppercase tracking-widest`. Aplicados em `PartidaDetalhe.tsx`, `PartidaVotar.tsx`, `PartidaEditar.tsx`, `ModalSelecionarGoleiro.tsx` e `EscalacaoTimesEditor.tsx`.
 
-### P2-9. `PainelPlacar` — painel LED triplicado com hex hardcodado
+### P2-9. ✅ `PainelPlacar` — painel LED triplicado com hex hardcodado
 
-`PartidaDetalhe.tsx:216-262`, `Jogos.tsx:210-249`, `PartidaEditar.tsx:264-298` — três implementações com `bg-[#000000]`, `bg-[#0d0d0e]`, `border-[#35302a]`, `text-[#f4f1e8]` (viola AGENTS 4.2). Extrair componente e promover os hex a tokens (`--cor-led-fundo`) em `index.css`.
+> Corrigido em 2026-08-25: adicionados tokens de LED `--cor-led-fundo`, `--cor-led-fundo-hover` e `--cor-led-borda` ao `src/index.css`. Criado componente unificado `src/components/PainelPlacar.tsx` com as variantes `completo`, `compacto` e `edicao`, eliminando hexadecimais inline em `PartidaDetalhe.tsx`, `Jogos.tsx`, `PartidaEditar.tsx`, `CampoPartida.tsx` e `Skeletons.tsx`.
 
 ### P2-10. Motor de listbox duplicado (~200 linhas): `SelectSumula` vs `SeletorNota`
 
 `SelectSumula.tsx:29-213` e `SeletorNota.tsx:26-202` — mesmo combobox+listbox (estado, `opcaoRefs`, `scrollIntoView`, clique fora, teclado — inclusive o mesmo bug P0-14 duplicado). `SeletorNota` é um `SelectSumula` com opções 1-10 e `font-mono`.
 **Refatoração**: hook `useListbox({ opcoes, value, onChange, disabled })`; os dois viram cascas de render.
 
-### P2-11. Casca de modal duplicada em 4 arquivos
+### P2-11. ✅ Casca de modal duplicada em 4 arquivos
 
-`ModalSelecionarAgendamento.tsx:42-63`, `ModalSelecionarGoleiro.tsx:35-54`, `ModalSelecionarOpcao.tsx:37-55`, `ModalNovoGoleiro.tsx:18-27` — mesmo `useEffect` Escape+lock, backdrop, cabeçalho e rodapé. Qualquer correção precisa ser replicada 4x.
-**Refatoração**: `useModalA11y` + `<ModalBase>` (junto com P1-13).
+> Corrigido em 2026-08-25: criados o hook `src/hooks/useModalA11y.ts` e o componente canônico `src/components/ModalBase.tsx` com portal, backdrop blur, Escape, trava de scroll no body, focus trap circular, foco inicial e botões de fechar acessíveis de 44px. Refatorados `ModalSelecionarAgendamento.tsx`, `ModalSelecionarGoleiro.tsx`, `ModalSelecionarOpcao.tsx`, `ModalNovoGoleiro.tsx`, o modal inline de `PartidaEditar.tsx`, `ConfirmDialog.tsx` e `DialogoEvento.tsx`.
 
 ## Queries e estado (frontend)
 

@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
 import { invalidarCache } from '../hooks/useCache';
-import { TIMES, POSICOES, type TimeId } from '../lib/times';
+import { POSICOES, type TimeId } from '../lib/times';
 import {
   isRandomUsername,
   listarJogadoresAtivos,
@@ -40,6 +40,8 @@ import { formatarDataCompleta, formatarDataMobile, formatarFechamento } from '..
 import { Avatar } from '../components/Avatar';
 import { Badge } from '../components/Badge';
 import { BotaoVoltar } from '../components/BotaoVoltar';
+import { PainelPlacar } from '../components/PainelPlacar';
+import { CabecalhoTime } from '../components/CabecalhoTime';
 import { vibrateLight, vibrateSuccess } from '../lib/haptics';
 import { formatarMensagemErro } from '../lib/erros';
 
@@ -211,52 +213,14 @@ export function PartidaDetalhe() {
         </div>
       </div>
 
-      {/* Placar: Painel de LED — Barra horizontal única em preto absoluto com blocos sólidos */}
+      {/* Placar: Painel de LED */}
       {placar && partida.status !== 'draft' && (
-        <div className="rounded-[4px] overflow-hidden border-2 border-borda bg-[#000000] shadow-carimbo-preto">
-          <div className="flex items-stretch">
-            {/* Bloco Lateral: Time Preto */}
-            <div className="flex-1 py-3 px-2.5 text-center border-r border-[#35302a] flex flex-col items-center justify-center bg-[#0d0d0e] text-[#f4f1e8]">
-              <span className="font-display font-bold text-[10px] uppercase tracking-wider text-giz-fraco">
-                TIME
-              </span>
-              <span className="font-display font-black text-sm sm:text-base uppercase tracking-widest text-[#f4f1e8]">
-                PRETO
-              </span>
-            </div>
-
-            {/* Centro: LED Placar */}
-            <div className="px-4 sm:px-8 py-3 flex flex-col items-center justify-center bg-[#000000] min-w-[130px]">
-              <span
-                className={`text-5xl sm:text-6xl font-display font-black tabular-nums tracking-tight leading-none ${
-                  partida.status === 'live'
-                    ? 'text-destaque [text-shadow:0_0_14px_rgba(255,179,0,0.55)]'
-                    : partida.status === 'closed'
-                      ? 'text-giz'
-                      : 'text-destaque'
-                }`}
-              >
-                {placar.gols_time_a} <span className="text-giz-fraco/50 font-normal">×</span>{' '}
-                {placar.gols_time_b}
-              </span>
-              {partida.status === 'live' && (
-                <span className="flex items-center gap-1.5 text-[9px] font-display font-bold uppercase tracking-widest text-destaque animate-pulse mt-1">
-                  <span className="size-1.5 rounded-full bg-destaque" /> AO VIVO
-                </span>
-              )}
-            </div>
-
-            {/* Bloco Lateral: Time Branco */}
-            <div className="flex-1 py-3 px-2.5 text-center border-l border-[#35302a] flex flex-col items-center justify-center bg-[#f4f1e8] text-[#0d0d0e]">
-              <span className="font-display font-bold text-[10px] uppercase tracking-wider text-neutral-600">
-                TIME
-              </span>
-              <span className="font-display font-black text-sm sm:text-base uppercase tracking-widest text-[#0d0d0e]">
-                BRANCO
-              </span>
-            </div>
-          </div>
-        </div>
+        <PainelPlacar
+          golsTimeA={placar.gols_time_a}
+          golsTimeB={placar.gols_time_b}
+          status={partida.status}
+          variante="completo"
+        />
       )}
 
       {/* Card do Craque da Partida (quando closed) */}
@@ -265,7 +229,7 @@ export function PartidaDetalhe() {
           {/* Fita adesiva translúcida no canto */}
           <div className="absolute -top-2.5 -right-2.5 w-10 h-3.5 bg-destaque/30 rotate-45 pointer-events-none rounded-xs border border-destaque/40" />
 
-          <div className="bg-[#0d0d0e] border border-destaque/40 text-destaque font-display font-black text-xs uppercase tracking-[0.2em] px-4 py-0.5 rounded-[2px] shadow-xs">
+          <div className="bg-preto-time border border-destaque/40 text-destaque font-display font-black text-xs uppercase tracking-[0.2em] px-4 py-0.5 rounded-[2px] shadow-xs">
             CRAQUE DA PARTIDA
           </div>
 
@@ -344,15 +308,7 @@ export function PartidaDetalhe() {
                   key={t}
                   className="rounded-[4px] border border-borda bg-superficie overflow-hidden shadow-carimbo"
                 >
-                  <div
-                    className="px-3 py-2 text-xs font-display font-bold uppercase tracking-wider border-b border-borda"
-                    style={{
-                      backgroundColor: TIMES[t].cor,
-                      color: t === 'a' ? '#f4f1e8' : '#0d0d0e',
-                    }}
-                  >
-                    {TIMES[t].nome} ({jogadoresDoTime.length})
-                  </div>
+                  <CabecalhoTime time={t} totalJogadores={jogadoresDoTime.length} />
                   <div className="divide-y divide-borda">
                     {jogadoresDoTime.map((p) => (
                       <div

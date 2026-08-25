@@ -1,9 +1,10 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useId, useState } from 'react';
 import type { MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import type { Participante, TipoEvento } from '../lib/partidas';
 import { formatarNome } from '../lib/formatacao';
 import { vibrateGoal } from '../lib/haptics';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface DialogoEventoProps {
   jogador: Participante | null;
@@ -33,37 +34,13 @@ export function DialogoEvento({
   onConfirmar,
 }: DialogoEventoProps) {
   const tituloId = useId();
-  const cardRef = useRef<HTMLDivElement>(null);
   const [etapa, setEtapa] = useState<Etapa>('tipo');
-  const [visivel, setVisivel] = useState(false);
-  const salvandoRef = useRef(salvando);
-  const onCloseRef = useRef(onClose);
-  salvandoRef.current = salvando;
-  onCloseRef.current = onClose;
 
-  const jogadorId = jogador?.jogador_id;
-
-  useEffect(() => {
-    setEtapa('tipo');
-  }, [jogadorId, editando]);
-
-  useEffect(() => {
-    if (!jogadorId) return;
-    setVisivel(false);
-    const raf = requestAnimationFrame(() => setVisivel(true));
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !salvandoRef.current) onCloseRef.current();
-    };
-    window.addEventListener('keydown', onKeyDown);
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    cardRef.current?.focus();
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener('keydown', onKeyDown);
-      document.body.style.overflow = prevOverflow;
-    };
-  }, [jogadorId]);
+  const { containerRef, handleKeyDown, visivel } = useModalA11y({
+    open: Boolean(jogador),
+    onClose,
+    disableEscape: salvando,
+  });
 
   if (!jogador) return null;
 
@@ -84,11 +61,12 @@ export function DialogoEvento({
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-0 backdrop-blur-xs sm:items-center sm:p-4 text-giz"
     >
       <div
-        ref={cardRef}
+        ref={containerRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={tituloId}
         tabIndex={-1}
+        onKeyDown={handleKeyDown}
         className={`w-full max-w-sm rounded-t-[8px] border-t-2 border-x-2 sm:border-2 border-borda bg-superficie p-5 shadow-carimbo-preto transition sm:rounded-[6px] ${
           visivel ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
         }`}
@@ -117,7 +95,7 @@ export function DialogoEvento({
                     const escolhido = jogadores.find((j) => j.jogador_id === id);
                     if (escolhido) onTrocarJogador(escolhido);
                   }}
-                  className="w-full cursor-pointer rounded-[4px] border border-borda bg-superficie-2 px-3 py-2.5 text-sm text-giz shadow-xs"
+                  className="w-full cursor-pointer rounded-[4px] border border-borda bg-superficie-2 px-3 py-2.5 text-sm text-giz shadow-xs min-h-[44px]"
                 >
                   {pretos.length > 0 && (
                     <optgroup label="Time Preto">
@@ -146,7 +124,7 @@ export function DialogoEvento({
                 type="button"
                 disabled={salvando}
                 onClick={() => setEtapa('assistencia')}
-                className={`cursor-pointer rounded-[4px] border border-destaque px-3 py-3 text-xs font-display font-bold uppercase tracking-wider shadow-carimbo transition active:translate-y-px disabled:opacity-40 ${
+                className={`min-h-[44px] cursor-pointer rounded-[4px] border border-destaque px-3 py-3 text-xs font-display font-bold uppercase tracking-wider shadow-carimbo transition active:translate-y-px disabled:opacity-40 ${
                   editando && tipoAtual === 'gol'
                     ? 'bg-destaque text-destaque-tinta ring-2 ring-destaque ring-offset-2 ring-offset-superficie'
                     : 'bg-destaque text-destaque-tinta'
@@ -158,7 +136,7 @@ export function DialogoEvento({
                 type="button"
                 disabled={salvando}
                 onClick={() => handleConfirmar('gol_contra', null)}
-                className={`cursor-pointer rounded-[4px] border px-3 py-3 text-xs font-display font-bold uppercase tracking-wider shadow-carimbo transition active:translate-y-px disabled:opacity-40 ${
+                className={`min-h-[44px] cursor-pointer rounded-[4px] border px-3 py-3 text-xs font-display font-bold uppercase tracking-wider shadow-carimbo transition active:translate-y-px disabled:opacity-40 ${
                   editando && tipoAtual === 'gol_contra'
                     ? 'border-perigo bg-perigo text-white'
                     : 'border-perigo/50 bg-superficie-2 text-perigo hover:bg-perigo/10'
@@ -171,7 +149,7 @@ export function DialogoEvento({
               type="button"
               disabled={salvando}
               onClick={onClose}
-              className="mt-3 w-full cursor-pointer rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-xs font-display uppercase tracking-wider font-semibold text-giz-fraco hover:text-giz"
+              className="mt-3 w-full min-h-[44px] cursor-pointer rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-xs font-display uppercase tracking-wider font-semibold text-giz-fraco hover:text-giz"
             >
               Cancelar
             </button>
@@ -189,7 +167,7 @@ export function DialogoEvento({
               type="button"
               disabled={salvando}
               onClick={() => handleConfirmar('gol', null)}
-              className={`mt-4 w-full cursor-pointer rounded-[4px] border px-3 py-2.5 text-xs font-display font-bold uppercase tracking-wider shadow-carimbo transition active:translate-y-px disabled:opacity-40 ${
+              className={`mt-4 w-full min-h-[44px] cursor-pointer rounded-[4px] border px-3 py-2.5 text-xs font-display font-bold uppercase tracking-wider shadow-carimbo transition active:translate-y-px disabled:opacity-40 ${
                 editando && assistenciaAtual == null && tipoAtual === 'gol'
                   ? 'border-destaque bg-destaque/15 text-destaque font-bold'
                   : 'border-borda bg-superficie-2 text-giz hover:bg-superficie'
@@ -206,7 +184,7 @@ export function DialogoEvento({
                     type="button"
                     disabled={salvando}
                     onClick={() => handleConfirmar('gol', c.jogador_id)}
-                    className={`w-full cursor-pointer rounded-[4px] border px-3 py-2.5 text-left text-xs font-semibold uppercase font-display tracking-wider transition active:translate-y-px disabled:opacity-40 ${
+                    className={`w-full min-h-[44px] cursor-pointer rounded-[4px] border px-3 py-2.5 text-left text-xs font-semibold uppercase font-display tracking-wider transition active:translate-y-px disabled:opacity-40 ${
                       ativo
                         ? 'border-destaque bg-destaque text-destaque-tinta shadow-carimbo'
                         : 'border-borda bg-superficie-2 text-giz hover:border-destaque hover:bg-superficie'
@@ -221,7 +199,7 @@ export function DialogoEvento({
               type="button"
               disabled={salvando}
               onClick={() => setEtapa('tipo')}
-              className="mt-3 w-full cursor-pointer rounded-[4px] px-3 py-2 text-xs font-display uppercase tracking-wider text-giz-fraco hover:text-giz"
+              className="mt-3 w-full min-h-[44px] cursor-pointer rounded-[4px] px-3 py-2 text-xs font-display uppercase tracking-wider text-giz-fraco hover:text-giz"
             >
               ← Voltar ao tipo de evento
             </button>

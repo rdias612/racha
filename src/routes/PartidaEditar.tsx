@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
-import { UserPlus, Trash2, ArrowLeftRight, X } from 'lucide-react';
+import { UserPlus, Trash2, ArrowLeftRight } from 'lucide-react';
 import { useAdmin } from '../hooks/useAdmin';
 import { invalidarCache } from '../hooks/useCache';
 import { listarJogadoresAtivos, type JogadorLista } from '../lib/jogadores';
@@ -20,6 +20,9 @@ import { formatarDataCompleta } from '../lib/formatacao';
 import { BotaoVoltar } from '../components/BotaoVoltar';
 import { BarraAcaoInferior } from '../components/BarraAcaoInferior';
 import { CampoBusca } from '../components/CampoBusca';
+import { PainelPlacar } from '../components/PainelPlacar';
+import { CabecalhoTime } from '../components/CabecalhoTime';
+import { ModalBase } from '../components/ModalBase';
 
 type FiltroModal = 'todos' | 'goleiros' | 'linha' | 'mensalistas' | 'avulsos';
 
@@ -263,40 +266,13 @@ export function PartidaEditar() {
         </div>
 
         {/* Display do Placar ao Vivo */}
-        <div className="flex items-center justify-between rounded-[4px] bg-[#000000] border border-borda p-3">
-          {/* Time Preto */}
-          <div className="flex items-center gap-2 flex-1">
-            <span className="w-3.5 h-3.5 rounded-[2px] bg-[#0d0d0e] border border-[#35302a] shadow-xs shrink-0" />
-            <div className="min-w-0">
-              <p className="text-xs font-display font-bold uppercase tracking-wider text-[#f4f1e8] truncate">
-                Preto
-              </p>
-              <p className="text-[10px] font-mono text-giz-fraco">
-                {participantesPorTime.a.length} jogadores
-              </p>
-            </div>
-          </div>
-
-          {/* Números do Placar */}
-          <div className="px-4 py-1 flex items-center gap-2 text-2xl sm:text-3xl font-display font-black tabular-nums text-destaque">
-            <span>{placarAoVivo.placarA}</span>
-            <span className="text-sm font-normal text-giz-fraco">×</span>
-            <span>{placarAoVivo.placarB}</span>
-          </div>
-
-          {/* Time Branco */}
-          <div className="flex items-center justify-end gap-2 flex-1 text-right">
-            <div className="min-w-0">
-              <p className="text-xs font-display font-bold uppercase tracking-wider text-[#f4f1e8] truncate">
-                Branco
-              </p>
-              <p className="text-[10px] font-mono text-giz-fraco">
-                {participantesPorTime.b.length} jogadores
-              </p>
-            </div>
-            <span className="w-3.5 h-3.5 rounded-[2px] bg-[#f4f1e8] border border-[#d8d2c0] shadow-xs shrink-0" />
-          </div>
-        </div>
+        <PainelPlacar
+          golsTimeA={placarAoVivo.placarA}
+          golsTimeB={placarAoVivo.placarB}
+          jogadoresTimeA={participantesPorTime.a.length}
+          jogadoresTimeB={participantesPorTime.b.length}
+          variante="edicao"
+        />
 
         <p className="text-center text-[11px] font-mono text-giz-fraco">
           Adicione/remova jogadores e ajuste os gols abaixo. O placar atualiza automaticamente.
@@ -321,45 +297,30 @@ export function PartidaEditar() {
           return (
             <section key={t} className="space-y-2.5">
               {/* Header do Time */}
-              <div
-                className="rounded-[4px] px-3.5 py-2.5 flex items-center justify-between shadow-carimbo border border-borda"
-                style={{
-                  backgroundColor: TIMES[t].cor,
-                  color: ehPreto ? '#f4f1e8' : '#0d0d0e',
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-display font-bold uppercase tracking-wider">
-                    {TIMES[t].nome}
-                  </span>
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded-[2px] font-mono font-medium ${
+              <CabecalhoTime
+                time={t}
+                totalJogadores={lista.length}
+                totalGoleiros={goleiros}
+                variante="bloco-separado"
+                acoes={
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBuscaJogador('');
+                      setFiltroModal('todos');
+                      setModalTime(t);
+                    }}
+                    className={`min-h-[44px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-xs font-display font-bold uppercase tracking-wider shadow-carimbo active:translate-y-px transition cursor-pointer ${
                       ehPreto
-                        ? 'bg-superficie text-giz border border-borda'
-                        : 'bg-superficie-2 text-giz border border-borda'
+                        ? 'bg-superficie text-giz border border-borda hover:bg-superficie-2'
+                        : 'bg-preto-time hover:bg-superficie-2 hover:text-giz text-branco-time border border-led-borda'
                     }`}
                   >
-                    {lista.length} jogadores {goleiros > 0 && `· 🧤 ${goleiros}`}
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setBuscaJogador('');
-                    setFiltroModal('todos');
-                    setModalTime(t);
-                  }}
-                  className={`min-h-[44px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-xs font-display font-bold uppercase tracking-wider shadow-carimbo active:translate-y-px transition cursor-pointer ${
-                    ehPreto
-                      ? 'bg-superficie text-giz border border-borda hover:bg-superficie-2'
-                      : 'bg-[#0d0d0e] hover:bg-[#1b1814] text-[#f4f1e8] border border-[#0d0d0e]'
-                  }`}
-                >
-                  <UserPlus className="size-3.5 text-destaque" />
-                  <span>+ Adicionar</span>
-                </button>
-              </div>
+                    <UserPlus className="size-3.5 text-destaque" />
+                    <span>+ Adicionar</span>
+                  </button>
+                }
+              />
 
               {/* Lista de Cards de Jogadores */}
               <div className="space-y-2">
@@ -503,114 +464,99 @@ export function PartidaEditar() {
       </BarraAcaoInferior>
 
       {/* Modal para Adicionar Jogador com Busca e Filtros Rápidos */}
-      {modalTime && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/75 backdrop-blur-xs animate-fade-in">
-          <div className="w-full max-w-md max-h-[85vh] flex flex-col rounded-[4px] border border-borda bg-superficie shadow-carimbo-preto overflow-hidden text-giz">
-            {/* Cabeçalho do Modal */}
-            <div className="p-4 border-b border-borda flex items-center justify-between bg-superficie-2">
-              <div className="flex items-center gap-2">
-                <UserPlus className="size-4 text-destaque" />
-                <h3 className="text-sm font-display font-bold uppercase tracking-wider text-giz">
-                  Adicionar ao {TIMES[modalTime].nome}
-                </h3>
-              </div>
+      <ModalBase
+        open={modalTime !== null}
+        onClose={() => setModalTime(null)}
+        titulo={modalTime ? `Adicionar ao ${TIMES[modalTime].nome}` : ''}
+        icone={<UserPlus className="size-4 text-destaque" />}
+        tamanhoMaximo="md"
+        posicao="centro"
+        rodape={
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => setModalTime(null)}
+              className="min-h-[44px] px-4 py-2 rounded-[3px] border border-borda text-xs font-display font-bold uppercase tracking-wider text-giz hover:bg-superficie cursor-pointer"
+            >
+              Fechar
+            </button>
+          </div>
+        }
+      >
+        {/* Busca & Filtros */}
+        <div className="p-3 border-b border-borda space-y-2 bg-superficie">
+          <CampoBusca
+            valor={buscaJogador}
+            aoMudar={setBuscaJogador}
+            placeholder="Buscar por @username..."
+            autoFocus
+          />
+
+          {/* Filtros em Pílula */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-xs no-scrollbar">
+            {(
+              [
+                { id: 'todos', label: 'Todos' },
+                { id: 'goleiros', label: '🧤 Goleiros' },
+                { id: 'linha', label: 'Linha' },
+                { id: 'mensalistas', label: 'Mensalistas' },
+                { id: 'avulsos', label: 'Avulsos' },
+              ] as const
+            ).map((f) => (
               <button
+                key={f.id}
                 type="button"
-                onClick={() => setModalTime(null)}
-                aria-label="Fechar"
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-[3px] text-giz-fraco hover:text-giz cursor-pointer"
+                onClick={() => setFiltroModal(f.id)}
+                className={`min-h-[44px] px-2.5 py-1 rounded-[3px] font-display font-bold uppercase tracking-wider whitespace-nowrap transition cursor-pointer ${
+                  filtroModal === f.id
+                    ? 'bg-destaque text-destaque-tinta shadow-carimbo'
+                    : 'bg-superficie-2 border border-borda text-giz-fraco hover:text-giz'
+                }`}
               >
-                <X className="size-4" />
+                {f.label}
               </button>
-            </div>
-
-            {/* Busca & Filtros */}
-            <div className="p-3 border-b border-borda space-y-2 bg-superficie">
-              <CampoBusca
-                valor={buscaJogador}
-                aoMudar={setBuscaJogador}
-                placeholder="Buscar por @username..."
-                autoFocus
-              />
-
-              {/* Filtros em Pílula */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-xs no-scrollbar">
-                {(
-                  [
-                    { id: 'todos', label: 'Todos' },
-                    { id: 'goleiros', label: '🧤 Goleiros' },
-                    { id: 'linha', label: 'Linha' },
-                    { id: 'mensalistas', label: 'Mensalistas' },
-                    { id: 'avulsos', label: 'Avulsos' },
-                  ] as const
-                ).map((f) => (
-                  <button
-                    key={f.id}
-                    type="button"
-                    onClick={() => setFiltroModal(f.id)}
-                    className={`min-h-[36px] px-2.5 py-1 rounded-[3px] font-display font-bold uppercase tracking-wider whitespace-nowrap transition cursor-pointer ${
-                      filtroModal === f.id
-                        ? 'bg-destaque text-destaque-tinta shadow-carimbo'
-                        : 'bg-superficie-2 border border-borda text-giz-fraco hover:text-giz'
-                    }`}
-                  >
-                    {f.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Lista com scroll otimizado */}
-            <div className="flex-1 overflow-y-auto divide-y divide-borda p-2 space-y-1">
-              {candidatosAdicionar.map((j) => (
-                <button
-                  key={j.id}
-                  type="button"
-                  onClick={() => adicionarJogador(j, modalTime)}
-                  className="w-full p-2.5 rounded-[3px] flex items-center justify-between gap-3 text-left hover:bg-superficie-2 active:translate-y-px transition cursor-pointer"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <Avatar username={j.username} size="sm" />
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold text-giz truncate">@{j.username}</p>
-                      <p className="text-[10px] font-mono text-giz-fraco">
-                        {j.is_mensalista ? 'Mensalista' : 'Avulso'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-[10px] font-display uppercase tracking-wider text-giz-fraco">
-                      {j.posicao === 'goleiro' ? '🧤 Goleiro' : (POSICOES[j.posicao] ?? 'Linha')}
-                    </span>
-                    <span className="min-h-[32px] inline-flex items-center px-2.5 py-1 rounded-[2px] bg-destaque/15 text-destaque text-xs font-display font-bold uppercase tracking-wider">
-                      + Escalar
-                    </span>
-                  </div>
-                </button>
-              ))}
-
-              {candidatosAdicionar.length === 0 && (
-                <div className="py-12 text-center text-xs font-mono text-giz-fraco">
-                  {buscaJogador
-                    ? 'Nenhum jogador encontrado com essa busca.'
-                    : 'Nenhum jogador disponível neste filtro.'}
-                </div>
-              )}
-            </div>
-
-            {/* Rodapé do Modal */}
-            <div className="p-3 border-t border-borda flex justify-end bg-superficie-2">
-              <button
-                type="button"
-                onClick={() => setModalTime(null)}
-                className="min-h-[44px] px-4 py-2 rounded-[3px] border border-borda text-xs font-display font-bold uppercase tracking-wider text-giz hover:bg-superficie cursor-pointer"
-              >
-                Fechar
-              </button>
-            </div>
+            ))}
           </div>
         </div>
-      )}
+
+        {/* Lista com scroll otimizado */}
+        <div className="flex-1 overflow-y-auto divide-y divide-borda p-2 space-y-1">
+          {candidatosAdicionar.map((j) => (
+            <button
+              key={j.id}
+              type="button"
+              onClick={() => modalTime && adicionarJogador(j, modalTime)}
+              className="w-full min-h-[48px] p-2.5 rounded-[3px] flex items-center justify-between gap-3 text-left hover:bg-superficie-2 active:translate-y-px transition cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <Avatar username={j.username} size="sm" />
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-giz truncate">@{j.username}</p>
+                  <p className="text-[10px] font-mono text-giz-fraco">
+                    {j.is_mensalista ? 'Mensalista' : 'Avulso'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-[10px] font-display uppercase tracking-wider text-giz-fraco">
+                  {j.posicao === 'goleiro' ? '🧤 Goleiro' : (POSICOES[j.posicao] ?? 'Linha')}
+                </span>
+                <span className="min-h-[32px] inline-flex items-center px-2.5 py-1 rounded-[2px] bg-destaque/15 text-destaque text-xs font-display font-bold uppercase tracking-wider">
+                  + Escalar
+                </span>
+              </div>
+            </button>
+          ))}
+
+          {candidatosAdicionar.length === 0 && (
+            <div className="py-12 text-center text-xs font-mono text-giz-fraco">
+              {buscaJogador
+                ? 'Nenhum jogador encontrado com essa busca.'
+                : 'Nenhum jogador disponível neste filtro.'}
+            </div>
+          )}
+        </div>
+      </ModalBase>
 
       {/* Diálogo de Confirmação de Remoção */}
       <ConfirmDialog

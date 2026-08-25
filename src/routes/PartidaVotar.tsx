@@ -11,11 +11,12 @@ import {
   type Partida,
   type Participante,
 } from '../lib/partidas';
-import { TIMES, POSICOES, type TimeId } from '../lib/times';
+import { POSICOES, type TimeId } from '../lib/times';
 import { isRandomUsername } from '../lib/jogadores';
 import { voltar } from '../lib/navegacao';
 import { BotaoVoltar } from '../components/BotaoVoltar';
 import { BarraAcaoInferior } from '../components/BarraAcaoInferior';
+import { CabecalhoTime } from '../components/CabecalhoTime';
 
 export function PartidaVotar() {
   const { id } = useParams<{ id: string }>();
@@ -295,15 +296,7 @@ export function PartidaVotar() {
               key={t}
               className="overflow-hidden rounded-[4px] border border-borda bg-superficie shadow-carimbo"
             >
-              <div
-                className="px-3 py-2 text-xs font-display font-bold uppercase tracking-wider border-b border-borda"
-                style={{
-                  backgroundColor: TIMES[t].cor,
-                  color: t === 'a' ? '#f4f1e8' : '#0d0d0e',
-                }}
-              >
-                {TIMES[t].nome}
-              </div>
+              <CabecalhoTime time={t} />
               <div className="divide-y divide-borda">
                 {jogadoresDoTime.map((a) => {
                   const nota = notas[a.jogador_id];

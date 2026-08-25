@@ -1,6 +1,7 @@
-import { useEffect, useId, useRef, useState } from 'react';
-import type { MouseEvent, KeyboardEvent as ReactKeyboardEvent } from 'react';
+import { useId, useRef } from 'react';
+import type { MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 export interface ConfirmDialogProps {
   open: boolean;
@@ -26,59 +27,12 @@ export function ConfirmDialog({
   const tituloId = useId();
   const confirmRef = useRef<HTMLButtonElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [visivel, setVisivel] = useState(false);
 
-  useEffect(() => {
-    if (!open) return;
-
-    setVisivel(false);
-    const raf = requestAnimationFrame(() => setVisivel(true));
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', onKeyDown);
-
-    // Initial focus on confirm or cancel button
-    (confirmRef.current ?? cardRef.current)?.focus();
-
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener('keydown', onKeyDown);
-      document.body.style.overflow = prevOverflow;
-    };
-  }, [open, onClose]);
-
-  const handleKeyDown = (e: ReactKeyboardEvent<HTMLDivElement>) => {
-    if (e.key !== 'Tab' || !cardRef.current) return;
-
-    const focusable = cardRef.current.querySelectorAll<HTMLElement>(
-      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-    );
-    if (focusable.length === 0) return;
-
-    const firstElement = focusable[0];
-    const lastElement = focusable[focusable.length - 1];
-
-    if (e.shiftKey) {
-      if (document.activeElement === firstElement) {
-        e.preventDefault();
-        lastElement?.focus();
-      }
-    } else {
-      if (document.activeElement === lastElement) {
-        e.preventDefault();
-        firstElement?.focus();
-      }
-    }
-  };
+  const { containerRef, handleKeyDown, visivel } = useModalA11y({
+    open,
+    onClose,
+    initialFocusRef: confirmRef,
+  });
 
   if (!open) return null;
 
@@ -90,7 +44,7 @@ export function ConfirmDialog({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4 animate-fade-in"
     >
       <div
-        ref={cardRef}
+        ref={containerRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={tituloId}

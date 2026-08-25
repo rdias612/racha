@@ -6,6 +6,7 @@ import { MensagemEstado } from './Estado';
 import { ModalSelecionarGoleiro } from './ModalSelecionarGoleiro';
 import { BotaoVoltar } from './BotaoVoltar';
 import { BarraAcaoInferior } from './BarraAcaoInferior';
+import { BadgeTime } from './BadgeTime';
 
 export const LIMITE_POR_TIME = 7;
 
@@ -141,16 +142,7 @@ export function EscalacaoTimesEditor({
               }`}
             >
               <div>
-                <div
-                  className="inline-block px-2.5 py-0.5 rounded-[2px] font-display font-black text-xs uppercase tracking-widest border mb-1.5 shadow-xs"
-                  style={{
-                    backgroundColor: ehPreto ? '#0d0d0e' : '#f4f1e8',
-                    color: ehPreto ? '#f4f1e8' : '#0d0d0e',
-                    borderColor: '#35302a',
-                  }}
-                >
-                  Time {ehPreto ? 'Preto' : 'Branco'}
-                </div>
+                <BadgeTime time={t} className="mb-1.5" />
                 <div className="font-mono text-xl font-bold text-destaque tabular-nums">
                   {count}/{LIMITE_POR_TIME} de linha
                 </div>
@@ -167,7 +159,7 @@ export function EscalacaoTimesEditor({
                       <button
                         type="button"
                         onClick={() => onAbrirModalNovoGoleiro(t)}
-                        className="text-xs font-mono text-destaque hover:underline min-h-[32px] px-1 inline-flex items-center"
+                        className="text-xs font-mono text-destaque hover:underline min-h-[44px] px-1 inline-flex items-center"
                       >
                         + Novo
                       </button>
@@ -251,7 +243,7 @@ export function EscalacaoTimesEditor({
                     aria-label={`Escalar ${j.username} no time Preto`}
                     className={`min-h-[44px] min-w-[3.5rem] px-2 rounded-[3px] border font-display font-bold uppercase tracking-wider text-xs transition active:translate-y-px disabled:opacity-30 ${
                       time === 'a'
-                        ? 'bg-[#0d0d0e] text-[#f4f1e8] border-destaque shadow-xs'
+                        ? 'bg-preto-time text-branco-time border-destaque shadow-xs'
                         : 'border-borda bg-superficie text-giz-fraco hover:text-giz'
                     }`}
                   >
@@ -265,7 +257,7 @@ export function EscalacaoTimesEditor({
                     aria-label={`Escalar ${j.username} no time Branco`}
                     className={`min-h-[44px] min-w-[3.5rem] px-2 rounded-[3px] border font-display font-bold uppercase tracking-wider text-xs transition active:translate-y-px disabled:opacity-30 ${
                       time === 'b'
-                        ? 'bg-[#f4f1e8] text-[#0d0d0e] border-destaque shadow-xs'
+                        ? 'bg-branco-time text-preto-time border-destaque shadow-xs'
                         : 'border-borda bg-superficie text-giz-fraco hover:text-giz'
                     }`}
                   >

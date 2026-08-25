@@ -76,7 +76,7 @@ export function SkeletonJogos() {
               <div className="h-3.5 w-28 bg-borda rounded-[2px]" />
               <div className="h-4 w-16 bg-borda rounded-[2px]" />
             </div>
-            <div className="h-16 bg-[#000000] flex items-center justify-center p-3">
+            <div className="h-16 bg-led-fundo flex items-center justify-center p-3">
               <div className="h-8 w-44 bg-superficie-2 border border-borda rounded-[2px]" />
             </div>
           </div>
@@ -311,7 +311,7 @@ export function SkeletonDetalhe() {
       <div className="h-4 w-20 bg-superficie-2 rounded-[2px]" />
 
       {/* Placar LED */}
-      <div className="h-24 rounded-[4px] border-2 border-borda bg-[#000000] shadow-carimbo-preto p-3 flex items-center justify-center" />
+      <div className="h-24 rounded-[4px] border-2 border-borda bg-led-fundo shadow-carimbo-preto p-3 flex items-center justify-center" />
 
       {/* Times */}
       <div className="grid grid-cols-2 gap-3">

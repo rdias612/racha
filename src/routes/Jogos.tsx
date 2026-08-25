@@ -14,6 +14,7 @@ import { formatarDataLista } from '../lib/formatacao';
 import { STATUS_LABEL, excluirPartida, type StatusPartida } from '../lib/partidas';
 import { PullToRefresh } from '../components/PullToRefresh';
 import { Badge } from '../components/Badge';
+import { PainelPlacar } from '../components/PainelPlacar';
 
 interface Partida {
   id: number;
@@ -220,42 +221,14 @@ export function Jogos() {
                   {/* Mini-Painel de LED de Placar */}
                   <Link
                     to={p.status === 'live' ? `/partida/${p.id}/ao-vivo` : `/partida/${p.id}`}
-                    className="block bg-[#000000] p-3 text-center transition hover:bg-[#080808]"
+                    className="block transition hover:opacity-95"
                   >
-                    <div className="flex items-center justify-between gap-2 max-w-sm mx-auto">
-                      {/* Time Preto */}
-                      <div className="flex-1 flex items-center justify-end gap-2 text-right">
-                        <span className="font-display font-black text-sm uppercase tracking-wider text-[#f4f1e8]">
-                          PRETO
-                        </span>
-                        <span className="size-2 rounded-full bg-[#0d0d0e] border border-[#35302a]" />
-                      </div>
-
-                      {/* Dígitos de LED */}
-                      <div className="px-3 py-1 min-w-[90px]">
-                        <span
-                          className={`font-display font-black text-3xl tabular-nums tracking-tight ${
-                            p.status === 'live'
-                              ? 'text-destaque [text-shadow:0_0_10px_rgba(255,179,0,0.5)]'
-                              : p.status === 'closed'
-                                ? 'text-branco-time'
-                                : 'text-destaque'
-                          }`}
-                        >
-                          {p.status === 'draft' || !pl
-                            ? '— × —'
-                            : `${pl.gols_time_a} × ${pl.gols_time_b}`}
-                        </span>
-                      </div>
-
-                      {/* Time Branco */}
-                      <div className="flex-1 flex items-center justify-start gap-2 text-left">
-                        <span className="size-2 rounded-full bg-[#f4f1e8] border border-[#35302a]" />
-                        <span className="font-display font-black text-sm uppercase tracking-wider text-[#f4f1e8]">
-                          BRANCO
-                        </span>
-                      </div>
-                    </div>
+                    <PainelPlacar
+                      golsTimeA={pl?.gols_time_a ?? null}
+                      golsTimeB={pl?.gols_time_b ?? null}
+                      status={p.status}
+                      variante="compacto"
+                    />
                   </Link>
                 </div>
               );

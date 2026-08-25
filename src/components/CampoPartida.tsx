@@ -1,4 +1,4 @@
-import { TIMES, type TimeId } from '../lib/times';
+import type { TimeId } from '../lib/times';
 import type { Participante } from '../lib/partidas';
 import { formatarNome } from '../lib/formatacao';
 
@@ -32,21 +32,14 @@ function ChipJogador({
 }) {
   const preto = jogador.time === 'a';
   const nome = formatarNome(jogador.username ?? `#${jogador.jogador_id}`);
-  const classe = `inline-flex max-w-[9.5rem] items-center justify-center truncate rounded-[3px] border px-2.5 text-[11px] font-display font-bold uppercase tracking-wider leading-none shadow-carimbo sm:text-xs ${
-    preto ? 'border-[#35302a] text-[#f4f1e8]' : 'border-[#35302a] text-[#0d0d0e]'
-  } ${destaque ? 'ring-2 ring-destaque ring-offset-2 ring-offset-[#16281c]' : ''}`;
-
-  const estilo = {
-    backgroundColor: TIMES[jogador.time ?? 'a'].cor,
-    minHeight: '2.25rem',
-  } as const;
+  const classe = `inline-flex min-h-[44px] max-w-[9.5rem] items-center justify-center truncate rounded-[3px] border px-2.5 text-[11px] font-display font-bold uppercase tracking-wider leading-none shadow-carimbo sm:text-xs ${
+    preto
+      ? 'border-led-borda bg-preto-time text-branco-time'
+      : 'border-borda bg-branco-time text-preto-time'
+  } ${destaque ? 'ring-2 ring-destaque ring-offset-2 ring-offset-campo' : ''}`;
 
   if (!onClick) {
-    return (
-      <span className={classe} style={estilo}>
-        {nome}
-      </span>
-    );
+    return <span className={classe}>{nome}</span>;
   }
 
   return (
@@ -54,7 +47,6 @@ function ChipJogador({
       type="button"
       onClick={() => onClick(jogador)}
       className={`${classe} cursor-pointer transition active:translate-y-px`}
-      style={estilo}
     >
       {nome}
     </button>
@@ -232,12 +224,12 @@ export function CampoPartida({
 
           {/* Faixa central de placar LED */}
           <div className="relative z-10 flex items-center justify-center py-1">
-            <div className="flex items-center gap-3 rounded-[3px] border border-borda bg-[#000000] px-4 py-1 font-display font-black text-white shadow-carimbo-preto">
-              <span className="text-xs uppercase tracking-wider text-[#f4f1e8]">Preto</span>
+            <div className="flex items-center gap-3 rounded-[3px] border border-borda bg-led-fundo px-4 py-1 font-display font-black text-branco-time shadow-carimbo-preto">
+              <span className="text-xs uppercase tracking-wider text-branco-time">Preto</span>
               <span className="font-mono text-base font-black text-destaque tabular-nums">
                 {placar.gols_time_a} × {placar.gols_time_b}
               </span>
-              <span className="text-xs uppercase tracking-wider text-[#f4f1e8]">Branco</span>
+              <span className="text-xs uppercase tracking-wider text-branco-time">Branco</span>
             </div>
           </div>
 
