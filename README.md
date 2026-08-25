@@ -1,6 +1,6 @@
 # ⚽ Racha Gragoatá CBO
 
-Plataforma progressiva (PWA) para gerenciamento completo e engajamento da pelada semanal.
+Plataforma progressiva (PWA) para gerenciamento completo e engajamento da pelada semanal. 
 
 ---
 
