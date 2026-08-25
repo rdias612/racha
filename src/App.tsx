@@ -22,6 +22,7 @@ import {
   PartidaVotar,
   NovoJogador,
   GestaoJogadores,
+  GestaoGoleiros,
   Administrador,
   Notificacoes,
 } from './lib/rotas';
@@ -60,6 +61,7 @@ export function App() {
           <Route path="/partida/:id/votar" element={<PartidaVotar />} />
           <Route path="/jogador/novo" element={<NovoJogador />} />
           <Route path="/gestao-jogadores" element={<GestaoJogadores />} />
+          <Route path="/gestao-goleiros" element={<GestaoGoleiros />} />
           <Route path="/administrador" element={<Administrador />} />
           <Route path="/notificacoes" element={<Notificacoes />} />
         </Route>

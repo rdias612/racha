@@ -29,6 +29,8 @@ export interface JogadorLista {
   is_ativo: boolean;
   is_mensalista: boolean;
   posicao_b: PosicaoId | null;
+  chave_pix?: string | null;
+  telefone?: string | null;
   media_nota?: number;
 }
 
@@ -52,7 +54,9 @@ export async function listarUsernames(): Promise<string[]> {
 export async function listarJogadoresAtivos(): Promise<JogadorLista[]> {
   const { data, error } = await supabase
     .from('jogadores')
-    .select('id, username, posicao, is_admin, is_ativo, is_mensalista, posicao_b')
+    .select(
+      'id, username, posicao, is_admin, is_ativo, is_mensalista, posicao_b, chave_pix, telefone'
+    )
     .eq('is_ativo', true)
     .order('username');
 
@@ -66,7 +70,9 @@ export async function listarJogadoresAtivos(): Promise<JogadorLista[]> {
 export async function listarTodosJogadores(): Promise<JogadorLista[]> {
   const { data, error } = await supabase
     .from('jogadores')
-    .select('id, username, posicao, is_admin, is_ativo, is_mensalista, posicao_b')
+    .select(
+      'id, username, posicao, is_admin, is_ativo, is_mensalista, posicao_b, chave_pix, telefone'
+    )
     .order('username');
 
   if (error) throw error;
@@ -319,4 +325,50 @@ export async function compararJogadores(
   );
 
   return { linhas, partidas };
+}
+
+export async function criarGoleiroRapido(dados: {
+  nome: string;
+  telefone?: string | null;
+  chave_pix?: string | null;
+}): Promise<number> {
+  const { data, error } = await supabase.rpc('criar_goleiro_rapido', {
+    p_nome: dados.nome.trim(),
+    p_telefone: dados.telefone?.trim() || null,
+    p_chave_pix: dados.chave_pix?.trim() || null,
+  });
+
+  if (error) throw error;
+  return Number(data);
+}
+
+export async function atualizarDadosPixTelefone(
+  id: number,
+  dados: { chave_pix?: string | null; telefone?: string | null }
+): Promise<void> {
+  const payload: { chave_pix?: string | null; telefone?: string | null } = {};
+  if (dados.chave_pix !== undefined)
+    payload.chave_pix = dados.chave_pix ? dados.chave_pix.trim() : null;
+  if (dados.telefone !== undefined)
+    payload.telefone = dados.telefone ? dados.telefone.trim() : null;
+
+  const { error } = await supabase.from('jogadores').update(payload).eq('id', id);
+  if (error) throw error;
+}
+
+export async function listarGoleiros(): Promise<JogadorLista[]> {
+  const { data, error } = await supabase
+    .from('jogadores')
+    .select(
+      'id, username, posicao, is_admin, is_ativo, is_mensalista, posicao_b, chave_pix, telefone'
+    )
+    .or('posicao.eq.goleiro,posicao_b.eq.goleiro')
+    .order('is_ativo', { ascending: false })
+    .order('username');
+
+  if (error) throw error;
+  return (data ?? []).map((j) => ({
+    ...j,
+    is_admin: j.is_admin || isSuperAdmin(j.username),
+  }));
 }

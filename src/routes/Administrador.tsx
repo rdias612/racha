@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { Wallet, ChevronDown, Plus, Check, MessageSquare, FileSpreadsheet } from 'lucide-react';
+import {
+  Wallet,
+  ChevronDown,
+  Plus,
+  Check,
+  MessageSquare,
+  FileSpreadsheet,
+  Copy,
+  Users,
+} from 'lucide-react';
 import { useAdmin } from '../hooks/useAdmin';
 import { Badge } from '../components/Badge';
 import { Carregando, MensagemEstado } from '../components/Estado';
@@ -380,6 +389,24 @@ export function Administrador() {
           <span className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
             Súmula CBO
           </span>
+        </div>
+
+        {/* Atalhos de Gestão */}
+        <div className="grid grid-cols-2 gap-2">
+          <Link
+            to="/gestao-jogadores"
+            className="flex items-center justify-center gap-2 p-2.5 rounded-[4px] border border-borda bg-superficie text-xs font-display font-bold uppercase tracking-wider text-giz shadow-carimbo hover:border-destaque transition min-h-[44px]"
+          >
+            <Users className="size-4 text-destaque" />
+            <span>Gestão de Atletas</span>
+          </Link>
+          <Link
+            to="/gestao-goleiros"
+            className="flex items-center justify-center gap-2 p-2.5 rounded-[4px] border border-borda bg-superficie text-xs font-display font-bold uppercase tracking-wider text-giz shadow-carimbo hover:border-destaque transition min-h-[44px]"
+          >
+            <span className="text-sm">🧤</span>
+            <span>Gestão de Goleiros</span>
+          </Link>
         </div>
 
         {erro && <MensagemEstado>{erro}</MensagemEstado>}
@@ -770,6 +797,30 @@ export function Administrador() {
                         {rotulo}
                       </p>
                       {d.descricao && <p className="text-xs text-giz-fraco">{d.descricao}</p>}
+
+                      {d.jogadores?.chave_pix ? (
+                        <div className="flex items-center gap-2 pt-0.5">
+                          <span className="text-[11px] font-mono text-giz bg-superficie-2 border border-borda px-1.5 py-0.5 rounded-[2px] truncate max-w-[180px] sm:max-w-xs">
+                            PIX: {d.jogadores.chave_pix}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigator.clipboard.writeText(d.jogadores!.chave_pix!);
+                              mostrarSnackbar('sucesso', 'Chave PIX copiada!');
+                            }}
+                            className="inline-flex items-center gap-1 text-[10px] font-mono text-destaque hover:underline min-h-[32px] px-1"
+                          >
+                            <Copy className="size-3" />
+                            <span>Copiar PIX</span>
+                          </button>
+                        </div>
+                      ) : d.tipo === 'goleiro' ? (
+                        <p className="text-[11px] font-mono text-giz-fraco italic pt-0.5">
+                          Chave PIX não cadastrada
+                        </p>
+                      ) : null}
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-1.5">
                       <span className="font-mono text-sm font-bold text-perigo tabular-nums">

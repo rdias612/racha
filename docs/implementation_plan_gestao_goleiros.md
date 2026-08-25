@@ -1,165 +1,143 @@
-# Plano de Implementação: Separação de Goleiros, Seleção na Divisão dos Times e Gestão Financeira com PIX
+# Plano de Implementação: Gestão de Goleiros, Seleção na Divisão dos Times e Pagamento PIX
 
-Este plano estabelece a arquitetura completa para isolar os goleiros da tabela `jogadores` em uma tabela própria `goleiros`, integrando a escolha dos 2 goleiros (Time Preto e Time Branco) diretamente na tela de divisão dos times, além de garantir o fluxo de votação pós-jogo e geração automática de despesas financeiras com chave PIX.
-
----
-
-## 📌 Resumo dos Requisitos Alinhados
-
-1. **Tabela Própria `goleiros`**:
-   - Campos: `id`, `nome`, `telefone`, `chave_pix`, `is_ativo`, `created_at`.
-   - Goleiros não possuem login/senha de atleta (são geridos pelos administradores).
-   - Migração dos goleiros atuais de `jogadores` para `goleiros`.
-2. **Confirmação e Divisão dos Times**:
-   - A confirmação semanal continua estrita aos **14 jogadores de linha**.
-   - Na tela de divisão dos times (`/partida/:id/times`), o administrador:
-     - Distribui os 14 jogadores de linha (7 Preto e 7 Branco) com auxílio do botão de balanceamento automático.
-     - Seleciona o **Goleiro do Time Preto** e o **Goleiro do Time Branco** através de dropdowns dedicados no topo de cada time.
-     - Pode cadastrar um novo goleiro rapidamente via modal inline sem sair da tela.
-3. **Partida ao Vivo e Súmula**:
-   - Os 2 goleiros integram a súmula oficial da partida (`partidas_participantes` com `goleiro_id`), totalizando 8 atletas por time no jogo (7 de linha + 1 goleiro).
-4. **Votação de Notas Pós-Jogo**:
-   - Goleiros recebem notas na cédula de votação pós-jogo e concorrem ao Craque da Partida (mas não votam por não terem login).
-5. **Módulo Financeiro e Pagamentos PIX**:
-   - Ao finalizar/publicar a partida, o sistema gera automaticamente 2 despesas de **R$ 30,00** (uma para cada goleiro participante).
-   - O painel financeiro em `/administrador` exibe a chave PIX do goleiro e oferece o botão "Copiar Chave PIX".
-   - Nova tela de gerenciamento (`/gestao-goleiros` ou seção na administração) para cadastro e edição dos goleiros.
+Este plano consolida a arquitetura unificada para os goleiros do racha, utilizando a entidade `jogadores` com campos adicionais (`chave_pix`, `telefone`), suporte a atletas híbridos (que podem jogar no gol ou na linha), seleção dos 2 goleiros diretamente na tela de divisão dos times, regra de votação baseada na posição atuada e geração de despesa de R$ 30 com cópia de chave PIX.
 
 ---
 
-## 🛠️ Modificações Propostas
+## 📌 Resumo das Regras de Negócio e Decisões
+
+1. **Estrutura de Dados Unificada (`jogadores`)**:
+   - Novos campos em `jogadores`: `chave_pix text`, `telefone text`.
+   - Sem duplicação de tabelas ou quebra de chaves estrangeiras: todos os atletas (linha, goleiros da casa e goleiros convidados) são mantidos em `jogadores`.
+2. **Confirmação Semanal vs. Seleção dos Goleiros**:
+   - **Jogadores de Linha**: Seguem a confirmação semanal padrão estrita a **14 vagas** (`PartidaDetalhe.tsx`). Se um goleiro da casa (ex: *Dudu* ou *Pedrinho*) for jogar na **linha**, ele confirma presença normalmente como qualquer jogador de linha.
+   - **Goleiros da Partida**: Na tela de divisão dos times (`/partida/:id/times`), o administrador escolhe os **2 goleiros da partida** através de dropdowns dedicados no topo do Time Preto e do Time Branco (com opção de "+ Cadastrar Novo Goleiro" rápido via modal inline).
+3. **Comportamento Dinâmico Baseado na Posição Atuada na Partida**:
+   - **Quem jogou no GOL (`posicao = 'goleiro'`)**:
+     - **Votação**: **Não vota** na cédula pós-jogo (mesmo que tenha login de atleta).
+     - **Notas**: **Recebe notas** normalmente dos 14 jogadores de linha e concorre ao Craque da Partida.
+     - **Financeiro**: Recebe automaticamente o crédito de **R$ 30,00** de diária de goleiro (despesa do racha) e fica **isento** da taxa de avulso.
+   - **Quem jogou na LINHA (`posicao <> 'goleiro'`)**:
+     - **Votação**: Vota normalmente na cédula pós-jogo.
+     - **Notas**: Recebe notas normalmente.
+     - **Financeiro**: Paga taxa de avulso de R$ 20,00 (se não for mensalista) e não recebe os R$ 30.
+4. **Módulo Financeiro e Chave PIX**:
+   - Ao finalizar/publicar a partida, são geradas 2 despesas de **R$ 30,00** (uma para cada goleiro escalado).
+   - No painel financeiro (`/administrador`), cada pagamento de goleiro exibe a Chave PIX e o botão **"Copiar Chave PIX"**.
+   - No `/perfil`, o próprio atleta pode cadastrar e atualizar sua Chave PIX e Telefone.
+   - Tela/seção administrativa de **Gestão de Goleiros** para listar, cadastrar e editar rapidamente os goleiros da casa e convidados.
+
+---
+
+## 🛠️ Arquivos Modificados e Criados
 
 ```
 racha/
 ├── supabase/
 │   ├── migrations/
-│   │   └── 081_tabela_goleiros_e_escalacao.sql  # [NEW] Criação da tabela goleiros, migração de dados e RPCs
-│   └── aplicar_tudo.sql                         # [MODIFY] Sincronização dos schemas e RPCs
+│   │   └── 081_goleiros_pix_e_escalacao.sql    # [NEW] Colunas chave_pix/telefone, RPCs de escalação e financeiro
+│   └── aplicar_tudo.sql                         # [MODIFY] Sincronização de colunas e RPCs
 ├── src/
 │   ├── lib/
-│   │   ├── goleiros.ts                          # [NEW] Tipos e funções de consulta/mutação de goleiros
-│   │   ├── partidas.ts                          # [MODIFY] Tipagem de Participante e suporte a goleiro_id
-│   │   └── rotas.ts                             # [MODIFY] Registro lazy da rota de Gestão de Goleiros
+│   │   ├── jogadores.ts                         # [MODIFY] Campos chave_pix/telefone e helpers de goleiro
+│   │   ├── partidas.ts                          # [MODIFY] Tipagem e validações de escalação com goleiros
+│   │   └── rotas.ts                             # [MODIFY] Registro de rotas lazy
 │   ├── components/
-│   │   ├── EscalacaoTimesEditor.tsx             # [MODIFY] Dropdowns de seleção de goleiros por time e modal inline
-│   │   └── ModalNovoGoleiro.tsx                 # [NEW] Modal ágil para cadastrar novo goleiro
+│   │   ├── EscalacaoTimesEditor.tsx             # [MODIFY] Seletores de Goleiro Preto/Branco e modal rápido
+│   │   └── ModalNovoGoleiro.tsx                 # [NEW] Modal ágil para cadastro rápido de novo goleiro
 │   ├── routes/
-│   │   ├── PartidaTimes.tsx                     # [MODIFY] Carregamento de goleiros ativos e persistência com goleiros
-│   │   ├── GestaoGoleiros.tsx                   # [NEW] Tela administrativa de cadastro e edição de goleiros
-│   │   ├── Administrador.tsx                    # [MODIFY] Botão de cópia de PIX e atalho para gestão de goleiros
-│   │   ├── PartidaAoVivo.tsx                    # [MODIFY] Exibição dos goleiros na súmula ao vivo
-│   │   ├── PartidaDetalhe.tsx                   # [MODIFY] Exibição dos goleiros nos cards de escalação
-│   │   └── PartidaVotar.tsx                     # [MODIFY] Cédula com notas para os goleiros
-│   └── App.tsx                                  # [MODIFY] Rota /gestao-goleiros protegida para admins
-├── AGENTS.md                                    # [MODIFY] Documentação da arquitetura de goleiros
-└── design-system.md                             # [MODIFY] Tokens e componentes da gestão de goleiros
+│   │   ├── PartidaTimes.tsx                     # [MODIFY] Fluxo completo de divisão 7x7 + 2 goleiros
+│   │   ├── GestaoGoleiros.tsx                   # [NEW] Tela administrativa de gestão de goleiros (PIX, tel, status)
+│   │   ├── GestaoJogadores.tsx                  # [MODIFY] Exibição de PIX/telefone na listagem geral
+│   │   ├── Perfil.tsx                           # [MODIFY] Edição própria de Chave PIX e Telefone
+│   │   ├── Administrador.tsx                    # [MODIFY] Botão de cópia rápida de PIX nas despesas de goleiro
+│   │   ├── PartidaAoVivo.tsx                    # [MODIFY] Visualização dos 2 goleiros na súmula
+│   │   ├── PartidaDetalhe.tsx                   # [MODIFY] Exibição clara dos goleiros nos cards de time
+│   │   └── PartidaVotar.tsx                     # [MODIFY] Bloqueio de voto para quem jogou no gol e cédula completa
+│   └── App.tsx                                  # [MODIFY] Rota /gestao-goleiros
+├── AGENTS.md                                    # [MODIFY] Atualização canônica das regras de goleiros e PIX
+└── design-system.md                             # [MODIFY] Padrões visuais dos seletores de goleiro e PIX
 ```
 
 ---
 
-## 🗄️ Detalhamento das Alterações
+## 🗄️ Detalhamento da Implementação
 
 ### 1. Banco de Dados e RPCs (PostgreSQL)
 
-#### `[NEW] supabase/migrations/081_tabela_goleiros_e_escalacao.sql`
-- **Tabela `goleiros`**:
+#### `[NEW] supabase/migrations/081_goleiros_pix_e_escalacao.sql`
+- **Novas colunas em `jogadores`**:
   ```sql
-  CREATE TABLE goleiros (
-    id          bigserial PRIMARY KEY,
-    nome        text NOT NULL,
-    telefone    text,
-    chave_pix   text,
-    is_ativo    boolean NOT NULL DEFAULT true,
-    created_at  timestamptz NOT NULL DEFAULT now()
-  );
+  ALTER TABLE jogadores
+    ADD COLUMN IF NOT EXISTS chave_pix text,
+    ADD COLUMN IF NOT EXISTS telefone text;
   ```
-- **Migração de Dados**:
-  ```sql
-  INSERT INTO goleiros (nome, is_ativo)
-  SELECT username, is_ativo FROM jogadores WHERE posicao = 'goleiro'
-  ON CONFLICT DO NOTHING;
-  ```
-- **Adaptação de `partidas_participantes`**:
-  - Adiciona `goleiro_id bigint REFERENCES goleiros(id) ON DELETE RESTRICT`.
-  - Altera `jogador_id` para `DROP NOT NULL`.
-  - Adiciona constraint:
-    ```sql
-    CHECK (
-      (jogador_id IS NOT NULL AND goleiro_id IS NULL) OR
-      (jogador_id IS NULL AND goleiro_id IS NOT NULL)
-    )
-    ```
-- **Adaptação de `votes`**:
-  - Permite avaliar tanto `target_id` (jogador de linha) quanto `target_goleiro_id` (goleiro).
-- **RPC `salvar_times_partida_com_goleiros`**:
-  - Salva em uma única transação atômica os 14 jogadores de linha e os 2 goleiros (um para o time `a` e um para o time `b`).
+- **RPC `salvar_times_e_goleiros_partida`**:
+  - Salva atomicamente os 14 jogadores de linha nos times `a` (7) e `b` (7), e adiciona/atualiza os 2 goleiros selecionados (`p_goleiro_a_id`, `p_goleiro_b_id`) em `partidas_participantes` com `posicao = 'goleiro'` e `status_confirmacao = 'confirmado'`.
 - **RPC `abrir_partida`**:
-  - Valida se o time `a` tem 7 de linha + 1 goleiro (8 total) e se o time `b` tem 7 de linha + 1 goleiro (8 total).
+  - Valida se o Time Preto tem 7 de linha + 1 goleiro (8 total) e o Time Branco tem 7 de linha + 1 goleiro (8 total).
+- **RPC `gerar_eventos_fim_partida` / `publicar_partida`**:
+  - Identifica os participantes que jogaram com `posicao = 'goleiro'`.
+  - Insere as 2 despesas de R$ 30,00 (`tipo = 'goleiro'`, `natureza = 'despesa'`, `descricao = 'Diária Goleiro @username'`) associadas ao `jogador_id` correspondente.
 
 ---
 
-### 2. Frontend Core & API
+### 2. Frontend: Divisão de Times e Seleção dos Goleiros
 
-#### `[NEW] src/lib/goleiros.ts`
-- Interfaces TypeScript:
-  ```ts
-  export interface Goleiro {
-    id: number;
-    nome: string;
-    telefone: string | null;
-    chave_pix: string | null;
-    is_ativo: boolean;
-    created_at: string;
-  }
-  ```
-- Funções CRUD:
-  - `listarGoleirosAtivos()`
-  - `listarTodosGoleiros()`
-  - `criarGoleiro({ nome, telefone, chave_pix })`
-  - `atualizarGoleiro(id, { nome, telefone, chave_pix, is_ativo })`
+#### `src/components/EscalacaoTimesEditor.tsx` & `src/routes/PartidaTimes.tsx`
+- **Interface de Escalação**:
+  - Topo do Time Preto (`a`): Seletor `🧤 Goleiro Time Preto` (lista goleiros com prioridade para quem tem posição `goleiro`, além de busca geral).
+  - Topo do Time Branco (`b`): Seletor `🧤 Goleiro Time Branco` (lista goleiros).
+  - Botão "+ Novo Goleiro" que abre o modal inline `ModalNovoGoleiro.tsx`.
+- **Validação de Salvamento (`podeSalvar`)**:
+  - Time Preto: exatamente 7 jogadores de linha + 1 goleiro selecionado.
+  - Time Branco: exatamente 7 jogadores de linha + 1 goleiro selecionado.
+  - Goleiros do Time Preto e Branco devem ser diferentes.
 
 ---
 
-### 3. Interface e Experiência do Usuário
+### 3. Frontend: Votação Pós-Jogo e Perfil
 
-#### `[MODIFY] src/components/EscalacaoTimesEditor.tsx` & `[MODIFY] src/routes/PartidaTimes.tsx`
-- No topo do Time Preto (`a`): Dropdown `🧤 Goleiro Time Preto` (com lista de goleiros ativos + opção `+ Cadastrar Novo Goleiro`).
-- No topo do Time Branco (`b`): Dropdown `🧤 Goleiro Time Branco` (com lista de goleiros ativos + opção `+ Cadastrar Novo Goleiro`).
-- Modal inline rápido `ModalNovoGoleiro.tsx` para adicionar um goleiro e já selecioná-lo automaticamente no dropdown.
-- Botão "Salvar Times" habilitado quando:
-  - 7 jogadores de linha no Time Preto
-  - 7 jogadores de linha no Time Branco
-  - 1 goleiro selecionado no Time Preto
-  - 1 goleiro selecionado no Time Branco (goleiros distintos)
+#### `src/routes/PartidaVotar.tsx`
+- Verifica se o jogador logado participou daquela partida com `posicao === 'goleiro'`:
+  - Se jogou no gol: exibe aviso `MensagemEstado` funcional ("Goleiros da partida não participam da votação") e impede o envio de votos.
+  - Se jogou na linha: cédula normal de votação, podendo avaliar todos os participantes (incluindo os 2 goleiros que jogaram).
 
-#### `[NEW] src/routes/GestaoGoleiros.tsx`
-- Lista de goleiros com cards compactos no padrão *Súmula de Quinta*.
-- Ações: cadastrar, editar telefone/chave PIX, ativar/desativar status.
-- Acesso fácil via botão na aba de Administração (`/administrador`).
+#### `src/routes/Perfil.tsx`
+- Adiciona seção "Dados de Pagamento / PIX":
+  - Campo "Chave PIX" (CPF, e-mail, telefone ou chave aleatória).
+  - Campo "Telefone / WhatsApp".
+  - Salva diretamente no registro do atleta em `jogadores`.
 
-#### `[MODIFY] src/routes/Administrador.tsx`
-- No extrato financeiro das despesas de goleiros (R$ 30,00):
-  - Exibe o nome do goleiro e botão com ícone de cópia rápida da chave PIX (`navigator.clipboard.writeText`).
-  - Toast/Snackbar de confirmação: "Chave PIX copiada!".
+---
+
+### 4. Frontend: Módulo Financeiro e Gestão de Goleiros
+
+#### `src/routes/Administrador.tsx`
+- Nas linhas de despesa de goleiros (R$ 30,00):
+  - Exibe a Chave PIX do atleta (ou badge "PIX não informado").
+  - Botão de ação rápida com ícone de cópia para copiar a chave PIX direto para a área de transferência com feedback tátil e visual (`Snackbar`).
+
+#### `src/routes/GestaoGoleiros.tsx`
+- Painel para listar todos os goleiros cadastrados, editar telefone/PIX, ativar/desativar status e cadastrar novos goleiros.
 
 ---
 
 ## 🧪 Plano de Verificação
 
-### 1. Testes Automatizados e Compilação
-- Execução de checagem de tipos estrita: `npx tsc -b`
-- Build de produção do Vite: `npx vite build`
-- Formatação e linting: `npx prettier --check .`
+### 1. Validação de Build e Tipos
+- `npx tsc -b`: Checagem estrita de tipos TypeScript sem erros.
+- `npx vite build`: Build de produção.
+- `npx prettier --write .`: Formatação consistente.
 
-### 2. Testes Manuais de Fluxo
-- **Fluxo de Escalação**:
-  1. Acessar `/partida/:id/times` de uma partida com 14 confirmados.
-  2. Verificar os seletores de goleiro no Time Preto e Branco.
-  3. Clicar em "+ Novo Goleiro", cadastrar com chave PIX e verificar se ele é selecionado.
-  4. Balancear os 14 jogadores de linha e salvar os times.
-- **Fluxo de Jogo ao Vivo e Votação**:
-  1. Iniciar a partida ao vivo e verificar os 2 goleiros escalados com a luva 🧤.
-  2. Finalizar a partida e acessar a cédula de votação (`/partida/:id/votar`), checando se os 2 goleiros aparecem para receber notas.
-- **Fluxo Financeiro**:
-  1. Acessar `/administrador` e verificar o lançamento automático dos R$ 30,00 de cada goleiro.
-  2. Clicar no botão de copiar a chave PIX e conferir o feedback.
+### 2. Testes de Casos de Uso
+1. **Dudu/Pedrinho no GOL**:
+   - Escalar Dudu no Time Preto e Pedrinho no Time Branco.
+   - Finalizar partida: verificar se foram geradas 2 despesas de R$ 30 com as chaves PIX de Dudu e Pedrinho.
+   - Logar com Dudu: verificar que ele é impedido de votar em `/partida/:id/votar` (jogou no gol).
+2. **Dudu/Pedrinho na LINHA**:
+   - Confirmar Dudu entre os 14 de linha e escalá-lo na linha (ex: `meia`).
+   - Escalar outros 2 goleiros.
+   - Finalizar partida: verificar que Dudu vota normalmente e não recebe crédito de R$ 30.
+3. **Cópia de PIX no Financeiro**:
+   - Acessar `/administrador` e testar o clique no botão de copiar a chave PIX do goleiro.

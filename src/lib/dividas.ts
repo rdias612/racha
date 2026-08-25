@@ -35,7 +35,12 @@ export interface Divida {
   paga: boolean;
   data_pagamento: string | null;
   created_at: string;
-  jogadores?: { username: string; is_mensalista: boolean } | null;
+  jogadores?: {
+    username: string;
+    is_mensalista: boolean;
+    chave_pix?: string | null;
+    telefone?: string | null;
+  } | null;
 }
 
 // Agrupamento usado pela tela Administrador: total + itens por jogador (receitas).
@@ -52,7 +57,7 @@ export async function listarDividasEmAberto(): Promise<Divida[]> {
   const { data, error } = await supabase
     .from('dividas')
     .select(
-      'id, jogador_id, tipo, natureza, valor, descricao, referencia, partida_id, data_divida, paga, data_pagamento, created_at, jogadores(username, is_mensalista)'
+      'id, jogador_id, tipo, natureza, valor, descricao, referencia, partida_id, data_divida, paga, data_pagamento, created_at, jogadores(username, is_mensalista, chave_pix, telefone)'
     )
     .eq('paga', false)
     .order('data_divida', { ascending: false });

@@ -98,6 +98,12 @@ export function PartidaVotar() {
           return;
         }
 
+        if (eu.posicao === 'goleiro') {
+          setErro('Goleiros da partida não participam da votação.');
+          setCarregando(false);
+          return;
+        }
+
         if (isRandomUsername(jogador.username)) {
           setErro('Jogadores convidados não votam. O capitão responsável vota.');
           setCarregando(false);

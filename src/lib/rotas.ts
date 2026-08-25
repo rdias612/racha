@@ -29,6 +29,7 @@ const carregarPartidaEditar = () => import('../routes/PartidaEditar');
 const carregarPartidaVotar = () => import('../routes/PartidaVotar');
 const carregarNovoJogador = () => import('../routes/NovoJogador');
 const carregarGestaoJogadores = () => import('../routes/GestaoJogadores');
+const carregarGestaoGoleiros = () => import('../routes/GestaoGoleiros');
 const carregarAdministrador = () => import('../routes/Administrador');
 const carregarNotificacoes = () => import('../routes/Notificacoes');
 
@@ -75,6 +76,9 @@ export const NovoJogador = lazy(() =>
 export const GestaoJogadores = lazy(() =>
   carregarGestaoJogadores().then((m) => ({ default: m.GestaoJogadores }))
 );
+export const GestaoGoleiros = lazy(() =>
+  carregarGestaoGoleiros().then((m) => ({ default: m.GestaoGoleiros }))
+);
 export const Administrador = lazy(() =>
   carregarAdministrador().then((m) => ({ default: m.Administrador }))
 );
@@ -107,6 +111,7 @@ const TABELA_PRE_CARREGAMENTO: Array<{
   { padrao: /^\/jogos/, carregar: carregarJogos },
   { padrao: /^\/perfil/, carregar: carregarPerfil },
   { padrao: /^\/gestao-jogadores/, carregar: carregarGestaoJogadores },
+  { padrao: /^\/gestao-goleiros/, carregar: carregarGestaoGoleiros },
   { padrao: /^\/jogador\/novo/, carregar: carregarNovoJogador },
   { padrao: /^\/administrador/, carregar: carregarAdministrador },
   { padrao: /^\/notificacoes/, carregar: carregarNotificacoes },

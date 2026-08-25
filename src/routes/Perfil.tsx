@@ -3,11 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useSessao } from '../context/SessaoContext';
 import { POSICOES } from '../lib/times';
-import { atualizarUsernameJogador, isSuperAdmin, validarFormatoUsername } from '../lib/jogadores';
+import {
+  atualizarUsernameJogador,
+  atualizarDadosPixTelefone,
+  isSuperAdmin,
+  validarFormatoUsername,
+} from '../lib/jogadores';
 import { vibrateError, vibrateSuccess } from '../lib/haptics';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { Avatar } from '../components/Avatar';
 import { SkeletonPerfil } from '../components/Skeletons';
+import { CreditCard, Phone } from 'lucide-react';
 
 interface Stats {
   jogador_id: number;
@@ -30,6 +36,13 @@ export function Perfil() {
   const [salvandoUsername, setSalvandoUsername] = useState(false);
   const [erroUsername, setErroUsername] = useState<string | null>(null);
   const [okUsername, setOkUsername] = useState<string | null>(null);
+
+  // formulário de dados de pagamento (PIX / WhatsApp)
+  const [telefone, setTelefone] = useState(jogador?.telefone ?? '');
+  const [chavePix, setChavePix] = useState(jogador?.chave_pix ?? '');
+  const [salvandoContato, setSalvandoContato] = useState(false);
+  const [erroContato, setErroContato] = useState<string | null>(null);
+  const [okContato, setOkContato] = useState<string | null>(null);
 
   // formulário de troca de senha
   const [senhaAtual, setSenhaAtual] = useState('');
@@ -88,6 +101,32 @@ export function Perfil() {
       setErroUsername('Erro: ' + (error instanceof Error ? error.message : 'falha ao salvar.'));
     } finally {
       setSalvandoUsername(false);
+    }
+  }
+
+  async function salvarDadosContato(e: React.FormEvent) {
+    e.preventDefault();
+    setErroContato(null);
+    setOkContato(null);
+
+    setSalvandoContato(true);
+    try {
+      await atualizarDadosPixTelefone(jogador!.id, {
+        telefone: telefone.trim(),
+        chave_pix: chavePix.trim(),
+      });
+      setJogador({
+        ...jogador!,
+        telefone: telefone.trim() || null,
+        chave_pix: chavePix.trim() || null,
+      });
+      vibrateSuccess();
+      setOkContato('Dados de pagamento e contato salvos com sucesso.');
+    } catch (error) {
+      vibrateError();
+      setErroContato('Erro ao salvar: ' + (error instanceof Error ? error.message : String(error)));
+    } finally {
+      setSalvandoContato(false);
     }
   }
 
@@ -237,6 +276,60 @@ export function Perfil() {
             </button>
           </form>
         )}
+      </section>
+
+      {/* Dados de Pagamento / PIX e Contato */}
+      <section className="rounded-[4px] border border-borda bg-superficie p-3.5 shadow-carimbo space-y-3">
+        <div>
+          <h3 className="text-xs font-display font-bold uppercase tracking-wider text-giz flex items-center gap-1.5">
+            <CreditCard className="size-3.5 text-destaque" />
+            <span>Dados de Pagamento (PIX / WhatsApp)</span>
+          </h3>
+          <p className="text-[11px] font-sans text-giz-fraco mt-0.5">
+            Utilizado para recebimento de diárias de goleiro (R$ 30,00) e contato pelo grupo.
+          </p>
+        </div>
+
+        <form onSubmit={salvarDadosContato} className="space-y-3">
+          <div>
+            <label className="block text-[10px] font-display font-bold uppercase tracking-wider text-giz-fraco mb-1 flex items-center gap-1">
+              <Phone className="size-3 text-destaque" />
+              <span>Telefone / WhatsApp</span>
+            </label>
+            <input
+              type="tel"
+              placeholder="(21) 99999-9999"
+              value={telefone}
+              onChange={(e) => setTelefone(e.target.value)}
+              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm font-mono text-giz shadow-xs focus:outline-none focus:border-destaque min-h-[44px]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-display font-bold uppercase tracking-wider text-giz-fraco mb-1 flex items-center gap-1">
+              <CreditCard className="size-3 text-destaque" />
+              <span>Chave PIX</span>
+            </label>
+            <input
+              type="text"
+              placeholder="CPF, e-mail, telefone ou chave aleatória"
+              value={chavePix}
+              onChange={(e) => setChavePix(e.target.value)}
+              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm font-mono text-giz shadow-xs focus:outline-none focus:border-destaque min-h-[44px]"
+            />
+          </div>
+
+          {erroContato && <MensagemEstado tipo="erro">{erroContato}</MensagemEstado>}
+          {okContato && <MensagemEstado tipo="sucesso">{okContato}</MensagemEstado>}
+
+          <button
+            type="submit"
+            disabled={salvandoContato}
+            className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-50"
+          >
+            {salvandoContato ? 'Salvando dados…' : 'Salvar dados de pagamento'}
+          </button>
+        </form>
       </section>
 
       {/* Trocar senha */}

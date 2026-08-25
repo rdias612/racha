@@ -23,6 +23,13 @@ export interface EscalacaoTimesEditorProps {
   salvando: boolean;
   erro?: string | null;
   feedback?: string | null;
+  // Gestão de Goleiros
+  goleirosDisponiveis?: JogadorLista[];
+  goleiroA?: number | null;
+  goleiroB?: number | null;
+  onSelecionarGoleiroA?: (id: number | null) => void;
+  onSelecionarGoleiroB?: (id: number | null) => void;
+  onAbrirModalNovoGoleiro?: (time: TimeId) => void;
 }
 
 export function EscalacaoTimesEditor({
@@ -42,6 +49,12 @@ export function EscalacaoTimesEditor({
   salvando,
   erro,
   feedback,
+  goleirosDisponiveis = [],
+  goleiroA = null,
+  goleiroB = null,
+  onSelecionarGoleiroA,
+  onSelecionarGoleiroB,
+  onAbrirModalNovoGoleiro,
 }: EscalacaoTimesEditorProps) {
   const contagemTime = useMemo(() => {
     const c: Record<TimeId, number> = { a: 0, b: 0 };
@@ -51,22 +64,19 @@ export function EscalacaoTimesEditor({
     return c;
   }, [times]);
 
-  const contagemGoleiros = useMemo(() => {
-    const g: Record<TimeId, number> = { a: 0, b: 0 };
-    for (const [idStr, t] of Object.entries(times)) {
-      if (!t) continue;
-      const id = Number(idStr);
-      const jog = jogadores.find((j) => j.id === id);
-      if (jog?.posicao === 'goleiro') g[t]++;
-    }
-    return g;
-  }, [times, jogadores]);
+  const temSelecaoGoleiros = Boolean(onSelecionarGoleiroA && onSelecionarGoleiroB);
+
+  const goleiroAValido = !temSelecaoGoleiros || (goleiroA !== null && !times[goleiroA]);
+  const goleiroBValido = !temSelecaoGoleiros || (goleiroB !== null && !times[goleiroB]);
+  const goleirosDistintos =
+    !temSelecaoGoleiros || (goleiroA !== null && goleiroB !== null && goleiroA !== goleiroB);
 
   const podeSalvar =
     contagemTime.a === LIMITE_POR_TIME &&
     contagemTime.b === LIMITE_POR_TIME &&
-    contagemGoleiros.a <= 1 &&
-    contagemGoleiros.b <= 1 &&
+    goleiroAValido &&
+    goleiroBValido &&
+    goleirosDistintos &&
     !salvando;
 
   const totalConfirmados = jogadores.length;
@@ -98,7 +108,7 @@ export function EscalacaoTimesEditor({
             Escalação Automática
           </h3>
           <p className="text-[11px] font-mono text-giz-fraco mt-0.5">
-            Equilibra por posição e histórico de notas ({totalConfirmados}/{LIMITE_POR_TIME * 2}{' '}
+            Equilibra os 14 de linha por posição e notas ({totalConfirmados}/{LIMITE_POR_TIME * 2}{' '}
             confirmados)
           </p>
         </div>
@@ -113,40 +123,88 @@ export function EscalacaoTimesEditor({
         </button>
       </div>
 
-      {/* Painel com os 2 times e contadores */}
-      <div className="grid grid-cols-2 gap-3">
+      {/* Painel com os 2 times, contadores e Seleção de Goleiros */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {(['a', 'b'] as TimeId[]).map((t) => {
           const count = contagemTime[t];
-          const gCount = contagemGoleiros[t];
-          const completo = count === LIMITE_POR_TIME && gCount <= 1;
           const ehPreto = t === 'a';
+          const goleiroId = ehPreto ? goleiroA : goleiroB;
+          const setGoleiro = ehPreto ? onSelecionarGoleiroA : onSelecionarGoleiroB;
+          const outroGoleiroId = ehPreto ? goleiroB : goleiroA;
+          const temGoleiro = goleiroId !== null && goleiroId !== undefined;
+          const completo = count === LIMITE_POR_TIME && (!temSelecaoGoleiros || temGoleiro);
+
           return (
             <div
               key={t}
-              className={`rounded-[4px] border-2 p-3 text-center shadow-carimbo transition ${
+              className={`rounded-[4px] border-2 p-3 text-center shadow-carimbo transition flex flex-col justify-between ${
                 completo ? 'border-ok/70 bg-superficie' : 'border-borda bg-superficie'
               }`}
             >
-              <div
-                className="inline-block px-2.5 py-0.5 rounded-[2px] font-display font-black text-xs uppercase tracking-widest border mb-1.5 shadow-xs"
-                style={{
-                  backgroundColor: ehPreto ? '#0d0d0e' : '#f4f1e8',
-                  color: ehPreto ? '#f4f1e8' : '#0d0d0e',
-                  borderColor: '#35302a',
-                }}
-              >
-                Time {ehPreto ? 'Preto' : 'Branco'}
+              <div>
+                <div
+                  className="inline-block px-2.5 py-0.5 rounded-[2px] font-display font-black text-xs uppercase tracking-widest border mb-1.5 shadow-xs"
+                  style={{
+                    backgroundColor: ehPreto ? '#0d0d0e' : '#f4f1e8',
+                    color: ehPreto ? '#f4f1e8' : '#0d0d0e',
+                    borderColor: '#35302a',
+                  }}
+                >
+                  Time {ehPreto ? 'Preto' : 'Branco'}
+                </div>
+                <div className="font-mono text-xl font-bold text-destaque tabular-nums">
+                  {count}/{LIMITE_POR_TIME} de linha
+                </div>
               </div>
-              <div className="font-mono text-xl font-bold text-destaque tabular-nums">
-                {count}/{LIMITE_POR_TIME}
-              </div>
-              <span className="block font-mono text-[10px] text-giz-fraco mt-0.5">
-                {gCount === 0
-                  ? 'Sem goleiro'
-                  : gCount === 1
-                    ? '1 goleiro ✓'
-                    : `${gCount} goleiros (máx 1)`}
-              </span>
+
+              {/* Seletor de Goleiro dedicado */}
+              {temSelecaoGoleiros && (
+                <div className="mt-3 pt-2.5 border-t border-borda text-left space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-display font-bold uppercase tracking-wider text-giz flex items-center gap-1">
+                      🧤 Goleiro {ehPreto ? 'Preto' : 'Branco'}
+                    </span>
+                    {onAbrirModalNovoGoleiro && (
+                      <button
+                        type="button"
+                        onClick={() => onAbrirModalNovoGoleiro(t)}
+                        className="text-[10px] font-mono text-destaque hover:underline"
+                      >
+                        + Novo
+                      </button>
+                    )}
+                  </div>
+
+                  <select
+                    value={goleiroId ?? ''}
+                    onChange={(e) => {
+                      const val = e.target.value ? Number(e.target.value) : null;
+                      setGoleiro?.(val);
+                    }}
+                    className={`w-full rounded-[3px] border bg-superficie-2 px-2.5 py-1.5 text-xs font-mono text-giz focus:outline-none focus:border-destaque min-h-[38px] ${
+                      temGoleiro ? 'border-ok/60 text-ok font-bold' : 'border-borda text-giz-fraco'
+                    }`}
+                  >
+                    <option value="">-- Selecionar Goleiro --</option>
+                    {goleirosDisponiveis.map((g) => {
+                      const ocupadoNoOutroTime = g.id === outroGoleiroId;
+                      const ocupadoNaLinha = Boolean(times[g.id]);
+                      const disabled = ocupadoNoOutroTime || ocupadoNaLinha;
+                      const labelExtra = ocupadoNoOutroTime
+                        ? ` (No time ${ehPreto ? 'Branco' : 'Preto'})`
+                        : ocupadoNaLinha
+                          ? ' (Escalado na linha)'
+                          : '';
+
+                      return (
+                        <option key={g.id} value={g.id} disabled={disabled}>
+                          @{g.username} {labelExtra}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              )}
             </div>
           );
         })}
@@ -164,13 +222,11 @@ export function EscalacaoTimesEditor({
           {jogadores.map((j) => {
             const time = times[j.id] ?? null;
             const neutro = time === null;
-            const ehGoleiro = j.posicao === 'goleiro';
             const pretoCheio = contagemTime.a >= LIMITE_POR_TIME && time !== 'a';
             const brancoCheio = contagemTime.b >= LIMITE_POR_TIME && time !== 'b';
-            const pretoBloqueiaGoleiro = ehGoleiro && time !== 'a' && contagemGoleiros.a >= 1;
-            const brancoBloqueiaGoleiro = ehGoleiro && time !== 'b' && contagemGoleiros.b >= 1;
-            const pretoDisabled = pretoCheio || pretoBloqueiaGoleiro;
-            const brancoDisabled = brancoCheio || brancoBloqueiaGoleiro;
+            const pretoDisabled = pretoCheio;
+            const brancoDisabled = brancoCheio;
+            const ehGoleiro = j.posicao === 'goleiro' || j.posicao_b === 'goleiro';
             const temNota = mediasNotas[j.id] !== undefined;
             const notaJogador = temNota ? mediasNotas[j.id] : 6.0;
 
@@ -255,8 +311,14 @@ export function EscalacaoTimesEditor({
           {!podeSalvar && (
             <p className="mt-1 text-center text-xs font-mono text-giz-fraco">
               {contagemTime.a !== LIMITE_POR_TIME || contagemTime.b !== LIMITE_POR_TIME
-                ? `Aloque exatamente ${LIMITE_POR_TIME} jogadores em cada time.`
-                : 'Cada time pode ter no máximo 1 goleiro.'}
+                ? `Aloque exatamente ${LIMITE_POR_TIME} jogadores de linha em cada time.`
+                : temSelecaoGoleiros && (goleiroA === null || goleiroB === null)
+                  ? 'Selecione o goleiro de cada time.'
+                  : temSelecaoGoleiros && goleiroA === goleiroB
+                    ? 'Selecione goleiros diferentes para cada time.'
+                    : !goleiroAValido || !goleiroBValido
+                      ? 'Um jogador escalado na linha não pode ser o goleiro.'
+                      : 'Verifique a escalação dos times.'}
             </p>
           )}
         </div>

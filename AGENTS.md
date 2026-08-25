@@ -379,27 +379,28 @@ O daemon do `pg_cron` no Supabase avalia expressões em **UTC**. O fuso de Bras�
   - Após quarta 16h, pendentes perdem a prioridade da vaga e passam a disputar as vagas abertas com avulsos por ordem de chegada (_first-come, first-served_).
   - Status `'confirmado'` sempre ocupa 1 vaga; status `'recusado'` nunca ocupa vaga.
 
-### 8.3 Times, Posições e Algoritmo de Sorteio Balanceado
+### 8.3 Times, Posições e Goleiros da Partida
 
-- **Times**: `a` (**Time Preto**) vs `b` (**Time Branco**) com **7 jogadores de linha por time** (total 14).
+- **Times**: `a` (**Time Preto**) vs `b` (**Time Branco**) com **7 jogadores de linha + 1 goleiro por time** (total 8 por time, 16 na partida).
+- **Seleção dos Goleiros na Divisão de Times**:
+  - A confirmação semanal é estrita aos **14 jogadores de linha**.
+  - Na tela de divisão dos times (`/partida/:id/times`), o administrador aloca os 14 jogadores de linha (7 Preto e 7 Branco) e seleciona o **Goleiro do Time Preto** e o **Goleiro do Time Branco** em seletores dedicados (com opção de cadastro rápido via modal inline).
+- **Atletas Híbridos (Linha vs. Gol)**:
+  - Se um atleta com perfil de goleiro (ex: *Dudu*, *Pedrinho*) jogar na **linha**, ele confirma presença entre os 14 titulares, vota na súmula pós-jogo e segue a regra financeira padrão de linha.
+  - Se atuar no **gol** (`posicao = 'goleiro'`), ele é escalado diretamente na tela de times, **não vota** na cédula pós-jogo, **recebe notas** dos 14 de linha, concorre ao Craque da Partida e recebe a diária de **R$ 30,00**.
 - **Posições Válidas**:
   - Primárias (`posicao`): `goleiro`, `zagueiro`, `lateral`, `meia`, `atacante`, `random`.
-  - Secundárias (`posicao_b`): `goleiro`, `zagueiro`, `lateral`, `meia`, `atacante` (se primária for goleiro, secundária deve ser `null`).
-- **Restrição de Goleiros**: No máximo 1 goleiro por time.
-- **Algoritmo de Balanceamento (`src/lib/escalacao.ts`)**:
-  1. Atribui nota técnica a cada atleta (média histórica agregada `media_nota` ou **Nota Padrão: 6.0** para estreantes).
-  2. Distribui os 2 goleiros entre Time Preto e Branco alocando o de maior nota no time de menor saldo técnico.
-  3. Agrupa atletas de linha por posição primária e aplica distribuição em pares **ABBA** balanceada pela soma das notas.
-  4. Resolve sobras calculando score posicional (primária peso 1.0, secundária peso 0.5) combinado ao menor diferencial de notas.
+  - Secundárias (`posicao_b`): `goleiro`, `zagueiro`, `lateral`, `meia`, `atacante`.
 
 ### 8.4 Sistema de Votação, Média Aparada e Craque da Partida
 
 - **Escala de Notas**: Inteiros de **1 a 10**.
 - **Regras da Cédula**:
-  - Apenas participantes da partida com time atribuído podem votar.
+  - Apenas participantes da partida que atuaram na **linha** (`posicao <> 'goleiro'`) podem votar.
+  - Atletas que atuaram como goleiro na partida não votam (bloqueio no frontend e na RPC `registrar_votos`).
   - Usuários _random_ não votam.
   - É proibido votar em si mesmo (_self-vote_ bloqueado no front e na RPC).
-  - O atleta deve avaliar todos os demais participantes da partida.
+  - O atleta de linha deve avaliar todos os demais participantes da partida (incluindo os 2 goleiros).
   - Suporte a rascunho local em tempo real e descarte de voto para correção enquanto o prazo estiver aberto.
 - **Média Aparada (_Trimmed Mean_)**:
   Quando um atleta recebe 3 ou mais votos, descarta-se a menor e a maior nota da média:
@@ -409,9 +410,10 @@ O daemon do `pg_cron` no Supabase avalia expressões em **UTC**. O fuso de Bras�
   Definido automaticamente via Window Function com os critérios de desempate:
   1º Maior Média Aparada $\rightarrow$ 2º Maior Volume de Votos $\rightarrow$ 3º Ordem Alfabética do Nome.
 
-### 8.5 Módulo Financeiro e Dívidas
+### 8.5 Módulo Financeiro, Dívidas e Diárias de Goleiro
 
-- **Isenção dos Goleiros**: **Goleiros NÃO pagam para jogar** (são isentos de taxas de avulso por partida e de mensalidades). Nunca recebem dívidas automáticas ao participar de partidas e não podem ser cadastrados como mensalistas.
+- **Diária de Goleiros (R$ 30,00)**: Ao finalizar/publicar a partida, são geradas automaticamente 2 despesas de **R$ 30,00** para os atletas que atuaram no gol naquela partida. O painel administrativo exibe a Chave PIX do atleta com botão de cópia rápida.
+- **Isenção dos Goleiros na Partida**: Quem joga no gol é **isento de taxa de avulso** por aquela partida.
 - **Mensalidade**: Valor padrão de **R$ 90,00**. Gerada mensalmente no dia 01 às 10h BRT para todos os mensalistas ativos (não-goleiros), com competência `YYYY-MM`.
 - **Avulso**: Valor padrão de **R$ 20,00**. Gerado automaticamente ao finalizar/publicar a partida para participantes de linha com `is_mensalista = false` e `posicao <> 'goleiro'`.
 - **Outro**: Lançamento manual avulso (churrasco, coletes, multas).

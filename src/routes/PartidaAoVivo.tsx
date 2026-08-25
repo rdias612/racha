@@ -119,7 +119,7 @@ export function PartidaAoVivo() {
       const ok = await abrirPartida(partida.id);
       if (!ok) {
         setErro(
-          'Não foi possível abrir. Confira se os dois times têm 7 jogadores de linha escalados.'
+          'Não foi possível abrir. Confira se os dois times têm 7 jogadores de linha e 1 goleiro escalados.'
         );
         return;
       }
