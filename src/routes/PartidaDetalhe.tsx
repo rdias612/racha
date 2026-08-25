@@ -586,7 +586,7 @@ function Confirmacoes({
   const closesAt = partida.confirmacao_closes_at;
   const agora = new Date();
   const prazoPassou = !!closesAt && agora.getTime() >= new Date(closesAt).getTime();
-  const ocupadas = vagasOcupadas(participantesLocais, closesAt, agora);
+  const ocupadas = vagasOcupadas(participantesLocais);
   const livres = Math.max(0, CAPACIDADE_PARTIDA - ocupadas);
 
   const ordenados = [...participantesLocais].sort((a, b) => {
@@ -710,7 +710,7 @@ function Confirmacoes({
       <div className="divide-y divide-borda">
         {ordenados.map((p) => {
           const ehSelf = p.jogador_id === jogadorLogadoId;
-          const podeConf = podeConfirmar(p, 'confirmado', participantes, closesAt, agora);
+          const podeConf = podeConfirmar(p, 'confirmado', participantes);
           return (
             <div
               key={p.jogador_id}

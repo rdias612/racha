@@ -18,13 +18,6 @@ export const STATUS_LABEL: Record<StatusPartida, string> = {
   closed: 'Encerrada',
 };
 
-export const STATUS_COR: Record<StatusPartida, string> = {
-  draft: 'text-giz-fraco',
-  live: 'text-destaque font-bold',
-  published: 'text-destaque font-bold',
-  closed: 'text-ok font-bold',
-};
-
 export interface Partida {
   id: number;
   data_jogo: string;
@@ -274,34 +267,11 @@ export async function finalizarPartida(partidaId: number) {
   return data as boolean;
 }
 
-// Caminho legado de draft -> published (PartidaEditar). Abre votação 24h e gera avulsos.
-export async function publicarPartida(partidaId: number) {
-  const { data, error } = await supabase.rpc('publicar_partida', {
-    p_partida_id: partidaId,
-  });
-  if (error) throw error;
-  return data as boolean;
-}
-
 // --- Confirmação de presença ---
 
 export const CAPACIDADE_PARTIDA = 14;
 
-// Regra de capacidade (espelha o RPC confirmar_presenca):
-// Apenas 'confirmado' ocupa vaga preenchida. 'pendente' e 'recusado' não ocupam vaga.
-export function vagaOcupada(
-  status: StatusConfirmacao,
-  _closesAt?: string | null,
-  _agora?: Date
-): boolean {
-  return status === 'confirmado';
-}
-
-export function vagasOcupadas(
-  participantes: Participante[],
-  _closesAt?: string | null,
-  _agora?: Date
-): number {
+export function vagasOcupadas(participantes: Participante[]): number {
   return participantes.filter((p) => p.status_confirmacao === 'confirmado').length;
 }
 
@@ -311,9 +281,7 @@ export function vagasOcupadas(
 export function podeConfirmar(
   participante: Participante,
   alvo: StatusConfirmacao,
-  participantes: Participante[],
-  _closesAt?: string | null,
-  _agora?: Date
+  participantes: Participante[]
 ): boolean {
   if (alvo !== 'confirmado') return true;
   const outrosConfirmados = participantes.filter(
@@ -403,8 +371,6 @@ export interface ParticipanteEdicao {
 export async function salvarEdicaoCompletaPartida(
   partidaId: number,
   participantesNovos: ParticipanteEdicao[],
-  _participantesOriginais?: Participante[],
-  _statusPartida?: StatusPartida,
   primeiraVezPublicacao: boolean = false
 ) {
   const payload = participantesNovos.map((p) => ({

@@ -423,22 +423,15 @@ Views `ranking`, `stats_jogador`, `parcerias_jogador`, `pares_racha`, `confronto
 
 ## Frontend
 
-### P3-1. Código morto (uso verificado por grep)
+### P3-1. ✅ Código morto (uso verificado por grep)
 
-- `src/components/ListRow.tsx` — nenhum import no app inteiro (viola "Zero Code Slop")
-- `lib/partidas.ts:261` `publicarPartida` — "caminho legado" sem referências
-- `lib/partidas.ts:275` `vagaOcupada` — zero usos
-- `lib/partidas.ts:21-26` `STATUS_COR` — zero usos (ou passe a usá-lo nos badges)
-- `lib/erros.ts:6` `isErroConexao` exportado — só consumo interno
-- `index.css:29,49,69` tokens `primaria` — 0 usos e alias quebrado
-- `index.css:222-224` `@utility transition-slow` — 0 usos
+> Corrigido em 2026-08-25: removido componente não utilizado `src/components/ListRow.tsx`; removidas funções e constantes mortas `publicarPartida`, `vagaOcupada` e `STATUS_COR` de `src/lib/partidas.ts`; tornado `isErroConexao` privado em `src/lib/erros.ts`; removidos tokens `primaria` e a utility `@utility transition-slow` de `src/index.css`.
+> **Onde**: `src/components/ListRow.tsx`, `src/lib/partidas.ts`, `src/lib/erros.ts`, `src/index.css`.
 
-**Refatoração**: deletar (ou adotar de fato).
+### P3-2. ✅ Parâmetros mortos "por compatibilidade"
 
-### P3-2. Parâmetros mortos "por compatibilidade"
-
-`partidas.ts:277-279, 285-287, 297-299` (`_closesAt`, `_agora`) e `:389-390` (`_participantesOriginais`, `_statusPartida`) — callers ainda passam os args (`PartidaDetalhe.tsx:635, 759`).
-**Refatoração**: remover parâmetros e atualizar os call sites.
+> Corrigido em 2026-08-25: removidos os parâmetros residuais `_closesAt` e `_agora` de `vagasOcupadas` e `podeConfirmar`, bem como `_participantesOriginais` e `_statusPartida` de `salvarEdicaoCompletaPartida` em `src/lib/partidas.ts`. Atualizados os call sites em `src/routes/Resumo.tsx`, `src/routes/PartidaDetalhe.tsx` e `src/routes/PartidaEditar.tsx` (removido também o estado órfão `participantesOriginais`).
+> **Onde**: `src/lib/partidas.ts`, `src/routes/Resumo.tsx`, `src/routes/PartidaDetalhe.tsx`, `src/routes/PartidaEditar.tsx`.
 
 ### P3-3. Tipagem fina
 

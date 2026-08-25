@@ -10,7 +10,6 @@ import {
   carregarParticipantes,
   salvarEdicaoCompletaPartida,
   type Partida,
-  type Participante,
   type ParticipanteEdicao,
 } from '../lib/partidas';
 import { Carregando, MensagemEstado } from '../components/Estado';
@@ -34,7 +33,6 @@ export function PartidaEditar() {
   const partidaId = Number(id);
 
   const [partida, setPartida] = useState<Partida | null>(null);
-  const [participantesOriginais, setParticipantesOriginais] = useState<Participante[]>([]);
   const [participantes, setParticipantes] = useState<ParticipanteEdicao[]>([]);
   const [jogadoresAtivos, setJogadoresAtivos] = useState<JogadorLista[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -62,7 +60,6 @@ export function PartidaEditar() {
       .then(([p, parts, ativos]) => {
         if (!ativo) return;
         setPartida(p);
-        setParticipantesOriginais(parts);
         setJogadoresAtivos(ativos);
         setParticipantes(
           parts.map((pt) => ({
@@ -227,8 +224,6 @@ export function PartidaEditar() {
       await salvarEdicaoCompletaPartida(
         partidaId,
         participantes,
-        participantesOriginais,
-        partida!.status,
         primeiraVez
       );
 

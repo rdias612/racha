@@ -10,7 +10,7 @@ export interface ErroComCodigo {
   hint?: string | null;
 }
 
-export function isErroConexao(erro: unknown): boolean {
+function isErroConexao(erro: unknown): boolean {
   if (!erro) return false;
   const msg =
     erro instanceof Error

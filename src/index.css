@@ -29,8 +29,6 @@
   --color-led-fundo: var(--cor-led-fundo);
   --color-led-fundo-hover: var(--cor-led-fundo-hover);
   --color-led-borda: var(--cor-led-borda);
-
-  --color-primaria: var(--cor-destaque);
 }
 
 :root {
@@ -53,7 +51,6 @@
   --cor-led-fundo: #0d0d0e;
   --cor-led-fundo-hover: #161513;
   --cor-led-borda: #35302a;
-  --cor-primaria: #ffb300;
 }
 
 .dark {
@@ -76,7 +73,6 @@
   --cor-led-fundo: #0d0d0e;
   --cor-led-fundo-hover: #161513;
   --cor-led-borda: #35302a;
-  --cor-primaria: #ffb300;
 }
 
 html,
@@ -227,10 +223,6 @@ textarea:focus-visible {
 
 @utility transition-normal {
   transition: all 200ms ease-out;
-}
-
-@utility transition-slow {
-  transition: all 300ms ease-in-out;
 }
 
 @utility shadow-carimbo {

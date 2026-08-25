@@ -75,7 +75,7 @@ export function Resumo() {
       proxima = {
         id: respProx.data.id,
         data_jogo: respProx.data.data_jogo,
-        ocupadas: vagasOcupadas(parts, respProx.data.confirmacao_closes_at),
+        ocupadas: vagasOcupadas(parts),
       };
     }
 
