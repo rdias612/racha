@@ -9,6 +9,7 @@ import { useAdmin } from '../hooks/useAdmin';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { obterProximaQuintaFeira } from '../lib/formatacao';
 import { BotaoVoltar } from '../components/BotaoVoltar';
+import { BarraAcaoInferior } from '../components/BarraAcaoInferior';
 
 const LIMITE_LINHA = 14;
 const LIMITE_GOLEIROS = 2;
@@ -275,29 +276,25 @@ export function PartidaNova() {
       )}
 
       {/* Barra Fixa Inferior */}
-      <div
-        className="fixed inset-x-0 bottom-0 z-40 p-3 bg-superficie/95 backdrop-blur border-t border-borda shadow-carimbo-preto"
-        style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}
+      <BarraAcaoInferior
+        legenda={
+          !podeRevisar
+            ? `Selecione ${LIMITE_LINHA} jogadores de linha e ${LIMITE_GOLEIROS} goleiros para avançar.`
+            : undefined
+        }
       >
-        <div className="max-w-2xl mx-auto space-y-1">
-          <button
-            onClick={() =>
-              navigate('/partida/nova/confirma', {
-                state: { selecionados, jogadores, dataJogo, horaJogo: HORA_PADRAO },
-              })
-            }
-            disabled={!podeRevisar}
-            className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-40"
-          >
-            Revisar escalação ({selecionados.length}/{TOTAL_PARTICIPANTES})
-          </button>
-          {!podeRevisar && (
-            <p className="text-center text-[10px] font-mono text-giz-fraco">
-              Selecione {LIMITE_LINHA} jogadores de linha e {LIMITE_GOLEIROS} goleiros para avançar.
-            </p>
-          )}
-        </div>
-      </div>
+        <button
+          onClick={() =>
+            navigate('/partida/nova/confirma', {
+              state: { selecionados, jogadores, dataJogo, horaJogo: HORA_PADRAO },
+            })
+          }
+          disabled={!podeRevisar}
+          className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-40"
+        >
+          Revisar escalação ({selecionados.length}/{TOTAL_PARTICIPANTES})
+        </button>
+      </BarraAcaoInferior>
     </div>
   );
 }

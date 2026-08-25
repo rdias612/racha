@@ -246,7 +246,7 @@ Tab atravessa para o conteúdo atrás do overlay; `ConfirmDialog.tsx:60-79` tem 
 
 `PartidaDetalhe.tsx:186-191`, `Administrador.tsx:373-379`, `Notificacoes.tsx:208-214`, `PartidaVotar.tsx:247-252`, `PartidaNova.tsx:155-160`, `NovoJogador.tsx:76-81`, `PartidaAoVivo.tsx:210-216` etc. → `components/BotaoVoltar.tsx` (fallback via prop, `voltar()` interno, `min-h-[44px]`).
 
-### P2-2. `BarraAcaoInferior` — barra fixa inferior duplicada 6x
+### P2-2. ✅ `BarraAcaoInferior` — barra fixa inferior duplicada 6x
 
 `PartidaEditar.tsx:484-506`, `PartidaNova.tsx:275-297`, `PartidaAoVivo.tsx:346-362/364-382` (as duas últimas quase idênticas entre si), `PartidaVotar.tsx:342-361`, `PartidaConfirma.tsx:90-111` → children + legenda opcional, com o `paddingBottom: calc(... + env(safe-area-inset-bottom))` interno.
 

@@ -5,6 +5,7 @@ import { type TimeId } from '../lib/times';
 import { MensagemEstado } from './Estado';
 import { ModalSelecionarGoleiro } from './ModalSelecionarGoleiro';
 import { BotaoVoltar } from './BotaoVoltar';
+import { BarraAcaoInferior } from './BarraAcaoInferior';
 
 export const LIMITE_POR_TIME = 7;
 
@@ -285,34 +286,30 @@ export function EscalacaoTimesEditor({
       {erro && <MensagemEstado>{erro}</MensagemEstado>}
       {feedback && <MensagemEstado tipo="sucesso">{feedback}</MensagemEstado>}
 
-      <div
-        className="fixed inset-x-0 bottom-0 z-40 p-3 bg-superficie/95 backdrop-blur border-t border-borda shadow-carimbo-preto"
-        style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}
+      <BarraAcaoInferior
+        legenda={
+          !podeSalvar
+            ? contagemTime.a !== LIMITE_POR_TIME || contagemTime.b !== LIMITE_POR_TIME
+              ? `Aloque exatamente ${LIMITE_POR_TIME} jogadores de linha em cada time.`
+              : temSelecaoGoleiros && (goleiroA === null || goleiroB === null)
+                ? 'Selecione o goleiro de cada time.'
+                : temSelecaoGoleiros && goleiroA === goleiroB
+                  ? 'Selecione goleiros diferentes para cada time.'
+                  : !goleiroAValido || !goleiroBValido
+                    ? 'Um jogador escalado na linha não pode ser o goleiro.'
+                    : 'Verifique a escalação dos times.'
+            : undefined
+        }
       >
-        <div className="max-w-2xl mx-auto">
-          <button
-            type="button"
-            onClick={onSalvar}
-            disabled={!podeSalvar}
-            className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-40"
-          >
-            {salvando ? salvandoRotulo : salvarRotulo}
-          </button>
-          {!podeSalvar && (
-            <p className="mt-1 text-center text-xs font-mono text-giz-fraco">
-              {contagemTime.a !== LIMITE_POR_TIME || contagemTime.b !== LIMITE_POR_TIME
-                ? `Aloque exatamente ${LIMITE_POR_TIME} jogadores de linha em cada time.`
-                : temSelecaoGoleiros && (goleiroA === null || goleiroB === null)
-                  ? 'Selecione o goleiro de cada time.'
-                  : temSelecaoGoleiros && goleiroA === goleiroB
-                    ? 'Selecione goleiros diferentes para cada time.'
-                    : !goleiroAValido || !goleiroBValido
-                      ? 'Um jogador escalado na linha não pode ser o goleiro.'
-                      : 'Verifique a escalação dos times.'}
-            </p>
-          )}
-        </div>
-      </div>
+        <button
+          type="button"
+          onClick={onSalvar}
+          disabled={!podeSalvar}
+          className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-40"
+        >
+          {salvando ? salvandoRotulo : salvarRotulo}
+        </button>
+      </BarraAcaoInferior>
 
       {temSelecaoGoleiros && modalGoleiroTime && (
         <ModalSelecionarGoleiro

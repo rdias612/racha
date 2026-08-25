@@ -5,6 +5,7 @@ import type { JogadorLista } from '../lib/jogadores';
 import { POSICOES } from '../lib/times';
 import { formatarDataCompleta } from '../lib/formatacao';
 import { BotaoVoltar } from '../components/BotaoVoltar';
+import { BarraAcaoInferior } from '../components/BarraAcaoInferior';
 
 interface EstadoPartida {
   selecionados: number[];
@@ -82,28 +83,23 @@ export function PartidaConfirma() {
       <GrupoConfirma titulo="Goleiros" jogadores={grupos.goleiros} />
 
       {/* CTA fixo inferior */}
-      <div
-        className="fixed inset-x-0 bottom-0 z-40 p-3 bg-superficie/95 backdrop-blur border-t border-borda shadow-carimbo-preto"
-        style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}
-      >
-        <div className="max-w-2xl mx-auto">
-          <button
-            onClick={() =>
-              navigate('/partida/nova/times', {
-                state: {
-                  selecionados: estado.selecionados,
-                  jogadores: estado.jogadores,
-                  dataJogo: estado.dataJogo,
-                  horaJogo: estado.horaJogo,
-                },
-              })
-            }
-            className="w-full min-h-[44px] rounded-[4px] bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo active:translate-y-px transition cursor-pointer"
-          >
-            Confirmar e ir para times
-          </button>
-        </div>
-      </div>
+      <BarraAcaoInferior>
+        <button
+          onClick={() =>
+            navigate('/partida/nova/times', {
+              state: {
+                selecionados: estado.selecionados,
+                jogadores: estado.jogadores,
+                dataJogo: estado.dataJogo,
+                horaJogo: estado.horaJogo,
+              },
+            })
+          }
+          className="w-full min-h-[44px] rounded-[4px] bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo active:translate-y-px transition cursor-pointer"
+        >
+          Confirmar e ir para times
+        </button>
+      </BarraAcaoInferior>
     </div>
   );
 }

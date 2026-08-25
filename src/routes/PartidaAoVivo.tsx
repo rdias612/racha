@@ -9,6 +9,7 @@ import { useJogadorLogado } from '../hooks/useJogadorLogado';
 import { invalidarCache } from '../hooks/useCache';
 import { formatarDataMobile, formatarDataCompleta } from '../lib/formatacao';
 import { BotaoVoltar } from '../components/BotaoVoltar';
+import { BarraAcaoInferior } from '../components/BarraAcaoInferior';
 import {
   abrirPartida,
   carregarEventos,
@@ -345,41 +346,28 @@ export function PartidaAoVivo() {
       {erro && <MensagemEstado>{erro}</MensagemEstado>}
 
       {isAdmin && partida.status === 'draft' && (
-        <div
-          className="fixed inset-x-0 bottom-0 z-40 border-t border-borda bg-superficie/95 p-3 backdrop-blur shadow-carimbo-preto"
-          style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}
-        >
-          <div className="mx-auto max-w-2xl">
-            <button
-              type="button"
-              onClick={confirmarAbrir}
-              disabled={abrindo}
-              className="w-full min-h-[44px] cursor-pointer rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-40"
-            >
-              {abrindo ? 'Abrindo partida…' : 'Abrir partida ao vivo'}
-            </button>
-          </div>
-        </div>
+        <BarraAcaoInferior>
+          <button
+            type="button"
+            onClick={confirmarAbrir}
+            disabled={abrindo}
+            className="w-full min-h-[44px] cursor-pointer rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-40"
+          >
+            {abrindo ? 'Abrindo partida…' : 'Abrir partida ao vivo'}
+          </button>
+        </BarraAcaoInferior>
       )}
 
       {isAdmin && aoVivo && (
-        <div
-          className="fixed inset-x-0 bottom-0 z-40 border-t border-borda bg-superficie/95 p-3 backdrop-blur shadow-carimbo-preto"
-          style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}
-        >
-          <div className="mx-auto max-w-2xl space-y-1">
-            <button
-              type="button"
-              onClick={() => setConfirmandoFim(true)}
-              className="w-full min-h-[44px] cursor-pointer rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition"
-            >
-              Finalizar partida e abrir votação
-            </button>
-            <p className="text-center text-[10px] font-mono text-giz-fraco">
-              Grava o placar final e abre a urna de votação por 24 horas.
-            </p>
-          </div>
-        </div>
+        <BarraAcaoInferior legenda="Grava o placar final e abre a urna de votação por 24 horas.">
+          <button
+            type="button"
+            onClick={() => setConfirmandoFim(true)}
+            className="w-full min-h-[44px] cursor-pointer rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition"
+          >
+            Finalizar partida e abrir votação
+          </button>
+        </BarraAcaoInferior>
       )}
 
       <DialogoEvento

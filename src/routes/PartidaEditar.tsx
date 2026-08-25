@@ -18,6 +18,7 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Avatar } from '../components/Avatar';
 import { formatarDataCompleta } from '../lib/formatacao';
 import { BotaoVoltar } from '../components/BotaoVoltar';
+import { BarraAcaoInferior } from '../components/BarraAcaoInferior';
 
 type FiltroModal = 'todos' | 'goleiros' | 'linha' | 'mensalistas' | 'avulsos';
 
@@ -480,29 +481,25 @@ export function PartidaEditar() {
       {feedback && <MensagemEstado tipo="sucesso">{feedback}</MensagemEstado>}
 
       {/* Barra Fixa Inferior de Salvar */}
-      <div
-        className="fixed inset-x-0 bottom-0 z-40 p-3 bg-superficie/95 backdrop-blur border-t border-borda shadow-carimbo-preto"
-        style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}
+      <BarraAcaoInferior
+        legenda={
+          primeiraVez
+            ? 'Publica o placar e abre a votação por 24 horas.'
+            : 'Atualiza escalação, participantes e placar imediatamente.'
+        }
       >
-        <div className="max-w-2xl mx-auto flex flex-col gap-1">
-          <button
-            onClick={() => setConfirmandoSalvar(true)}
-            disabled={salvando}
-            className="w-full min-h-[44px] rounded-[4px] bg-destaque hover:brightness-105 px-4 py-3 font-display font-bold uppercase tracking-wider text-destaque-tinta shadow-carimbo disabled:opacity-40 active:translate-y-px transition cursor-pointer text-xs"
-          >
-            {salvando
-              ? 'Salvando alterações…'
-              : primeiraVez
-                ? 'Publicar resultado e escalação'
-                : 'Salvar alterações da partida'}
-          </button>
-          <p className="text-center text-[10px] font-mono text-giz-fraco">
-            {primeiraVez
-              ? 'Publica o placar e abre a votação por 24 horas.'
-              : 'Atualiza escalação, participantes e placar imediatamente.'}
-          </p>
-        </div>
-      </div>
+        <button
+          onClick={() => setConfirmandoSalvar(true)}
+          disabled={salvando}
+          className="w-full min-h-[44px] rounded-[4px] bg-destaque hover:brightness-105 px-4 py-3 font-display font-bold uppercase tracking-wider text-destaque-tinta shadow-carimbo disabled:opacity-40 active:translate-y-px transition cursor-pointer text-xs"
+        >
+          {salvando
+            ? 'Salvando alterações…'
+            : primeiraVez
+              ? 'Publicar resultado e escalação'
+              : 'Salvar alterações da partida'}
+        </button>
+      </BarraAcaoInferior>
 
       {/* Modal para Adicionar Jogador com Busca e Filtros Rápidos */}
       {modalTime && (

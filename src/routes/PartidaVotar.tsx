@@ -15,6 +15,7 @@ import { TIMES, POSICOES, type TimeId } from '../lib/times';
 import { isRandomUsername } from '../lib/jogadores';
 import { voltar } from '../lib/navegacao';
 import { BotaoVoltar } from '../components/BotaoVoltar';
+import { BarraAcaoInferior } from '../components/BarraAcaoInferior';
 
 export function PartidaVotar() {
   const { id } = useParams<{ id: string }>();
@@ -336,26 +337,21 @@ export function PartidaVotar() {
       {erro && <MensagemEstado>{erro}</MensagemEstado>}
       {feedback && <MensagemEstado tipo="sucesso">{feedback}</MensagemEstado>}
 
-      <div
-        className="fixed inset-x-0 bottom-0 z-40 p-3 bg-superficie/95 backdrop-blur border-t border-borda shadow-carimbo-preto"
-        style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}
-      >
-        <div className="max-w-2xl mx-auto">
-          <button
-            onClick={enviar}
-            disabled={!todosAvaliados || salvando}
-            className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo transition active:translate-y-px disabled:opacity-40"
-          >
-            {salvando
-              ? 'Depositando votos na urna…'
-              : editando
-                ? 'Atualizar votos'
-                : todosAvaliados
-                  ? 'Enviar todos os votos'
-                  : `Avalie todos (${alvos.length - avaliadosCount} restantes)`}
-          </button>
-        </div>
-      </div>
+      <BarraAcaoInferior>
+        <button
+          onClick={enviar}
+          disabled={!todosAvaliados || salvando}
+          className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo transition active:translate-y-px disabled:opacity-40"
+        >
+          {salvando
+            ? 'Depositando votos na urna…'
+            : editando
+              ? 'Atualizar votos'
+              : todosAvaliados
+                ? 'Enviar todos os votos'
+                : `Avalie todos (${alvos.length - avaliadosCount} restantes)`}
+        </button>
+      </BarraAcaoInferior>
 
       <ConfirmDialog
         open={confirmandoSaida}
