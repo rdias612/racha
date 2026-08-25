@@ -136,7 +136,7 @@ export function GestaoJogadores() {
     if (!novoMensalista && estadoAtual.is_admin && !isSuperAdmin(jOriginal.username)) {
       novoAdmin = false;
       setMensagemSucesso(
-        `O status de administrador de "${jOriginal.nome}" foi desativado (apenas mensalistas podem ser admins).`
+        `O status de administrador de "@${jOriginal.username}" foi desativado (apenas mensalistas podem ser admins).`
       );
     }
 
@@ -171,7 +171,7 @@ export function GestaoJogadores() {
     // Regra: Apenas mensalistas podem ser admin
     if (!estadoAtual.is_mensalista) {
       setMensagemErro(
-        `Apenas jogadores mensalistas podem ser administradores. Torne "${jOriginal.nome}" mensalista primeiro.`
+        `Apenas jogadores mensalistas podem ser administradores. Torne "@${jOriginal.username}" mensalista primeiro.`
       );
       return;
     }
@@ -215,7 +215,7 @@ export function GestaoJogadores() {
       setSnackbar({
         visivel: true,
         tipo: 'sucesso',
-        mensagem: `Senha de ${alvoReset.nome} resetada para "123".`,
+        mensagem: `Senha de @${alvoReset.username} resetada para "123".`,
       });
       setAlvoReset(null);
     } catch (err) {
@@ -268,9 +268,7 @@ export function GestaoJogadores() {
 
   // Filtragem da lista com estado de rascunho
   const jogadoresFiltrados = jogadoresDraft.filter((j) => {
-    const matchBusca =
-      j.nome.toLowerCase().includes(busca.toLowerCase()) ||
-      j.username.toLowerCase().includes(busca.toLowerCase());
+    const matchBusca = j.username.toLowerCase().includes(busca.toLowerCase());
 
     if (!matchBusca) return false;
 
@@ -405,7 +403,7 @@ export function GestaoJogadores() {
             type="text"
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            placeholder="Buscar por nome ou @usuário..."
+            placeholder="Buscar por @usuário..."
             className="w-full pl-9 pr-9 py-2 text-sm rounded-[4px] border border-borda bg-superficie text-giz placeholder-giz-fraco shadow-carimbo focus:outline-none focus:border-destaque font-mono"
           />
           {busca && (
@@ -489,11 +487,11 @@ export function GestaoJogadores() {
                 {/* Linha Superior: Dados do Jogador */}
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    <Avatar nome={j.nome} posicao={j.posicao} size="md" />
+                    <Avatar username={j.username} posicao={j.posicao} size="md" />
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="font-display font-bold text-sm uppercase tracking-wide text-giz truncate">
-                          {j.nome}
+                          @{j.username}
                         </span>
 
                         {modificado && (
@@ -535,7 +533,7 @@ export function GestaoJogadores() {
                       </div>
 
                       <div className="text-xs font-mono text-giz-fraco truncate mt-0.5">
-                        @{j.username} · {POSICOES[j.posicao]}
+                        {POSICOES[j.posicao]}
                         {j.posicao_b && ` / 2ª ${POSICOES[j.posicao_b]}`}
                       </div>
                     </div>
@@ -729,7 +727,7 @@ export function GestaoJogadores() {
         titulo="Resetar senha"
         mensagem={
           alvoReset
-            ? `Redefinir a senha de ${alvoReset.nome} (@${alvoReset.username}) para o padrão "123"? Ele deve trocá-la depois no Perfil.`
+            ? `Redefinir a senha de @${alvoReset.username} para o padrão "123"? Ele deve trocá-la depois no Perfil.`
             : undefined
         }
         textoConfirmar={resetandoId !== null ? 'Resetando...' : 'Resetar'}

@@ -23,8 +23,8 @@ function compararPares(
   direcao: DirecaoOrdenacao
 ): number {
   const fator = direcao === 'asc' ? 1 : -1;
-  const nomeA = `${a.jogador_a_nome} ${a.jogador_b_nome}`.toLowerCase();
-  const nomeB = `${b.jogador_a_nome} ${b.jogador_b_nome}`.toLowerCase();
+  const nomeA = `${a.jogador_a_username} ${a.jogador_b_username}`.toLowerCase();
+  const nomeB = `${b.jogador_a_username} ${b.jogador_b_username}`.toLowerCase();
 
   if (coluna === 'dupla') {
     const cmp = nomeA.localeCompare(nomeB);
@@ -324,11 +324,11 @@ function TabelaDuplas({
               <td className="px-3 py-2.5 font-bold text-giz whitespace-nowrap">
                 <div className="flex items-center gap-2">
                   <div className="flex -space-x-1.5 shrink-0">
-                    <Avatar nome={par.jogador_a_nome} size="xs" />
-                    <Avatar nome={par.jogador_b_nome} size="xs" />
+                    <Avatar username={par.jogador_a_username} size="xs" />
+                    <Avatar username={par.jogador_b_username} size="xs" />
                   </div>
                   <span>
-                    {par.jogador_a_nome} + {par.jogador_b_nome}
+                    @{par.jogador_a_username} + @{par.jogador_b_username}
                   </span>
                 </div>
               </td>

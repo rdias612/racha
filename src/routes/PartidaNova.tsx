@@ -77,7 +77,7 @@ export function PartidaNova() {
       jogadores.filter(
         (j) =>
           j.posicao === 'goleiro' &&
-          (j.nome.toLowerCase().includes(termo) || j.username.toLowerCase().includes(termo))
+          j.username.toLowerCase().includes(termo)
       ),
     [jogadores, termo]
   );
@@ -87,7 +87,7 @@ export function PartidaNova() {
         (j) =>
           j.is_mensalista &&
           j.posicao !== 'goleiro' &&
-          (j.nome.toLowerCase().includes(termo) || j.username.toLowerCase().includes(termo))
+          j.username.toLowerCase().includes(termo)
       ),
     [jogadores, termo]
   );
@@ -97,7 +97,7 @@ export function PartidaNova() {
         (j) =>
           !j.is_mensalista &&
           j.posicao !== 'goleiro' &&
-          (j.nome.toLowerCase().includes(termo) || j.username.toLowerCase().includes(termo))
+          j.username.toLowerCase().includes(termo)
       ),
     [jogadores, termo]
   );
@@ -214,7 +214,7 @@ export function PartidaNova() {
           type="text"
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
-          placeholder="Buscar jogador por nome ou apelido..."
+          placeholder="Buscar atleta por @username..."
           className="w-full rounded-[4px] border border-borda bg-superficie px-3 py-2.5 text-sm text-giz placeholder-giz-fraco shadow-carimbo focus:outline-none focus:border-destaque"
         />
         {busca && (
@@ -352,7 +352,7 @@ function GrupoJogadores({
                   bloqueado ? 'opacity-40 bg-superficie' : 'bg-superficie hover:bg-superficie-2'
                 }`}
               >
-                <span className="flex-1 min-w-0 truncate text-sm font-bold text-giz">{j.nome}</span>
+                <span className="flex-1 min-w-0 truncate text-sm font-bold text-giz">@{j.username}</span>
                 <div className="shrink-0">
                   <button
                     type="button"
@@ -360,7 +360,7 @@ function GrupoJogadores({
                     disabled={bloqueado}
                     aria-pressed={selecionado}
                     aria-label={
-                      selecionado ? `Remover ${j.nome} da escalação` : `Escalar ${j.nome}`
+                      selecionado ? `Remover @${j.username} da escalação` : `Escalar @${j.username}`
                     }
                     title={bloqueado ? 'Cota cheia' : undefined}
                     className={`min-h-[44px] min-w-[7rem] px-3 rounded-[3px] border font-display font-bold uppercase tracking-wider text-xs transition active:translate-y-px ${

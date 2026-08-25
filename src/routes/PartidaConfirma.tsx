@@ -139,7 +139,7 @@ function GrupoConfirma({ titulo, jogadores }: GrupoConfirmaProps) {
                 key={j.id}
                 className="inline-flex items-center gap-1.5 rounded-[2px] bg-superficie-2 border border-borda px-2.5 py-1 text-xs text-giz"
               >
-                <span className="font-bold">{j.nome}</span>
+                <span className="font-bold">@{j.username}</span>
                 <span className="text-[10px] font-display uppercase tracking-wider text-giz-fraco">
                   {POSICOES[j.posicao]}
                 </span>

@@ -24,25 +24,24 @@ export interface Divida {
   paga: boolean;
   data_pagamento: string | null;
   created_at: string;
-  jogadores?: { nome: string; username: string; is_mensalista: boolean } | null;
+  jogadores?: { username: string; is_mensalista: boolean } | null;
 }
 
 // Agrupamento usado pela tela Administrador: total + itens por jogador.
 export interface DividaPorJogador {
   jogador_id: number;
-  nome: string;
   username: string;
   is_mensalista: boolean;
   total_devido: number;
   dividas: Divida[];
 }
 
-/** Lista todas as dívidas em aberto (paga = false), já com nome do jogador. */
+/** Lista todas as dívidas em aberto (paga = false), já com username do jogador. */
 export async function listarDividasEmAberto(): Promise<Divida[]> {
   const { data, error } = await supabase
     .from('dividas')
     .select(
-      'id, jogador_id, tipo, valor, descricao, referencia, partida_id, data_divida, paga, data_pagamento, created_at, jogadores(nome, username, is_mensalista)'
+      'id, jogador_id, tipo, valor, descricao, referencia, partida_id, data_divida, paga, data_pagamento, created_at, jogadores(username, is_mensalista)'
     )
     .eq('paga', false)
     .order('data_divida', { ascending: false });
@@ -55,7 +54,6 @@ export async function listarDividasEmAberto(): Promise<Divida[]> {
 /** Linha da view `dividas_resumo` (total devido + qtd por jogador). */
 export interface DevedorResumo {
   jogador_id: number;
-  nome: string;
   username: string;
   is_mensalista: boolean;
   total_devido: number;
@@ -66,7 +64,7 @@ export interface DevedorResumo {
 export async function listarResumoDevedores(): Promise<DevedorResumo[]> {
   const { data, error } = await supabase
     .from('dividas_resumo')
-    .select('jogador_id, nome, username, is_mensalista, total_devido, qtd_dividas')
+    .select('jogador_id, username, is_mensalista, total_devido, qtd_dividas')
     .gt('total_devido', 0)
     .order('total_devido', { ascending: false });
   if (error) throw error;

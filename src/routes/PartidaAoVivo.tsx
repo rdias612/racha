@@ -5,7 +5,7 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { DialogoEvento } from '../components/DialogoEvento';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { useAdmin } from '../hooks/useAdmin';
-import { formatarDataMobile, formatarDataCompleta, formatarNome } from '../lib/formatacao';
+import { formatarDataMobile, formatarDataCompleta } from '../lib/formatacao';
 import { voltar } from '../lib/navegacao';
 import {
   abrirPartida,
@@ -26,8 +26,8 @@ import {
 
 function nomeDoJogador(participantes: Participante[], jogadorId: number | null): string {
   if (jogadorId == null) return '';
-  const nome = participantes.find((p) => p.jogador_id === jogadorId)?.nome ?? `#${jogadorId}`;
-  return formatarNome(nome);
+  const username = participantes.find((p) => p.jogador_id === jogadorId)?.username;
+  return username ? `@${username}` : `#${jogadorId}`;
 }
 
 export function PartidaAoVivo() {
@@ -91,7 +91,7 @@ export function PartidaAoVivo() {
     if (!alvo) return [];
     return participantes
       .filter((p) => p.time === alvo.time && p.jogador_id !== alvo.jogador_id)
-      .sort((a, b) => (a.nome ?? '').localeCompare(b.nome ?? ''));
+      .sort((a, b) => (a.username ?? '').localeCompare(b.username ?? ''));
   }, [alvo, participantes]);
 
   if (!partidaId) return <Navigate to="/jogos" replace />;

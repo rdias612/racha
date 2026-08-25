@@ -182,7 +182,7 @@ export function EscalacaoTimesEditor({
                 }`}
               >
                 <div className="flex-1 min-w-0 flex items-baseline gap-1.5">
-                  <span className="truncate text-sm font-bold text-giz">{j.nome}</span>
+                  <span className="truncate text-sm font-bold text-giz">{j.username}</span>
                   {ehGoleiro && (
                     <span className="shrink-0 text-xs font-mono" title="Goleiro">
                       🧤
@@ -201,7 +201,7 @@ export function EscalacaoTimesEditor({
                     onClick={() => onAtribuirTime(j.id, 'a')}
                     disabled={pretoDisabled}
                     aria-pressed={time === 'a'}
-                    aria-label={`Escalar ${j.nome} no time Preto`}
+                    aria-label={`Escalar ${j.username} no time Preto`}
                     className={`min-h-[44px] min-w-[3.5rem] px-2 rounded-[3px] border font-display font-bold uppercase tracking-wider text-xs transition active:translate-y-px disabled:opacity-30 ${
                       time === 'a'
                         ? 'bg-[#0d0d0e] text-[#f4f1e8] border-destaque shadow-xs'
@@ -215,7 +215,7 @@ export function EscalacaoTimesEditor({
                     onClick={() => onAtribuirTime(j.id, 'b')}
                     disabled={brancoDisabled}
                     aria-pressed={time === 'b'}
-                    aria-label={`Escalar ${j.nome} no time Branco`}
+                    aria-label={`Escalar ${j.username} no time Branco`}
                     className={`min-h-[44px] min-w-[3.5rem] px-2 rounded-[3px] border font-display font-bold uppercase tracking-wider text-xs transition active:translate-y-px disabled:opacity-30 ${
                       time === 'b'
                         ? 'bg-[#f4f1e8] text-[#0d0d0e] border-destaque shadow-xs'

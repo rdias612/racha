@@ -69,9 +69,9 @@ flowchart TD
 
 ### 3.1. Banco de Dados (Supabase Migration)
 
-#### [NEW] [`075_configuracoes_notificacoes.sql`](file:///c:/GIT/racha/supabase/migrations/075_configuracoes_notificacoes.sql)
+#### [NEW] [`077_configuracoes_notificacoes.sql`](file:///c:/GIT/racha/supabase/migrations/077_configuracoes_notificacoes.sql)
 
-> ⚠️ Numeração: a sequência real de migrations vai até `074` (`074_isencao_dividas_goleiros.sql`). A próxima migration é a **075** (padrão de 3 dígitos, §7.2 do AGENTS.md).
+> ⚠️ Numeração: a sequência real de migrations vai até `076` (`076_remover_coluna_nome_jogadores.sql`). A próxima migration é a **075** (padrão de 3 dígitos, §7.2 do AGENTS.md).
 
 1. **Criação da tabela `notificacoes_config`** (singleton `id integer PRIMARY KEY = 1` — Zero UUID, §7.1):
    - **Confirmação de Presença**:
@@ -96,6 +96,7 @@ flowchart TD
 4. **RPC `salvar_configuracoes_notificacoes(p_admin_id bigint, p_config jsonb)`** `RETURNS boolean`:
    - Valida `is_admin = true`; atualiza somente as chaves whitelistadas do `p_config`; grava `updated_at`/`updated_by`.
    - **Reagenda o job `agendar-partida-semanal`** sempre que dia/horário do convite mudarem: conversão robusta BRT→UTC extraindo minutos e horas (`v_minuto := EXTRACT(MINUTE FROM v_horario)::integer; v_hora_utc := (EXTRACT(HOUR FROM v_horario)::integer + 3) % 24; v_cron_expr := format('%s %s * * %s', v_minuto, v_hora_utc, v_dia_semana);`, ex: terça 09:30 BRT → `30 12 * * 2`), padrão `unschedule-if-exists → cron.schedule` reutilizando o **mesmo bloco `DO`** da migration 060 (cria a partida **e** posta a Edge Function). O toggle `confirmacao_ativo` **não** mexe no job.
+   - ⚠️ **Colisão de dollar-quoting**: o bloco `DO` da migration 060 contém `DO $$ ... $$` embutido no texto do job. Se o corpo da RPC for delimitado por `AS $$ ... $$` (padrão do projeto), o `$$` interno encerra o corpo prematuramente e o `CREATE FUNCTION` falha com erro de sintaxe. **Delimitar o corpo da RPC com tag distinta** — `AS $rpc$ ... $rpc$` — mantendo intactos o `$semanal$` e o `DO $$` internos dentro do texto passado ao `cron.schedule`.
    - Como a RPC roda com `SET search_path = public`, as chamadas a `cron.unschedule`/`cron.schedule` e a leitura de `vault.decrypted_secrets` permanecem **schema-qualificadas** (`cron.schedule(...)`, `vault.decrypted_secrets`) — sem isso o Postgres não resolve os objetos das extensões.
 5. **RPC `disparar_confirmacao_manual(p_admin_id bigint, p_partida_id bigint)`** `RETURNS boolean`:
    - Valida admin e que a partida existe com `status = 'draft'`.
@@ -120,10 +121,10 @@ Permanece **intacta**: quinta 19h e quarta 16h hardcoded. Como o dia do jogo nã
 Ao acordar, lê `notificacoes_config` (service role) e suporta **três modos** pelo body:
 
 1. **`{"partida_id": X}`** (cron semanal, migration 060 — comportamento atual): envia aos mensalistas pendentes, idempotente via ledger `reminder_key = 'confirmacao'`. **Se `confirmacao_ativo = false`, responde 200 sem enviar** (a partida já foi criada; apenas o push é suprimido).
-2. **`{}`** (job de 1 min — modo reforço automático): se `reforco_ativo` (independente de `confirmacao_ativo` — cada toggle rege somente o seu próprio push), localiza a partida `draft` atual (**maior `partida_id`** em `draft`) cujo `confirmacao_closes_at` esteja dentro da janela `[prazo − reforco_horas_antes_prazo, prazo)` e envia aos pendentes com `reminder_key = 'reforco'` (idempotência pela PK do ledger, análoga aos buckets de votação).
+2. **`{}`** (job de 1 min — modo reforço automático): se `reforco_ativo` (independente de `confirmacao_ativo` — cada toggle rege somente o seu próprio push), localiza a partida `draft` atual (**maior `partida_id`** em `draft`) cujo `confirmacao_closes_at` esteja dentro da janela `[prazo − reforco_horas_antes_prazo, prazo)` e envia aos pendentes com `reminder_key = 'reforco'` (idempotência pela PK do ledger, análoga aos buckets de votação). ⚠️ **`confirmacao_closes_at` é nullable** (migration 057 adicionou a coluna sem `NOT NULL` — partidas manuais/antigas podem ter deadline `NULL`): a query do draft deve filtrar `.not('confirmacao_closes_at', 'is', null)` — sem prazo não há janela de reforço e o push simplesmente não se aplica a essa partida.
 3. **`{"partida_id": X, "reenviar": true}`** (RPC manual): dispara **a mesma notificação do disparo automático** para os ainda **pendentes**. **Disparo incondicional do admin**: ignora `confirmacao_ativo`, `reforco_ativo` e a janela do reforço, e **não consulta nem escreve o ledger** — cliques repetidos reenviam sempre (a proteção contra disparo acidental é o `<ConfirmDialog>` no client). O ledger permanece registro exclusivo dos fluxos automáticos.
 
-Comum a todos: templates `confirmacao_titulo`/`confirmacao_mensagem` com fallback para os textos atuais; interpolação de `{dia_jogo}`, `{hora_jogo}`, `{prazo}` lidos de `partidas.data_jogo` / `confirmacao_closes_at` formatados explicitamente no fuso de Brasília (`timeZone: 'America/Sao_Paulo'`) via `Intl.DateTimeFormat` em pt-BR.
+Comum a todos: templates `confirmacao_titulo`/`confirmacao_mensagem` com fallback para os textos atuais; interpolação de `{dia_jogo}`, `{hora_jogo}`, `{prazo}` lidos de `partidas.data_jogo` / `confirmacao_closes_at` formatados explicitamente no fuso de Brasília (`timeZone: 'America/Sao_Paulo'`) via `Intl.DateTimeFormat` em pt-BR. Se `confirmacao_closes_at` for `NULL` (partida manual sem deadline), `{prazo}` cai no texto fixo `'quarta às 16h'` (a regra de domínio) em vez de quebrar a interpolação.
 
 #### [MODIFY] [`supabase/functions/send-voting-reminders/index.ts`](file:///c:/GIT/racha/supabase/functions/send-voting-reminders/index.ts)
 
@@ -155,13 +156,14 @@ Comum a todos: templates `confirmacao_titulo`/`confirmacao_mensagem` com fallbac
   1. **Confirmação de Presença Semanal**: toggle Liga/Desliga (com legenda "desliga apenas o aviso; a partida continua sendo criada"); dia (seg/ter/qua) e horário do convite; campos de Título e Mensagem com legenda das variáveis (`{dia_jogo}`, `{hora_jogo}`, `{prazo}`); reforço (toggle + horas antes do prazo + textos).
   2. **Lembretes de Votação Pós-Jogo**: toggle global; checkboxes dos buckets (`6h`, `3h`, `1h`, `30m`); acordeão com textos por bucket.
   3. **Ações**:
-     - "Testar no meu dispositivo" com checagem local de permissão: se `Notification.permission !== 'granted'`, exibe banner orientativo de alerta ("Ative as notificações neste dispositivo para receber o teste") antes de acionar o disparo. Feedback de **enfileirado** (`pg_net` é assíncrono).
+     - "Testar no meu dispositivo" com checagem via `statusPush(jogadorId)` de `src/lib/pwa.ts` — **não** apenas `Notification.permission`: permissão concedida sem subscription salva em `push_subscriptions` faria a Edge Function responder 404 **silenciosamente** (o `pg_net` é assíncrono; o client já teria exibido "enfileirado"). Se o status for diferente de `'ativado'` (`'negado'`, `'desativado'` ou `'indisponivel'`), exibe banner orientativo de alerta ("Ative as notificações neste dispositivo para receber o teste") **antes** de acionar o disparo. Com status `'ativado'`, dispara e mostra feedback de **enfileirado** (`pg_net` é assíncrono).
      - "Reenviar convite agora" para a **partida `draft` atual (maior `partida_id` em `draft`)** — o cartão exibe o alvo (nº da partida e data do jogo), com `<ConfirmDialog>` antes do disparo. O reenvio é **ação manual do admin e está sempre liberado**, mesmo com os toggles desligados. Sem partida em `draft` (ex.: jogo já `live` na quinta) → botão desabilitado com legenda "Nenhuma partida agendada — o convite semanal cria a partida na segunda".
   4. **Salvar Alterações**: Botão posicionado no fluxo normal do formulário (**inline** no rodapé do conteúdo, seguindo o padrão de `Administrador.tsx`, com espaçamento generoso e padding confortável, sem risco de sobreposição à TabBar inferior), com `vibrateSuccess`/`vibrateError` e `<Snackbar>` de feedback.
 
 #### [MODIFY] [`src/lib/rotas.ts`](file:///c:/GIT/racha/src/lib/rotas.ts)
 
 - Adicionar `carregarNotificacoes` + export `Notificacoes` — fonte única dos imports dinâmicos de rotas (§6.7; proibido declarar `import('../routes/...')` fora dali).
+- Registrar também a entrada na tabela de prefetch: `{ padrao: /^\/notificacoes/, carregar: carregarNotificacoes }` em `TABELA_PRE_CARREGAMENTO` — sem ela, o atalho no menu dropdown de Admin não pré-carrega o chunk da rota antes da navegação.
 
 #### [MODIFY] [`src/App.tsx`](file:///c:/GIT/racha/src/App.tsx)
 
@@ -180,6 +182,10 @@ Comum a todos: templates `confirmacao_titulo`/`confirmacao_mensagem` com fallbac
 
 - [ ] `npm run lint` com 0 erros, `npm run format` e `npm run build` sem falhas.
 - [ ] Migration **075** (sequencial 3 dígitos); zero UUID; RPCs com `SECURITY DEFINER`, `SET search_path = public` e `GRANT EXECUTE` explícito.
+- [ ] Corpo da `salvar_configuracoes_notificacoes` delimitado com tag própria (`AS $rpc$ ... $rpc$`), preservando o `$semanal$` e o `DO $$` internos do job da 060 — sem colisão de dollar-quoting.
+- [ ] Modo reforço da Edge Function filtra drafts com `confirmacao_closes_at IS NOT NULL`; interpolação de `{prazo}` com fallback `'quarta às 16h'` quando o deadline é `NULL`.
+- [ ] Tela de testes usa `statusPush(jogadorId)` (não `Notification.permission` cru) antes de liberar o disparo de teste.
+- [ ] Entrada `/notificacoes` presente em `TABELA_PRE_CARREGAMENTO` (`src/lib/rotas.ts`).
 - [ ] `REVOKE ALL ON notificacoes_config FROM anon, authenticated` + `GRANT SELECT ... TO service_role` — escrita/leitura só via RPC; Edge Function lê com service role.
 - [ ] Seed da linha singleton (`INSERT ... ON CONFLICT DO NOTHING`) presente na 075 e no `aplicar_tudo.sql`.
 - [ ] CHECK do `reminder_key` preserva a alternativa regex `HH:MM` do histórico (era 045) além de `'reforco'`.
@@ -213,9 +219,11 @@ Comum a todos: templates `confirmacao_titulo`/`confirmacao_mensagem` com fallbac
    - Sem partida em `draft` (jogo já `live`/`published`) → botão desabilitado com estado vazio.
 5. **Reforço automático**:
    - Com `reforco_horas_antes_prazo = 4`, dentro da janela (quarta 12h) o job de 1 min dispara **uma única vez** (idempotência pelo ledger `'reforco'`).
+   - Partida `draft` criada manualmente sem `confirmacao_closes_at` (coluna nullable, migration 057): o reforço a ignora (sem prazo não há janela) e nenhuma linha `'reforco'` é criada para ela.
 6. **Votação**:
    - Desmarcar o bucket 30m → notificações de votação saem em 6h/3h/1h, mas não em 30m; desligar `votacao_ativo` → nenhuma sai.
 7. **Teste no dispositivo**:
-   - "Testar no meu dispositivo" → se permissão não concedida, banner orienta ativação; caso concedida, Snackbar de disparo enfileirado e push chegando ao PWA instalado.
+   - "Testar no meu dispositivo" → se `statusPush` retornar diferente de `'ativado'`, banner orienta ativação; caso `'ativado'`, Snackbar de disparo enfileirado e push chegando ao PWA instalado.
+   - Cenário de permissão concedida mas push desativado no Perfil (sem linha em `push_subscriptions`): o banner também aparece — é exatamente o caso que um check cru de `Notification.permission` deixaria passar com 404 silencioso na Edge Function.
 8. **Persistência e Layout**:
    - Salvar via botão inline no rodapé do formulário, recarregar a página e confirmar que todos os valores persistiram sem que a TabBar tenha ocultado o botão ou gerado conflito de visualização.

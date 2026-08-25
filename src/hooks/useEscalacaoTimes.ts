@@ -50,7 +50,7 @@ export function useEscalacaoTimes({
       if (ehGoleiro && destinoTemGoleiro) {
         vibrateWarning();
         setFeedback(
-          `Cada time só pode ter 1 goleiro. ${jogador.nome} não pode ir para o ${
+          `Cada time só pode ter 1 goleiro. @${jogador.username} não pode ir para o ${
             time === 'a' ? 'Preto' : 'Branco'
           }.`
         );

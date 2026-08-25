@@ -47,7 +47,7 @@ export function PartidaTimes() {
     () =>
       jogadoresAtivos
         .filter((j) => confirmadosIds.has(j.id))
-        .sort((a, b) => (a.nome ?? '').localeCompare(b.nome ?? '')),
+        .sort((a, b) => (a.username ?? '').localeCompare(b.username ?? '')),
     [jogadoresAtivos, confirmadosIds]
   );
 

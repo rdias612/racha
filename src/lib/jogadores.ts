@@ -24,7 +24,6 @@ export function validarFormatoUsername(username: string): string | null {
 export interface JogadorLista {
   id: number;
   username: string;
-  nome: string;
   posicao: PosicaoId;
   is_admin: boolean;
   is_ativo: boolean;
@@ -53,9 +52,9 @@ export async function listarUsernames(): Promise<string[]> {
 export async function listarJogadoresAtivos(): Promise<JogadorLista[]> {
   const { data, error } = await supabase
     .from('jogadores')
-    .select('id, username, nome, posicao, is_admin, is_ativo, is_mensalista, posicao_b')
+    .select('id, username, posicao, is_admin, is_ativo, is_mensalista, posicao_b')
     .eq('is_ativo', true)
-    .order('nome');
+    .order('username');
 
   if (error) throw error;
   return (data ?? []).map((j) => ({
@@ -67,8 +66,8 @@ export async function listarJogadoresAtivos(): Promise<JogadorLista[]> {
 export async function listarTodosJogadores(): Promise<JogadorLista[]> {
   const { data, error } = await supabase
     .from('jogadores')
-    .select('id, username, nome, posicao, is_admin, is_ativo, is_mensalista, posicao_b')
-    .order('nome');
+    .select('id, username, posicao, is_admin, is_ativo, is_mensalista, posicao_b')
+    .order('username');
 
   if (error) throw error;
   return (data ?? [])
@@ -133,11 +132,6 @@ export async function atualizarCaracteristicasJogador(
   if (error) throw error;
 }
 
-export async function atualizarNomeJogador(id: number, nome: string): Promise<void> {
-  const { error } = await supabase.from('jogadores').update({ nome }).eq('id', id);
-
-  if (error) throw error;
-}
 
 export async function atualizarUsernameJogador(id: number, novoUsername: string): Promise<void> {
   const { data, error } = await supabase.rpc('alterar_username', {

@@ -14,26 +14,26 @@ interface ResumoAno {
   ano: number;
   total_partidas: number;
   artilheiro_jogador_id: number | null;
-  artilheiro_nome: string | null;
+  artilheiro_username: string | null;
   artilheiro_gols: number | null;
   artilheiro_partidas: number | null;
   maestro_jogador_id: number | null;
-  maestro_nome: string | null;
+  maestro_username: string | null;
   maestro_assistencias: number | null;
   maestro_partidas: number | null;
   participante_jogador_id: number | null;
-  participante_nome: string | null;
+  participante_username: string | null;
   participante_partidas: number | null;
   eficiente_jogador_id: number | null;
-  eficiente_nome: string | null;
+  eficiente_username: string | null;
   eficiente_vitorias: number | null;
   eficiente_partidas: number | null;
   eficiente_percentual: number | null;
   sequencia_vitorias_jogador_id: number | null;
-  sequencia_vitorias_nome: string | null;
+  sequencia_vitorias_username: string | null;
   sequencia_vitorias: number | null;
   seca_vitorias_jogador_id: number | null;
-  seca_vitorias_nome: string | null;
+  seca_vitorias_username: string | null;
   seca_vitorias: number | null;
 }
 
@@ -101,42 +101,42 @@ export function Resumo() {
         {
           titulo: 'Artilheiro Oficial',
           badge: '⚽ GOLS',
-          nome: resumo.artilheiro_nome,
+          nome: resumo.artilheiro_username ? `@${resumo.artilheiro_username}` : null,
           valor: `${resumo.artilheiro_gols ?? 0} ${resumo.artilheiro_gols === 1 ? 'gol' : 'gols'}`,
           detalhe: `${resumo.artilheiro_partidas ?? 0} ${resumo.artilheiro_partidas === 1 ? 'partida' : 'partidas'}`,
         },
         {
           titulo: 'Maestro do Racha',
           badge: '🅰️ PASSES',
-          nome: resumo.maestro_nome,
+          nome: resumo.maestro_username ? `@${resumo.maestro_username}` : null,
           valor: `${resumo.maestro_assistencias ?? 0} ${resumo.maestro_assistencias === 1 ? 'passe' : 'passes'}`,
           detalhe: `${resumo.maestro_partidas ?? 0} ${resumo.maestro_partidas === 1 ? 'partida' : 'partidas'}`,
         },
         {
           titulo: 'Frequência Máxima',
           badge: '🛡️ PRESENÇA',
-          nome: resumo.participante_nome,
+          nome: resumo.participante_username ? `@${resumo.participante_username}` : null,
           valor: `${resumo.participante_partidas ?? 0} ${resumo.participante_partidas === 1 ? 'partida' : 'partidas'}`,
           detalhe: 'Presença garantida',
         },
         {
           titulo: 'Mais Eficiente',
           badge: '📈 % VITÓRIAS',
-          nome: resumo.eficiente_nome,
+          nome: resumo.eficiente_username ? `@${resumo.eficiente_username}` : null,
           valor: `${Math.round((resumo.eficiente_percentual ?? 0) * 100)}% vitórias`,
           detalhe: `${resumo.eficiente_vitorias ?? 0}V em ${resumo.eficiente_partidas ?? 0} jogos`,
         },
         {
           titulo: 'Maior Sequência',
           badge: '🔥 EMBALADO',
-          nome: resumo.sequencia_vitorias_nome,
+          nome: resumo.sequencia_vitorias_username ? `@${resumo.sequencia_vitorias_username}` : null,
           valor: `${resumo.sequencia_vitorias ?? 0} ${resumo.sequencia_vitorias === 1 ? 'vitória' : 'vitórias'}`,
           detalhe: 'Embalado na temporada',
         },
         {
           titulo: 'Maior Seca',
           badge: '🧊 JEJUM',
-          nome: resumo.seca_vitorias_nome,
+          nome: resumo.seca_vitorias_username ? `@${resumo.seca_vitorias_username}` : null,
           valor: `${resumo.seca_vitorias ?? 0} ${resumo.seca_vitorias === 1 ? 'jogo' : 'jogos'}`,
           detalhe: 'A quinta não perdoa',
         },

@@ -96,7 +96,6 @@ export function Administrador() {
         setGrupos(
           resumo.map((r) => ({
             jogador_id: r.jogador_id,
-            nome: r.nome,
             username: r.username,
             is_mensalista: r.is_mensalista,
             total_devido: Number(r.total_devido),
@@ -123,12 +122,12 @@ export function Administrador() {
 
   if (!isAdmin) return <Navigate to="/" replace />;
 
-  function handleQuitar(e: React.MouseEvent, dividaId: number, nome: string) {
+  function handleQuitar(e: React.MouseEvent, dividaId: number, username: string) {
     e.stopPropagation();
     setConfirmacao({
       open: true,
       titulo: 'Quitar dívida?',
-      mensagem: `Marcar a dívida de ${nome} como paga na súmula financeira?`,
+      mensagem: `Marcar a dívida de @${username} como paga na súmula financeira?`,
       onConfirm: async () => {
         setConfirmacao(null);
         const gruposAnteriores = grupos;
@@ -163,12 +162,12 @@ export function Administrador() {
     });
   }
 
-  function handleQuitarTodas(e: React.MouseEvent, jogadorId: number, nome: string) {
+  function handleQuitarTodas(e: React.MouseEvent, jogadorId: number, username: string) {
     e.stopPropagation();
     setConfirmacao({
       open: true,
       titulo: 'Quitar todas as dívidas?',
-      mensagem: `Quitar TODAS as pendências em aberto de ${nome}?`,
+      mensagem: `Quitar TODAS as pendências em aberto de @${username}?`,
       onConfirm: async () => {
         setConfirmacao(null);
         const gruposAnteriores = grupos;
@@ -179,7 +178,7 @@ export function Administrador() {
           setExpandido(null);
         }
 
-        mostrarSnackbar('sucesso', `Dívidas de ${nome} quitadas.`);
+        mostrarSnackbar('sucesso', `Dívidas de @${username} quitadas.`);
 
         try {
           await quitarDividasJogador(jogadorId);
@@ -235,13 +234,13 @@ export function Administrador() {
       )
       .join('\n');
 
-    const texto = `⚽ *Súmula Financeira — Racha Gragoatá*\n\nFala ${g.nome}! Segue o resumo das pendências em aberto:\n\n${linhas}\n\n*Total em aberto: ${formatarReais(g.total_devido)}*\n\nValeu pela força e nos vemos quinta! 👊`;
+    const texto = `⚽ *Súmula Financeira — Racha Gragoatá*\n\nFala @${g.username}! Segue o resumo das pendências em aberto:\n\n${linhas}\n\n*Total em aberto: ${formatarReais(g.total_devido)}*\n\nValeu pela força e nos vemos quinta! 👊`;
 
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
       navigator.clipboard
         .writeText(texto)
         .then(() => {
-          mostrarSnackbar('sucesso', `Lembrete para ${g.nome} copiado com sucesso!`);
+          mostrarSnackbar('sucesso', `Lembrete para @${g.username} copiado com sucesso!`);
         })
         .catch(() => {
           mostrarSnackbar('erro', 'Não foi possível copiar a mensagem.');
@@ -298,7 +297,7 @@ export function Administrador() {
                 <option value="">Selecione…</option>
                 {jogadores.map((j) => (
                   <option key={j.id} value={j.id}>
-                    {j.nome}
+                    @{j.username}
                     {j.posicao === 'goleiro'
                       ? ' (goleiro — isento)'
                       : j.is_mensalista
@@ -439,7 +438,7 @@ export function Administrador() {
                       />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
-                          <span className="truncate text-sm font-bold text-giz">{g.nome}</span>
+                          <span className="truncate text-sm font-bold text-giz">@{g.username}</span>
                           {g.is_mensalista && (
                             <span className="shrink-0 rounded-[2px] border border-destaque/40 bg-destaque/15 px-1.5 py-0.5 text-[9px] font-display uppercase tracking-wider font-bold text-destaque">
                               mensalista
@@ -458,14 +457,14 @@ export function Administrador() {
                           type="button"
                           onClick={(e) => copiarLembreteWhatsApp(e, g)}
                           title="Copiar lembrete WhatsApp"
-                          aria-label={`Copiar cobrança de ${g.nome} para WhatsApp`}
+                          aria-label={`Copiar cobrança de @${g.username} para WhatsApp`}
                           className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-[3px] border border-borda bg-superficie-2 p-2 text-giz-fraco hover:text-destaque hover:border-destaque/50 transition"
                         >
                           <MessageSquare className="size-4" />
                         </button>
                         <button
                           type="button"
-                          onClick={(e) => handleQuitarTodas(e, g.jogador_id, g.nome)}
+                          onClick={(e) => handleQuitarTodas(e, g.jogador_id, g.username)}
                           title="Quitar todas"
                           className="min-h-[44px] rounded-[3px] border border-borda bg-superficie-2 px-2.5 py-1 text-xs font-display uppercase tracking-wider font-semibold text-giz hover:border-destaque transition"
                         >
@@ -512,7 +511,7 @@ export function Administrador() {
                               </span>
                               <button
                                 type="button"
-                                onClick={(e) => handleQuitar(e, d.id, g.nome)}
+                                onClick={(e) => handleQuitar(e, d.id, g.username)}
                                 className="min-h-[44px] flex items-center gap-1 rounded-[3px] border border-ok bg-ok px-3 py-1.5 text-xs font-display uppercase tracking-wider font-bold text-white shadow-xs hover:brightness-110"
                               >
                                 <Check className="size-3.5" />

@@ -52,14 +52,13 @@ export interface Participante {
   status_confirmacao: StatusConfirmacao;
   confirmado_em: string | null;
   // join com jogadores:
-  nome?: string;
   username?: string;
 }
 
 export interface NotaPartida {
   partida_id: number;
   target_id: number;
-  nome: string;
+  username: string;
   avg_rating: number;
   vote_count: number;
   is_craque: boolean;
@@ -105,7 +104,6 @@ interface ParticipanteJoinRow {
   status_confirmacao: StatusConfirmacao;
   confirmado_em: string | null;
   jogadores: {
-    nome: string;
     username: string | null;
   } | null;
 }
@@ -114,7 +112,7 @@ export async function carregarParticipantes(partidaId: number) {
   const { data, error } = await supabase
     .from('partidas_participantes')
     .select(
-      'partida_id, jogador_id, time, posicao, gols, assistencias, gols_contra, status_confirmacao, confirmado_em, jogadores(nome, username)'
+      'partida_id, jogador_id, time, posicao, gols, assistencias, gols_contra, status_confirmacao, confirmado_em, jogadores(username)'
     )
     .eq('partida_id', partidaId);
   if (error) throw error;
@@ -130,7 +128,6 @@ export async function carregarParticipantes(partidaId: number) {
     gols_contra: p.gols_contra,
     status_confirmacao: p.status_confirmacao,
     confirmado_em: p.confirmado_em,
-    nome: p.jogadores?.nome,
     username: p.jogadores?.username,
   })) as Participante[];
 }
@@ -138,7 +135,7 @@ export async function carregarParticipantes(partidaId: number) {
 export async function carregarNotas(partidaId: number) {
   const { data, error } = await supabase
     .from('partida_notas')
-    .select('partida_id, target_id, nome, avg_rating, vote_count, is_craque')
+    .select('partida_id, target_id, username, avg_rating, vote_count, is_craque')
     .eq('partida_id', partidaId);
   if (error) throw error;
   return (data ?? []) as NotaPartida[];
@@ -147,8 +144,8 @@ export async function carregarNotas(partidaId: number) {
 export interface ParRacha {
   jogador_a_id: number;
   jogador_b_id: number;
-  jogador_a_nome: string;
-  jogador_b_nome: string;
+  jogador_a_username: string;
+  jogador_b_username: string;
   partidas: number;
   vitorias: number;
   empates: number;
@@ -385,7 +382,6 @@ export interface ParticipanteEdicao {
   assistencias: number;
   gols_contra: number;
   status_confirmacao: StatusConfirmacao;
-  nome?: string;
   username?: string;
 }
 
