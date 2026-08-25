@@ -374,10 +374,11 @@ O daemon do `pg_cron` no Supabase avalia expressões em **UTC**. O fuso de Bras�
 - **Capacidade Máxima**: **14 jogadores titulares de linha** (`CAPACIDADE_PARTIDA = 14`). Os 2 goleiros não fazem parte da divisão de times e confirmação nesta etapa.
 - **Reserva dos Mensalistas**: Ao criar a partida, todos os mensalistas ativos são pré-inscritos como `pendente`.
 - **Prazo Limite de Confirmação**: **Quarta-feira às 16:00 BRT** (`confirmacao_closes_at`).
-- **Regra da Fila Pós-Prazo**:
-  - Antes de quarta 16h, os mensalistas pendentes seguram a vaga.
-  - Após quarta 16h, pendentes perdem a prioridade da vaga e passam a disputar as vagas abertas com avulsos por ordem de chegada (_first-come, first-served_).
-  - Status `'confirmado'` sempre ocupa 1 vaga; status `'recusado'` nunca ocupa vaga.
+- **Contagem de Vagas e Confirmação**:
+  - Apenas participantes com status `'confirmado'` ocupam vaga preenchida na partida (`vagasOcupadas`).
+  - Mensalistas e avulsos `'pendente'` ou `'recusado'` **não** ocupam vaga preenchida.
+  - Teto de confirmação: máximo de 14 jogadores de linha confirmados (`CAPACIDADE_PARTIDA = 14`). Ao atingir 14 confirmações, as vagas esgotam.
+  - Status `'confirmado'` ocupa 1 vaga; status `'pendente'` e `'recusado'` não ocupam vaga.
 
 ### 8.3 Times, Posições e Goleiros da Partida
 

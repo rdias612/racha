@@ -270,43 +270,39 @@ export async function publicarPartida(partidaId: number) {
 
 export const CAPACIDADE_PARTIDA = 14;
 
-// Regra de capacidade (espelha o RPC confirmar_presenca da migration 057):
-// ocupa vaga = 'confirmado', ou 'pendente' antes do prazo. 'recusado' nunca ocupa.
+// Regra de capacidade (espelha o RPC confirmar_presenca):
+// Apenas 'confirmado' ocupa vaga preenchida. 'pendente' e 'recusado' não ocupam vaga.
 export function vagaOcupada(
   status: StatusConfirmacao,
-  closesAt: string | null,
-  agora: Date = new Date()
+  _closesAt?: string | null,
+  _agora?: Date
 ): boolean {
-  if (status === 'confirmado') return true;
-  if (status === 'pendente') {
-    if (!closesAt) return false;
-    return agora.getTime() < new Date(closesAt).getTime();
-  }
-  return false;
+  return status === 'confirmado';
 }
 
 export function vagasOcupadas(
   participantes: Participante[],
-  closesAt: string | null,
-  agora: Date = new Date()
+  _closesAt?: string | null,
+  _agora?: Date
 ): number {
-  return participantes.filter((p) => vagaOcupada(p.status_confirmacao, closesAt, agora)).length;
+  return participantes.filter((p) => p.status_confirmacao === 'confirmado').length;
 }
 
 // O jogador pode ir para o status `alvo`? Espelha a regra server-side:
-// transição permitida sse (vagas ocupadas pelos demais + (1 se alvo ocupa)) <= 16.
+// Se o alvo for 'confirmado', permite se a quantidade de outros confirmados for menor que CAPACIDADE_PARTIDA (14).
+// Transição para 'pendente' ou 'recusado' é sempre permitida.
 export function podeConfirmar(
   participante: Participante,
   alvo: StatusConfirmacao,
   participantes: Participante[],
-  closesAt: string | null,
-  agora: Date = new Date()
+  _closesAt?: string | null,
+  _agora?: Date
 ): boolean {
-  const ocupadasPelosDemais = participantes
-    .filter((p) => p.jogador_id !== participante.jogador_id)
-    .filter((p) => vagaOcupada(p.status_confirmacao, closesAt, agora)).length;
-  const alvoOcupa = vagaOcupada(alvo, closesAt, agora);
-  return !alvoOcupa || ocupadasPelosDemais < CAPACIDADE_PARTIDA;
+  if (alvo !== 'confirmado') return true;
+  const outrosConfirmados = participantes
+    .filter((p) => p.jogador_id !== participante.jogador_id && p.status_confirmacao === 'confirmado')
+    .length;
+  return outrosConfirmados < CAPACIDADE_PARTIDA;
 }
 
 // O próprio jogador confirma/desconfirma/recusa.
