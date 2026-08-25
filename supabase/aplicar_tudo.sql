@@ -4848,5 +4848,28 @@ $$;
 
 GRANT EXECUTE ON FUNCTION adicionar_participante(bigint, bigint) TO anon, authenticated;
 
+-- 086_rpc_partidas_recentes_jogadores.sql
+CREATE OR REPLACE FUNCTION obter_partidas_recentes_jogadores(
+  p_meses integer DEFAULT 2
+)
+RETURNS TABLE (
+  jogador_id bigint,
+  partidas_recentes bigint
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT
+    pp.jogador_id,
+    COUNT(DISTINCT pp.partida_id)::bigint AS partidas_recentes
+  FROM partidas_participantes pp
+  JOIN partidas p ON p.id = pp.partida_id
+  WHERE p.status IN ('live', 'published', 'closed')
+    AND p.data_jogo >= (now() - (COALESCE(p_meses, 2) || ' months')::interval)
+    AND pp.time IS NOT NULL
+  GROUP BY pp.jogador_id;
+$$;
 
-
+GRANT EXECUTE ON FUNCTION obter_partidas_recentes_jogadores(integer) TO anon, authenticated;

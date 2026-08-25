@@ -32,6 +32,7 @@ export interface JogadorLista {
   chave_pix?: string | null;
   telefone?: string | null;
   media_nota?: number;
+  partidas_ultimos_2_meses?: number;
 }
 
 export const SUPERADMINS = ['dico', 'tadeu', 'natal'];
@@ -210,6 +211,57 @@ export async function obterMediasNotasJogadores(): Promise<Record<number, number
   }
   return medias;
 }
+
+export async function obterPartidasRecentesJogadores(
+  meses = 2
+): Promise<Record<number, number>> {
+  // 1) Tenta obter agregação direta do servidor via RPC
+  try {
+    const { data: rpcData, error: rpcError } = await supabase.rpc(
+      'obter_partidas_recentes_jogadores',
+      {
+        p_meses: meses,
+      }
+    );
+    if (!rpcError && Array.isArray(rpcData)) {
+      const mapa: Record<number, number> = {};
+      for (const item of rpcData) {
+        if (item.jogador_id && item.partidas_recentes != null) {
+          mapa[Number(item.jogador_id)] = Number(item.partidas_recentes);
+        }
+      }
+      return mapa;
+    }
+  } catch {
+    // Continua para fallback caso a RPC ainda não esteja instalada
+  }
+
+  // 2) Fallback para cálculo direto com base no histórico de partidas
+  try {
+    const limiteData = new Date();
+    limiteData.setMonth(limiteData.getMonth() - meses);
+    const { data, error } = await supabase
+      .from('partidas_participantes')
+      .select('jogador_id, time, partidas!inner(status, data_jogo)')
+      .in('partidas.status', ['live', 'published', 'closed'])
+      .gte('partidas.data_jogo', limiteData.toISOString())
+      .not('time', 'is', null);
+
+    if (error || !data) return {};
+
+    const mapa: Record<number, number> = {};
+    for (const row of (data ?? []) as { jogador_id: number }[]) {
+      const jid = Number(row.jogador_id);
+      if (!isNaN(jid)) {
+        mapa[jid] = (mapa[jid] || 0) + 1;
+      }
+    }
+    return mapa;
+  } catch {
+    return {};
+  }
+}
+
 
 // ---------------------------------------------------------------------------
 // Confronto direto (comparador cara-a-cara)

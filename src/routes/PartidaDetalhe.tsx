@@ -4,7 +4,12 @@ import { supabase } from '../lib/supabase';
 import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
 import { TIMES, POSICOES, type TimeId } from '../lib/times';
-import { isRandomUsername, listarJogadoresAtivos, type JogadorLista } from '../lib/jogadores';
+import {
+  isRandomUsername,
+  listarJogadoresAtivos,
+  obterPartidasRecentesJogadores,
+  type JogadorLista,
+} from '../lib/jogadores';
 import {
   abrirPartida,
   carregarPartida,
@@ -618,6 +623,7 @@ function Confirmacoes({
   const [erroLocal, setErroLocal] = useState<string | null>(null);
   const [mostrandoAvulso, setMostrandoAvulso] = useState(false);
   const [todosAtivos, setTodosAtivos] = useState<JogadorLista[]>([]);
+  const [partidasRecentes, setPartidasRecentes] = useState<Record<number, number>>({});
 
   useEffect(() => {
     setParticipantesLocais(participantes);
@@ -704,15 +710,29 @@ function Confirmacoes({
     setMostrandoAvulso((v) => !v);
     if (todosAtivos.length === 0) {
       try {
-        setTodosAtivos(await listarJogadoresAtivos());
+        const [jogadores, recentes] = await Promise.all([
+          listarJogadoresAtivos(),
+          obterPartidasRecentesJogadores(2),
+        ]);
+        setTodosAtivos(jogadores);
+        setPartidasRecentes(recentes);
       } catch {
         /* ignora erro de listagem */
       }
     }
   }
 
-  const idsNoElenco = new Set(participantes.map((p) => p.jogador_id));
-  const candidatosAvulso = todosAtivos.filter((j) => !idsNoElenco.has(j.id));
+  const idsNoElenco = new Set(participantesLocais.map((p) => p.jogador_id));
+  const candidatosAvulso = todosAtivos
+    .filter((j) => !idsNoElenco.has(j.id))
+    .sort((a, b) => {
+      const qtdA = partidasRecentes[a.id] ?? 0;
+      const qtdB = partidasRecentes[b.id] ?? 0;
+      if (qtdB !== qtdA) {
+        return qtdB - qtdA;
+      }
+      return a.username.localeCompare(b.username);
+    });
 
   return (
     <section className="rounded-[4px] border border-borda bg-superficie overflow-hidden shadow-carimbo">
@@ -746,7 +766,7 @@ function Confirmacoes({
                 <Avatar username={p.username ?? ''} size="xs" />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-bold text-giz">
-                    {p.username ? `@${p.username}` : `#${p.jogador_id}`}
+                    {p.username || `#${p.jogador_id}`}
                     {ehSelf && (
                       <span className="ml-1 text-[10px] font-mono text-destaque">(você)</span>
                     )}
@@ -808,7 +828,7 @@ function Confirmacoes({
                 >
                   <span className="flex items-center gap-2 min-w-0">
                     <Avatar username={j.username} size="xs" />
-                    <span className="truncate font-medium">@{j.username}</span>
+                    <span className="truncate font-medium">{j.username}</span>
                   </span>
                   <span className="text-[10px] font-display uppercase tracking-wider text-giz-fraco">
                     {POSICOES[j.posicao]}

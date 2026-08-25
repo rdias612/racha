@@ -198,7 +198,7 @@ export function EscalacaoTimesEditor({
 
                       return (
                         <option key={g.id} value={g.id} disabled={disabled}>
-                          @{g.username} {labelExtra}
+                          {g.username} {labelExtra}
                         </option>
                       );
                     })}

@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { listarJogadoresAtivos, type JogadorLista } from '../lib/jogadores';
+import {
+  listarJogadoresAtivos,
+  obterPartidasRecentesJogadores,
+  type JogadorLista,
+} from '../lib/jogadores';
 import { useAdmin } from '../hooks/useAdmin';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { obterProximaQuintaFeira } from '../lib/formatacao';
@@ -51,8 +55,14 @@ export function PartidaNova() {
       setSelecionados(estadoInicial.selecionados);
       setDataJogo(estadoInicial.dataJogo);
     }
-    listarJogadoresAtivos()
-      .then(setJogadores)
+    Promise.all([listarJogadoresAtivos(), obterPartidasRecentesJogadores(2)])
+      .then(([jogadoresCarregados, recentesCarregadas]) => {
+        const comRecentes = jogadoresCarregados.map((j) => ({
+          ...j,
+          partidas_ultimos_2_meses: recentesCarregadas[j.id] ?? 0,
+        }));
+        setJogadores(comRecentes);
+      })
       .catch((e) => setErro(e.message))
       .finally(() => {
         setHidratado(true);
@@ -87,10 +97,17 @@ export function PartidaNova() {
   );
   const avulsos = useMemo(
     () =>
-      jogadores.filter(
-        (j) =>
-          !j.is_mensalista && j.posicao !== 'goleiro' && j.username.toLowerCase().includes(termo)
-      ),
+      jogadores
+        .filter(
+          (j) =>
+            !j.is_mensalista && j.posicao !== 'goleiro' && j.username.toLowerCase().includes(termo)
+        )
+        .sort((a, b) => {
+          const qtdA = a.partidas_ultimos_2_meses ?? 0;
+          const qtdB = b.partidas_ultimos_2_meses ?? 0;
+          if (qtdB !== qtdA) return qtdB - qtdA;
+          return a.username.localeCompare(b.username);
+        }),
     [jogadores, termo]
   );
 
@@ -345,7 +362,7 @@ function GrupoJogadores({
                 }`}
               >
                 <span className="flex-1 min-w-0 truncate text-sm font-bold text-giz">
-                  @{j.username}
+                  {j.username}
                 </span>
                 <div className="shrink-0">
                   <button
@@ -354,7 +371,7 @@ function GrupoJogadores({
                     disabled={bloqueado}
                     aria-pressed={selecionado}
                     aria-label={
-                      selecionado ? `Remover @${j.username} da escalação` : `Escalar @${j.username}`
+                      selecionado ? `Remover ${j.username} da escalação` : `Escalar ${j.username}`
                     }
                     title={bloqueado ? 'Cota cheia' : undefined}
                     className={`min-h-[44px] min-w-[7rem] px-3 rounded-[3px] border font-display font-bold uppercase tracking-wider text-xs transition active:translate-y-px ${
