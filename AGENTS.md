@@ -386,7 +386,7 @@ O daemon do `pg_cron` no Supabase avalia expressões em **UTC**. O fuso de Bras�
   - A confirmação semanal é estrita aos **14 jogadores de linha**.
   - Na tela de divisão dos times (`/partida/:id/times`), o administrador aloca os 14 jogadores de linha (7 Preto e 7 Branco) e seleciona o **Goleiro do Time Preto** e o **Goleiro do Time Branco** em seletores dedicados (com opção de cadastro rápido via modal inline).
 - **Atletas Híbridos (Linha vs. Gol)**:
-  - Se um atleta com perfil de goleiro (ex: *Dudu*, *Pedrinho*) jogar na **linha**, ele confirma presença entre os 14 titulares, vota na súmula pós-jogo e segue a regra financeira padrão de linha.
+  - Se um atleta com perfil de goleiro (ex: _Dudu_, _Pedrinho_) jogar na **linha**, ele confirma presença entre os 14 titulares, vota na súmula pós-jogo e segue a regra financeira padrão de linha.
   - Se atuar no **gol** (`posicao = 'goleiro'`), ele é escalado diretamente na tela de times, **não vota** na cédula pós-jogo, **recebe notas** dos 14 de linha, concorre ao Craque da Partida e recebe a diária de **R$ 30,00**.
 - **Posições Válidas**:
   - Primárias (`posicao`): `goleiro`, `zagueiro`, `lateral`, `meia`, `atacante`, `random`.

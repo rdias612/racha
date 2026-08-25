@@ -799,8 +799,8 @@ export function Administrador() {
                       {d.descricao && <p className="text-xs text-giz-fraco">{d.descricao}</p>}
 
                       {d.jogadores?.chave_pix ? (
-                        <div className="flex items-center gap-2 pt-0.5">
-                          <span className="text-[11px] font-mono text-giz bg-superficie-2 border border-borda px-1.5 py-0.5 rounded-[2px] truncate max-w-[180px] sm:max-w-xs">
+                        <div className="flex items-center gap-2 pt-0.5 flex-wrap">
+                          <span className="text-[11px] font-mono text-giz bg-superficie-2 border border-borda px-2 py-1 rounded-[2px] truncate max-w-[180px] sm:max-w-xs">
                             PIX: {d.jogadores.chave_pix}
                           </span>
                           <button
@@ -810,9 +810,9 @@ export function Administrador() {
                               navigator.clipboard.writeText(d.jogadores!.chave_pix!);
                               mostrarSnackbar('sucesso', 'Chave PIX copiada!');
                             }}
-                            className="inline-flex items-center gap-1 text-[10px] font-mono text-destaque hover:underline min-h-[32px] px-1"
+                            className="inline-flex items-center gap-1 text-xs font-mono text-destaque hover:underline min-h-[44px] px-2 py-1 active:translate-y-px transition focus-visible:outline-2 focus-visible:outline-destaque"
                           >
-                            <Copy className="size-3" />
+                            <Copy className="size-3.5" />
                             <span>Copiar PIX</span>
                           </button>
                         </div>

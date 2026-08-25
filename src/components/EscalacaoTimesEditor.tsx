@@ -168,7 +168,7 @@ export function EscalacaoTimesEditor({
                       <button
                         type="button"
                         onClick={() => onAbrirModalNovoGoleiro(t)}
-                        className="text-[10px] font-mono text-destaque hover:underline"
+                        className="text-xs font-mono text-destaque hover:underline min-h-[32px] px-1 inline-flex items-center"
                       >
                         + Novo
                       </button>
@@ -181,7 +181,7 @@ export function EscalacaoTimesEditor({
                       const val = e.target.value ? Number(e.target.value) : null;
                       setGoleiro?.(val);
                     }}
-                    className={`w-full rounded-[3px] border bg-superficie-2 px-2.5 py-1.5 text-xs font-mono text-giz focus:outline-none focus:border-destaque min-h-[38px] ${
+                    className={`w-full rounded-[4px] border bg-superficie-2 px-3 py-2 text-base sm:text-xs font-mono text-giz focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2 min-h-[44px] ${
                       temGoleiro ? 'border-ok/60 text-ok font-bold' : 'border-borda text-giz-fraco'
                     }`}
                   >

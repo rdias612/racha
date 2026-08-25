@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAdmin } from '../hooks/useAdmin';
+import { useJogadorLogado } from '../hooks/useJogadorLogado';
 import { useEscalacaoTimes } from '../hooks/useEscalacaoTimes';
 import {
   carregarPartida,
@@ -25,6 +26,7 @@ import { voltar } from '../lib/navegacao';
 
 export function PartidaTimes() {
   const isAdmin = useAdmin();
+  const jogadorLogado = useJogadorLogado();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const partidaId = Number(id);
@@ -100,10 +102,12 @@ export function PartidaTimes() {
         setTimes(init);
       })
       .catch((e) => {
-        if (ativo) setErro(e.message ?? String(e));
+        if (!ativo) return;
+        setErro(e.message ?? String(e));
       })
       .finally(() => {
-        if (ativo) setCarregando(false);
+        if (!ativo) return;
+        setCarregando(false);
       });
     return () => {
       ativo = false;
@@ -135,7 +139,8 @@ export function PartidaTimes() {
     telefone: string;
     chave_pix: string;
   }) {
-    const novoId = await criarGoleiroRapido(dados);
+    if (!jogadorLogado?.id) return;
+    const novoId = await criarGoleiroRapido(dados, jogadorLogado.id);
     const listaAtualizada = await listarGoleiros();
     setGoleirosDisponiveis(listaAtualizada);
     if (timeParaNovoGoleiro === 'a') {
@@ -176,6 +181,7 @@ export function PartidaTimes() {
         p_times_linha: payloadLinha,
         p_goleiro_a_id: goleiroA,
         p_goleiro_b_id: goleiroB,
+        p_admin_id: jogadorLogado?.id ?? null,
       });
 
       if (errRpc) throw errRpc;

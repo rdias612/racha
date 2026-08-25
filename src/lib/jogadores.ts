@@ -327,15 +327,19 @@ export async function compararJogadores(
   return { linhas, partidas };
 }
 
-export async function criarGoleiroRapido(dados: {
-  nome: string;
-  telefone?: string | null;
-  chave_pix?: string | null;
-}): Promise<number> {
+export async function criarGoleiroRapido(
+  dados: {
+    nome: string;
+    telefone?: string | null;
+    chave_pix?: string | null;
+  },
+  adminId: number
+): Promise<number> {
   const { data, error } = await supabase.rpc('criar_goleiro_rapido', {
     p_nome: dados.nome.trim(),
     p_telefone: dados.telefone?.trim() || null,
     p_chave_pix: dados.chave_pix?.trim() || null,
+    p_admin_id: adminId,
   });
 
   if (error) throw error;
@@ -343,16 +347,31 @@ export async function criarGoleiroRapido(dados: {
 }
 
 export async function atualizarDadosPixTelefone(
-  id: number,
-  dados: { chave_pix?: string | null; telefone?: string | null }
+  jogadorId: number,
+  dados: { chave_pix?: string | null; telefone?: string | null },
+  operadorId: number
 ): Promise<void> {
-  const payload: { chave_pix?: string | null; telefone?: string | null } = {};
-  if (dados.chave_pix !== undefined)
-    payload.chave_pix = dados.chave_pix ? dados.chave_pix.trim() : null;
-  if (dados.telefone !== undefined)
-    payload.telefone = dados.telefone ? dados.telefone.trim() : null;
+  const { error } = await supabase.rpc('atualizar_dados_pix_telefone', {
+    p_jogador_id: jogadorId,
+    p_chave_pix: dados.chave_pix ? dados.chave_pix.trim() : null,
+    p_telefone: dados.telefone ? dados.telefone.trim() : null,
+    p_operador_id: operadorId,
+  });
 
-  const { error } = await supabase.from('jogadores').update(payload).eq('id', id);
+  if (error) throw error;
+}
+
+export async function alternarStatusAtivoJogador(
+  jogadorId: number,
+  isAtivo: boolean,
+  adminId: number
+): Promise<void> {
+  const { error } = await supabase.rpc('alternar_status_ativo_jogador', {
+    p_jogador_id: jogadorId,
+    p_is_ativo: isAtivo,
+    p_admin_id: adminId,
+  });
+
   if (error) throw error;
 }
 

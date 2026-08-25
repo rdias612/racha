@@ -200,9 +200,10 @@ export function placarDeEventos(
   return { gols_time_a, gols_time_b };
 }
 
-export async function abrirPartida(partidaId: number) {
+export async function abrirPartida(partidaId: number, adminId?: number | null) {
   const { data, error } = await supabase.rpc('abrir_partida', {
     p_partida_id: partidaId,
+    p_admin_id: adminId ?? null,
   });
   if (error) throw error;
   return data as boolean;

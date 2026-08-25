@@ -4481,12 +4481,13 @@ $rpc$;
 
 GRANT EXECUTE ON FUNCTION salvar_configuracoes_notificacoes(bigint, jsonb) TO anon, authenticated;
 
--- 082_goleiros_pix_e_escalacao.sql
+-- 083_seguranca_goleiros_e_admin_gates.sql
 
 CREATE OR REPLACE FUNCTION criar_goleiro_rapido(
   p_nome      text,
   p_telefone  text DEFAULT NULL,
-  p_chave_pix text DEFAULT NULL
+  p_chave_pix text DEFAULT NULL,
+  p_admin_id  bigint DEFAULT NULL
 )
 RETURNS bigint
 LANGUAGE plpgsql
@@ -4499,6 +4500,10 @@ DECLARE
   v_id       bigint;
   v_count    integer := 1;
 BEGIN
+  IF p_admin_id IS NULL OR NOT EXISTS (SELECT 1 FROM jogadores WHERE id = p_admin_id AND is_admin = true) THEN
+    RAISE EXCEPTION 'Acesso negado: apenas administradores podem cadastrar goleiros.';
+  END IF;
+
   v_base := lower(regexp_replace(trim(p_nome), '[^a-zA-Z0-9]', '', 'g'));
   IF length(v_base) = 0 THEN
     v_base := 'goleiro';
@@ -4527,8 +4532,8 @@ BEGIN
     false,
     true,
     false,
-    trim(p_telefone),
-    trim(p_chave_pix)
+    NULLIF(trim(p_telefone), ''),
+    NULLIF(trim(p_chave_pix), '')
   )
   RETURNING id INTO v_id;
 
@@ -4536,13 +4541,14 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION criar_goleiro_rapido(text, text, text) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION criar_goleiro_rapido(text, text, text, bigint) TO anon, authenticated;
 
 CREATE OR REPLACE FUNCTION salvar_times_e_goleiros_partida(
   p_partida_id   bigint,
   p_times_linha  jsonb,
   p_goleiro_a_id bigint,
-  p_goleiro_b_id bigint
+  p_goleiro_b_id bigint,
+  p_admin_id     bigint DEFAULT NULL
 )
 RETURNS boolean
 LANGUAGE plpgsql
@@ -4552,6 +4558,14 @@ AS $$
 DECLARE
   elem jsonb;
 BEGIN
+  IF p_admin_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM jogadores WHERE id = p_admin_id AND is_admin = true) THEN
+    RAISE EXCEPTION 'Acesso negado: apenas administradores podem alterar a escalação.';
+  END IF;
+
+  IF p_goleiro_a_id = p_goleiro_b_id THEN
+    RAISE EXCEPTION 'Os goleiros dos times Preto e Branco devem ser diferentes.';
+  END IF;
+
   FOR elem IN SELECT * FROM jsonb_array_elements(p_times_linha)
   LOOP
     UPDATE partidas_participantes
@@ -4563,7 +4577,11 @@ BEGIN
   DELETE FROM partidas_participantes
   WHERE partida_id = p_partida_id
     AND posicao = 'goleiro'
-    AND jogador_id NOT IN (p_goleiro_a_id, p_goleiro_b_id);
+    AND jogador_id NOT IN (p_goleiro_a_id, p_goleiro_b_id)
+    AND NOT EXISTS (
+      SELECT 1 FROM jsonb_array_elements(p_times_linha) l
+      WHERE (l->>'jogador_id')::bigint = partidas_participantes.jogador_id
+    );
 
   INSERT INTO partidas_participantes (
     partida_id, jogador_id, time, posicao, status_confirmacao
@@ -4593,5 +4611,128 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION salvar_times_e_goleiros_partida(bigint, jsonb, bigint, bigint) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION salvar_times_e_goleiros_partida(bigint, jsonb, bigint, bigint, bigint) TO anon, authenticated;
+
+CREATE OR REPLACE FUNCTION abrir_partida(
+  p_partida_id bigint,
+  p_admin_id   bigint DEFAULT NULL
+)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_status text;
+  v_time_a bigint;
+  v_time_b bigint;
+  v_gk_a   bigint;
+  v_gk_b   bigint;
+BEGIN
+  IF p_admin_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM jogadores WHERE id = p_admin_id AND is_admin = true) THEN
+    RAISE EXCEPTION 'Acesso negado: apenas administradores podem iniciar a partida.';
+  END IF;
+
+  SELECT status INTO v_status
+  FROM partidas
+  WHERE id = p_partida_id;
+
+  IF v_status IS NULL OR v_status <> 'draft' THEN
+    RETURN false;
+  END IF;
+
+  SELECT
+    COUNT(*) FILTER (WHERE time = 'a' AND posicao <> 'goleiro'),
+    COUNT(*) FILTER (WHERE time = 'b' AND posicao <> 'goleiro'),
+    COUNT(*) FILTER (WHERE time = 'a' AND posicao = 'goleiro'),
+    COUNT(*) FILTER (WHERE time = 'b' AND posicao = 'goleiro')
+  INTO v_time_a, v_time_b, v_gk_a, v_gk_b
+  FROM partidas_participantes
+  WHERE partida_id = p_partida_id
+    AND status_confirmacao = 'confirmado';
+
+  IF v_time_a <> 7 OR v_time_b <> 7 THEN
+    RETURN false;
+  END IF;
+
+  IF v_gk_a <> 1 OR v_gk_b <> 1 THEN
+    RETURN false;
+  END IF;
+
+  DELETE FROM partida_eventos WHERE partida_id = p_partida_id;
+
+  UPDATE partidas_participantes
+  SET gols = 0, assistencias = 0, gols_contra = 0
+  WHERE partida_id = p_partida_id
+    AND status_confirmacao = 'confirmado';
+
+  UPDATE partidas
+  SET status = 'live'
+  WHERE id = p_partida_id;
+
+  RETURN true;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION abrir_partida(bigint, bigint) TO anon, authenticated;
+
+CREATE OR REPLACE FUNCTION atualizar_dados_pix_telefone(
+  p_jogador_id  bigint,
+  p_chave_pix   text,
+  p_telefone    text,
+  p_operador_id bigint
+)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_is_admin boolean := false;
+BEGIN
+  SELECT is_admin INTO v_is_admin
+  FROM jogadores
+  WHERE id = p_operador_id;
+
+  IF p_operador_id <> p_jogador_id AND v_is_admin IS NOT TRUE THEN
+    RAISE EXCEPTION 'Acesso negado: você não tem permissão para alterar os dados deste atleta.';
+  END IF;
+
+  UPDATE jogadores
+  SET
+    chave_pix = NULLIF(trim(p_chave_pix), ''),
+    telefone  = NULLIF(trim(p_telefone), '')
+  WHERE id = p_jogador_id;
+
+  RETURN true;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION atualizar_dados_pix_telefone(bigint, text, text, bigint) TO anon, authenticated;
+
+CREATE OR REPLACE FUNCTION alternar_status_ativo_jogador(
+  p_jogador_id bigint,
+  p_is_ativo   boolean,
+  p_admin_id   bigint
+)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM jogadores WHERE id = p_admin_id AND is_admin = true) THEN
+    RAISE EXCEPTION 'Acesso negado: apenas administradores podem alterar o status de jogadores.';
+  END IF;
+
+  UPDATE jogadores
+  SET is_ativo = p_is_ativo
+  WHERE id = p_jogador_id;
+
+  RETURN true;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION alternar_status_ativo_jogador(bigint, boolean, bigint) TO anon, authenticated;
+
 

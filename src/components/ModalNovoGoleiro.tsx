@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { X, UserPlus, Phone, CreditCard } from 'lucide-react';
 import { MensagemEstado } from './Estado';
 
@@ -14,6 +14,17 @@ export function ModalNovoGoleiro({ open, onClose, onSalvar }: ModalNovoGoleiroPr
   const [chavePix, setChavePix] = useState('');
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [open, onClose]);
 
   if (!open) return null;
 
@@ -65,8 +76,8 @@ export function ModalNovoGoleiro({ open, onClose, onSalvar }: ModalNovoGoleiroPr
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fechar"
-            className="p-1 rounded-[2px] text-giz-fraco hover:text-giz hover:bg-superficie transition min-h-[36px] min-w-[36px] flex items-center justify-center"
+            aria-label="Fechar modal"
+            className="p-1 rounded-[4px] text-giz-fraco hover:text-giz hover:bg-superficie transition min-h-[44px] min-w-[44px] flex items-center justify-center focus-visible:outline-2 focus-visible:outline-destaque"
           >
             <X className="size-4" />
           </button>
@@ -87,14 +98,14 @@ export function ModalNovoGoleiro({ open, onClose, onSalvar }: ModalNovoGoleiroPr
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               placeholder="ex.: Rogério Ceni"
-              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz placeholder-giz-fraco focus:outline-none focus:border-destaque font-sans min-h-[44px]"
+              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm text-giz placeholder-giz-fraco focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2 font-sans min-h-[44px]"
             />
           </div>
 
           <div>
             <label className="block text-xs font-display font-bold uppercase tracking-wider text-giz-fraco mb-1">
               <span className="inline-flex items-center gap-1">
-                <Phone className="size-3 text-destaque" />
+                <Phone className="size-3.5 text-destaque" />
                 Telefone / WhatsApp (Opcional)
               </span>
             </label>
@@ -103,15 +114,15 @@ export function ModalNovoGoleiro({ open, onClose, onSalvar }: ModalNovoGoleiroPr
               value={telefone}
               onChange={(e) => setTelefone(e.target.value)}
               placeholder="ex.: (21) 99999-9999"
-              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz placeholder-giz-fraco focus:outline-none focus:border-destaque font-mono min-h-[44px]"
+              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm text-giz placeholder-giz-fraco focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2 font-mono min-h-[44px]"
             />
           </div>
 
           <div>
             <label className="block text-xs font-display font-bold uppercase tracking-wider text-giz-fraco mb-1">
               <span className="inline-flex items-center gap-1">
-                <CreditCard className="size-3 text-destaque" />
-                Chave PIX (Para pagamento da diária de R$ 30)
+                <CreditCard className="size-3.5 text-destaque" />
+                Chave PIX (Para diária de R$ 30)
               </span>
             </label>
             <input
@@ -119,7 +130,7 @@ export function ModalNovoGoleiro({ open, onClose, onSalvar }: ModalNovoGoleiroPr
               value={chavePix}
               onChange={(e) => setChavePix(e.target.value)}
               placeholder="ex.: CPF, e-mail, telefone ou chave aleatória"
-              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz placeholder-giz-fraco focus:outline-none focus:border-destaque font-mono min-h-[44px]"
+              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm text-giz placeholder-giz-fraco focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2 font-mono min-h-[44px]"
             />
           </div>
 
@@ -128,16 +139,16 @@ export function ModalNovoGoleiro({ open, onClose, onSalvar }: ModalNovoGoleiroPr
               type="button"
               onClick={onClose}
               disabled={salvando}
-              className="px-3 py-2 rounded-[3px] border border-borda text-xs font-display font-bold uppercase tracking-wider text-giz-fraco hover:text-giz hover:bg-superficie-2 transition min-h-[44px]"
+              className="px-3.5 py-2.5 rounded-[4px] border border-borda text-xs font-display font-bold uppercase tracking-wider text-giz-fraco hover:text-giz hover:bg-superficie-2 transition min-h-[44px] focus-visible:outline-2 focus-visible:outline-destaque"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={salvando || !nome.trim()}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[3px] bg-destaque text-destaque-tinta text-xs font-display font-bold uppercase tracking-wider shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-50 min-h-[44px]"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-[4px] bg-destaque text-destaque-tinta text-xs font-display font-bold uppercase tracking-wider shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-50 min-h-[44px] focus-visible:outline-2 focus-visible:outline-destaque"
             >
-              <UserPlus className="size-3.5" />
+              <UserPlus className="size-4" />
               <span>{salvando ? 'Salvando…' : 'Cadastrar e Selecionar'}</span>
             </button>
           </div>

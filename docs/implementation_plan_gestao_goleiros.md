@@ -10,7 +10,7 @@ Este plano consolida a arquitetura unificada para os goleiros do racha, utilizan
    - Novos campos em `jogadores`: `chave_pix text`, `telefone text`.
    - Sem duplicação de tabelas ou quebra de chaves estrangeiras: todos os atletas (linha, goleiros da casa e goleiros convidados) são mantidos em `jogadores`.
 2. **Confirmação Semanal vs. Seleção dos Goleiros**:
-   - **Jogadores de Linha**: Seguem a confirmação semanal padrão estrita a **14 vagas** (`PartidaDetalhe.tsx`). Se um goleiro da casa (ex: *Dudu* ou *Pedrinho*) for jogar na **linha**, ele confirma presença normalmente como qualquer jogador de linha.
+   - **Jogadores de Linha**: Seguem a confirmação semanal padrão estrita a **14 vagas** (`PartidaDetalhe.tsx`). Se um goleiro da casa (ex: _Dudu_ ou _Pedrinho_) for jogar na **linha**, ele confirma presença normalmente como qualquer jogador de linha.
    - **Goleiros da Partida**: Na tela de divisão dos times (`/partida/:id/times`), o administrador escolhe os **2 goleiros da partida** através de dropdowns dedicados no topo do Time Preto e do Time Branco (com opção de "+ Cadastrar Novo Goleiro" rápido via modal inline).
 3. **Comportamento Dinâmico Baseado na Posição Atuada na Partida**:
    - **Quem jogou no GOL (`posicao = 'goleiro'`)**:
@@ -66,6 +66,7 @@ racha/
 ### 1. Banco de Dados e RPCs (PostgreSQL)
 
 #### `[NEW] supabase/migrations/081_goleiros_pix_e_escalacao.sql`
+
 - **Novas colunas em `jogadores`**:
   ```sql
   ALTER TABLE jogadores
@@ -85,6 +86,7 @@ racha/
 ### 2. Frontend: Divisão de Times e Seleção dos Goleiros
 
 #### `src/components/EscalacaoTimesEditor.tsx` & `src/routes/PartidaTimes.tsx`
+
 - **Interface de Escalação**:
   - Topo do Time Preto (`a`): Seletor `🧤 Goleiro Time Preto` (lista goleiros com prioridade para quem tem posição `goleiro`, além de busca geral).
   - Topo do Time Branco (`b`): Seletor `🧤 Goleiro Time Branco` (lista goleiros).
@@ -99,11 +101,13 @@ racha/
 ### 3. Frontend: Votação Pós-Jogo e Perfil
 
 #### `src/routes/PartidaVotar.tsx`
+
 - Verifica se o jogador logado participou daquela partida com `posicao === 'goleiro'`:
   - Se jogou no gol: exibe aviso `MensagemEstado` funcional ("Goleiros da partida não participam da votação") e impede o envio de votos.
   - Se jogou na linha: cédula normal de votação, podendo avaliar todos os participantes (incluindo os 2 goleiros que jogaram).
 
 #### `src/routes/Perfil.tsx`
+
 - Adiciona seção "Dados de Pagamento / PIX":
   - Campo "Chave PIX" (CPF, e-mail, telefone ou chave aleatória).
   - Campo "Telefone / WhatsApp".
@@ -114,11 +118,13 @@ racha/
 ### 4. Frontend: Módulo Financeiro e Gestão de Goleiros
 
 #### `src/routes/Administrador.tsx`
+
 - Nas linhas de despesa de goleiros (R$ 30,00):
   - Exibe a Chave PIX do atleta (ou badge "PIX não informado").
   - Botão de ação rápida com ícone de cópia para copiar a chave PIX direto para a área de transferência com feedback tátil e visual (`Snackbar`).
 
 #### `src/routes/GestaoGoleiros.tsx`
+
 - Painel para listar todos os goleiros cadastrados, editar telefone/PIX, ativar/desativar status e cadastrar novos goleiros.
 
 ---
@@ -126,11 +132,13 @@ racha/
 ## 🧪 Plano de Verificação
 
 ### 1. Validação de Build e Tipos
+
 - `npx tsc -b`: Checagem estrita de tipos TypeScript sem erros.
 - `npx vite build`: Build de produção.
 - `npx prettier --write .`: Formatação consistente.
 
 ### 2. Testes de Casos de Uso
+
 1. **Dudu/Pedrinho no GOL**:
    - Escalar Dudu no Time Preto e Pedrinho no Time Branco.
    - Finalizar partida: verificar se foram geradas 2 despesas de R$ 30 com as chaves PIX de Dudu e Pedrinho.

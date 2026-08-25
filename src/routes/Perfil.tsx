@@ -109,14 +109,20 @@ export function Perfil() {
     setErroContato(null);
     setOkContato(null);
 
+    if (!jogador?.id) return;
+
     setSalvandoContato(true);
     try {
-      await atualizarDadosPixTelefone(jogador!.id, {
-        telefone: telefone.trim(),
-        chave_pix: chavePix.trim(),
-      });
+      await atualizarDadosPixTelefone(
+        jogador.id,
+        {
+          telefone: telefone.trim(),
+          chave_pix: chavePix.trim(),
+        },
+        jogador.id
+      );
       setJogador({
-        ...jogador!,
+        ...jogador,
         telefone: telefone.trim() || null,
         chave_pix: chavePix.trim() || null,
       });
@@ -145,26 +151,32 @@ export function Perfil() {
     }
 
     setTrocando(true);
-    const { data, error } = await supabase.rpc('trocar_senha', {
-      p_jogador_id: jogador!.id,
-      p_senha_atual: senhaAtual,
-      p_senha_nova: senhaNova,
-    });
-    setTrocando(false);
+    try {
+      const { error } = await supabase.rpc('trocar_senha', {
+        p_jogador_id: jogador!.id,
+        p_senha_atual: senhaAtual,
+        p_senha_nova: senhaNova,
+      });
 
-    if (error) {
-      setErroSenha('Erro: ' + error.message);
-      return;
-    }
-    if (data === false) {
-      setErroSenha('Senha atual incorreta.');
-      return;
-    }
+      if (error) {
+        throw new Error(
+          error.message.includes('incorreta')
+            ? 'Senha atual incorreta.'
+            : 'Não foi possível atualizar a senha.'
+        );
+      }
 
-    setOkSenha('Senha alterada com sucesso!');
-    setSenhaAtual('');
-    setSenhaNova('');
-    setSenhaConfirma('');
+      setSenhaAtual('');
+      setSenhaNova('');
+      setSenhaConfirma('');
+      setOkSenha('Senha alterada com sucesso!');
+      vibrateSuccess();
+    } catch (error) {
+      vibrateError();
+      setErroSenha(error instanceof Error ? error.message : 'Erro ao trocar senha.');
+    } finally {
+      setTrocando(false);
+    }
   }
 
   function fazerLogout() {
@@ -177,38 +189,28 @@ export function Perfil() {
   }
 
   return (
-    <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-5 text-giz">
-      {/* Cabeçalho da Súmula */}
-      <div className="sumula-header pb-2 flex items-baseline justify-between">
-        <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
-          Ficha do Jogador
-        </h2>
-        <span className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
-          Súmula CBO
-        </span>
-      </div>
-
+    <div className="px-3 py-4 pb-28 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
       {/* Cartão de Identidade do Jogador */}
-      <section className="flex items-center gap-3.5 p-4 rounded-[4px] border-2 border-borda bg-superficie shadow-carimbo">
-        <Avatar username={jogador.username} posicao={jogador.posicao} size="lg" />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className="font-display font-black text-xl uppercase tracking-wide text-giz truncate">
-              @{jogador.username}
-            </h3>
-            {jogador.is_admin && (
-              <span className="shrink-0 text-[9px] font-display font-bold uppercase tracking-wider bg-destaque text-destaque-tinta px-1.5 py-0.5 rounded-[2px] shadow-xs">
-                Admin
-              </span>
-            )}
+      <section className="rounded-[4px] border border-borda bg-superficie p-3.5 shadow-carimbo">
+        <div className="flex items-center gap-3">
+          <Avatar username={jogador.username} posicao={jogador.posicao} size="lg" />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <h2 className="truncate font-display text-xl font-bold uppercase tracking-wider text-giz">
+                @{jogador.username}
+              </h2>
+              {isSuperAdmin(jogador.username) && (
+                <span className="shrink-0 rounded-[2px] bg-destaque px-1.5 py-0.5 font-display text-[9px] font-black uppercase tracking-wider text-destaque-tinta shadow-xs">
+                  Admin
+                </span>
+              )}
+            </div>
+            <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs font-mono text-giz-fraco">
+              <span>{POSICOES[jogador.posicao]}</span>
+              {jogador.posicao_b && <span>· 2ª {POSICOES[jogador.posicao_b]}</span>}
+              <span>· {jogador.is_mensalista ? 'Mensalista' : 'Avulso'}</span>
+            </div>
           </div>
-          <p className="text-xs font-mono text-giz-fraco mt-0.5">
-            {POSICOES[jogador.posicao]}
-            {jogador.posicao_b && ` / 2ª ${POSICOES[jogador.posicao_b]}`}
-            {jogador.is_mensalista && (
-              <span className="text-destaque font-bold"> · Mensalista</span>
-            )}
-          </p>
         </div>
       </section>
 
@@ -234,45 +236,36 @@ export function Perfil() {
       <section className="rounded-[4px] border border-borda bg-superficie p-3.5 shadow-carimbo space-y-3">
         <div>
           <h3 className="text-xs font-display font-bold uppercase tracking-wider text-giz">
-            Alterar Usuário de Acesso (@username)
+            Nome de Usuário (@)
           </h3>
           <p className="text-[11px] font-sans text-giz-fraco mt-0.5">
-            Identificador único utilizado para entrar no app e menções na súmula.
+            Seu identificador no racha, súmulas e rankings.
           </p>
         </div>
 
         {isSuperAdmin(jogador.username) ? (
-          <div className="rounded-[4px] border border-borda/60 bg-superficie-2 p-2.5 text-xs font-mono text-giz-fraco">
-            🛡️ Usuário Superadmin permanente. O identificador de acesso não pode ser alterado na
-            interface.
-          </div>
+          <p className="text-xs font-mono text-giz-fraco italic">
+            O username de superadministradores é permanente.
+          </p>
         ) : (
           <form onSubmit={alterarUsername} className="space-y-3">
-            <div className="relative flex items-center">
-              <span className="absolute left-3 text-sm font-mono font-bold text-giz-fraco select-none">
-                @
-              </span>
+            <div>
               <input
                 type="text"
                 placeholder={jogador.username}
-                autoCapitalize="none"
-                autoCorrect="off"
-                autoComplete="username"
-                maxLength={30}
                 value={usernameNovo}
                 onChange={(e) => setUsernameNovo(e.target.value.toLowerCase().trim())}
-                className="w-full rounded-[4px] border border-borda bg-superficie-2 pl-7 pr-3 py-2 text-sm font-mono text-giz shadow-xs focus:outline-none focus:border-destaque focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2"
-                required
+                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm font-mono text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2 min-h-[44px]"
               />
             </div>
-            {erroUsername && <MensagemEstado>{erroUsername}</MensagemEstado>}
+            {erroUsername && <MensagemEstado tipo="erro">{erroUsername}</MensagemEstado>}
             {okUsername && <MensagemEstado tipo="sucesso">{okUsername}</MensagemEstado>}
             <button
               type="submit"
-              disabled={salvandoUsername}
+              disabled={salvandoUsername || !usernameNovo.trim()}
               className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-50"
             >
-              {salvandoUsername ? 'Atualizando usuário…' : 'Salvar novo @usuário'}
+              {salvandoUsername ? 'Salvando…' : 'Salvar novo username'}
             </button>
           </form>
         )}
@@ -286,14 +279,14 @@ export function Perfil() {
             <span>Dados de Pagamento (PIX / WhatsApp)</span>
           </h3>
           <p className="text-[11px] font-sans text-giz-fraco mt-0.5">
-            Utilizado para recebimento de diárias de goleiro (R$ 30,00) e contato pelo grupo.
+            Utilizado para recebimento de diárias e contato pelo grupo.
           </p>
         </div>
 
         <form onSubmit={salvarDadosContato} className="space-y-3">
           <div>
             <label className="block text-[10px] font-display font-bold uppercase tracking-wider text-giz-fraco mb-1 flex items-center gap-1">
-              <Phone className="size-3 text-destaque" />
+              <Phone className="size-3.5 text-destaque" />
               <span>Telefone / WhatsApp</span>
             </label>
             <input
@@ -301,13 +294,13 @@ export function Perfil() {
               placeholder="(21) 99999-9999"
               value={telefone}
               onChange={(e) => setTelefone(e.target.value)}
-              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm font-mono text-giz shadow-xs focus:outline-none focus:border-destaque min-h-[44px]"
+              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm font-mono text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2 min-h-[44px]"
             />
           </div>
 
           <div>
             <label className="block text-[10px] font-display font-bold uppercase tracking-wider text-giz-fraco mb-1 flex items-center gap-1">
-              <CreditCard className="size-3 text-destaque" />
+              <CreditCard className="size-3.5 text-destaque" />
               <span>Chave PIX</span>
             </label>
             <input
@@ -315,7 +308,7 @@ export function Perfil() {
               placeholder="CPF, e-mail, telefone ou chave aleatória"
               value={chavePix}
               onChange={(e) => setChavePix(e.target.value)}
-              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm font-mono text-giz shadow-xs focus:outline-none focus:border-destaque min-h-[44px]"
+              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm font-mono text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2 min-h-[44px]"
             />
           </div>
 
@@ -325,7 +318,7 @@ export function Perfil() {
           <button
             type="submit"
             disabled={salvandoContato}
-            className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-50"
+            className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-destaque"
           >
             {salvandoContato ? 'Salvando dados…' : 'Salvar dados de pagamento'}
           </button>

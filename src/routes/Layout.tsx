@@ -49,6 +49,7 @@ const SKELETONS_POR_ROTA: Array<{ padrao: RegExp; Skeleton: ComponentType }> = [
   { padrao: /^\/perfil/, Skeleton: SkeletonPerfil },
   { padrao: /^\/partida\/\d+\/?$/, Skeleton: SkeletonDetalhe },
   { padrao: /^\/gestao-jogadores/, Skeleton: SkeletonGestao },
+  { padrao: /^\/gestao-goleiros/, Skeleton: SkeletonGestao },
   { padrao: /^\/notificacoes/, Skeleton: SkeletonNotificacoes },
 ];
 
