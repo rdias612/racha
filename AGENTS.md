@@ -411,8 +411,9 @@ O daemon do `pg_cron` no Supabase avalia expressões em **UTC**. O fuso de Bras�
 
 ### 8.5 Módulo Financeiro e Dívidas
 
-- **Mensalidade**: Valor padrão de **R$ 90,00**. Gerada mensalmente no dia 01 às 10h BRT para todos os mensalistas ativos, com competência `YYYY-MM`.
-- **Avulso**: Valor padrão de **R$ 20,00**. Gerado automaticamente ao finalizar/publicar a partida para participantes com `is_mensalista = false`.
+- **Isenção dos Goleiros**: **Goleiros NÃO pagam para jogar** (são isentos de taxas de avulso por partida e de mensalidades). Nunca recebem dívidas automáticas ao participar de partidas e não podem ser cadastrados como mensalistas.
+- **Mensalidade**: Valor padrão de **R$ 90,00**. Gerada mensalmente no dia 01 às 10h BRT para todos os mensalistas ativos (não-goleiros), com competência `YYYY-MM`.
+- **Avulso**: Valor padrão de **R$ 20,00**. Gerado automaticamente ao finalizar/publicar a partida para participantes de linha com `is_mensalista = false` e `posicao <> 'goleiro'`.
 - **Outro**: Lançamento manual avulso (churrasco, coletes, multas).
 - **Teto de Mensalistas**: Máximo de **14 mensalistas ativos** (`MAX_MENSALISTAS = 14`).
 - **Regra de Administradores**: **Apenas mensalistas podem ser Administradores**. Se o status de mensalista de um atleta for desativado, o privilégio de administrador é revogado automaticamente.

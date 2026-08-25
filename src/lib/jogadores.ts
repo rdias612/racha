@@ -92,9 +92,13 @@ export async function atualizarCaracteristicasJogador(
   if (payload.is_mensalista === true) {
     const { data: jogadorAtual } = await supabase
       .from('jogadores')
-      .select('is_mensalista')
+      .select('posicao, is_mensalista')
       .eq('id', id)
       .maybeSingle();
+
+    if (jogadorAtual?.posicao === 'goleiro') {
+      throw new Error('Goleiros não pagam para jogar e não podem ser mensalistas.');
+    }
 
     if (jogadorAtual && !jogadorAtual.is_mensalista) {
       const { count, error: countErr } = await supabase

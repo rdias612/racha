@@ -354,12 +354,14 @@ AS $$
 DECLARE
   v_id bigint;
   v_posicao_b text;
+  v_is_mensalista boolean;
 BEGIN
-  -- Goleiros primarios nao tem posicao secundaria.
+  -- Goleiros primarios nao tem posicao secundaria e sao isentos de pagamentos.
   v_posicao_b := CASE WHEN p_posicao = 'goleiro' THEN NULL ELSE p_posicao_b END;
+  v_is_mensalista := CASE WHEN p_posicao = 'goleiro' THEN false ELSE COALESCE(p_is_mensalista, false) END;
 
   INSERT INTO jogadores (username, senha_hash, nome, posicao, is_admin, is_ativo, posicao_b, is_mensalista)
-  VALUES (p_username, '123', p_nome, p_posicao, p_is_admin, true, v_posicao_b, COALESCE(p_is_mensalista, false))
+  VALUES (p_username, '123', p_nome, p_posicao, p_is_admin, true, v_posicao_b, v_is_mensalista)
   RETURNING id INTO v_id;
 
   RETURN v_id;
@@ -1661,7 +1663,10 @@ BEGIN
   FROM partidas_participantes pp
   JOIN jogadores j ON j.id = pp.jogador_id
   JOIN partidas   p ON p.id = pp.partida_id
-  WHERE pp.partida_id = p_partida_id AND j.is_mensalista = false
+  WHERE pp.partida_id = p_partida_id
+    AND j.is_mensalista = false
+    AND pp.posicao <> 'goleiro'
+    AND j.posicao <> 'goleiro'
   ON CONFLICT DO NOTHING;
 END;
 $$;
@@ -1718,7 +1723,9 @@ SELECT cron.schedule(
     (now() AT TIME ZONE 'America/Sao_Paulo')::date,
     'Mensalidade ' || to_char(now() AT TIME ZONE 'America/Sao_Paulo', 'MM/YYYY')
   FROM jogadores j
-  WHERE j.is_mensalista = true AND j.is_ativo = true
+  WHERE j.is_mensalista = true
+    AND j.is_ativo = true
+    AND j.posicao <> 'goleiro'
   ON CONFLICT DO NOTHING;
   $$
 );

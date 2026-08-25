@@ -156,7 +156,14 @@ export function NovoJogador() {
               </span>
               <select
                 value={posicao}
-                onChange={(e) => setPosicao(e.target.value as PosicaoId)}
+                onChange={(e) => {
+                  const val = e.target.value as PosicaoId;
+                  setPosicao(val);
+                  if (val === 'goleiro') {
+                    setIsMensalista(false);
+                    setIsAdminNovo(false);
+                  }
+                }}
                 className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz shadow-xs focus:outline-none focus:border-destaque"
               >
                 {(Object.keys(POSICOES) as PosicaoId[]).map((p) => (
@@ -194,10 +201,17 @@ export function NovoJogador() {
             Configurações & Permissões
           </div>
 
-          <label className="flex items-start gap-3 p-3 rounded-[3px] border border-borda bg-superficie-2 hover:border-destaque/40 cursor-pointer transition">
+          <label
+            className={`flex items-start gap-3 p-3 rounded-[3px] border border-borda bg-superficie-2 transition ${
+              posicao === 'goleiro'
+                ? 'opacity-60 cursor-not-allowed'
+                : 'hover:border-destaque/40 cursor-pointer'
+            }`}
+          >
             <input
               type="checkbox"
               checked={isMensalista}
+              disabled={posicao === 'goleiro'}
               onChange={(e) => {
                 const val = e.target.checked;
                 setIsMensalista(val);
@@ -207,18 +221,27 @@ export function NovoJogador() {
             />
             <div className="text-xs">
               <span className="font-display font-bold uppercase tracking-wider text-giz block">
-                É Mensalista
+                É Mensalista{posicao === 'goleiro' ? ' (Não aplicável)' : ''}
               </span>
               <span className="text-giz-fraco">
-                Tem vaga garantida na confirmação das partidas e contribuição mensal.
+                {posicao === 'goleiro'
+                  ? 'Goleiros não pagam para jogar (isentos de mensalidade e taxa de avulso).'
+                  : 'Tem vaga garantida na confirmação das partidas e contribuição mensal.'}
               </span>
             </div>
           </label>
 
-          <label className="flex items-start gap-3 p-3 rounded-[3px] border border-borda bg-superficie-2 hover:border-destaque/40 cursor-pointer transition">
+          <label
+            className={`flex items-start gap-3 p-3 rounded-[3px] border border-borda bg-superficie-2 transition ${
+              posicao === 'goleiro'
+                ? 'opacity-60 cursor-not-allowed'
+                : 'hover:border-destaque/40 cursor-pointer'
+            }`}
+          >
             <input
               type="checkbox"
               checked={isAdminNovo}
+              disabled={posicao === 'goleiro'}
               onChange={(e) => {
                 const val = e.target.checked;
                 setIsAdminNovo(val);
@@ -228,7 +251,7 @@ export function NovoJogador() {
             />
             <div className="text-xs">
               <span className="font-display font-bold uppercase tracking-wider text-giz block">
-                É Administrador
+                É Administrador{posicao === 'goleiro' ? ' (Não aplicável)' : ''}
               </span>
               <span className="text-giz-fraco">
                 Pode criar, editar partidas, lançar eventos e gerenciar o racha (requer ser

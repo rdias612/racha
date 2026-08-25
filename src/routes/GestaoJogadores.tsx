@@ -100,6 +100,9 @@ export function GestaoJogadores() {
   const jogadoresDraft = jogadores.map(obterEstadoDraft);
   const totalJogadores = jogadores.length;
   const totalMensalistas = jogadoresDraft.filter((j) => j.is_mensalista).length;
+  const totalAvulsos = jogadoresDraft.filter(
+    (j) => !j.is_mensalista && j.posicao !== 'goleiro'
+  ).length;
   const totalAdmins = jogadoresDraft.filter((j) => j.is_admin || isSuperAdmin(j.username)).length;
   const totalSuperAdmins = jogadoresDraft.filter((j) => isSuperAdmin(j.username)).length;
 
@@ -108,6 +111,11 @@ export function GestaoJogadores() {
   const limiteAtingido = totalMensalistas >= MAX_MENSALISTAS;
 
   function alternarMensalistaDraft(jOriginal: JogadorLista) {
+    if (jOriginal.posicao === 'goleiro') {
+      setMensagemErro('Goleiros não pagam para jogar e são isentos de mensalidade.');
+      return;
+    }
+
     const estadoAtual = obterEstadoDraft(jOriginal);
     const novoMensalista = !estadoAtual.is_mensalista;
 
@@ -267,7 +275,7 @@ export function GestaoJogadores() {
     if (!matchBusca) return false;
 
     if (filtro === 'mensalistas') return j.is_mensalista;
-    if (filtro === 'avulsos') return !j.is_mensalista;
+    if (filtro === 'avulsos') return !j.is_mensalista && j.posicao !== 'goleiro';
     if (filtro === 'admins') return j.is_admin || isSuperAdmin(j.username);
 
     return true;
@@ -441,7 +449,7 @@ export function GestaoJogadores() {
                 : 'bg-superficie border border-borda text-giz-fraco hover:text-giz hover:bg-superficie-2'
             }`}
           >
-            Avulsos ({totalJogadores - totalMensalistas})
+            Avulsos ({totalAvulsos})
           </button>
           <button
             onClick={() => setFiltro('admins')}
@@ -510,7 +518,11 @@ export function GestaoJogadores() {
                             Admin
                           </span>
                         )}
-                        {j.is_mensalista ? (
+                        {j.posicao === 'goleiro' ? (
+                          <span className="inline-flex items-center gap-1 rounded-[2px] bg-ok/15 border border-ok/40 px-1.5 py-0.5 text-[9px] font-display font-bold uppercase tracking-wider text-ok shrink-0">
+                            🧤 Isento (Goleiro)
+                          </span>
+                        ) : j.is_mensalista ? (
                           <span className="inline-flex items-center gap-1 rounded-[2px] bg-ok/15 border border-ok/40 px-1.5 py-0.5 text-[9px] font-display font-bold uppercase tracking-wider text-ok shrink-0">
                             <UserCheck2 className="size-3 text-ok" />
                             Mensalista
@@ -535,19 +547,23 @@ export function GestaoJogadores() {
                   {/* Toggle Mensalista */}
                   <button
                     type="button"
-                    disabled={salvandoLote}
+                    disabled={salvandoLote || j.posicao === 'goleiro'}
                     onClick={() => alternarMensalistaDraft(jOriginal)}
                     title={
-                      bloqMensalista
-                        ? `Limite de ${MAX_MENSALISTAS} mensalistas atingido`
-                        : undefined
+                      j.posicao === 'goleiro'
+                        ? 'Goleiros não pagam para jogar (isentos de mensalidade)'
+                        : bloqMensalista
+                          ? `Limite de ${MAX_MENSALISTAS} mensalistas atingido`
+                          : undefined
                     }
                     className={`flex items-center justify-between p-2.5 rounded-[3px] border transition min-h-[44px] ${
-                      j.is_mensalista
-                        ? 'border-ok/60 bg-ok/10 text-ok hover:bg-ok/20'
-                        : bloqMensalista
-                          ? 'border-borda bg-superficie-2 text-giz-fraco opacity-60'
-                          : 'border-borda bg-superficie-2 text-giz-fraco hover:text-giz hover:border-destaque/40'
+                      j.posicao === 'goleiro'
+                        ? 'border-borda bg-superficie-2 text-giz-fraco/50 cursor-not-allowed'
+                        : j.is_mensalista
+                          ? 'border-ok/60 bg-ok/10 text-ok hover:bg-ok/20'
+                          : bloqMensalista
+                            ? 'border-borda bg-superficie-2 text-giz-fraco opacity-60'
+                            : 'border-borda bg-superficie-2 text-giz-fraco hover:text-giz hover:border-destaque/40'
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -555,9 +571,7 @@ export function GestaoJogadores() {
                         className={`size-4 rounded-[2px] flex items-center justify-center border transition ${
                           j.is_mensalista
                             ? 'bg-ok border-ok text-white'
-                            : bloqMensalista
-                              ? 'border-borda bg-superficie'
-                              : 'border-borda bg-superficie'
+                            : 'border-borda bg-superficie'
                         }`}
                       >
                         {j.is_mensalista && <Check className="size-3 stroke-[3]" />}
@@ -568,11 +582,13 @@ export function GestaoJogadores() {
                     </div>
 
                     <span className="text-[10px] font-mono opacity-80">
-                      {j.is_mensalista
-                        ? 'Ativo'
-                        : bloqMensalista
-                          ? `Lotado (${MAX_MENSALISTAS})`
-                          : 'Tornar Mensalista'}
+                      {j.posicao === 'goleiro'
+                        ? 'Isento (Goleiro)'
+                        : j.is_mensalista
+                          ? 'Ativo'
+                          : bloqMensalista
+                            ? `Lotado (${MAX_MENSALISTAS})`
+                            : 'Tornar Mensalista'}
                     </span>
                   </button>
 

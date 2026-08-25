@@ -299,7 +299,11 @@ export function Administrador() {
                 {jogadores.map((j) => (
                   <option key={j.id} value={j.id}>
                     {j.nome}
-                    {j.is_mensalista ? ' (mensalista)' : ''}
+                    {j.posicao === 'goleiro'
+                      ? ' (goleiro — isento)'
+                      : j.is_mensalista
+                        ? ' (mensalista)'
+                        : ''}
                   </option>
                 ))}
               </select>
