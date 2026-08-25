@@ -17,6 +17,7 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Snackbar } from '../components/Snackbar';
 import { useSnackbar } from '../hooks/useSnackbar';
 import { BotaoVoltar } from '../components/BotaoVoltar';
+import { CampoBusca } from '../components/CampoBusca';
 import {
   UserPlus,
   Phone,
@@ -27,7 +28,6 @@ import {
   Save,
   X,
   Power,
-  Search,
   Shield,
 } from 'lucide-react';
 
@@ -201,26 +201,11 @@ export function GestaoGoleiros() {
       {erro && <MensagemEstado tipo="erro">{erro}</MensagemEstado>}
 
       {/* Busca */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-giz-fraco pointer-events-none" />
-        <input
-          type="text"
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
-          placeholder="Buscar por nome, telefone ou chave PIX…"
-          className="w-full pl-9 pr-9 py-2.5 rounded-[4px] border border-borda bg-superficie-2 text-base sm:text-sm font-sans text-giz placeholder-giz-fraco shadow-xs focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2 min-h-[44px]"
-        />
-        {busca && (
-          <button
-            type="button"
-            onClick={() => setBusca('')}
-            aria-label="Limpar busca"
-            className="absolute right-0 top-0 bottom-0 px-3 flex items-center justify-center text-xs font-mono text-giz-fraco hover:text-giz min-h-[44px] min-w-[44px]"
-          >
-            ✕
-          </button>
-        )}
-      </div>
+      <CampoBusca
+        valor={busca}
+        aoMudar={setBusca}
+        placeholder="Buscar por nome, telefone ou chave PIX…"
+      />
 
       {/* Listagem Contínua Canônica */}
       {carregando ? (

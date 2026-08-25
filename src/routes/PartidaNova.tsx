@@ -10,6 +10,7 @@ import { Carregando, MensagemEstado } from '../components/Estado';
 import { obterProximaQuintaFeira } from '../lib/formatacao';
 import { BotaoVoltar } from '../components/BotaoVoltar';
 import { BarraAcaoInferior } from '../components/BarraAcaoInferior';
+import { CampoBusca } from '../components/CampoBusca';
 
 const LIMITE_LINHA = 14;
 const LIMITE_GOLEIROS = 2;
@@ -222,24 +223,12 @@ export function PartidaNova() {
       </div>
 
       {/* Input de Busca */}
-      <div className="relative">
-        <input
-          type="text"
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
-          placeholder="Buscar atleta por @username..."
-          className="w-full rounded-[4px] border border-borda bg-superficie px-3 py-2.5 text-sm text-giz placeholder-giz-fraco shadow-carimbo focus:outline-none focus:border-destaque"
-        />
-        {busca && (
-          <button
-            onClick={() => setBusca('')}
-            aria-label="Limpar busca"
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center absolute right-0 top-1/2 -translate-y-1/2 text-xs text-giz-fraco hover:text-giz"
-          >
-            ✕
-          </button>
-        )}
-      </div>
+      <CampoBusca
+        valor={busca}
+        aoMudar={setBusca}
+        placeholder="Buscar atleta por @username..."
+        variante="superficie"
+      />
 
       {/* Grupos */}
       <GrupoJogadores

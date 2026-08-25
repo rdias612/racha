@@ -18,10 +18,10 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Snackbar } from '../components/Snackbar';
 import { useSnackbar } from '../hooks/useSnackbar';
 import { BotaoVoltar } from '../components/BotaoVoltar';
+import { CampoBusca } from '../components/CampoBusca';
 import {
   Users,
   Shield,
-  Search,
   Check,
   Crown,
   UserCheck,
@@ -376,25 +376,13 @@ export function GestaoJogadores() {
 
       {/* Busca e Filtros */}
       <div className="space-y-2.5">
-        <div className="relative">
-          <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-giz-fraco" />
-          <input
-            type="text"
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-            placeholder="Buscar por @usuário..."
-            className="w-full pl-9 pr-9 py-2 text-sm rounded-[4px] border border-borda bg-superficie text-giz placeholder-giz-fraco shadow-carimbo focus:outline-none focus:border-destaque font-mono"
-          />
-          {busca && (
-            <button
-              onClick={() => setBusca('')}
-              aria-label="Limpar busca"
-              className="min-h-[44px] min-w-[44px] flex items-center justify-center absolute right-0 top-1/2 -translate-y-1/2 text-xs text-giz-fraco hover:text-giz"
-            >
-              ✕
-            </button>
-          )}
-        </div>
+        <CampoBusca
+          valor={busca}
+          aoMudar={setBusca}
+          placeholder="Buscar por @usuário..."
+          variante="superficie"
+          fonte="mono"
+        />
 
         {/* Abas de filtro */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">

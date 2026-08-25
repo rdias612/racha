@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Search, UserPlus, Check } from 'lucide-react';
+import { X, UserPlus, Check } from 'lucide-react';
 import { Avatar } from './Avatar';
+import { CampoBusca } from './CampoBusca';
 import { type JogadorLista } from '../lib/jogadores';
 import { type TimeId } from '../lib/times';
 import { vibrateLight } from '../lib/haptics';
@@ -115,16 +116,11 @@ export function ModalSelecionarGoleiro({
 
         {/* Barra de Busca e Ações Rápidas */}
         <div className="p-3 border-b border-borda space-y-2 shrink-0 bg-superficie">
-          <div className="relative">
-            <Search className="size-4 text-giz-fraco absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              type="text"
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              placeholder="Buscar goleiro por nome…"
-              className="w-full rounded-[4px] border border-borda bg-superficie-2 pl-9 pr-3 py-2 text-base sm:text-xs text-giz placeholder-giz-fraco focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2 min-h-[44px]"
-            />
-          </div>
+          <CampoBusca
+            valor={busca}
+            aoMudar={setBusca}
+            placeholder="Buscar goleiro por nome…"
+          />
 
           {onAbrirNovoGoleiro && (
             <button

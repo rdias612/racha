@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
-import { UserPlus, Trash2, ArrowLeftRight, Search, X } from 'lucide-react';
+import { UserPlus, Trash2, ArrowLeftRight, X } from 'lucide-react';
 import { useAdmin } from '../hooks/useAdmin';
 import { invalidarCache } from '../hooks/useCache';
 import { listarJogadoresAtivos, type JogadorLista } from '../lib/jogadores';
@@ -19,6 +19,7 @@ import { Avatar } from '../components/Avatar';
 import { formatarDataCompleta } from '../lib/formatacao';
 import { BotaoVoltar } from '../components/BotaoVoltar';
 import { BarraAcaoInferior } from '../components/BarraAcaoInferior';
+import { CampoBusca } from '../components/CampoBusca';
 
 type FiltroModal = 'todos' | 'goleiros' | 'linha' | 'mensalistas' | 'avulsos';
 
@@ -525,27 +526,12 @@ export function PartidaEditar() {
 
             {/* Busca & Filtros */}
             <div className="p-3 border-b border-borda space-y-2 bg-superficie">
-              <div className="relative">
-                <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-giz-fraco" />
-                <input
-                  type="text"
-                  autoFocus
-                  placeholder="Buscar por @username..."
-                  value={buscaJogador}
-                  onChange={(e) => setBuscaJogador(e.target.value)}
-                  className="w-full rounded-[4px] border border-borda bg-superficie-2 pl-9 pr-8 py-2 text-sm text-giz placeholder-giz-fraco focus:outline-none focus:border-destaque"
-                />
-                {buscaJogador && (
-                  <button
-                    type="button"
-                    onClick={() => setBuscaJogador('')}
-                    aria-label="Limpar busca"
-                    className="min-h-[44px] min-w-[44px] flex items-center justify-center absolute right-0 top-1/2 -translate-y-1/2 text-xs text-giz-fraco hover:text-giz"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
+              <CampoBusca
+                valor={buscaJogador}
+                aoMudar={setBuscaJogador}
+                placeholder="Buscar por @username..."
+                autoFocus
+              />
 
               {/* Filtros em Pílula */}
               <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-xs no-scrollbar">

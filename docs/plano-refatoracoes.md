@@ -262,13 +262,13 @@ Componente idêntico em `Perfil.tsx:393-404` e `Estatisticas.tsx:410-421`; inter
 
 `Administrador.tsx:74-88`, `Notificacoes.tsx:80-90`, `GestaoJogadores.tsx:60-64`, `GestaoGoleiros.tsx:56-59`, `Jogos.tsx:62-70` → hook com haptics padronizados (hoje só `Notificacoes` vibra).
 
-### P2-6. `CampoBusca` — campo de busca com botão limpar duplicado 4x
+### P2-6. ✅ `CampoBusca` — campo de busca com botão limpar duplicado 4x
 
-`GestaoJogadores.tsx:400-418`, `GestaoGoleiros.tsx:227-246`, `PartidaNova.tsx:221-238`, `PartidaEditar.tsx:532-552`.
+> Corrigido em 2026-08-25: criado componente canônico `src/components/CampoBusca.tsx` com alvos de toque acessíveis (min-h-[44px]), prevenção de zoom no iOS (text-base sm:text-sm), foco âmbar visível, suporte a variantes (superficie/superficie-2) e tipografia (sans/mono). Aplicado em `GestaoJogadores.tsx`, `GestaoGoleiros.tsx`, `PartidaNova.tsx`, `PartidaEditar.tsx` e `ModalSelecionarGoleiro.tsx`.
 
-### P2-7. `Toggle` — switch triplicado no mesmo arquivo
+### P2-7. ✅ `Toggle` — switch triplicado no mesmo arquivo
 
-`Notificacoes.tsx:243-255, 366-378, 452-462` → `components/Toggle.tsx` (checked/onChange/label).
+> Corrigido em 2026-08-25: criado componente canônico `src/components/Toggle.tsx` com alvos de toque acessíveis (min-h-[44px]), anel de foco visível pelo teclado, transição suave e integração acessível com leitores de tela. Aplicado em `Notificacoes.tsx` nas seções de confirmação semanal, reforço e votação pós-jogo.
 
 ### P2-8. `CabecalhoTime` + `BadgeTime` — cabeçalho/badge de time com hex inline triplicado
 

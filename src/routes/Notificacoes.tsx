@@ -21,6 +21,7 @@ import { ModalSelecionarOpcao } from '../components/ModalSelecionarOpcao';
 import { Snackbar } from '../components/Snackbar';
 import { useSnackbar } from '../hooks/useSnackbar';
 import { BotaoVoltar } from '../components/BotaoVoltar';
+import { Toggle } from '../components/Toggle';
 import { vibrateLight, vibrateError } from '../lib/haptics';
 import { statusPush, type StatusPush } from '../lib/pwa';
 import {
@@ -224,19 +225,13 @@ export function Notificacoes() {
                 Convite automático enviado aos mensalistas antes do jogo.
               </p>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer shrink-0">
-              <input
-                type="checkbox"
-                checked={config.confirmacao_ativo}
-                onChange={(e) =>
-                  setConfig((prev) =>
-                    prev ? { ...prev, confirmacao_ativo: e.target.checked } : prev
-                  )
-                }
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-superficie-2 border border-borda peer-focus:outline-hidden rounded-[4px] peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-giz-fraco peer-checked:after:bg-destaque-tinta after:border-borda after:border after:rounded-[2px] after:h-5 after:w-5 after:transition-all peer-checked:bg-destaque"></div>
-            </label>
+            <Toggle
+              checked={config.confirmacao_ativo}
+              onChange={(checked) =>
+                setConfig((prev) => (prev ? { ...prev, confirmacao_ativo: checked } : prev))
+              }
+              ariaLabel="Ativar confirmação de presença semanal"
+            />
           </div>
 
           {!config.confirmacao_ativo && (
@@ -348,19 +343,13 @@ export function Notificacoes() {
                   Lembrete automático para quem ainda não respondeu antes do encerramento do prazo.
                 </p>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                <input
-                  type="checkbox"
-                  checked={config.reforco_ativo}
-                  onChange={(e) =>
-                    setConfig((prev) =>
-                      prev ? { ...prev, reforco_ativo: e.target.checked } : prev
-                    )
-                  }
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-superficie-2 border border-borda peer-focus:outline-hidden rounded-[4px] peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-giz-fraco peer-checked:after:bg-destaque-tinta after:border-borda after:border after:rounded-[2px] after:h-5 after:w-5 after:transition-all peer-checked:bg-destaque"></div>
-              </label>
+              <Toggle
+                checked={config.reforco_ativo}
+                onChange={(checked) =>
+                  setConfig((prev) => (prev ? { ...prev, reforco_ativo: checked } : prev))
+                }
+                ariaLabel="Ativar reforço de confirmação"
+              />
             </div>
 
             {config.reforco_ativo && (
@@ -434,17 +423,13 @@ export function Notificacoes() {
                 Avisos para registrar votos e notas da súmula antes de fechar a votação (24h).
               </p>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer shrink-0">
-              <input
-                type="checkbox"
-                checked={config.votacao_ativo}
-                onChange={(e) =>
-                  setConfig((prev) => (prev ? { ...prev, votacao_ativo: e.target.checked } : prev))
-                }
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-superficie-2 border border-borda peer-focus:outline-hidden rounded-[4px] peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-giz-fraco peer-checked:after:bg-destaque-tinta after:border-borda after:border after:rounded-[2px] after:h-5 after:w-5 after:transition-all peer-checked:bg-destaque"></div>
-            </label>
+            <Toggle
+              checked={config.votacao_ativo}
+              onChange={(checked) =>
+                setConfig((prev) => (prev ? { ...prev, votacao_ativo: checked } : prev))
+              }
+              ariaLabel="Ativar lembretes de votação pós-jogo"
+            />
           </div>
 
           {/* Buckets de Votação */}
