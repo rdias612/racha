@@ -8,7 +8,7 @@ import {
 import { useAdmin } from '../hooks/useAdmin';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { obterProximaQuintaFeira } from '../lib/formatacao';
-import { voltar } from '../lib/navegacao';
+import { BotaoVoltar } from '../components/BotaoVoltar';
 
 const LIMITE_LINHA = 14;
 const LIMITE_GOLEIROS = 2;
@@ -160,12 +160,7 @@ export function PartidaNova() {
   return (
     <div className="px-3 py-4 pb-40 sm:px-4 space-y-4 max-w-2xl mx-auto text-giz">
       <div>
-        <button
-          onClick={() => voltar(navigate, '/jogos')}
-          className="text-xs font-mono text-giz-fraco hover:text-giz mb-2 transition"
-        >
-          ← voltar
-        </button>
+        <BotaoVoltar fallback="/jogos" className="mb-2" />
         <div className="sumula-header pb-2 flex items-baseline justify-between">
           <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
             Nova Partida da Súmula

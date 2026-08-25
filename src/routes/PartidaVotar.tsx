@@ -14,6 +14,7 @@ import {
 import { TIMES, POSICOES, type TimeId } from '../lib/times';
 import { isRandomUsername } from '../lib/jogadores';
 import { voltar } from '../lib/navegacao';
+import { BotaoVoltar } from '../components/BotaoVoltar';
 
 export function PartidaVotar() {
   const { id } = useParams<{ id: string }>();
@@ -245,12 +246,7 @@ export function PartidaVotar() {
 
   return (
     <div className="px-3 py-4 pb-28 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
-      <button
-        onClick={handleVoltar}
-        className="text-xs font-mono text-giz-fraco hover:text-giz transition"
-      >
-        ← voltar
-      </button>
+      <BotaoVoltar onClick={handleVoltar} />
 
       <div className="sumula-header pb-2">
         <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">

@@ -8,7 +8,7 @@ import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
 import { invalidarCache } from '../hooks/useCache';
 import { formatarDataMobile, formatarDataCompleta } from '../lib/formatacao';
-import { voltar } from '../lib/navegacao';
+import { BotaoVoltar } from '../components/BotaoVoltar';
 import {
   abrirPartida,
   carregarEventos,
@@ -214,13 +214,7 @@ export function PartidaAoVivo() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-4 px-3 py-4 pb-36 sm:px-4 sm:pb-40 text-giz">
-      <button
-        type="button"
-        onClick={() => voltar(navigate, `/partida/${partida.id}`)}
-        className="text-xs font-mono text-giz-fraco hover:text-giz transition"
-      >
-        ← voltar
-      </button>
+      <BotaoVoltar fallback={`/partida/${partida.id}`} />
 
       {/* Cabeçalho da Súmula */}
       <div className="sumula-header pb-2 flex items-start justify-between">

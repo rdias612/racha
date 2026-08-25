@@ -242,7 +242,7 @@ Tab atravessa para o conteúdo atrás do overlay; `ConfirmDialog.tsx:60-79` tem 
 
 ## Pacote de componentes compartilhados (frontend)
 
-### P2-1. `BotaoVoltar` — markup replicado 11x com divergência
+### P2-1. ✅ `BotaoVoltar` — markup replicado 11x com divergência
 
 `PartidaDetalhe.tsx:186-191`, `Administrador.tsx:373-379`, `Notificacoes.tsx:208-214`, `PartidaVotar.tsx:247-252`, `PartidaNova.tsx:155-160`, `NovoJogador.tsx:76-81`, `PartidaAoVivo.tsx:210-216` etc. → `components/BotaoVoltar.tsx` (fallback via prop, `voltar()` interno, `min-h-[44px]`).
 

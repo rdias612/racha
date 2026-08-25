@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import {
   Bell,
   Send,
@@ -19,7 +19,7 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { ModalSelecionarAgendamento } from '../components/ModalSelecionarAgendamento';
 import { ModalSelecionarOpcao } from '../components/ModalSelecionarOpcao';
 import { Snackbar, type TipoSnackbar } from '../components/Snackbar';
-import { voltar } from '../lib/navegacao';
+import { BotaoVoltar } from '../components/BotaoVoltar';
 import { vibrateSuccess, vibrateError, vibrateLight } from '../lib/haptics';
 import { statusPush, type StatusPush } from '../lib/pwa';
 import {
@@ -58,7 +58,6 @@ function nomeReforcoHoras(horas: number): string {
 export function Notificacoes() {
   const isAdmin = useAdmin();
   const jogador = useJogadorLogado();
-  const navigate = useNavigate();
 
   // Estados principais
   const [config, setConfig] = useState<NotificacoesConfig | null>(null);
@@ -205,13 +204,7 @@ export function Notificacoes() {
   return (
     <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
       {/* Botão voltar */}
-      <button
-        type="button"
-        onClick={() => voltar(navigate, '/')}
-        className="text-xs font-mono text-giz-fraco hover:text-giz transition"
-      >
-        ← voltar
-      </button>
+      <BotaoVoltar fallback="/" />
 
       {/* Cabeçalho da Súmula */}
       <div className="flex items-center justify-between sumula-header pb-2">

@@ -39,7 +39,7 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { formatarDataCompleta, formatarDataMobile, formatarFechamento } from '../lib/formatacao';
 import { Avatar } from '../components/Avatar';
 import { Badge } from '../components/Badge';
-import { voltar } from '../lib/navegacao';
+import { BotaoVoltar } from '../components/BotaoVoltar';
 import { vibrateLight, vibrateSuccess } from '../lib/haptics';
 import { formatarMensagemErro } from '../lib/erros';
 
@@ -186,12 +186,7 @@ export function PartidaDetalhe() {
 
   return (
     <div className="px-3 py-4 pb-16 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
-      <button
-        onClick={() => voltar(navigate, '/jogos')}
-        className="text-xs font-mono text-giz-fraco hover:text-giz transition"
-      >
-        ← voltar
-      </button>
+      <BotaoVoltar fallback="/jogos" />
 
       {/* Cabeçalho da Súmula */}
       <div className="sumula-header pb-2 flex items-start justify-between">

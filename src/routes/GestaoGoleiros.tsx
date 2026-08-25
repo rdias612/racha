@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
 import {
@@ -9,15 +9,14 @@ import {
   alternarStatusAtivoJogador,
   type JogadorLista,
 } from '../lib/jogadores';
-import { voltar } from '../lib/navegacao';
 import { formatarMensagemErro } from '../lib/erros';
 import { vibrateLight, vibrateSuccess, vibrateError } from '../lib/haptics';
 import { MensagemEstado } from '../components/Estado';
 import { ModalNovoGoleiro } from '../components/ModalNovoGoleiro';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Snackbar, type TipoSnackbar } from '../components/Snackbar';
+import { BotaoVoltar } from '../components/BotaoVoltar';
 import {
-  ArrowLeft,
   UserPlus,
   Phone,
   CreditCard,
@@ -34,7 +33,6 @@ import {
 export function GestaoGoleiros() {
   const isAdmin = useAdmin();
   const jogadorLogado = useJogadorLogado();
-  const navigate = useNavigate();
 
   const [goleiros, setGoleiros] = useState<JogadorLista[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -183,14 +181,7 @@ export function GestaoGoleiros() {
   return (
     <div className="px-3 py-4 pb-28 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
       {/* Botão Voltar */}
-      <button
-        type="button"
-        onClick={() => voltar(navigate, '/')}
-        className="inline-flex items-center gap-1.5 text-xs font-mono text-giz-fraco hover:text-giz transition min-h-[44px] -ml-1 px-1"
-      >
-        <ArrowLeft className="size-4" />
-        <span>início</span>
-      </button>
+      <BotaoVoltar fallback="/" label="início" />
 
       {/* Header Editorial */}
       <div className="sumula-header flex items-center justify-between gap-3 pb-3 border-b border-borda">

@@ -4,6 +4,7 @@ import { type JogadorLista } from '../lib/jogadores';
 import { type TimeId } from '../lib/times';
 import { MensagemEstado } from './Estado';
 import { ModalSelecionarGoleiro } from './ModalSelecionarGoleiro';
+import { BotaoVoltar } from './BotaoVoltar';
 
 export const LIMITE_POR_TIME = 7;
 
@@ -86,13 +87,7 @@ export function EscalacaoTimesEditor({
 
   return (
     <div className="px-3 py-4 pb-28 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
-      <button
-        type="button"
-        onClick={onVoltar}
-        className="text-xs font-mono text-giz-fraco hover:text-giz transition"
-      >
-        ← voltar
-      </button>
+      <BotaoVoltar onClick={onVoltar} />
 
       {/* Cabeçalho */}
       <div className="sumula-header pb-2">

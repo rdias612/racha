@@ -17,7 +17,7 @@ import { Carregando, MensagemEstado } from '../components/Estado';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Avatar } from '../components/Avatar';
 import { formatarDataCompleta } from '../lib/formatacao';
-import { voltar } from '../lib/navegacao';
+import { BotaoVoltar } from '../components/BotaoVoltar';
 
 type FiltroModal = 'todos' | 'goleiros' | 'linha' | 'mensalistas' | 'avulsos';
 
@@ -247,12 +247,7 @@ export function PartidaEditar() {
   return (
     <div className="px-3 py-4 pb-48 sm:px-4 max-w-2xl mx-auto space-y-5">
       {/* Navegação de retorno */}
-      <button
-        onClick={() => voltar(navigate, `/partida/${partidaId}`)}
-        className="text-xs font-mono text-giz-fraco hover:text-giz transition"
-      >
-        ← Voltar para a partida
-      </button>
+      <BotaoVoltar fallback={`/partida/${partidaId}`} label="Voltar para a partida" />
 
       {/* Placar & Cabeçalho Hero */}
       <div className="rounded-[4px] border border-borda bg-superficie p-4 shadow-carimbo space-y-3">

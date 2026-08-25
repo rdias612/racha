@@ -4,7 +4,7 @@ import { useAdmin } from '../hooks/useAdmin';
 import type { JogadorLista } from '../lib/jogadores';
 import { POSICOES } from '../lib/times';
 import { formatarDataCompleta } from '../lib/formatacao';
-import { voltar } from '../lib/navegacao';
+import { BotaoVoltar } from '../components/BotaoVoltar';
 
 interface EstadoPartida {
   selecionados: number[];
@@ -57,12 +57,7 @@ export function PartidaConfirma() {
   return (
     <div className="px-3 py-4 pb-40 sm:px-4 space-y-5 max-w-2xl mx-auto text-giz">
       <div>
-        <button
-          onClick={() => voltar(navigate, '/partida/nova')}
-          className="text-xs font-mono text-giz-fraco hover:text-giz mb-2 transition"
-        >
-          ← voltar
-        </button>
+        <BotaoVoltar fallback="/partida/nova" className="mb-2" />
         <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz sumula-header pb-2">
           Confirmar escalação da súmula
         </h2>

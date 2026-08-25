@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import {
   Wallet,
   ChevronDown,
@@ -19,7 +19,7 @@ import { SelectSumula } from '../components/SelectSumula';
 import { Snackbar, type TipoSnackbar } from '../components/Snackbar';
 import { formatarReais, formatarDataLista } from '../lib/formatacao';
 import { isRandomUsername, listarJogadoresAtivos, type JogadorLista } from '../lib/jogadores';
-import { voltar } from '../lib/navegacao';
+import { BotaoVoltar } from '../components/BotaoVoltar';
 import {
   NATUREZAS_LANCAMENTO,
   TIPOS_DIVIDA,
@@ -63,7 +63,6 @@ const COR_TIPO: Record<TipoDivida, string> = {
 
 export function Administrador() {
   const isAdmin = useAdmin();
-  const navigate = useNavigate();
 
   const [grupos, setGrupos] = useState<DividaPorJogador[]>([]);
   const [despesas, setDespesas] = useState<Divida[]>([]);
@@ -368,13 +367,7 @@ export function Administrador() {
   return (
     <PullToRefresh onRefresh={() => carregar()}>
       <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
-        <button
-          type="button"
-          onClick={() => voltar(navigate, '/')}
-          className="text-xs font-mono text-giz-fraco hover:text-giz transition"
-        >
-          ← voltar
-        </button>
+        <BotaoVoltar fallback="/" />
 
         <div className="flex items-center justify-between sumula-header pb-2">
           <div className="flex items-center gap-2">

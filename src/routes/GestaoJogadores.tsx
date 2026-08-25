@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
 import {
@@ -16,9 +16,8 @@ import { MensagemEstado } from '../components/Estado';
 import { SkeletonGestao } from '../components/Skeletons';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Snackbar, type TipoSnackbar } from '../components/Snackbar';
-import { voltar } from '../lib/navegacao';
+import { BotaoVoltar } from '../components/BotaoVoltar';
 import {
-  ArrowLeft,
   Users,
   Shield,
   Search,
@@ -42,7 +41,6 @@ interface AlteracaoRascunho {
 export function GestaoJogadores() {
   const isAdmin = useAdmin();
   const adminLogado = useJogadorLogado();
-  const navigate = useNavigate();
 
   const [jogadores, setJogadores] = useState<JogadorLista[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -280,12 +278,7 @@ export function GestaoJogadores() {
 
   return (
     <div className="px-3 py-4 pb-36 sm:px-4 max-w-3xl mx-auto space-y-4 text-giz relative">
-      <button
-        onClick={() => voltar(navigate, '/administrador')}
-        className="inline-flex items-center gap-1 text-xs font-mono text-giz-fraco hover:text-giz transition"
-      >
-        <ArrowLeft className="size-3.5" />← voltar
-      </button>
+      <BotaoVoltar fallback="/administrador" />
 
       <div className="sumula-header pb-2 flex items-baseline justify-between">
         <div>

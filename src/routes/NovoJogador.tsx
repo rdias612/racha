@@ -1,15 +1,14 @@
 import { useState, type FormEvent } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAdmin } from '../hooks/useAdmin';
 import { POSICOES, POSICOES_B, type PosicaoId } from '../lib/times';
 import { MensagemEstado } from '../components/Estado';
-import { User, Shield, Star, Copy, Check, ArrowLeft, UserPlus } from 'lucide-react';
-import { voltar } from '../lib/navegacao';
+import { User, Shield, Star, Copy, Check, UserPlus } from 'lucide-react';
+import { BotaoVoltar } from '../components/BotaoVoltar';
 
 export function NovoJogador() {
   const isAdmin = useAdmin();
-  const navigate = useNavigate();
 
   const [username, setUsername] = useState('');
   const [posicao, setPosicao] = useState<PosicaoId>('meia');
@@ -73,12 +72,7 @@ export function NovoJogador() {
 
   return (
     <div className="px-3 py-4 pb-24 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
-      <button
-        onClick={() => voltar(navigate, '/administrador')}
-        className="inline-flex items-center gap-1 text-xs font-mono text-giz-fraco hover:text-giz transition"
-      >
-        <ArrowLeft className="size-3.5" />← voltar
-      </button>
+      <BotaoVoltar fallback="/administrador" />
 
       <div className="sumula-header pb-2 flex items-baseline justify-between">
         <div>
