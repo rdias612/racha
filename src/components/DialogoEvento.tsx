@@ -72,7 +72,7 @@ export function DialogoEvento({
     onConfirmar(tipo, assistenciaId);
   }
 
-  const nome = formatarNome(jogador.nome ?? `#${jogador.jogador_id}`);
+  const nome = formatarNome(jogador.username ?? `#${jogador.jogador_id}`);
   const pretos = jogadores.filter((j) => j.time === 'a');
   const brancos = jogadores.filter((j) => j.time === 'b');
 
@@ -123,7 +123,7 @@ export function DialogoEvento({
                     <optgroup label="Time Preto">
                       {pretos.map((j) => (
                         <option key={j.jogador_id} value={j.jogador_id}>
-                          {formatarNome(j.nome ?? `#${j.jogador_id}`)}
+                          {formatarNome(j.username ?? `#${j.jogador_id}`)}
                         </option>
                       ))}
                     </optgroup>
@@ -132,7 +132,7 @@ export function DialogoEvento({
                     <optgroup label="Time Branco">
                       {brancos.map((j) => (
                         <option key={j.jogador_id} value={j.jogador_id}>
-                          {formatarNome(j.nome ?? `#${j.jogador_id}`)}
+                          {formatarNome(j.username ?? `#${j.jogador_id}`)}
                         </option>
                       ))}
                     </optgroup>
@@ -212,7 +212,7 @@ export function DialogoEvento({
                         : 'border-borda bg-superficie-2 text-giz hover:border-destaque hover:bg-superficie'
                     }`}
                   >
-                    {formatarNome(c.nome ?? `#${c.jogador_id}`)}
+                    {formatarNome(c.username ?? `#${c.jogador_id}`)}
                   </button>
                 );
               })}

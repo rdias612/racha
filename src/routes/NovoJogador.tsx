@@ -12,7 +12,6 @@ export function NovoJogador() {
   const navigate = useNavigate();
 
   const [username, setUsername] = useState('');
-  const [nome, setNome] = useState('');
   const [posicao, setPosicao] = useState<PosicaoId>('meia');
   const [posicaoB, setPosicaoB] = useState<PosicaoId>('meia');
   const [isMensalista, setIsMensalista] = useState(false);
@@ -35,15 +34,15 @@ export function NovoJogador() {
     setErro(null);
     setOk(null);
 
-    if (!username.trim() || !nome.trim()) {
-      setErro('Preencha o usuário e o nome para cadastrar.');
+    const usernameLimpo = username.trim().toLowerCase();
+    if (!usernameLimpo) {
+      setErro('Preencha o nome de usuário para cadastrar.');
       return;
     }
 
     setCriando(true);
     const { data, error } = await supabase.rpc('criar_jogador', {
-      p_username: username.trim(),
-      p_nome: nome.trim(),
+      p_username: usernameLimpo,
       p_posicao: posicao,
       p_is_admin: isAdminNovo,
       p_posicao_b: posicao === 'goleiro' ? null : posicaoB,
@@ -53,7 +52,7 @@ export function NovoJogador() {
 
     if (error) {
       if (error.code === '23505') {
-        setErro(`Já existe um jogador cadastrado com o usuário "${username.trim()}".`);
+        setErro(`Já existe um jogador cadastrado com o usuário "${usernameLimpo}".`);
       } else {
         setErro('Erro ao criar jogador: ' + error.message);
       }
@@ -64,9 +63,8 @@ export function NovoJogador() {
       return;
     }
 
-    setOk(`Jogador "${nome.trim()}" criado com sucesso! Senha padrão: 123`);
+    setOk(`Jogador "@${usernameLimpo}" criado com sucesso! Senha padrão: 123`);
     setUsername('');
-    setNome('');
     setPosicao('meia');
     setPosicaoB('meia');
     setIsMensalista(false);
@@ -108,34 +106,20 @@ export function NovoJogador() {
             Identificação do Atleta
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
             <label className="block">
               <span className="block text-xs font-display font-bold uppercase tracking-wider text-giz-fraco mb-1">
-                Usuário (login) *
+                Nome de Usuário (@username) *
               </span>
               <input
                 type="text"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => setUsername(e.target.value.toLowerCase().trim())}
                 autoCapitalize="none"
                 autoCorrect="off"
+                autoComplete="username"
                 placeholder="ex: joaosilva"
-                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz font-mono shadow-xs focus:outline-none focus:border-destaque"
-                required
-              />
-            </label>
-
-            <label className="block">
-              <span className="block text-xs font-display font-bold uppercase tracking-wider text-giz-fraco mb-1">
-                Nome (exibido) *
-              </span>
-              <input
-                type="text"
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
-                autoCapitalize="words"
-                placeholder="ex: João Silva"
-                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz shadow-xs focus:outline-none focus:border-destaque"
+                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2.5 text-sm text-giz font-mono shadow-xs focus:outline-none focus:border-destaque"
                 required
               />
             </label>

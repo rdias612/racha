@@ -1,6 +1,6 @@
 # ⚽ Racha Gragoatá CBO
 
-Plataforma progressiva (PWA) para gerenciamento completo e engajamento da pelada semanal.
+Plataforma progressiva (PWA) para gerenciamento completo e engajamento da pelada semanal. 
 
 ---
 
@@ -69,4 +69,3 @@ Acesse [http://localhost:5173](http://localhost:5173) no seu navegador.
 - `npm run preview` — Pré-visualiza localmente a build de produção
 - `npm run lint` — Executa a verificação de tipos e regras do ESLint
 - `npm run format` — Formata os arquivos do projeto com Prettier
-- 

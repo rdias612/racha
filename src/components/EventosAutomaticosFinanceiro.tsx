@@ -103,7 +103,7 @@ export function EventosAutomaticosFinanceiro({
       const msg = e instanceof Error ? e.message : 'Erro ao carregar eventos automáticos.';
       setErro(
         /eventos_financeiros_automaticos|schema|PGRST/i.test(msg)
-          ? 'Aplique a migration 076_eventos_financeiros_automaticos.sql no Supabase.'
+          ? 'Aplique a migration 078_eventos_financeiros_automaticos.sql no Supabase.'
           : msg
       );
       setEventos([]);
@@ -128,7 +128,7 @@ export function EventosAutomaticosFinanceiro({
   const opcoesJogador = useMemo(
     () => [
       { value: '', label: 'Selecione…' },
-      ...jogadores.map((j) => ({ value: String(j.id), label: j.nome })),
+      ...jogadores.map((j) => ({ value: String(j.id), label: `@${j.username}` })),
     ],
     [jogadores]
   );
@@ -238,7 +238,9 @@ export function EventosAutomaticosFinanceiro({
 
       <p className="text-xs text-giz-fraco font-sans">
         Disparam sozinhos na virada do mês ou ao finalizar o racha. Placeholders da descrição:{' '}
-        <span className="font-mono">{'{data} {mes} {ano} {mes_ano} {referencia} {nome}'}</span>
+        <span className="font-mono">
+          {'{data} {mes} {ano} {mes_ano} {referencia} {username}'}
+        </span>
       </p>
 
       {erro && <MensagemEstado>{erro}</MensagemEstado>}

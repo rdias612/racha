@@ -1,7 +1,8 @@
 import { type PosicaoId, POSICOES } from '../lib/times';
 
 interface AvatarProps {
-  nome: string;
+  username?: string;
+  nome?: string;
   posicao?: PosicaoId;
   size?: 'xs' | 'sm' | 'md' | 'lg';
   className?: string;
@@ -26,15 +27,16 @@ function getHashColor(str: string): string {
   return COLOR_HEXES[index] ?? COLOR_HEXES[0] ?? '#2f4a33';
 }
 
-function getIniciais(nome: string): string {
-  const partes = nome.trim().split(/\s+/);
-  const primeiro = partes[0] ?? '';
-  if (partes.length === 0 || !primeiro) return '?';
-  if (partes.length === 1) {
-    return primeiro.slice(0, 2).toUpperCase();
+function getIniciais(identificador: string): string {
+  const limpo = identificador.trim();
+  if (!limpo) return '?';
+  const partes = limpo.split(/\s+/);
+  if (partes.length >= 2) {
+    const primeiro = partes[0] ?? '';
+    const ultimo = partes[partes.length - 1] ?? '';
+    return ((primeiro[0] ?? '') + (ultimo[0] ?? '')).toUpperCase() || '?';
   }
-  const ultimo = partes[partes.length - 1] ?? '';
-  return ((primeiro[0] ?? '') + (ultimo[0] ?? '')).toUpperCase() || '?';
+  return limpo.slice(0, 2).toUpperCase();
 }
 
 const SIZE_CLASSES = {
@@ -44,9 +46,10 @@ const SIZE_CLASSES = {
   lg: 'w-12 h-12 text-lg',
 };
 
-export function Avatar({ nome, posicao, size = 'md', className = '' }: AvatarProps) {
-  const iniciais = getIniciais(nome);
-  const corBg = getHashColor(nome);
+export function Avatar({ username, nome, posicao, size = 'md', className = '' }: AvatarProps) {
+  const idTexto = username || nome || '?';
+  const iniciais = getIniciais(idTexto);
+  const corBg = getHashColor(idTexto);
   const sizeClass = SIZE_CLASSES[size];
 
   const siglaPosicao = posicao ? (POSICOES[posicao]?.[0]?.toUpperCase() ?? null) : null;
@@ -56,7 +59,7 @@ export function Avatar({ nome, posicao, size = 'md', className = '' }: AvatarPro
       <div
         className={`rounded-[3px] border border-borda/60 font-display font-bold flex items-center justify-center text-white shadow-sm tracking-tight ${sizeClass}`}
         style={{ backgroundColor: corBg }}
-        title={nome}
+        title={idTexto}
       >
         {iniciais}
       </div>

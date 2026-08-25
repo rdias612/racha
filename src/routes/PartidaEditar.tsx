@@ -67,7 +67,6 @@ export function PartidaEditar() {
             assistencias: pt.assistencias,
             gols_contra: pt.gols_contra,
             status_confirmacao: pt.status_confirmacao,
-            nome: pt.nome,
             username: pt.username,
           }))
         );
@@ -96,7 +95,7 @@ export function PartidaEditar() {
         const aGk = a.posicao === 'goleiro' ? 0 : 1;
         const bGk = b.posicao === 'goleiro' ? 0 : 1;
         if (aGk !== bGk) return aGk - bGk;
-        return (a.nome ?? '').localeCompare(b.nome ?? '');
+        return (a.username ?? '').localeCompare(b.username ?? '');
       });
     }
     return map;
@@ -134,7 +133,7 @@ export function PartidaEditar() {
       })
       .filter(
         (j) =>
-          !termo || j.nome.toLowerCase().includes(termo) || j.username.toLowerCase().includes(termo)
+          !termo || j.username.toLowerCase().includes(termo)
       );
   }, [jogadoresAtivos, participantes, buscaJogador, filtroModal]);
 
@@ -206,7 +205,6 @@ export function PartidaEditar() {
       assistencias: 0,
       gols_contra: 0,
       status_confirmacao: 'confirmado',
-      nome: jogador.nome,
       username: jogador.username,
     };
     setParticipantes((prev) => [...prev, novo]);
@@ -382,11 +380,11 @@ export function PartidaEditar() {
                       <div className="flex items-center justify-between gap-2">
                         {/* Identificação do Jogador */}
                         <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                          <Avatar nome={p.nome ?? ''} size="sm" />
+                          <Avatar username={p.username ?? ''} size="sm" />
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5">
                               <span className="font-bold text-sm text-giz truncate">
-                                {p.nome ?? `#${p.jogador_id}`}
+                                {p.username ? `@${p.username}` : `#${p.jogador_id}`}
                               </span>
                               {temEstatisticas && (
                                 <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-destaque bg-destaque/10 border border-destaque/30 px-1.5 py-0.2 rounded-[2px] shrink-0">
@@ -539,7 +537,7 @@ export function PartidaEditar() {
                 <input
                   type="text"
                   autoFocus
-                  placeholder="Buscar por nome ou apelido..."
+                  placeholder="Buscar por @username..."
                   value={buscaJogador}
                   onChange={(e) => setBuscaJogador(e.target.value)}
                   className="w-full rounded-[4px] border border-borda bg-superficie-2 pl-9 pr-8 py-2 text-sm text-giz placeholder-giz-fraco focus:outline-none focus:border-destaque"
@@ -593,9 +591,9 @@ export function PartidaEditar() {
                   className="w-full p-2.5 rounded-[3px] flex items-center justify-between gap-3 text-left hover:bg-superficie-2 active:translate-y-px transition cursor-pointer"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <Avatar nome={j.nome} size="sm" />
+                    <Avatar username={j.username} size="sm" />
                     <div className="min-w-0">
-                      <p className="text-sm font-bold text-giz truncate">{j.nome}</p>
+                      <p className="text-sm font-bold text-giz truncate">@{j.username}</p>
                       <p className="text-[10px] font-mono text-giz-fraco">
                         {j.is_mensalista ? 'Mensalista' : 'Avulso'}
                       </p>
@@ -640,7 +638,7 @@ export function PartidaEditar() {
         open={jogadorParaRemover != null}
         onClose={() => setJogadorParaRemover(null)}
         onConfirm={() => jogadorParaRemover && removerJogador(jogadorParaRemover.jogador_id)}
-        titulo={`Remover ${jogadorParaRemover?.nome ?? 'jogador'}?`}
+        titulo={`Remover ${jogadorParaRemover?.username ? `@${jogadorParaRemover.username}` : 'jogador'}?`}
         mensagem="Este jogador possui gols, assistências ou gols contra registrados. Se removê-lo da partida, essas estatísticas serão apagadas."
         textoConfirmar="Remover jogador"
         tomConfirmar="perigo"

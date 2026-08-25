@@ -42,11 +42,11 @@ export function DuplaCard({ titulo, par, metrica = 'pontos' }: DuplaCardProps) {
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <div className="flex -space-x-1.5 shrink-0">
-              <Avatar nome={par.jogador_a_nome} size="xs" />
-              <Avatar nome={par.jogador_b_nome} size="xs" />
+              <Avatar username={par.jogador_a_username} size="xs" />
+              <Avatar username={par.jogador_b_username} size="xs" />
             </div>
             <span className="truncate text-xs sm:text-sm font-bold text-giz">
-              {par.jogador_a_nome} + {par.jogador_b_nome}
+              @{par.jogador_a_username} + @{par.jogador_b_username}
             </span>
           </div>
           <div className="pt-1.5 border-t border-borda flex items-center justify-between text-[11px] font-mono text-giz-fraco">

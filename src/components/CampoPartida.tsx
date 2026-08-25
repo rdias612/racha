@@ -31,7 +31,7 @@ function ChipJogador({
   destaque: boolean;
 }) {
   const preto = jogador.time === 'a';
-  const nome = formatarNome(jogador.nome ?? `#${jogador.jogador_id}`);
+  const nome = formatarNome(jogador.username ?? `#${jogador.jogador_id}`);
   const classe = `inline-flex max-w-[9.5rem] items-center justify-center truncate rounded-[3px] border px-2.5 text-[11px] font-display font-bold uppercase tracking-wider leading-none shadow-carimbo sm:text-xs ${
     preto ? 'border-[#35302a] text-[#f4f1e8]' : 'border-[#35302a] text-[#0d0d0e]'
   } ${destaque ? 'ring-2 ring-destaque ring-offset-2 ring-offset-[#16281c]' : ''}`;

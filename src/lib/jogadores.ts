@@ -8,10 +8,22 @@ export function isRandomUsername(username?: string | null): boolean {
   return !!username && /^random\d*$/i.test(username.trim());
 }
 
+export function validarFormatoUsername(username: string): string | null {
+  const limpo = username.trim().toLowerCase();
+  if (!limpo || limpo.length < 2) return 'O usuário deve ter ao menos 2 caracteres.';
+  if (limpo.length > 30) return 'O usuário deve ter no máximo 30 caracteres.';
+  if (!/^[a-z0-9._-]+$/.test(limpo)) {
+    return 'Use apenas letras minúsculas, números, ponto, hífen ou sublinhado.';
+  }
+  if (isRandomUsername(limpo)) {
+    return 'O prefixo "random" é reservado para convidados temporários.';
+  }
+  return null;
+}
+
 export interface JogadorLista {
   id: number;
   username: string;
-  nome: string;
   posicao: PosicaoId;
   is_admin: boolean;
   is_ativo: boolean;
@@ -40,9 +52,9 @@ export async function listarUsernames(): Promise<string[]> {
 export async function listarJogadoresAtivos(): Promise<JogadorLista[]> {
   const { data, error } = await supabase
     .from('jogadores')
-    .select('id, username, nome, posicao, is_admin, is_ativo, is_mensalista, posicao_b')
+    .select('id, username, posicao, is_admin, is_ativo, is_mensalista, posicao_b')
     .eq('is_ativo', true)
-    .order('nome');
+    .order('username');
 
   if (error) throw error;
   return (data ?? []).map((j) => ({
@@ -54,8 +66,8 @@ export async function listarJogadoresAtivos(): Promise<JogadorLista[]> {
 export async function listarTodosJogadores(): Promise<JogadorLista[]> {
   const { data, error } = await supabase
     .from('jogadores')
-    .select('id, username, nome, posicao, is_admin, is_ativo, is_mensalista, posicao_b')
-    .order('nome');
+    .select('id, username, posicao, is_admin, is_ativo, is_mensalista, posicao_b')
+    .order('username');
 
   if (error) throw error;
   return (data ?? [])
@@ -120,10 +132,15 @@ export async function atualizarCaracteristicasJogador(
   if (error) throw error;
 }
 
-export async function atualizarNomeJogador(id: number, nome: string): Promise<void> {
-  const { error } = await supabase.from('jogadores').update({ nome }).eq('id', id);
+
+export async function atualizarUsernameJogador(id: number, novoUsername: string): Promise<void> {
+  const { data, error } = await supabase.rpc('alterar_username', {
+    p_jogador_id: id,
+    p_novo_username: novoUsername.trim().toLowerCase(),
+  });
 
   if (error) throw error;
+  if (data !== true) throw new Error('Não foi possível atualizar o usuário.');
 }
 
 // Redefine a senha do jogador para o padrão "123" (RPC resetar_senha).

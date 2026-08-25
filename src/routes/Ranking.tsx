@@ -13,7 +13,7 @@ import { Avatar } from '../components/Avatar';
 type Metrica = 'pontos' | 'gols' | 'assistencias' | 'gols-contra';
 type CampoMetrica = 'pontos' | 'gols' | 'assistencias' | 'gols_contra';
 type ColunaOrdenacao =
-  | 'nome'
+  | 'username'
   | CampoMetrica
   | 'media_gols'
   | 'percentual_vitorias'
@@ -21,6 +21,7 @@ type ColunaOrdenacao =
   | 'vitorias'
   | 'empates'
   | 'derrotas';
+
 type DirecaoOrdenacao = 'asc' | 'desc';
 
 const numero2casas = new Intl.NumberFormat('pt-BR', {
@@ -32,11 +33,11 @@ const metricas: Record<
   Metrica,
   { titulo: string; coluna: string; campo: CampoMetrica; unidade: string }
 > = {
-  pontos: { titulo: 'Ranking de Pontuação', coluna: 'Pts', campo: 'pontos', unidade: 'pts' },
-  gols: { titulo: 'Ranking de Artilharia', coluna: 'Gols', campo: 'gols', unidade: 'gols' },
+  pontos: { titulo: 'Classificação Geral', coluna: 'PTS', campo: 'pontos', unidade: 'pts' },
+  gols: { titulo: 'Artilharia da Temporada', coluna: 'GOLS', campo: 'gols', unidade: 'gols' },
   assistencias: {
-    titulo: 'Ranking de Assistências (Maestros)',
-    coluna: 'Assists',
+    titulo: 'Líderes de Assistências',
+    coluna: 'ASSISTS',
     campo: 'assistencias',
     unidade: 'assists',
   },
@@ -55,7 +56,7 @@ interface ColunaTabela {
 
 interface LinhaRanking {
   jogador_id: number;
-  nome: string;
+  username: string;
   posicao: PosicaoId;
   pontos: number;
   vitorias: number;
@@ -95,14 +96,14 @@ export function Ranking() {
     let query = supabase
       .from('ranking')
       .select(
-        'jogador_id, nome, posicao, pontos, vitorias, empates, derrotas, partidas, gols, assistencias, gols_contra'
+        'jogador_id, username, posicao, pontos, vitorias, empates, derrotas, partidas, gols, assistencias, gols_contra'
       )
       .order('pontos', { ascending: false })
       .order('vitorias', { ascending: false })
       .order('partidas', { ascending: false })
       .order('gols', { ascending: false })
       .order('assistencias', { ascending: false })
-      .order('nome', { ascending: true });
+      .order('username', { ascending: true });
 
     if (posicaoFiltro !== 'todas') {
       query = query.eq('posicao', posicaoFiltro);
@@ -133,14 +134,14 @@ export function Ranking() {
     return <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">{erro}</MensagemEstado>;
 
   function valorOrdenacao(linha: LinhaRanking, coluna: ColunaOrdenacao) {
-    if (coluna === 'nome') return linha.nome;
+    if (coluna === 'username') return linha.username;
     if (coluna === 'media_gols') {
       return linha.partidas > 0 ? linha.gols / linha.partidas : 0;
     }
     if (coluna === 'percentual_vitorias') {
       return linha.partidas > 0 ? linha.vitorias / linha.partidas : 0;
     }
-    return Number(linha[coluna]);
+    return linha[coluna as keyof LinhaRanking];
   }
 
   function selecionarOrdenacao(coluna: ColunaOrdenacao) {
@@ -149,11 +150,11 @@ export function Ranking() {
       return;
     }
     setColunaOrdenacao(coluna);
-    setDirecaoOrdenacao(coluna === 'nome' ? 'asc' : 'desc');
+    setDirecaoOrdenacao(coluna === 'username' ? 'asc' : 'desc');
   }
 
   const colunasOrdenacao: ColunaTabela[] = [
-    { key: 'nome', label: 'Nome' },
+    { key: 'username', label: 'Atleta' },
     { key: configuracao.campo, label: configuracao.coluna },
     ...(metrica === 'gols' ? [{ key: 'media_gols' as const, label: 'Média' }] : []),
     { key: 'percentual_vitorias', label: '%V' },
@@ -348,9 +349,9 @@ function PodioTop3({
         {/* 2º Lugar (Esquerda) */}
         <div className="rounded-[4px] border border-borda bg-superficie p-2.5 text-center shadow-carimbo flex flex-col items-center justify-between min-h-[140px]">
           <span className="texto-vazado font-display font-black text-3xl leading-none">2</span>
-          <Avatar nome={segundo.nome} posicao={segundo.posicao} size="sm" />
+          <Avatar username={segundo.username} posicao={segundo.posicao} size="sm" />
           <div className="w-full truncate mt-1">
-            <span className="block truncate text-xs font-bold text-giz">{segundo.nome}</span>
+            <span className="block truncate text-xs font-bold text-giz">@{segundo.username}</span>
             <span className="block font-mono text-xs font-bold text-giz-fraco tabular-nums">
               {segundo[campoMetrica]} {unidade}
             </span>
@@ -365,10 +366,10 @@ function PodioTop3({
             </span>
             <span className="text-xs">👑</span>
           </div>
-          <Avatar nome={primeiro.nome} posicao={primeiro.posicao} size="md" />
+          <Avatar username={primeiro.username} posicao={primeiro.posicao} size="md" />
           <div className="w-full truncate mt-1">
             <span className="block truncate text-xs font-black uppercase tracking-wider">
-              {primeiro.nome}
+              @{primeiro.username}
             </span>
             <span className="block font-mono text-sm font-black tabular-nums">
               {primeiro[campoMetrica]} {unidade}
@@ -379,9 +380,9 @@ function PodioTop3({
         {/* 3º Lugar (Direita) */}
         <div className="rounded-[4px] border border-borda bg-superficie p-2.5 text-center shadow-carimbo flex flex-col items-center justify-between min-h-[130px]">
           <span className="texto-vazado font-display font-black text-2xl leading-none">3</span>
-          <Avatar nome={terceiro.nome} posicao={terceiro.posicao} size="sm" />
+          <Avatar username={terceiro.username} posicao={terceiro.posicao} size="sm" />
           <div className="w-full truncate mt-1">
-            <span className="block truncate text-xs font-bold text-giz">{terceiro.nome}</span>
+            <span className="block truncate text-xs font-bold text-giz">@{terceiro.username}</span>
             <span className="block font-mono text-xs font-bold text-giz-fraco tabular-nums">
               {terceiro[campoMetrica]} {unidade}
             </span>
@@ -436,7 +437,7 @@ function TabelaRanking({
                     direcao === 'asc' ? 'ascending' : direcao === 'desc' ? 'descending' : 'none'
                   }
                   className={`px-2 py-2 font-display font-bold uppercase tracking-wider text-xs ${
-                    coluna.key === 'nome'
+                    coluna.key === 'username'
                       ? 'w-px whitespace-nowrap text-left sm:min-w-44'
                       : 'text-right'
                   }`}
@@ -474,15 +475,15 @@ function TabelaRanking({
                   <td
                     key={coluna.key}
                     className={`px-2 py-2 ${
-                      coluna.key === 'nome'
+                      coluna.key === 'username'
                         ? 'whitespace-nowrap text-giz font-medium text-xs'
                         : 'text-right font-mono text-xs text-giz tabular-nums font-semibold'
                     }`}
                   >
-                    {coluna.key === 'nome' ? (
+                    {coluna.key === 'username' ? (
                       <div className="flex items-center gap-2">
-                        <Avatar nome={l.nome} posicao={l.posicao} size="xs" />
-                        <span className="font-bold">{l.nome}</span>
+                        <Avatar username={l.username} posicao={l.posicao} size="xs" />
+                        <span className="font-bold">@{l.username}</span>
                       </div>
                     ) : coluna.key === 'media_gols' ? (
                       numero2casas.format(Number(valorOrdenacao(l, coluna.key)))

@@ -148,7 +148,7 @@ export function Administrador() {
             motivo instanceof Error ? motivo.message : 'Erro ao carregar lançamentos.';
           erros.push(
             /natureza|column|schema|PGRST/i.test(msg)
-              ? 'Aplique a migration 075_dividas_natureza_despesa.sql no Supabase para receitas/despesas.'
+              ? 'Aplique a migration 077_dividas_natureza_despesa.sql no Supabase para receitas/despesas.'
               : msg
           );
           setGrupos([]);
@@ -170,7 +170,6 @@ export function Administrador() {
           setGrupos(
             resumo.map((r) => ({
               jogador_id: r.jogador_id,
-              nome: r.nome,
               username: r.username,
               is_mensalista: r.is_mensalista,
               total_devido: Number(r.total_devido),
@@ -213,12 +212,12 @@ export function Administrador() {
     }
   }
 
-  function handleQuitar(e: React.MouseEvent, dividaId: number, nome: string) {
+  function handleQuitar(e: React.MouseEvent, dividaId: number, username: string) {
     e.stopPropagation();
     setConfirmacao({
       open: true,
       titulo: 'Quitar lançamento?',
-      mensagem: `Marcar o lançamento de ${nome} como quitado na súmula financeira?`,
+      mensagem: `Marcar o lançamento de @${username} como quitado na súmula financeira?`,
       onConfirm: async () => {
         setConfirmacao(null);
         const gruposAnteriores = grupos;
@@ -258,12 +257,12 @@ export function Administrador() {
     });
   }
 
-  function handleQuitarTodas(e: React.MouseEvent, jogadorId: number, nome: string) {
+  function handleQuitarTodas(e: React.MouseEvent, jogadorId: number, username: string) {
     e.stopPropagation();
     setConfirmacao({
       open: true,
       titulo: 'Quitar todas as receitas?',
-      mensagem: `Quitar TODAS as pendências em aberto de ${nome}?`,
+      mensagem: `Quitar TODAS as pendências em aberto de @${username}?`,
       onConfirm: async () => {
         setConfirmacao(null);
         const gruposAnteriores = grupos;
@@ -273,7 +272,7 @@ export function Administrador() {
           setExpandido(null);
         }
 
-        mostrarSnackbar('sucesso', `Receitas de ${nome} quitadas.`);
+        mostrarSnackbar('sucesso', `Receitas de @${username} quitadas.`);
 
         try {
           await quitarDividasJogador(jogadorId);
@@ -368,13 +367,13 @@ export function Administrador() {
       )
       .join('\n');
 
-    const texto = `⚽ *Súmula Financeira — Racha Gragoatá*\n\nFala ${g.nome}! Segue o resumo das pendências em aberto:\n\n${linhas}\n\n*Total em aberto: ${formatarReais(g.total_devido)}*\n\nValeu pela força e nos vemos quinta! 👊`;
+    const texto = `⚽ *Súmula Financeira — Racha Gragoatá*\n\nFala @${g.username}! Segue o resumo das pendências em aberto:\n\n${linhas}\n\n*Total em aberto: ${formatarReais(g.total_devido)}*\n\nValeu pela força e nos vemos quinta! 👊`;
 
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
       navigator.clipboard
         .writeText(texto)
         .then(() => {
-          mostrarSnackbar('sucesso', `Lembrete para ${g.nome} copiado com sucesso!`);
+          mostrarSnackbar('sucesso', `Lembrete para @${g.username} copiado com sucesso!`);
         })
         .catch(() => {
           mostrarSnackbar('erro', 'Não foi possível copiar a mensagem.');
@@ -463,7 +462,7 @@ export function Administrador() {
                   },
                   ...jogadores.map((j) => ({
                     value: String(j.id),
-                    label: `${j.nome}${
+                    label: `@${j.username}${
                       j.posicao === 'goleiro'
                         ? ' (goleiro — isento)'
                         : j.is_mensalista
@@ -661,7 +660,7 @@ export function Administrador() {
                       />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
-                          <span className="truncate text-sm font-bold text-giz">{g.nome}</span>
+                          <span className="truncate text-sm font-bold text-giz">@{g.username}</span>
                           {g.is_mensalista && (
                             <span className="shrink-0 rounded-[2px] border border-destaque/40 bg-destaque/15 px-1.5 py-0.5 text-[9px] font-display uppercase tracking-wider font-bold text-destaque">
                               mensalista
@@ -681,14 +680,14 @@ export function Administrador() {
                           type="button"
                           onClick={(e) => copiarLembreteWhatsApp(e, g)}
                           title="Copiar lembrete WhatsApp"
-                          aria-label={`Copiar cobrança de ${g.nome} para WhatsApp`}
+                          aria-label={`Copiar cobrança de @${g.username} para WhatsApp`}
                           className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-[3px] border border-borda bg-superficie-2 p-2 text-giz-fraco hover:text-destaque hover:border-destaque/50 transition"
                         >
                           <MessageSquare className="size-4" />
                         </button>
                         <button
                           type="button"
-                          onClick={(e) => handleQuitarTodas(e, g.jogador_id, g.nome)}
+                          onClick={(e) => handleQuitarTodas(e, g.jogador_id, g.username)}
                           title="Quitar todas"
                           className="min-h-[44px] rounded-[3px] border border-borda bg-superficie-2 px-2.5 py-1 text-xs font-display uppercase tracking-wider font-semibold text-giz hover:border-destaque transition"
                         >
@@ -734,7 +733,7 @@ export function Administrador() {
                               </span>
                               <button
                                 type="button"
-                                onClick={(e) => handleQuitar(e, d.id, g.nome)}
+                                onClick={(e) => handleQuitar(e, d.id, g.username)}
                                 className="min-h-[44px] flex items-center gap-1 rounded-[3px] border border-ok bg-ok px-3 py-1.5 text-xs font-display uppercase tracking-wider font-bold text-white shadow-xs hover:brightness-110"
                               >
                                 <Check className="size-3.5" />
@@ -768,9 +767,12 @@ export function Administrador() {
           ) : despesas.length > 0 ? (
             <ul className="divide-y divide-borda/40 border-y border-borda bg-superficie">
               {despesas.map((d) => {
-                const nome =
-                  d.jogadores?.nome ??
-                  (d.jogador_id != null ? `#${d.jogador_id}` : 'Caixa do racha');
+                const rotulo =
+                  d.jogadores?.username != null
+                    ? `@${d.jogadores.username}`
+                    : d.jogador_id != null
+                      ? `#${d.jogador_id}`
+                      : 'Caixa do racha';
                 return (
                   <li key={d.id} className="flex items-start gap-2 px-3 py-2.5 min-h-[44px]">
                     <div className="min-w-0 flex-1 space-y-1">
@@ -791,7 +793,7 @@ export function Administrador() {
                         </span>
                       </div>
                       <p className="text-sm font-display font-bold uppercase tracking-wide text-giz">
-                        {nome}
+                        {rotulo}
                       </p>
                       {d.descricao && <p className="text-xs text-giz-fraco">{d.descricao}</p>}
                     </div>
@@ -801,7 +803,7 @@ export function Administrador() {
                       </span>
                       <button
                         type="button"
-                        onClick={(e) => handleQuitar(e, d.id, nome)}
+                        onClick={(e) => handleQuitar(e, d.id, d.jogadores?.username ?? 'caixa')}
                         className="min-h-[44px] flex items-center gap-1 rounded-[3px] border border-borda bg-superficie-2 px-3 py-1.5 text-xs font-display uppercase tracking-wider font-bold text-giz hover:border-perigo hover:text-perigo transition"
                       >
                         <Check className="size-3.5" />

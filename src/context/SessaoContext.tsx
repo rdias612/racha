@@ -14,7 +14,6 @@ import { isSuperAdmin } from '../lib/jogadores';
 export interface JogadorLogado {
   id: number;
   username: string;
-  nome: string;
   posicao: PosicaoId;
   is_admin: boolean;
   is_ativo: boolean;
@@ -56,8 +55,8 @@ export function SessaoProvider({ children }: { children: ReactNode }) {
     async function sincronizarJogador() {
       const { data, error } = await supabase
         .from('jogadores')
-        .select('id, username, nome, posicao, is_admin, is_ativo, is_mensalista, posicao_b')
-        .eq('username', jogador!.username)
+        .select('id, username, posicao, is_admin, is_ativo, is_mensalista, posicao_b')
+        .eq('id', jogador!.id)
         .maybeSingle();
 
       if (error || !data || !data.is_ativo) return;
@@ -69,9 +68,9 @@ export function SessaoProvider({ children }: { children: ReactNode }) {
 
       if (
         jogadorAtualizado.id !== jogador!.id ||
+        jogadorAtualizado.username !== jogador!.username ||
         jogadorAtualizado.is_admin !== jogador!.is_admin ||
         jogadorAtualizado.is_mensalista !== jogador!.is_mensalista ||
-        jogadorAtualizado.nome !== jogador!.nome ||
         jogadorAtualizado.posicao !== jogador!.posicao
       ) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(jogadorAtualizado));

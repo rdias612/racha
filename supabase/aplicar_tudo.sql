@@ -9,7 +9,6 @@ CREATE TABLE jogadores (
   id          bigserial   PRIMARY KEY,
   username    text        NOT NULL UNIQUE,
   senha_hash  text        NOT NULL,
-  nome        text        NOT NULL,
   posicao     text        NOT NULL CHECK (posicao IN ('goleiro','zagueiro','lateral','meia','atacante','random')),
   is_admin    boolean     NOT NULL DEFAULT false,
   is_ativo    boolean     NOT NULL DEFAULT true,
@@ -47,7 +46,6 @@ CREATE OR REPLACE FUNCTION fazer_login(p_username text, p_senha text)
 RETURNS TABLE (
   id             bigint,
   username       text,
-  nome           text,
   posicao        text,
   is_admin       boolean,
   is_ativo       boolean,
@@ -79,7 +77,6 @@ BEGIN
   SELECT
     v_jogador.id,
     v_jogador.username,
-    v_jogador.nome,
     v_jogador.posicao,
     v_jogador.is_admin,
     v_jogador.is_ativo,
@@ -222,7 +219,7 @@ WITH raw_agg AS (
   SELECT
     v.partida_id,
     v.target_id,
-    j.nome,
+    j.username,
     CASE
       WHEN COUNT(*) >= 3 THEN (SUM(v.rating) - MIN(v.rating) - MAX(v.rating))::numeric / (COUNT(*) - 2)
       ELSE AVG(v.rating)::numeric
@@ -230,54 +227,37 @@ WITH raw_agg AS (
     COUNT(*)::bigint                                           AS vote_count
   FROM votes v
   JOIN jogadores j ON j.id = v.target_id
-  GROUP BY v.partida_id, v.target_id, j.nome
+  GROUP BY v.partida_id, v.target_id, j.username
 ),
 agg AS (
   SELECT
     partida_id,
     target_id,
-    nome,
+    username,
     avg_rating,
     vote_count,
     RANK() OVER (
       PARTITION BY partida_id
-      ORDER BY avg_rating DESC, vote_count DESC, nome ASC
+      ORDER BY avg_rating DESC, vote_count DESC, username ASC
     )                                                          AS rk
   FROM raw_agg
 )
 SELECT
   partida_id,
   target_id,
-  nome,
+  username,
   avg_rating,
   vote_count,
   (rk = 1) AS is_craque
 FROM agg;
 -- 009_view_ranking.sql
 -- View `ranking` por jogador com colunas:
---   jogador_id, nome, pontos, vitorias, empates, derrotas, partidas, gols, assistencias.
---
--- Regras:
---   - Considera apenas partidas com status IN ('published','closed'). Drafts nao
---     contam (o admin ainda esta montando).
---   - Para cada participante, determina o resultado (vitoria/empate/derrota)
---     comparando o time dele ('a'/'b') com o `vencedor` da view partida_placar:
---       vitoria  = (time_do_jogador = vencedor)
---       empate   = (vencedor = 'empate')
---       derrota  = caso contrario.
---   - pontos = vitorias*3 + empates*1.
---   - Soma gols e assistencias de todas as participacoes do jogador.
---   - Agrupa por (jogador_id, nome).
---
--- Ordenacao final da query do app (NAO na view - views nao garantem ordem):
---   ORDER BY pontos DESC, vitorias DESC, partidas DESC, gols DESC,
---            assistencias DESC, nome ASC
--- A view inclui todas as colunas necessarias para esse ORDER BY.
+--   jogador_id, username, pontos, vitorias, empates, derrotas, partidas, gols, assistencias, gols_contra, posicao.
 
 CREATE OR REPLACE VIEW ranking AS
 SELECT
   pp.jogador_id,
-  j.nome,
+  j.username,
   -- pontos = 3 por vitoria + 1 por empate
   (
     COUNT(*) FILTER (
@@ -295,13 +275,14 @@ SELECT
   COUNT(*)                                                  AS partidas,
   COALESCE(SUM(pp.gols), 0)                                 AS gols,
   COALESCE(SUM(pp.assistencias), 0)                         AS assistencias,
-  COALESCE(SUM(pp.gols_contra), 0)                          AS gols_contra
+  COALESCE(SUM(pp.gols_contra), 0)                          AS gols_contra,
+  j.posicao
 FROM partidas_participantes pp
 JOIN partidas      p  ON p.id  = pp.partida_id
 JOIN partida_placar pl ON pl.partida_id = pp.partida_id
 JOIN jogadores     j  ON j.id  = pp.jogador_id
 WHERE p.status IN ('published','closed')
-GROUP BY pp.jogador_id, j.nome;
+GROUP BY pp.jogador_id, j.username, j.posicao;
 -- 010_view_stats_jogador.sql
 -- View `stats_jogador` com colunas: jogador_id, partidas, gols, assistencias, vitorias.
 -- Similar ao ranking, mas sem pontos/derrotas/empates. Alimenta a tela de Perfil.
@@ -340,7 +321,6 @@ GROUP BY pp.jogador_id;
 
 CREATE OR REPLACE FUNCTION criar_jogador(
   p_username      text,
-  p_nome          text,
   p_posicao       text,
   p_is_admin      boolean,
   p_posicao_b     text DEFAULT 'meia',
@@ -360,15 +340,15 @@ BEGIN
   v_posicao_b := CASE WHEN p_posicao = 'goleiro' THEN NULL ELSE p_posicao_b END;
   v_is_mensalista := CASE WHEN p_posicao = 'goleiro' THEN false ELSE COALESCE(p_is_mensalista, false) END;
 
-  INSERT INTO jogadores (username, senha_hash, nome, posicao, is_admin, is_ativo, posicao_b, is_mensalista)
-  VALUES (p_username, '123', p_nome, p_posicao, p_is_admin, true, v_posicao_b, v_is_mensalista)
+  INSERT INTO jogadores (username, senha_hash, posicao, is_admin, is_ativo, posicao_b, is_mensalista)
+  VALUES (p_username, '123', p_posicao, p_is_admin, true, v_posicao_b, v_is_mensalista)
   RETURNING id INTO v_id;
 
   RETURN v_id;
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION criar_jogador(text, text, text, boolean, text, boolean) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION criar_jogador(text, text, boolean, text, boolean) TO anon, authenticated;
 
 -- 012_rpc_trocar_senha.sql
 -- RPC `trocar_senha(p_jogador_id bigint, p_senha_atual text, p_senha_nova text)
@@ -756,7 +736,7 @@ CREATE OR REPLACE FUNCTION parcerias_jogador(
 RETURNS TABLE (
   tipo             text,
   outro_jogador_id bigint,
-  nome             text,
+  username         text,
   partidas         bigint,
   vitorias         bigint,
   empates          bigint,
@@ -780,7 +760,7 @@ AS $$
     SELECT
       'companheiro'::text AS tipo,
       outp.jogador_id,
-      j.nome,
+      j.username,
       COUNT(*)::bigint                                          AS partidas,
       COUNT(*) FILTER (WHERE jp.vencedor = jp.time)::bigint     AS vitorias,
       COUNT(*) FILTER (WHERE jp.vencedor = 'empate')::bigint    AS empates,
@@ -792,14 +772,14 @@ AS $$
      AND outp.time       = jp.time
      AND outp.jogador_id <> p_jogador_id
     JOIN jogadores j ON j.id = outp.jogador_id
-    GROUP BY outp.jogador_id, j.nome
+    GROUP BY outp.jogador_id, j.username
     HAVING COUNT(*) >= p_min_partidas
   ),
   adversarios AS (
     SELECT
       'adversario'::text AS tipo,
       outp.jogador_id,
-      j.nome,
+      j.username,
       COUNT(*)::bigint                                          AS partidas,
       COUNT(*) FILTER (WHERE jp.vencedor = jp.time)::bigint     AS vitorias,
       COUNT(*) FILTER (WHERE jp.vencedor = 'empate')::bigint    AS empates,
@@ -811,7 +791,7 @@ AS $$
      AND outp.time       <> jp.time
      AND outp.jogador_id <> p_jogador_id
     JOIN jogadores j ON j.id = outp.jogador_id
-    GROUP BY outp.jogador_id, j.nome
+    GROUP BY outp.jogador_id, j.username
     HAVING COUNT(*) >= p_min_partidas
   ),
   todos AS (
@@ -822,7 +802,7 @@ AS $$
   SELECT
     tipo,
     jogador_id AS outro_jogador_id,
-    nome,
+    username,
     partidas,
     vitorias,
     empates,
@@ -833,10 +813,10 @@ AS $$
   FROM todos
   ORDER BY
     tipo ASC,
-    percentual DESC NULLS LAST,
+    pontos DESC,
     partidas DESC,
     vitorias DESC,
-    nome ASC;
+    username ASC;
 $$;
 
 GRANT EXECUTE ON FUNCTION parcerias_jogador(bigint, integer) TO anon, authenticated;
@@ -1082,8 +1062,8 @@ AS $$
   SELECT
     a.jogador_a_id,
     a.jogador_b_id,
-    ja.nome AS jogador_a_nome,
-    jb.nome AS jogador_b_nome,
+    ja.username AS jogador_a_username,
+    jb.username AS jogador_b_username,
     a.partidas,
     a.vitorias,
     a.empates,
@@ -1095,11 +1075,11 @@ AS $$
   JOIN jogadores ja ON ja.id = a.jogador_a_id
   JOIN jogadores jb ON jb.id = a.jogador_b_id
   ORDER BY
-    pontos         DESC,
-    partidas       DESC,
-    vitorias       DESC,
-    jogador_a_nome ASC,
-    jogador_b_nome ASC;
+    pontos             DESC,
+    partidas           DESC,
+    vitorias           DESC,
+    jogador_a_username ASC,
+    jogador_b_username ASC;
 $$;
 
 GRANT EXECUTE ON FUNCTION pares_racha(integer) TO anon, authenticated;
@@ -1309,36 +1289,36 @@ AS $$
     LEFT JOIN usuario_gols  ug ON ug.partida_id = jp.partida_id
     LEFT JOIN usuario_notas un ON un.partida_id = jp.partida_id
     WHERE j.posicao <> 'random'
-    GROUP BY outp.jogador_id, j.nome
+    GROUP BY outp.jogador_id, j.username
     HAVING COUNT(*) >= p_min_partidas
   )
   (SELECT 'mais_gols'::text   AS metrica,
           jogador_id          AS outro_jogador_id,
-          nome,
+          username,
           partidas,
           gols_usuario        AS valor
    FROM companheiros
-   ORDER BY gols_usuario DESC NULLS LAST, partidas DESC, nome ASC
+   ORDER BY gols_usuario DESC NULLS LAST, partidas DESC, username ASC
    LIMIT 1)
   UNION ALL
   (SELECT 'melhor_nota'::text AS metrica,
           jogador_id          AS outro_jogador_id,
-          nome,
+          username,
           partidas,
           nota_media_usuario  AS valor
    FROM companheiros
    WHERE nota_media_usuario IS NOT NULL
-   ORDER BY nota_media_usuario DESC NULLS LAST, partidas DESC, nome ASC
+   ORDER BY nota_media_usuario DESC NULLS LAST, partidas DESC, username ASC
    LIMIT 1)
   UNION ALL
   (SELECT 'pior_nota'::text   AS metrica,
           jogador_id          AS outro_jogador_id,
-          nome,
+          username,
           partidas,
           nota_media_usuario  AS valor
    FROM companheiros
    WHERE nota_media_usuario IS NOT NULL
-   ORDER BY nota_media_usuario ASC NULLS LAST, partidas DESC, nome ASC
+   ORDER BY nota_media_usuario ASC NULLS LAST, partidas DESC, username ASC
    LIMIT 1);
 $$;
 
@@ -1352,26 +1332,26 @@ RETURNS TABLE (
   ano integer,
   total_partidas bigint,
   artilheiro_jogador_id bigint,
-  artilheiro_nome text,
+  artilheiro_username text,
   artilheiro_gols bigint,
   artilheiro_partidas bigint,
   maestro_jogador_id bigint,
-  maestro_nome text,
+  maestro_username text,
   maestro_assistencias bigint,
   maestro_partidas bigint,
   participante_jogador_id bigint,
-  participante_nome text,
+  participante_username text,
   participante_partidas bigint,
   eficiente_jogador_id bigint,
-  eficiente_nome text,
+  eficiente_username text,
   eficiente_vitorias bigint,
   eficiente_partidas bigint,
   eficiente_percentual numeric,
   sequencia_vitorias_jogador_id bigint,
-  sequencia_vitorias_nome text,
+  sequencia_vitorias_username text,
   sequencia_vitorias bigint,
   seca_vitorias_jogador_id bigint,
-  seca_vitorias_nome text,
+  seca_vitorias_username text,
   seca_vitorias bigint
 )
 LANGUAGE sql
@@ -1393,7 +1373,7 @@ AS $$
   stats AS (
     SELECT
       pp.jogador_id,
-      j.nome,
+      j.username,
       COUNT(*)::bigint AS partidas,
       COALESCE(SUM(pp.gols), 0)::bigint AS gols,
       COALESCE(SUM(pp.assistencias), 0)::bigint AS assistencias,
@@ -1404,7 +1384,7 @@ AS $$
     JOIN partida_placar pl ON pl.partida_id = pp.partida_id
     JOIN jogadores j ON j.id = pp.jogador_id
     WHERE j.posicao <> 'random'
-    GROUP BY pp.jogador_id, j.nome
+    GROUP BY pp.jogador_id, j.username
   ),
   stats_elegiveis AS (
     SELECT s.*
@@ -1416,7 +1396,7 @@ AS $$
   jogador_partidas AS (
     SELECT
       pp.jogador_id,
-      j.nome,
+      j.username,
       p.id AS partida_id,
       p.data_jogo,
       (pl.vencedor = pp.time) AS venceu,
@@ -1434,88 +1414,88 @@ AS $$
   jogador_primeira_derrota AS (
     SELECT
       jogador_id,
-      nome,
+      username,
       MIN(rn) FILTER (WHERE NOT venceu) AS first_loss_rn,
       MAX(rn) AS total_jogos
     FROM jogador_partidas
-    GROUP BY jogador_id, nome
+    GROUP BY jogador_id, username
   ),
   sequencias_vitorias_atuais AS (
     SELECT
       jogador_id,
-      nome,
+      username,
       COALESCE(first_loss_rn - 1, total_jogos)::bigint AS tamanho
     FROM jogador_primeira_derrota
   ),
   jogador_primeira_vitoria AS (
     SELECT
       jogador_id,
-      nome,
+      username,
       MIN(rn) FILTER (WHERE venceu) AS first_win_rn,
       MAX(rn) AS total_jogos
     FROM jogador_partidas
-    GROUP BY jogador_id, nome
+    GROUP BY jogador_id, username
   ),
   secas_vitorias_atuais AS (
     SELECT
       jogador_id,
-      nome,
+      username,
       COALESCE(first_win_rn - 1, total_jogos)::bigint AS tamanho
     FROM jogador_primeira_vitoria
   ),
   maior_sequencia_vitorias AS (
-    SELECT sv.jogador_id, sv.nome, sv.tamanho
+    SELECT sv.jogador_id, sv.username, sv.tamanho
     FROM sequencias_vitorias_atuais sv
     JOIN stats_elegiveis s ON s.jogador_id = sv.jogador_id
     WHERE sv.tamanho > 0
-    ORDER BY sv.tamanho DESC, s.partidas DESC, sv.nome ASC
+    ORDER BY sv.tamanho DESC, s.partidas DESC, sv.username ASC
     LIMIT 1
   ),
   maior_seca_vitorias AS (
-    SELECT sv.jogador_id, sv.nome, sv.tamanho
+    SELECT sv.jogador_id, sv.username, sv.tamanho
     FROM secas_vitorias_atuais sv
     JOIN stats_elegiveis s ON s.jogador_id = sv.jogador_id
     WHERE sv.tamanho > 0
-    ORDER BY sv.tamanho DESC, s.partidas DESC, sv.nome ASC
+    ORDER BY sv.tamanho DESC, s.partidas DESC, sv.username ASC
     LIMIT 1
   ),
   artilheiro AS (
     SELECT s.* FROM stats_elegiveis s
-    ORDER BY s.gols DESC, s.partidas DESC, s.nome ASC
+    ORDER BY s.gols DESC, s.partidas DESC, s.username ASC
     LIMIT 1
   ),
   maestro AS (
     SELECT s.* FROM stats_elegiveis s
-    ORDER BY s.assistencias DESC, s.partidas DESC, s.nome ASC
+    ORDER BY s.assistencias DESC, s.partidas DESC, s.username ASC
     LIMIT 1
   ),
   participante AS (
     SELECT s.* FROM stats_elegiveis s
-    ORDER BY s.partidas DESC, s.gols DESC, s.nome ASC
+    ORDER BY s.partidas DESC, s.gols DESC, s.username ASC
     LIMIT 1
   ),
   eficiente AS (
     SELECT s.* FROM stats_elegiveis s
     ORDER BY s.vitorias::numeric / NULLIF(s.partidas, 0) DESC,
-             s.partidas DESC, s.nome ASC
+             s.partidas DESC, s.username ASC
     LIMIT 1
   )
   SELECT
     p_ano,
     t.partidas,
     a.jogador_id,
-    a.nome,
+    a.username,
     a.gols,
     a.partidas,
     m.jogador_id,
-    m.nome,
+    m.username,
     m.assistencias,
     m.partidas,
     pt.jogador_id,
-    pt.nome,
+    pt.username,
     pt.partidas,
     e.jogador_id,
-    e.nome,
+    e.username,
     e.vitorias,
     e.partidas,
     CASE
@@ -1523,10 +1503,10 @@ AS $$
       ELSE e.vitorias::numeric / NULLIF(e.partidas, 0)
     END,
     sv.jogador_id,
-    sv.nome,
+    sv.username,
     sv.tamanho,
     ss.jogador_id,
-    ss.nome,
+    ss.username,
     ss.tamanho
   FROM total t
   LEFT JOIN artilheiro a ON true
@@ -1634,14 +1614,13 @@ ON CONFLICT DO NOTHING;
 CREATE OR REPLACE VIEW dividas_resumo AS
 SELECT
   j.id            AS jogador_id,
-  j.nome          AS nome,
   j.username      AS username,
   j.is_mensalista AS is_mensalista,
   COALESCE(SUM(d.valor) FILTER (WHERE d.paga = false), 0)::numeric AS total_devido,
   COUNT(d.id)     FILTER (WHERE d.paga = false)::bigint          AS qtd_dividas
 FROM jogadores j
 LEFT JOIN dividas d ON d.jogador_id = j.id
-GROUP BY j.id, j.nome, j.username, j.is_mensalista;
+GROUP BY j.id, j.username, j.is_mensalista;
 
 GRANT SELECT ON dividas_resumo TO anon, authenticated;
 
@@ -2461,3 +2440,87 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION confronto_direto_partidas(bigint, bigint, integer) TO anon, authenticated;
+
+-- 075_rpc_alterar_username.sql
+-- Permite que um jogador autenticado altere seu username de acesso/login.
+-- Valida formato, tamanho, unicidade, prefixos reservados (random) e proteção de superadmins.
+
+CREATE OR REPLACE FUNCTION alterar_username(
+  p_jogador_id      bigint,
+  p_novo_username   text
+)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_jogador          jogadores%ROWTYPE;
+  v_username_limpo   text;
+BEGIN
+  -- 1. Verifica existência e status do jogador
+  SELECT * INTO v_jogador
+  FROM jogadores
+  WHERE id = p_jogador_id
+  LIMIT 1;
+
+  IF v_jogador.id IS NULL THEN
+    RAISE EXCEPTION 'Atleta não encontrado.';
+  END IF;
+
+  IF NOT v_jogador.is_ativo THEN
+    RAISE EXCEPTION 'Atleta inativo não pode alterar usuário de acesso.';
+  END IF;
+
+  -- 2. Normalização (trim + lowercase)
+  v_username_limpo := LOWER(TRIM(p_novo_username));
+
+  -- 3. Validação de obrigatoriedade e tamanho
+  IF v_username_limpo IS NULL OR LENGTH(v_username_limpo) < 2 THEN
+    RAISE EXCEPTION 'O usuário deve ter ao menos 2 caracteres.';
+  END IF;
+
+  IF LENGTH(v_username_limpo) > 30 THEN
+    RAISE EXCEPTION 'O usuário deve ter no máximo 30 caracteres.';
+  END IF;
+
+  -- 4. Validação de formato (apenas letras, números, ponto, sublinhado e hífen)
+  IF v_username_limpo !~ '^[a-z0-9._-]+$' THEN
+    RAISE EXCEPTION 'O usuário só pode conter letras minúsculas, números, ponto, sublinhado e hífen (sem espaços).';
+  END IF;
+
+  -- 5. Validação de prefixo reservado (random)
+  IF v_username_limpo ~ '^random\d*$' OR v_username_limpo ILIKE 'random%' THEN
+    RAISE EXCEPTION 'O prefixo "random" é reservado para convidados temporários.';
+  END IF;
+
+  -- 6. Proteção de Superadmins (dico, tadeu, natal)
+  IF v_username_limpo IN ('dico', 'tadeu', 'natal') AND v_jogador.username NOT IN ('dico', 'tadeu', 'natal') THEN
+    RAISE EXCEPTION 'Este nome de usuário é reservado para a governança do racha.';
+  END IF;
+
+  IF v_jogador.username IN ('dico', 'tadeu', 'natal') THEN
+    RAISE EXCEPTION 'Usuários Superadmin possuem identificador permanente por motivos de governança.';
+  END IF;
+
+  -- 7. Verifica se é igual ao atual
+  IF v_username_limpo = v_jogador.username THEN
+    RAISE EXCEPTION 'O novo usuário informado é igual ao atual.';
+  END IF;
+
+  -- 8. Validação de unicidade
+  IF EXISTS (SELECT 1 FROM jogadores WHERE username = v_username_limpo AND id <> p_jogador_id) THEN
+    RAISE EXCEPTION 'Este usuário "@%" já está sendo utilizado por outro atleta.', v_username_limpo;
+  END IF;
+
+  -- 9. Executa a alteração
+  UPDATE jogadores
+  SET username = v_username_limpo
+  WHERE id = p_jogador_id;
+
+  RETURN true;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION alterar_username(bigint, text) TO anon, authenticated;
+

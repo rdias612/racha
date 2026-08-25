@@ -1,10 +1,11 @@
--- 075_dividas_natureza_despesa.sql
+-- 077_dividas_natureza_despesa.sql
 -- Controle financeiro: diferencia receita (racha a receber) de despesa
 -- (racha a pagar) e amplia os tipos de lançamento.
 --
 -- Novos tipos: goleiro | campo | eventos (além de mensalidade | avulso | outro).
 -- Natureza: receita (default, compatível com dados existentes) | despesa.
 -- jogador_id fica opcional em despesas (ex.: aluguel de campo sem atleta).
+-- Depende de 076 (remoção da coluna nome): a view usa apenas username.
 
 ALTER TABLE dividas
   ADD COLUMN IF NOT EXISTS natureza text NOT NULL DEFAULT 'receita';
@@ -42,7 +43,6 @@ CREATE INDEX IF NOT EXISTS idx_dividas_natureza_abertas
 CREATE OR REPLACE VIEW dividas_resumo AS
 SELECT
   j.id            AS jogador_id,
-  j.nome          AS nome,
   j.username      AS username,
   j.is_mensalista AS is_mensalista,
   COALESCE(
@@ -52,7 +52,7 @@ SELECT
   COUNT(d.id) FILTER (WHERE d.paga = false AND d.natureza = 'receita')::bigint AS qtd_dividas
 FROM jogadores j
 LEFT JOIN dividas d ON d.jogador_id = j.id
-GROUP BY j.id, j.nome, j.username, j.is_mensalista;
+GROUP BY j.id, j.username, j.is_mensalista;
 
 GRANT SELECT ON dividas_resumo TO anon, authenticated;
 

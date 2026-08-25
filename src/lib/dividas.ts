@@ -41,25 +41,24 @@ export interface Divida {
   paga: boolean;
   data_pagamento: string | null;
   created_at: string;
-  jogadores?: { nome: string; username: string; is_mensalista: boolean } | null;
+  jogadores?: { username: string; is_mensalista: boolean } | null;
 }
 
 // Agrupamento usado pela tela Administrador: total + itens por jogador (receitas).
 export interface DividaPorJogador {
   jogador_id: number;
-  nome: string;
   username: string;
   is_mensalista: boolean;
   total_devido: number;
   dividas: Divida[];
 }
 
-/** Lista todas as dívidas/lançamentos em aberto (paga = false), já com nome do jogador. */
+/** Lista todas as dívidas/lançamentos em aberto (paga = false), já com username do jogador. */
 export async function listarDividasEmAberto(): Promise<Divida[]> {
   const { data, error } = await supabase
     .from('dividas')
     .select(
-      'id, jogador_id, tipo, natureza, valor, descricao, referencia, partida_id, data_divida, paga, data_pagamento, created_at, jogadores(nome, username, is_mensalista)'
+      'id, jogador_id, tipo, natureza, valor, descricao, referencia, partida_id, data_divida, paga, data_pagamento, created_at, jogadores(username, is_mensalista)'
     )
     .eq('paga', false)
     .order('data_divida', { ascending: false });
@@ -78,7 +77,6 @@ export async function listarDividasEmAberto(): Promise<Divida[]> {
 /** Linha da view `dividas_resumo` (total devido + qtd por jogador — só receitas). */
 export interface DevedorResumo {
   jogador_id: number;
-  nome: string;
   username: string;
   is_mensalista: boolean;
   total_devido: number;
@@ -89,7 +87,7 @@ export interface DevedorResumo {
 export async function listarResumoDevedores(): Promise<DevedorResumo[]> {
   const { data, error } = await supabase
     .from('dividas_resumo')
-    .select('jogador_id, nome, username, is_mensalista, total_devido, qtd_dividas')
+    .select('jogador_id, username, is_mensalista, total_devido, qtd_dividas')
     .gt('total_devido', 0)
     .order('total_devido', { ascending: false });
   if (error) throw error;
@@ -150,7 +148,7 @@ export async function listarLancamentosPorPeriodo(
   const { data, error } = await supabase
     .from('dividas')
     .select(
-      'id, jogador_id, tipo, natureza, valor, descricao, referencia, partida_id, data_divida, paga, data_pagamento, created_at, jogadores(nome, username, is_mensalista)'
+      'id, jogador_id, tipo, natureza, valor, descricao, referencia, partida_id, data_divida, paga, data_pagamento, created_at, jogadores(username, is_mensalista)'
     )
     .gte('data_divida', dataInicio)
     .lte('data_divida', dataFim)
@@ -196,9 +194,12 @@ export function baixarExcelLancamentos(
   const linhas = lancamentos.map((l) => {
     const natureza = l.natureza === 'despesa' ? 'Despesa' : 'Receita';
     const jogador =
-      l.jogadores?.nome ?? (l.jogador_id != null ? `#${l.jogador_id}` : 'Caixa do racha');
-    const valor =
-      l.natureza === 'despesa' ? -Number(l.valor) : Number(l.valor);
+      l.jogadores?.username != null
+        ? `@${l.jogadores.username}`
+        : l.jogador_id != null
+          ? `#${l.jogador_id}`
+          : 'Caixa do racha';
+    const valor = l.natureza === 'despesa' ? -Number(l.valor) : Number(l.valor);
     return [
       l.data_divida,
       natureza,
@@ -221,7 +222,6 @@ export function baixarExcelLancamentos(
     .map((cols) => {
       const cells = cols
         .map((c, i) => {
-          // Coluna Valor (índice 4): número
           if (i === 4) {
             const num = Number(String(c).replace(',', '.'));
             return `<Cell><Data ss:Type="Number">${Number.isFinite(num) ? num : 0}</Data></Cell>`;

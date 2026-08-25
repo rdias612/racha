@@ -83,19 +83,19 @@ function exibirValorMetrica(metrica: MetricaComparativa, valor: number | null): 
 }
 
 /**
- * Primeiro nome do atleta que levou a melhor no duelo, ou null quando não há
- * vencedor (juntos/empate) ou quando o nome do lado não foi resolvido (fallback
+ * Username do atleta que levou a melhor no duelo, ou null quando não há
+ * vencedor (juntos/empate) ou quando o username do lado não foi resolvido (fallback
  * '—'): sem dono identificado, o troféu não renderiza — só o placar âmbar.
  */
 function primeiroNomeVencedor(
   vencedor: 'a' | 'b' | null,
-  nomeLadoA: string,
-  nomeLadoB: string
+  usernameLadoA: string,
+  usernameLadoB: string
 ): string | null {
   if (vencedor === null) return null;
-  const nome = (vencedor === 'a' ? nomeLadoA : nomeLadoB).trim();
-  if (!nome || nome === '—') return null;
-  return nome.split(/\s+/)[0];
+  const username = (vencedor === 'a' ? usernameLadoA : usernameLadoB).trim();
+  if (!username || username === '—') return null;
+  return `@${username}`;
 }
 
 export function Comparador() {
@@ -194,14 +194,14 @@ export function Comparador() {
     idA === null
       ? undefined
       : (jogadores.find((j) => j.id === idA) ??
-        (jogador?.id === idA ? { nome: jogador.nome, posicao: jogador.posicao } : undefined));
+        (jogador?.id === idA ? { username: jogador.username, posicao: jogador.posicao } : undefined));
   const infoB =
     idB === null
       ? undefined
       : (jogadores.find((j) => j.id === idB) ??
-        (jogador?.id === idB ? { nome: jogador.nome, posicao: jogador.posicao } : undefined));
-  const nomeA = infoA?.nome ?? '—';
-  const nomeB = infoB?.nome ?? '—';
+        (jogador?.id === idB ? { username: jogador.username, posicao: jogador.posicao } : undefined));
+  const usernameA = infoA?.username ?? '—';
+  const usernameB = infoB?.username ?? '—';
 
   const statsA = dados?.statsA ?? null;
   const statsB = dados?.statsB ?? null;
@@ -268,7 +268,7 @@ export function Comparador() {
         {/* Card do Duelo */}
         <div className="rounded-[4px] border border-borda bg-superficie p-3 shadow-carimbo">
           <div className="flex items-center gap-2">
-            <LadoDuelo nome={nomeA} posicao={infoA?.posicao} />
+            <LadoDuelo username={usernameA} posicao={infoA?.posicao} />
             <div className="flex shrink-0 flex-col items-center gap-1.5">
               <span
                 aria-hidden="true"
@@ -286,7 +286,7 @@ export function Comparador() {
                 <ArrowLeftRight className="size-4" aria-hidden="true" />
               </button>
             </div>
-            <LadoDuelo nome={nomeB} posicao={infoB?.posicao} />
+            <LadoDuelo username={usernameB} posicao={infoB?.posicao} />
           </div>
         </div>
 
@@ -308,7 +308,7 @@ export function Comparador() {
               <option value="">Escolha o atleta…</option>
               {jogadores.map((j) => (
                 <option key={j.id} value={j.id} disabled={j.id === idB}>
-                  {j.nome}
+                  @{j.username}
                   {j.id === jogador?.id ? ' (eu)' : ''}
                 </option>
               ))}
@@ -330,7 +330,7 @@ export function Comparador() {
               <option value="">Escolha o adversário…</option>
               {jogadores.map((j) => (
                 <option key={j.id} value={j.id} disabled={j.id === idA}>
-                  {j.nome}
+                  @{j.username}
                   {j.id === jogador?.id ? ' (eu)' : ''}
                 </option>
               ))}
@@ -380,8 +380,8 @@ export function Comparador() {
                       {juntosA.vitorias}V {juntosA.empates}E {juntosA.derrotas}D
                     </span>
                   </div>
-                  <LinhaAtletaContexto nome={nomeA} linha={juntosA} />
-                  {juntosB && <LinhaAtletaContexto nome={nomeB} linha={juntosB} />}
+                  <LinhaAtletaContexto username={usernameA} linha={juntosA} />
+                  {juntosB && <LinhaAtletaContexto username={usernameB} linha={juntosB} />}
                 </div>
               ) : (
                 <MensagemEstado tipo="info">Ainda não dividiram o mesmo time.</MensagemEstado>
@@ -403,9 +403,9 @@ export function Comparador() {
                         : 'duelos em campos opostos'}
                     </span>
                   </div>
-                  <LinhaAtletaContexto nome={nomeA} linha={adversosA} comRetrospecto />
+                  <LinhaAtletaContexto username={usernameA} linha={adversosA} comRetrospecto />
                   {adversosB && (
-                    <LinhaAtletaContexto nome={nomeB} linha={adversosB} comRetrospecto />
+                    <LinhaAtletaContexto username={usernameB} linha={adversosB} comRetrospecto />
                   )}
                 </div>
               ) : (
@@ -439,7 +439,7 @@ export function Comparador() {
                       vencedor = p.vencedor === p.time_a ? 'a' : 'b';
                     }
                     const empate = p.relacao === 'adversos' && p.vencedor === 'empate';
-                    const nomeVencedor = primeiroNomeVencedor(vencedor, nomeA, nomeB);
+                    const nomeVencedor = primeiroNomeVencedor(vencedor, usernameA, usernameB);
                     return (
                       <Link
                         key={p.partida_id}
@@ -488,12 +488,12 @@ export function Comparador() {
 }
 
 /** Um lado do card do duelo: avatar com plaqueta de posição + nome display. */
-function LadoDuelo({ nome, posicao }: { nome: string; posicao?: PosicaoId }) {
+function LadoDuelo({ username, posicao }: { username: string; posicao?: PosicaoId }) {
   return (
     <div className="flex min-w-0 flex-1 flex-col items-center gap-1.5">
-      <Avatar nome={nome} posicao={posicao} size="lg" />
+      <Avatar username={username} posicao={posicao} size="lg" />
       <span className="w-full truncate text-center font-display text-sm font-bold uppercase tracking-wider text-giz">
-        {nome}
+        {username === '—' ? '—' : `@${username}`}
       </span>
     </div>
   );
@@ -549,19 +549,21 @@ function LinhaComparativa({ metrica }: { metrica: MetricaComparativa }) {
 
 /** Produção de um atleta num contexto (juntos/adversos) do confronto. */
 function LinhaAtletaContexto({
-  nome,
+  username,
   linha,
   comRetrospecto = false,
 }: {
-  nome: string;
+  username: string;
   linha: LinhaConfronto;
   comRetrospecto?: boolean;
 }) {
   return (
     <div className="flex items-center gap-2.5">
-      <Avatar nome={nome} size="sm" />
+      <Avatar username={username} size="sm" />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-bold text-giz">{nome}</p>
+        <p className="truncate text-sm font-bold text-giz">
+          {username === '—' ? '—' : `@${username}`}
+        </p>
         {comRetrospecto && (
           <p className="font-mono text-[11px] tabular-nums text-giz-fraco">
             {linha.vitorias}V {linha.empates}E {linha.derrotas}D

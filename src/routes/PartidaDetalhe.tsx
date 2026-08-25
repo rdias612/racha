@@ -274,12 +274,12 @@ export function PartidaDetalhe() {
               </span>
             </div>
             <div className="ring-2 ring-destaque ring-offset-2 ring-offset-superficie rounded-[3px]">
-              <Avatar nome={craque.nome} size="lg" />
+              <Avatar username={craque.username} size="lg" />
             </div>
           </div>
 
           <p className="font-display font-bold text-lg uppercase tracking-wide text-giz">
-            {craque.nome}
+            @{craque.username}
           </p>
         </div>
       )}
@@ -301,10 +301,10 @@ export function PartidaDetalhe() {
                   className="flex items-center justify-between px-3 py-2 text-sm hover:bg-superficie-2 transition"
                 >
                   <div className="flex items-center gap-2 text-giz">
-                    <Avatar nome={n.nome} size="xs" />
+                    <Avatar username={n.username} size="xs" />
                     <span className="font-medium">
                       {n.is_craque ? '⭐ ' : ''}
-                      {n.nome}
+                      @{n.username}
                     </span>
                   </div>
                   <span className="font-mono text-sm font-bold text-destaque tabular-nums">
@@ -356,9 +356,9 @@ export function PartidaDetalhe() {
                         className="flex items-center justify-between px-2.5 py-2 text-xs hover:bg-superficie-2 transition"
                       >
                         <div className="flex items-center gap-1.5 min-w-0">
-                          <Avatar nome={p.nome ?? ''} posicao={p.posicao} size="xs" />
+                          <Avatar username={p.username ?? ''} posicao={p.posicao} size="xs" />
                           <span className="truncate font-medium text-giz">
-                            {p.nome ?? `#${p.jogador_id}`}
+                            {p.username ? `@${p.username}` : `#${p.jogador_id}`}
                           </span>
                         </div>
                         <div className="shrink-0 flex items-center gap-1 font-mono text-[11px]">
@@ -632,7 +632,7 @@ function Confirmacoes({
     const peso = (s: StatusConfirmacao) => (s === 'confirmado' ? 0 : s === 'pendente' ? 1 : 2);
     return (
       peso(a.status_confirmacao) - peso(b.status_confirmacao) ||
-      (a.nome ?? '').localeCompare(b.nome ?? '')
+      (a.username ?? '').localeCompare(b.username ?? '')
     );
   });
 
@@ -742,10 +742,10 @@ function Confirmacoes({
               className="flex items-center justify-between gap-2 px-3 py-2 hover:bg-superficie-2 transition"
             >
               <div className="flex items-center gap-2 min-w-0">
-                <Avatar nome={p.nome ?? ''} size="xs" />
+                <Avatar username={p.username ?? ''} size="xs" />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-bold text-giz">
-                    {p.nome ?? `#${p.jogador_id}`}
+                    {p.username ? `@${p.username}` : `#${p.jogador_id}`}
                     {ehSelf && (
                       <span className="ml-1 text-[10px] font-mono text-destaque">(você)</span>
                     )}
@@ -806,8 +806,8 @@ function Confirmacoes({
                   className="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-giz hover:bg-superficie-2 active:translate-y-px transition"
                 >
                   <span className="flex items-center gap-2 min-w-0">
-                    <Avatar nome={j.nome} size="xs" />
-                    <span className="truncate font-medium">{j.nome}</span>
+                    <Avatar username={j.username} size="xs" />
+                    <span className="truncate font-medium">@{j.username}</span>
                   </span>
                   <span className="text-[10px] font-display uppercase tracking-wider text-giz-fraco">
                     {POSICOES[j.posicao]}

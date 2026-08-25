@@ -283,7 +283,7 @@ export function PartidaVotar() {
           const jogadoresDoTime = alvos
             .filter((a) => a.time === t)
             .sort((a, b) =>
-              (a.nome ?? '').localeCompare(b.nome ?? '', 'pt-BR', { sensitivity: 'base' })
+              (a.username ?? '').localeCompare(b.username ?? '', 'pt-BR', { sensitivity: 'base' })
             );
           if (jogadoresDoTime.length === 0) return null;
           return (
@@ -309,7 +309,9 @@ export function PartidaVotar() {
                       className="flex items-center justify-between gap-2 px-3 py-2.5 bg-superficie hover:bg-superficie-2 transition"
                     >
                       <div className="min-w-0">
-                        <span className="block truncate text-sm font-bold text-giz">{a.nome}</span>
+                        <span className="block truncate text-sm font-bold text-giz">
+                          @{a.username}
+                        </span>
                         <span className="text-[10px] font-display uppercase tracking-wider text-giz-fraco">
                           {POSICOES[a.posicao]}
                         </span>

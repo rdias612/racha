@@ -25,7 +25,7 @@ interface Stats {
 interface Parceria {
   tipo: 'companheiro' | 'adversario';
   outro_jogador_id: number;
-  nome: string;
+  username: string;
   partidas: number;
   vitorias: number;
   empates: number;
@@ -42,7 +42,7 @@ type MetricaDestaque = 'mais_gols' | 'melhor_nota' | 'pior_nota';
 interface ParceriaDestaque {
   metrica: MetricaDestaque;
   outro_jogador_id: number;
-  nome: string;
+  username: string;
   partidas: number;
   valor: number | null;
 }
@@ -50,7 +50,6 @@ interface ParceriaDestaque {
 // Item do dropdown de jogadores
 interface JogadorOpcao {
   id: number;
-  nome: string;
   username: string;
 }
 
@@ -83,9 +82,9 @@ export function Estatisticas() {
     if (!jogadorId) return;
     supabase
       .from('jogadores')
-      .select('id, nome, username')
+      .select('id, username')
       .eq('is_ativo', true)
-      .order('nome')
+      .order('username')
       .then(({ data, error }) => {
         if (error || !data) return;
         const filtrados = data.filter((j) => !isRandomUsername(j.username));
@@ -170,7 +169,8 @@ export function Estatisticas() {
 
   const maximoPartidas = Math.max(DEFAULT_MIN_PARTIDAS, ...parcerias.map((p) => p.partidas));
 
-  const nomeSelecionado = jogadores.find((j) => j.id === jogadorSelecionadoId)?.nome ?? '';
+  const usernameSelecionado =
+    jogadores.find((j) => j.id === jogadorSelecionadoId)?.username ?? '';
 
   const semParcerias = !melhorComp && !piorComp && !melhorAdv && !piorAdv;
 
@@ -183,7 +183,7 @@ export function Estatisticas() {
         {/* Cabeçalho da Súmula */}
         <div className="sumula-header pb-2 flex items-baseline justify-between">
           <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
-            Estatísticas{nomeSelecionado ? ` · ${nomeSelecionado}` : ''}
+            Estatísticas{usernameSelecionado ? ` · @${usernameSelecionado}` : ''}
           </h2>
           <span className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
             Oficial CBO
@@ -246,7 +246,7 @@ export function Estatisticas() {
           >
             {jogadores.map((j) => (
               <option key={j.id} value={j.id}>
-                {j.nome}
+                @{j.username}
                 {j.id === jogador?.id ? ' (eu)' : ''}
               </option>
             ))}
@@ -395,9 +395,9 @@ function ParceriaDestaqueCard({
         </p>
       ) : (
         <div className="flex items-center gap-2.5">
-          <Avatar nome={destaque.nome} size="sm" />
+          <Avatar username={destaque.username} size="sm" />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold text-giz">{destaque.nome}</p>
+            <p className="truncate text-sm font-bold text-giz">@{destaque.username}</p>
             <p className="text-[11px] font-mono text-giz-fraco">
               {destaque.partidas} {destaque.partidas === 1 ? 'partida junta' : 'partidas juntas'}
             </p>
@@ -449,9 +449,9 @@ function ParceriaCard({ titulo, parceria, minimoPartidas }: ParceriaCardProps) {
       ) : (
         <div className="space-y-2">
           <div className="flex items-center gap-2.5">
-            <Avatar nome={parceria.nome} size="sm" />
+            <Avatar username={parceria.username} size="sm" />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-bold text-giz">{parceria.nome}</p>
+              <p className="truncate text-sm font-bold text-giz">@{parceria.username}</p>
               <p className="text-[11px] font-mono text-giz-fraco">
                 {parceria.partidas} {parceria.partidas === 1 ? 'partida' : 'partidas'}
               </p>

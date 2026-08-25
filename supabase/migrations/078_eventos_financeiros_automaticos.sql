@@ -1,11 +1,12 @@
--- 076_eventos_financeiros_automaticos.sql
+-- 078_eventos_financeiros_automaticos.sql
 -- Eventos financeiros configuráveis (mensal / fim de partida).
 -- Substitui o INSERT hardcoded do cron de mensalidades e adiciona:
 --   - Despesa Campo R$1050 no dia 01 (caixa do racha)
 --   - Despesa Goleiro R$30 por goleiro ao finalizar a partida
 --
 -- Placeholders em descricao_template / referencia_template:
---   {data} {mes} {ano} {mes_ano} {referencia} {nome}
+--   {data} {mes} {ano} {mes_ano} {referencia} {nome} {username}
+-- ({nome} e {username} recebem o username do atleta — coluna nome foi removida).
 
 -- 1) Tabela de configuração
 CREATE TABLE IF NOT EXISTS eventos_financeiros_automaticos (
@@ -107,6 +108,7 @@ BEGIN
   v_out := replace(v_out, '{mes_ano}', v_mes_ano);
   v_out := replace(v_out, '{referencia}', v_ref);
   v_out := replace(v_out, '{nome}', COALESCE(p_nome, ''));
+  v_out := replace(v_out, '{username}', COALESCE(p_nome, ''));
   RETURN v_out;
 END;
 $$;
@@ -155,13 +157,13 @@ BEGIN
 
     ELSIF r.destino = 'mensalistas' THEN
       FOR j IN
-        SELECT id, nome
+        SELECT id, username
         FROM jogadores
         WHERE is_mensalista = true
           AND is_ativo = true
           AND posicao <> 'goleiro'
       LOOP
-        v_desc := substituir_template_financeiro(r.descricao_template, v_hoje, j.nome);
+        v_desc := substituir_template_financeiro(r.descricao_template, v_hoje, j.username);
         INSERT INTO dividas (
           jogador_id, tipo, natureza, valor, referencia, data_divida,
           descricao, evento_automatico_id
@@ -178,7 +180,7 @@ BEGIN
       END LOOP;
 
     ELSIF r.destino = 'jogador_fixo' AND r.jogador_id IS NOT NULL THEN
-      SELECT nome INTO v_desc FROM jogadores WHERE id = r.jogador_id;
+      SELECT username INTO v_desc FROM jogadores WHERE id = r.jogador_id;
       v_desc := substituir_template_financeiro(r.descricao_template, v_hoje, v_desc);
       INSERT INTO dividas (
         jogador_id, tipo, natureza, valor, referencia, data_divida,
@@ -236,13 +238,13 @@ BEGIN
 
     IF r.destino = 'goleiros_partida' THEN
       FOR g IN
-        SELECT pp.jogador_id, j.nome
+        SELECT pp.jogador_id, j.username
         FROM partidas_participantes pp
         JOIN jogadores j ON j.id = pp.jogador_id
         WHERE pp.partida_id = p_partida_id
           AND pp.posicao = 'goleiro'
       LOOP
-        v_desc := substituir_template_financeiro(r.descricao_template, v_data, g.nome);
+        v_desc := substituir_template_financeiro(r.descricao_template, v_data, g.username);
         INSERT INTO dividas (
           jogador_id, tipo, natureza, valor, referencia, data_divida,
           descricao, partida_id, evento_automatico_id
@@ -275,7 +277,7 @@ BEGIN
       );
 
     ELSIF r.destino = 'jogador_fixo' AND r.jogador_id IS NOT NULL THEN
-      SELECT nome INTO v_nome FROM jogadores WHERE id = r.jogador_id;
+      SELECT username INTO v_nome FROM jogadores WHERE id = r.jogador_id;
       v_desc := substituir_template_financeiro(r.descricao_template, v_data, v_nome);
       INSERT INTO dividas (
         jogador_id, tipo, natureza, valor, referencia, data_divida,
