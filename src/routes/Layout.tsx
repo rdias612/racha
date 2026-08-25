@@ -180,6 +180,19 @@ export function Layout() {
                       </Link>
 
                       <Link
+                        to="/gestao-goleiros"
+                        onClick={() => setMenuAberto(false)}
+                        className="flex min-h-[44px] items-center gap-2.5 rounded-[3px] px-3 py-2 text-xs font-medium text-giz hover:bg-superficie-2 hover:text-destaque transition-fast"
+                      >
+                        <span className="text-sm shrink-0" role="img" aria-label="Luva">
+                          🧤
+                        </span>
+                        <span className="font-display font-bold uppercase tracking-wider text-xs">
+                          Gestão de Goleiros
+                        </span>
+                      </Link>
+
+                      <Link
                         to="/jogador/novo"
                         onClick={() => setMenuAberto(false)}
                         className="flex min-h-[44px] items-center gap-2.5 rounded-[3px] px-3 py-2 text-xs font-medium text-giz hover:bg-superficie-2 hover:text-destaque transition-fast"

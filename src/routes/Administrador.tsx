@@ -8,7 +8,6 @@ import {
   MessageSquare,
   FileSpreadsheet,
   Copy,
-  Users,
 } from 'lucide-react';
 import { useAdmin } from '../hooks/useAdmin';
 import { Badge } from '../components/Badge';
@@ -389,24 +388,6 @@ export function Administrador() {
           <span className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
             Súmula CBO
           </span>
-        </div>
-
-        {/* Atalhos de Gestão */}
-        <div className="grid grid-cols-2 gap-2">
-          <Link
-            to="/gestao-jogadores"
-            className="flex items-center justify-center gap-2 p-2.5 rounded-[4px] border border-borda bg-superficie text-xs font-display font-bold uppercase tracking-wider text-giz shadow-carimbo hover:border-destaque transition min-h-[44px]"
-          >
-            <Users className="size-4 text-destaque" />
-            <span>Gestão de Atletas</span>
-          </Link>
-          <Link
-            to="/gestao-goleiros"
-            className="flex items-center justify-center gap-2 p-2.5 rounded-[4px] border border-borda bg-superficie text-xs font-display font-bold uppercase tracking-wider text-giz shadow-carimbo hover:border-destaque transition min-h-[44px]"
-          >
-            <span className="text-sm">🧤</span>
-            <span>Gestão de Goleiros</span>
-          </Link>
         </div>
 
         {erro && <MensagemEstado>{erro}</MensagemEstado>}

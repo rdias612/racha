@@ -185,11 +185,11 @@ export function GestaoGoleiros() {
       {/* Botão Voltar */}
       <button
         type="button"
-        onClick={() => voltar(navigate, '/administrador')}
+        onClick={() => voltar(navigate, '/')}
         className="inline-flex items-center gap-1.5 text-xs font-mono text-giz-fraco hover:text-giz transition min-h-[44px] -ml-1 px-1"
       >
         <ArrowLeft className="size-4" />
-        <span>painel financeiro</span>
+        <span>início</span>
       </button>
 
       {/* Header Editorial */}

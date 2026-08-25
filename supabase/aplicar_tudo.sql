@@ -4735,4 +4735,12 @@ $$;
 
 GRANT EXECUTE ON FUNCTION alternar_status_ativo_jogador(bigint, boolean, bigint) TO anon, authenticated;
 
+-- 084_grant_select_pix_telefone_jogadores.sql
+
+GRANT SELECT (
+  chave_pix,
+  telefone
+) ON jogadores TO anon, authenticated;
+
+
 
