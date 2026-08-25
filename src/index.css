@@ -103,6 +103,24 @@ textarea {
   font-size: 16px;
 }
 
+/* Remove setas nativas do input numérico (Chrome/Safari/Edge + Firefox). */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Select da súmula: esconde seta nativa; o chevron Lucide fica no markup. */
+.select-sumula {
+  appearance: none;
+  background-image: none;
+}
+
 input[type='checkbox'] {
   width: 1.25rem;
   height: 1.25rem;
@@ -164,6 +182,32 @@ textarea:focus-visible {
   scrollbar-width: none;
   &::-webkit-scrollbar {
     display: none;
+  }
+}
+
+/* Scrollbar da súmula (listboxes / dropdowns customizados). */
+@utility scrollbar-sumula {
+  scrollbar-width: thin;
+  scrollbar-color: var(--cor-borda) var(--cor-superficie-2);
+
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--cor-superficie-2);
+    border-radius: 2px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--cor-borda);
+    border-radius: 2px;
+    border: 2px solid var(--cor-superficie-2);
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: var(--cor-giz-fraco);
   }
 }
 
