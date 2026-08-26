@@ -33,16 +33,18 @@ const supabase = createClient(supabaseUrl, serviceRoleKey, {
   auth: { persistSession: false },
 });
 
+type SubscriptionData = {
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+};
+
 type Target = {
   partida_id: number;
   jogador_id: number;
-};
-
-type PartidaInfo = {
-  id: number;
   data_jogo: string;
   confirmacao_closes_at: string | null;
-  status: string;
+  subscriptions: SubscriptionData[];
 };
 
 function json(body: unknown, status = 200) {
@@ -109,44 +111,28 @@ function interpolar(
     .replace(/{prazo}/g, vars.prazo);
 }
 
-// Mensalistas PENDENTES da partida, ativos, e com inscrição push ativa.
-async function findTargets(partidaId: number): Promise<Target[]> {
-  const { data: partida, error: pErr } = await supabase
-    .from('partidas')
-    .select('id, status')
-    .eq('id', partidaId)
-    .maybeSingle();
-  if (pErr) throw pErr;
-  if (!partida || partida.status !== 'draft') return [];
+// Mensalistas PENDENTES da partida, ativos, e com inscrição push ativa em 1 round-trip.
+async function findTargets(partidaId?: number | null): Promise<Target[]> {
+  const { data, error } = await supabase.rpc('listar_pendentes_confirmacao', {
+    p_partida_id: partidaId ?? null,
+  });
+  if (error) throw error;
 
-  const { data: pendentes, error: ppErr } = await supabase
-    .from('partidas_participantes')
-    .select('jogador_id')
-    .eq('partida_id', partidaId)
-    .eq('status_confirmacao', 'pendente');
-  if (ppErr) throw ppErr;
-
-  const ids = (pendentes ?? []).map((p) => p.jogador_id);
-  if (ids.length === 0) return [];
-
-  const { data: ativos, error: jErr } = await supabase
-    .from('jogadores')
-    .select('id')
-    .in('id', ids)
-    .eq('is_ativo', true);
-  if (jErr) throw jErr;
-  const ativoIds = new Set((ativos ?? []).map((j) => j.id));
-
-  const { data: subs, error: sErr } = await supabase
-    .from('push_subscriptions')
-    .select('jogador_id')
-    .in('jogador_id', ids);
-  if (sErr) throw sErr;
-  const subIds = new Set((subs ?? []).map((s) => s.jogador_id));
-
-  return ids
-    .filter((id) => ativoIds.has(id) && subIds.has(id))
-    .map((id) => ({ partida_id: partidaId, jogador_id: id }));
+  return (data ?? []).map(
+    (row: {
+      partida_id: number;
+      jogador_id: number;
+      data_jogo: string;
+      confirmacao_closes_at: string | null;
+      subscriptions: SubscriptionData[];
+    }) => ({
+      partida_id: Number(row.partida_id),
+      jogador_id: Number(row.jogador_id),
+      data_jogo: String(row.data_jogo),
+      confirmacao_closes_at: row.confirmacao_closes_at ? String(row.confirmacao_closes_at) : null,
+      subscriptions: Array.isArray(row.subscriptions) ? row.subscriptions : [],
+    })
+  );
 }
 
 // Idempotência no ledger de entregas
@@ -170,12 +156,6 @@ async function sendNotification(
   mensagem: string,
   reminderKey?: 'confirmacao' | 'reforco'
 ) {
-  const { data: subscriptions, error } = await supabase
-    .from('push_subscriptions')
-    .select('endpoint, p256dh, auth')
-    .eq('jogador_id', t.jogador_id);
-  if (error) throw error;
-
   const payload = JSON.stringify({
     title: titulo,
     body: mensagem,
@@ -185,7 +165,7 @@ async function sendNotification(
   });
 
   let lastError: string | null = null;
-  for (const subscription of subscriptions ?? []) {
+  for (const subscription of t.subscriptions) {
     const pushSubscription = {
       endpoint: subscription.endpoint,
       keys: { p256dh: subscription.p256dh, auth: subscription.auth },
@@ -245,18 +225,27 @@ Deno.serve(async (request) => {
   try {
     // MODO 3: Reenvio manual do admin
     if (isReenvioManual && partidaId !== null) {
-      const { data: partida, error: pErr } = await supabase
-        .from('partidas')
-        .select('id, data_jogo, confirmacao_closes_at, status')
-        .eq('id', partidaId)
-        .maybeSingle();
-      if (pErr) throw pErr;
-      if (!partida || partida.status !== 'draft') {
-        return json({ error: 'Partida não encontrada ou não está em draft' }, 400);
+      const targets = await findTargets(partidaId);
+      if (targets.length === 0) {
+        const { data: partida, error: pErr } = await supabase
+          .from('partidas')
+          .select('id, data_jogo, confirmacao_closes_at, status')
+          .eq('id', partidaId)
+          .maybeSingle();
+        if (pErr) throw pErr;
+        if (!partida || partida.status !== 'draft') {
+          return json({ error: 'Partida não encontrada ou não está em draft' }, 400);
+        }
+        return json({
+          modo: 'reenvio_manual',
+          partida_id: partidaId,
+          targets: 0,
+          sent: 0,
+        });
       }
 
-      const { dia, hora } = formatarDataJogo(partida.data_jogo);
-      const prazo = formatarPrazo(partida.confirmacao_closes_at);
+      const { dia, hora } = formatarDataJogo(targets[0].data_jogo);
+      const prazo = formatarPrazo(targets[0].confirmacao_closes_at);
       const vars = { dia_jogo: dia, hora_jogo: hora, prazo };
 
       const tituloTemplate = config?.confirmacao_titulo?.trim() || 'Confirme sua presença';
@@ -267,7 +256,6 @@ Deno.serve(async (request) => {
       const titulo = interpolar(tituloTemplate, vars);
       const mensagem = interpolar(msgTemplate, vars);
 
-      const targets = await findTargets(partidaId);
       for (const target of targets) {
         await sendNotification(target, titulo, mensagem);
       }
@@ -285,18 +273,27 @@ Deno.serve(async (request) => {
         return json({ ok: true, skipped: true, motivo: 'confirmacao_ativo=false' }, 200);
       }
 
-      const { data: partida, error: pErr } = await supabase
-        .from('partidas')
-        .select('id, data_jogo, confirmacao_closes_at, status')
-        .eq('id', partidaId)
-        .maybeSingle();
-      if (pErr) throw pErr;
-      if (!partida || partida.status !== 'draft') {
-        return json({ error: 'Partida não encontrada ou não está em draft' }, 400);
+      const targets = await findTargets(partidaId);
+      if (targets.length === 0) {
+        const { data: partida, error: pErr } = await supabase
+          .from('partidas')
+          .select('id, data_jogo, confirmacao_closes_at, status')
+          .eq('id', partidaId)
+          .maybeSingle();
+        if (pErr) throw pErr;
+        if (!partida || partida.status !== 'draft') {
+          return json({ error: 'Partida não encontrada ou não está em draft' }, 400);
+        }
+        return json({
+          modo: 'confirmacao_semanal',
+          partida_id: partidaId,
+          targets: 0,
+          claimed: 0,
+        });
       }
 
-      const { dia, hora } = formatarDataJogo(partida.data_jogo);
-      const prazo = formatarPrazo(partida.confirmacao_closes_at);
+      const { dia, hora } = formatarDataJogo(targets[0].data_jogo);
+      const prazo = formatarPrazo(targets[0].confirmacao_closes_at);
       const vars = { dia_jogo: dia, hora_jogo: hora, prazo };
 
       const tituloTemplate = config?.confirmacao_titulo?.trim() || 'Confirme sua presença';
@@ -307,7 +304,6 @@ Deno.serve(async (request) => {
       const titulo = interpolar(tituloTemplate, vars);
       const mensagem = interpolar(msgTemplate, vars);
 
-      const targets = await findTargets(partidaId);
       let claimed = 0;
       for (const target of targets) {
         if (await claim(target, 'confirmacao')) {
@@ -328,23 +324,13 @@ Deno.serve(async (request) => {
       return json({ ok: true, skipped: true, motivo: 'reforco_ativo=false' }, 200);
     }
 
-    // Busca o draft atual com maior ID e prazo NOT NULL
-    const { data: draft, error: dErr } = await supabase
-      .from('partidas')
-      .select('id, data_jogo, confirmacao_closes_at, status')
-      .eq('status', 'draft')
-      .not('confirmacao_closes_at', 'is', null)
-      .order('id', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (dErr) throw dErr;
-    if (!draft || !draft.confirmacao_closes_at) {
+    const targets = await findTargets(null);
+    if (targets.length === 0 || !targets[0].confirmacao_closes_at) {
       return json({ ok: true, targets: 0, motivo: 'sem draft ativo com prazo' }, 200);
     }
 
     const agora = Date.now();
-    const prazoMs = new Date(draft.confirmacao_closes_at).getTime();
+    const prazoMs = new Date(targets[0].confirmacao_closes_at).getTime();
     const horasAntes = config?.reforco_horas_antes_prazo ?? 4;
     const janelaInicioMs = prazoMs - horasAntes * 3600 * 1000;
 
@@ -353,8 +339,8 @@ Deno.serve(async (request) => {
       return json({ ok: true, targets: 0, motivo: 'fora da janela de reforco' }, 200);
     }
 
-    const { dia, hora } = formatarDataJogo(draft.data_jogo);
-    const prazo = formatarPrazo(draft.confirmacao_closes_at);
+    const { dia, hora } = formatarDataJogo(targets[0].data_jogo);
+    const prazo = formatarPrazo(targets[0].confirmacao_closes_at);
     const vars = { dia_jogo: dia, hora_jogo: hora, prazo };
 
     const tituloTemplate =
@@ -366,7 +352,6 @@ Deno.serve(async (request) => {
     const titulo = interpolar(tituloTemplate, vars);
     const mensagem = interpolar(msgTemplate, vars);
 
-    const targets = await findTargets(draft.id);
     let claimed = 0;
     for (const target of targets) {
       if (await claim(target, 'reforco')) {
@@ -377,7 +362,7 @@ Deno.serve(async (request) => {
 
     return json({
       modo: 'reforco_automatico',
-      partida_id: draft.id,
+      partida_id: targets[0].partida_id,
       targets: targets.length,
       claimed,
     });

@@ -351,20 +351,20 @@ Componente idêntico em `Perfil.tsx:393-404` e `Estatisticas.tsx:410-421`; inter
 > Corrigido em 2026-08-25: criada a view intermediária canônica `v_levantamento(partida_id, jogador_id, time, gols, assistencias, gols_contra, vencedor, resultado, pontos, vitoria, empate, derrota, data_jogo)`, unificando em um único ponto a contagem de partidas publicadas/encerradas com placar e o cálculo de resultados. As views `ranking` e `stats_jogador`, e as RPCs `parcerias_jogador`, `parcerias_destaque_jogador`, `pares_racha`, `confronto_direto` e `resumo_ano` foram refatoradas para agregar exclusivamente de `v_levantamento`.
 > **Onde**: `supabase/migrations/089_unificacao_media_aparada_e_levantamento.sql`, `supabase/aplicar_tudo.sql`.
 
-### P2-26. RPCs de leitura `LANGUAGE sql` sem `STABLE`
+### P2-26. ✅ RPCs de leitura `LANGUAGE sql` sem `STABLE`
 
-`resumo_ano` (mestre `:2735`), `parcerias_jogador` (`:2924`), `pares_racha` (`:3105`), `parcerias_destaque_jogador` (`:3015`) — VOLATILE à toa; `confronto_direto` e `obter_medias_notas_jogadores` já mostram o padrão correto.
-**Refatoração**: adicionar `STABLE` nas leituras puras (permite inline pelo planner).
+> Corrigido em 2026-08-25: auditadas e garantidas como `STABLE` todas as RPCs de leitura pura (`resumo_ano`, `parcerias_jogador`, `parcerias_destaque_jogador`, `pares_racha`, `obter_medias_notas_jogadores`, `obter_partidas_recentes_jogadores`, `confronto_direto` e `confronto_direto_partidas`). A declaração `STABLE` permite que o planejador de consultas do PostgreSQL realize inlining e evite re-execuções desnecessárias dentro do mesmo statement.
+> **Onde**: `supabase/migrations/089_unificacao_media_aparada_e_levantamento.sql`, `supabase/migrations/090_otimizacao_placar_e_rpcs_notificacoes.sql`, `supabase/aplicar_tudo.sql`.
 
-### P2-27. N+1 nas Edge Functions
+### P2-27. ✅ N+1 nas Edge Functions
 
-`send-voting-reminders/index.ts:73-131` (4 queries por partida + 2 por jogador); `send-confirmation-requests/index.ts:113-150` idem.
-**Refatoração**: RPC `STABLE SECURITY DEFINER listar_pendentes_votacao()` devolvendo candidatos+endpoints num único round-trip; o loop Deno fica só no envio Web Push.
+> Corrigido em 2026-08-25: criadas as RPCs canônicas `listar_pendentes_votacao(interval)` e `listar_pendentes_confirmacao(bigint)` retornando candidatos elegíveis agregados com suas respectivas subscrições Web Push (`jsonb_agg`) em um único round-trip atômico ao banco de dados. Refatoradas as Edge Functions `send-voting-reminders` e `send-confirmation-requests` para consumir as RPCs diretamente, eliminando completamente o loop N+1 de consultas intermediárias em `partidas`, `partidas_participantes`, `jogadores`, `votes` e `push_subscriptions`.
+> **Onde**: `supabase/migrations/090_otimizacao_placar_e_rpcs_notificacoes.sql`, `supabase/aplicar_tudo.sql`, `supabase/functions/send-voting-reminders/index.ts`, `supabase/functions/send-confirmation-requests/index.ts`.
 
-### P2-28. View `partida_placar` recalculada em cascata por todas as telas
+### P2-28. ✅ View `partida_placar` recalculada em cascata por todas as telas
 
-`partida_placar` (mestre `:168-198`) agrega **todas** as partidas sem filtro; `ranking`, `stats_jogador`, `partidas_com_placar`, `parcerias_*`, `confronto_direto`, `resumo_ano` fazem join com ela. Cresce linearmente com o histórico.
-**Refatoração**: `MATERIALIZED VIEW` + `REFRESH` no job de 1 min existente, ou índice `partidas_participantes (partida_id, time) INCLUDE (gols, gols_contra)` + filtro por ano no mural.
+> Corrigido em 2026-08-25: refatorada a view `partida_placar` para realizar a agregação de gols próprios e gols contra em passo único (`agg` CTE), eliminando a dupla varredura de `partidas_participantes`. Criados índices de cobertura de alta performance: `idx_partidas_participantes_placar` em `(partida_id, time) INCLUDE (gols, gols_contra)` e `idx_partidas_data_jogo` em `partidas (data_jogo DESC)`.
+> **Onde**: `supabase/migrations/090_otimizacao_placar_e_rpcs_notificacoes.sql`, `supabase/aplicar_tudo.sql`.
 
 ### P2-29. Comentário diz "capacidade 16" mas o código aplica 14
 

@@ -32,12 +32,19 @@ const reminderWindowMs = 10 * 60 * 1000;
 
 type ReminderKey = (typeof allReminders)[number]['key'];
 
+type SubscriptionData = {
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+};
+
 type Candidate = {
   partida_id: number;
   jogador_id: number;
   voting_closes_at: string;
   reminder_key: ReminderKey;
   label: string;
+  subscriptions: SubscriptionData[];
 };
 
 function json(body: unknown, status = 200) {
@@ -59,75 +66,36 @@ async function findCandidates(activeReminders: typeof allReminders): Promise<Can
   const now = Date.now();
   // Janela máxima coberta pelos buckets ativos
   const maxOffset = Math.max(...activeReminders.map((r) => r.offsetMs));
+  const maxOffsetMinutes = Math.ceil((maxOffset + reminderWindowMs) / (60 * 1000));
+  const intervalParam = `${maxOffsetMinutes} minutes`;
 
-  const { data: partidas, error } = await supabase
-    .from('partidas')
-    .select('id, voting_closes_at')
-    .eq('status', 'published')
-    .gt('voting_closes_at', new Date(now).toISOString())
-    .lte('voting_closes_at', new Date(now + maxOffset + reminderWindowMs).toISOString());
+  const { data, error } = await supabase.rpc('listar_pendentes_votacao', {
+    p_janela_maxima_interval: intervalParam,
+  });
 
   if (error) throw error;
 
   const candidates: Candidate[] = [];
-  for (const partida of partidas ?? []) {
-    const remaining = new Date(partida.voting_closes_at).getTime() - now;
+  for (const item of data ?? []) {
+    const remaining = new Date(item.voting_closes_at).getTime() - now;
     const reminder = activeReminders.find(
-      (item) => remaining <= item.offsetMs && remaining > item.offsetMs - reminderWindowMs
+      (r) => remaining <= r.offsetMs && remaining > r.offsetMs - reminderWindowMs
     );
     if (!reminder) continue;
 
-    const { data: participants, error: participantsError } = await supabase
-      .from('partidas_participantes')
-      .select('jogador_id')
-      .eq('partida_id', partida.id);
-    if (participantsError) throw participantsError;
+    const subscriptions: SubscriptionData[] = Array.isArray(item.subscriptions)
+      ? item.subscriptions
+      : [];
+    if (subscriptions.length === 0) continue;
 
-    const participantIds = (participants ?? []).map((item) => item.jogador_id);
-    if (participantIds.length === 0) continue;
-
-    const { data: activePlayers, error: playersError } = await supabase
-      .from('jogadores')
-      .select('id')
-      .in('id', participantIds)
-      .eq('is_ativo', true);
-    if (playersError) throw playersError;
-
-    const { data: votes, error: votesError } = await supabase
-      .from('votes')
-      .select('voter_id')
-      .eq('partida_id', partida.id)
-      .in(
-        'voter_id',
-        (activePlayers ?? []).map((player) => player.id)
-      );
-    if (votesError) throw votesError;
-
-    // Só notifica quem (a) ainda não votou, (b) tem inscrição push ativa.
-    const votedIds = new Set((votes ?? []).map((vote) => vote.voter_id));
-    const pendingPlayerIds = (activePlayers ?? [])
-      .filter((player) => !votedIds.has(player.id))
-      .map((player) => player.id);
-    if (pendingPlayerIds.length === 0) continue;
-
-    const { data: subscribed, error: subError } = await supabase
-      .from('push_subscriptions')
-      .select('jogador_id')
-      .in('jogador_id', pendingPlayerIds);
-    if (subError) throw subError;
-
-    const subscribedIds = new Set((subscribed ?? []).map((s) => s.jogador_id));
-    for (const playerId of pendingPlayerIds) {
-      if (subscribedIds.has(playerId)) {
-        candidates.push({
-          partida_id: partida.id,
-          jogador_id: playerId,
-          voting_closes_at: partida.voting_closes_at,
-          reminder_key: reminder.key,
-          label: reminder.label,
-        });
-      }
-    }
+    candidates.push({
+      partida_id: item.partida_id,
+      jogador_id: item.jogador_id,
+      voting_closes_at: item.voting_closes_at,
+      reminder_key: reminder.key,
+      label: reminder.label,
+      subscriptions,
+    });
   }
   return candidates;
 }
@@ -150,12 +118,6 @@ async function send(
   candidate: Candidate,
   templates: Record<ReminderKey, { title: string; body: string }>
 ) {
-  const { data: subscriptions, error } = await supabase
-    .from('push_subscriptions')
-    .select('endpoint, p256dh, auth')
-    .eq('jogador_id', candidate.jogador_id);
-  if (error) throw error;
-
   const template = templates[candidate.reminder_key];
   const payload = JSON.stringify({
     title: template.title,
@@ -166,7 +128,7 @@ async function send(
   });
   let lastError: string | null = null;
 
-  for (const subscription of subscriptions ?? []) {
+  for (const subscription of candidate.subscriptions) {
     const pushSubscription = {
       endpoint: subscription.endpoint,
       keys: { p256dh: subscription.p256dh, auth: subscription.auth },

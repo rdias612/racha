@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS partidas (
 );
 
 CREATE INDEX IF NOT EXISTS idx_partidas_status_data ON partidas(status, data_jogo DESC);
+CREATE INDEX IF NOT EXISTS idx_partidas_data_jogo ON partidas(data_jogo DESC);
 
 -- 2.3 Participantes da Partida
 CREATE TABLE IF NOT EXISTS partidas_participantes (
@@ -59,6 +60,7 @@ CREATE TABLE IF NOT EXISTS partidas_participantes (
 );
 
 CREATE INDEX IF NOT EXISTS idx_partidas_participantes_jogador ON partidas_participantes(jogador_id);
+CREATE INDEX IF NOT EXISTS idx_partidas_participantes_placar ON partidas_participantes(partida_id, time) INCLUDE (gols, gols_contra);
 
 -- 2.4 Votos de Avaliação Pós-Jogo
 CREATE TABLE IF NOT EXISTS votes (
@@ -90,19 +92,30 @@ CREATE TABLE IF NOT EXISTS partida_eventos (
 CREATE INDEX IF NOT EXISTS idx_partida_eventos_partida ON partida_eventos(partida_id);
 CREATE INDEX IF NOT EXISTS idx_partida_eventos_jogador ON partida_eventos(jogador_id);
 
--- 2.6 Subscrições Web Push
+-- 2.6 Subscrições e Entregas Web Push
 CREATE TABLE IF NOT EXISTS push_subscriptions (
   id         bigserial   PRIMARY KEY,
   jogador_id bigint      NOT NULL REFERENCES jogadores(id) ON DELETE CASCADE,
   endpoint   text        NOT NULL UNIQUE,
-  keys       jsonb       NOT NULL,
-  user_agent text,
-  ip_address text,
+  p256dh     text        NOT NULL,
+  auth       text        NOT NULL,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS idx_push_subscriptions_jogador ON push_subscriptions(jogador_id);
+
+CREATE TABLE IF NOT EXISTS push_reminder_deliveries (
+  partida_id    bigint      NOT NULL REFERENCES partidas(id) ON DELETE CASCADE,
+  jogador_id    bigint      NOT NULL REFERENCES jogadores(id) ON DELETE CASCADE,
+  reminder_key  text        NOT NULL CHECK (reminder_key IN ('6h', '3h', '1h', '30m', 'confirmacao', 'reforco')),
+  claimed_at    timestamptz NOT NULL DEFAULT now(),
+  sent_at       timestamptz,
+  error_message text,
+  PRIMARY KEY (partida_id, jogador_id, reminder_key)
+);
+
+CREATE INDEX IF NOT EXISTS idx_push_reminders_claimed ON push_reminder_deliveries(claimed_at);
 
 -- 2.7 Configurações de Eventos Financeiros Automáticos
 CREATE TABLE IF NOT EXISTS eventos_financeiros_automaticos (
@@ -248,43 +261,27 @@ GRANT EXECUTE ON FUNCTION substituir_template_financeiro(text, date, text) TO an
 -- 4. VIEWS CANÔNICAS
 -- ----------------------------------------------------------------------------
 
--- 4.1 Placar da Partida (Gols Próprios e Gols Contra do Adversário)
+-- 4.1 Placar da Partida (Gols Próprios e Gols Contra do Adversário em Passo Único)
 CREATE OR REPLACE VIEW partida_placar AS
-WITH gols_proprios AS (
+WITH agg AS (
   SELECT
     partida_id,
-    COALESCE(SUM(gols) FILTER (WHERE time = 'a'), 0)::bigint AS gols_a,
-    COALESCE(SUM(gols) FILTER (WHERE time = 'b'), 0)::bigint AS gols_b
+    (COALESCE(SUM(gols) FILTER (WHERE time = 'a'), 0) + COALESCE(SUM(gols_contra) FILTER (WHERE time = 'b'), 0))::bigint AS gols_time_a,
+    (COALESCE(SUM(gols) FILTER (WHERE time = 'b'), 0) + COALESCE(SUM(gols_contra) FILTER (WHERE time = 'a'), 0))::bigint AS gols_time_b
   FROM partidas_participantes
   GROUP BY partida_id
-),
-gols_contra AS (
-  SELECT
-    partida_id,
-    COALESCE(SUM(gols_contra) FILTER (WHERE time = 'a'), 0)::bigint AS gc_a,
-    COALESCE(SUM(gols_contra) FILTER (WHERE time = 'b'), 0)::bigint AS gc_b
-  FROM partidas_participantes
-  GROUP BY partida_id
-),
-totais AS (
-  SELECT
-    p.id AS partida_id,
-    (COALESCE(gp.gols_a, 0) + COALESCE(gc.gc_b, 0))::bigint AS gols_time_a,
-    (COALESCE(gp.gols_b, 0) + COALESCE(gc.gc_a, 0))::bigint AS gols_time_b
-  FROM partidas p
-  LEFT JOIN gols_proprios gp ON gp.partida_id = p.id
-  LEFT JOIN gols_contra   gc ON gc.partida_id = p.id
 )
 SELECT
-  partida_id,
-  gols_time_a,
-  gols_time_b,
+  p.id AS partida_id,
+  COALESCE(a.gols_time_a, 0)::bigint AS gols_time_a,
+  COALESCE(a.gols_time_b, 0)::bigint AS gols_time_b,
   CASE
-    WHEN gols_time_a > gols_time_b THEN 'a'
-    WHEN gols_time_b > gols_time_a THEN 'b'
+    WHEN COALESCE(a.gols_time_a, 0) > COALESCE(a.gols_time_b, 0) THEN 'a'
+    WHEN COALESCE(a.gols_time_b, 0) > COALESCE(a.gols_time_a, 0) THEN 'b'
     ELSE 'empate'
   END AS vencedor
-FROM totais;
+FROM partidas p
+LEFT JOIN agg a ON a.partida_id = p.id;
 
 GRANT SELECT ON partida_placar TO anon, authenticated;
 
@@ -2283,6 +2280,118 @@ END;
 $rpc$;
 
 GRANT EXECUTE ON FUNCTION salvar_configuracoes_notificacoes(bigint, jsonb) TO anon, authenticated;
+
+-- 10.2 Listar Pendentes de Votação (Candidatos + Subscriptions em 1 Round-Trip)
+CREATE OR REPLACE FUNCTION listar_pendentes_votacao(
+  p_janela_maxima_interval interval DEFAULT interval '6 hours 10 minutes'
+)
+RETURNS TABLE (
+  partida_id       bigint,
+  jogador_id       bigint,
+  voting_closes_at timestamptz,
+  subscriptions    jsonb
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT
+    p.id                                              AS partida_id,
+    pp.jogador_id                                     AS jogador_id,
+    p.voting_closes_at                                AS voting_closes_at,
+    jsonb_agg(
+      jsonb_build_object(
+        'endpoint', ps.endpoint,
+        'p256dh', ps.p256dh,
+        'auth', ps.auth
+      )
+    )                                                 AS subscriptions
+  FROM partidas p
+  JOIN partidas_participantes pp ON pp.partida_id = p.id
+  JOIN jogadores j ON j.id = pp.jogador_id
+  JOIN push_subscriptions ps ON ps.jogador_id = pp.jogador_id
+  WHERE p.status = 'published'
+    AND p.voting_closes_at > now()
+    AND p.voting_closes_at <= now() + COALESCE(p_janela_maxima_interval, interval '6 hours 10 minutes')
+    AND pp.posicao <> 'goleiro'
+    AND j.is_ativo = true
+    AND j.posicao <> 'random'
+    AND j.username NOT ILIKE 'random%'
+    AND NOT EXISTS (
+      SELECT 1 FROM votes v
+      WHERE v.partida_id = pp.partida_id
+        AND v.voter_id = pp.jogador_id
+    )
+  GROUP BY p.id, pp.jogador_id, p.voting_closes_at;
+$$;
+
+GRANT EXECUTE ON FUNCTION listar_pendentes_votacao(interval) TO anon, authenticated;
+
+-- 10.3 Listar Pendentes de Confirmação (Candidatos + Subscriptions em 1 Round-Trip)
+CREATE OR REPLACE FUNCTION listar_pendentes_confirmacao(
+  p_partida_id bigint DEFAULT NULL
+)
+RETURNS TABLE (
+  partida_id            bigint,
+  jogador_id            bigint,
+  data_jogo             timestamptz,
+  confirmacao_closes_at timestamptz,
+  subscriptions         jsonb
+)
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_target_partida_id bigint;
+BEGIN
+  IF p_partida_id IS NOT NULL THEN
+    SELECT id INTO v_target_partida_id
+    FROM partidas
+    WHERE id = p_partida_id AND status = 'draft';
+  ELSE
+    SELECT id INTO v_target_partida_id
+    FROM partidas
+    WHERE status = 'draft' AND confirmacao_closes_at IS NOT NULL
+    ORDER BY id DESC
+    LIMIT 1;
+  END IF;
+
+  IF v_target_partida_id IS NULL THEN
+    RETURN;
+  END IF;
+
+  RETURN QUERY
+  SELECT
+    p.id                                              AS partida_id,
+    pp.jogador_id                                     AS jogador_id,
+    p.data_jogo                                       AS data_jogo,
+    p.confirmacao_closes_at                           AS confirmacao_closes_at,
+    jsonb_agg(
+      jsonb_build_object(
+        'endpoint', ps.endpoint,
+        'p256dh', ps.p256dh,
+        'auth', ps.auth
+      )
+    )                                                 AS subscriptions
+  FROM partidas p
+  JOIN partidas_participantes pp ON pp.partida_id = p.id
+  JOIN jogadores j ON j.id = pp.jogador_id
+  JOIN push_subscriptions ps ON ps.jogador_id = pp.jogador_id
+  WHERE p.id = v_target_partida_id
+    AND p.status = 'draft'
+    AND pp.status_confirmacao = 'pendente'
+    AND pp.posicao <> 'goleiro'
+    AND j.is_ativo = true
+    AND j.posicao <> 'random'
+    AND j.username NOT ILIKE 'random%'
+  GROUP BY p.id, pp.jogador_id, p.data_jogo, p.confirmacao_closes_at;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION listar_pendentes_confirmacao(bigint) TO anon, authenticated;
 
 -- ----------------------------------------------------------------------------
 -- 11. RPCS: RELATÓRIOS E ESTATÍSTICAS
