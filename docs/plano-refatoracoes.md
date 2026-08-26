@@ -336,20 +336,20 @@ Componente idêntico em `Perfil.tsx:393-404` e `Estatisticas.tsx:410-421`; inter
 
 ## Banco (P2)
 
-### P2-23. Mestre carrega 2-3 versões históricas das mesmas funções
+### P2-23. ✅ Mestre carrega 2-3 versões históricas das mesmas funções
 
-`aplicar_tudo.sql`: `confirmar_presenca` 3x (`:1764, 4199, 4748`), `adicionar_participante` 3x, `abrir_partida` 3x, `salvar_configuracoes_notificacoes` 2x (90 linhas idênticas duplicadas), `criar_partida` 2x, `finalizar_partida`/`publicar_partida` 2x — 63 `SECURITY DEFINER` para 59 `SET search_path` por causa das recriações.
-**Refatoração**: mestre com só o estado final (1 versão por assinatura), na ordem de dependência.
+> Corrigido em 2026-08-25: `supabase/aplicar_tudo.sql` completamente limpo e consolidado no estado final canônico (1 única versão por assinatura de tabela, view, trigger e RPC), organizado estritamente na ordem correta de dependências (Extensões -> Tabelas e Constraints -> Funções Utilitárias -> Views -> RPCs -> Crons -> Grants -> Seeds), eliminando todas as 63 recriações e duplicatas históricas acumuladas.
+> **Onde**: `supabase/aplicar_tudo.sql`.
 
-### P2-24. Média aparada implementada em 2+ lugares no SQL
+### P2-24. ✅ Média aparada implementada em 2+ lugares no SQL
 
-View `partida_notas` (`067:19`/`076:15`, mestre `:224/2541`) e RPC `070` (mestre `:2183`) — fórmula `(SUM-MIN-MAX)/(COUNT-2) WHEN COUNT>=3` duplicada textualmente.
-**Refatoração**: função `IMMUTABLE media_aparada(sum, min, max, count)` usada pelos dois (ou a RPC derivar da view).
+> Corrigido em 2026-08-25: criada a função pura canônica `IMMUTABLE PARALLEL SAFE media_aparada(sum, min, max, count)`. A fórmula que descarta 1 menor e 1 maior nota quando `count >= 3` foi centralizada e aplicada tanto na view `partida_notas` quanto na RPC `obter_medias_notas_jogadores`.
+> **Onde**: `supabase/migrations/089_unificacao_media_aparada_e_levantamento.sql`, `supabase/aplicar_tudo.sql`.
 
-### P2-25. Fórmula V/E/D + pontos replicada em 5-6 objetos SQL
+### P2-25. ✅ Fórmula V/E/D + pontos replicada em 5-6 objetos SQL
 
-Views `ranking`, `stats_jogador`, `parcerias_jogador`, `pares_racha`, `confronto_direto`, `resumo_ano` repetem o trio `COUNT(*) FILTER (vencedor/time/empate)`.
-**Refatoração**: view `v_levantamento(partida_id, jogador_id, time, resultado)` e as demais apenas agregam dela — um só ponto para mudar a regra de pontuação.
+> Corrigido em 2026-08-25: criada a view intermediária canônica `v_levantamento(partida_id, jogador_id, time, gols, assistencias, gols_contra, vencedor, resultado, pontos, vitoria, empate, derrota, data_jogo)`, unificando em um único ponto a contagem de partidas publicadas/encerradas com placar e o cálculo de resultados. As views `ranking` e `stats_jogador`, e as RPCs `parcerias_jogador`, `parcerias_destaque_jogador`, `pares_racha`, `confronto_direto` e `resumo_ano` foram refatoradas para agregar exclusivamente de `v_levantamento`.
+> **Onde**: `supabase/migrations/089_unificacao_media_aparada_e_levantamento.sql`, `supabase/aplicar_tudo.sql`.
 
 ### P2-26. RPCs de leitura `LANGUAGE sql` sem `STABLE`
 
