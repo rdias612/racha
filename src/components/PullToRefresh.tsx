@@ -140,9 +140,7 @@ export function PullToRefresh({ onRefresh, children, threshold = 60 }: PullToRef
               refreshing ? 'animate-spin' : ''
             }`}
           />
-          <span ref={textoRef}>
-            {refreshing ? 'Atualizando súmula...' : 'Puxe para atualizar'}
-          </span>
+          <span ref={textoRef}>{refreshing ? 'Atualizando súmula...' : 'Puxe para atualizar'}</span>
         </div>
       </div>
       {children}

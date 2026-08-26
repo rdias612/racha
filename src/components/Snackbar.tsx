@@ -20,18 +20,18 @@ export function Snackbar({
   duracaoMs = 3000,
 }: SnackbarProps) {
   useEffect(() => {
-    if (visivel) {
-      if (tipo === 'sucesso') {
-        vibrateSuccess();
-      } else if (tipo === 'erro') {
-        vibrateError();
-      }
+    if (!visivel) return;
 
-      const timer = setTimeout(() => {
-        onFechar();
-      }, duracaoMs);
-      return () => clearTimeout(timer);
+    if (tipo === 'sucesso') {
+      vibrateSuccess();
+    } else if (tipo === 'erro') {
+      vibrateError();
     }
+
+    const timer = setTimeout(() => {
+      onFechar();
+    }, duracaoMs);
+    return () => clearTimeout(timer);
   }, [visivel, tipo, duracaoMs, onFechar]);
 
   if (!visivel) return null;

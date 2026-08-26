@@ -127,13 +127,15 @@ async function subscriptionAtual() {
 
 function dadosSubscription(subscription: PushSubscription) {
   const keys = subscription.toJSON().keys;
-  if (!keys?.p256dh || !keys.auth) {
+  const p256dh = keys?.['p256dh'];
+  const auth = keys?.['auth'];
+  if (!p256dh || !auth) {
     throw new Error('Subscription Web Push inválida.');
   }
   return {
     endpoint: subscription.endpoint,
-    p256dh: keys.p256dh,
-    auth: keys.auth,
+    p256dh,
+    auth,
   };
 }
 

@@ -383,10 +383,10 @@ Componente idêntico em `Perfil.tsx:393-404` e `Estatisticas.tsx:410-421`; inter
 `eslint.config.js:15-29` — plugin registrado manualmente com 2 regras; `no-explicit-any`/`no-unused-vars` em `warn` (grep: zero `any` explícito em `src` — subir para `error` não quebra nada hoje); `public/sw.js` nunca lintado.
 **Refatoração**: `reactHooks.configs['recommended-latest']`, promover as duas regras, bloco de lint para `sw.js` com `globals.serviceworker`.
 
-### P2-32. Strict mode do TypeScript incompleto + `vercel.json` sem headers de cache do SW
+### P2-32. ✅ Strict mode do TypeScript incompleto + `vercel.json` sem headers de cache do SW
 
-`tsconfig.app.json:16-21` (faltam `noImplicitOverride`, `noPropertyAccessFromIndexSignature`, `exactOptionalPropertyTypes` gradual); `vercel.json:1-3` (sem `Cache-Control: no-cache` para `/sw.js` — causa clássica de "PWA preso na versão antiga", que o `GUIA/SETUP_FRONTEND_LOCAL.md:109-110` tenta contornar com Ctrl+Shift+R).
-**Refatoração**: adicionar as flags + headers para `sw.js`/`index.html`/`offline.html`.
+> Corrigido em 2026-08-25: adicionadas as flags estritas `"noImplicitOverride": true`, `"noImplicitReturns": true` e `"noPropertyAccessFromIndexSignature": true` aos arquivos `tsconfig.app.json` e `tsconfig.node.json`. Corrigidos os erros apontados pelo compilador em `ErrorBoundary.tsx` (modificadores `override`), `Snackbar.tsx` (consistência de retorno em `useEffect`) e `pwa.ts` (acesso por index signature). Configurados em `vercel.json` os headers HTTP `Cache-Control: no-cache, no-store, must-revalidate` e `Service-Worker-Allowed: /` para `/sw.js`, `/index.html`, `/offline.html` e `/manifest.webmanifest`, além de `Cache-Control: public, max-age=31536000, immutable` para os assets versionados em `/assets/(.*)`.
+> **Onde**: `tsconfig.app.json`, `tsconfig.node.json`, `vercel.json`, `src/components/ErrorBoundary.tsx`, `src/components/Snackbar.tsx`, `src/lib/pwa.ts`.
 
 ### P2-33. Registro do service worker dividido entre arquivos + comentário mentiroso
 

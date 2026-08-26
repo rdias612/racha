@@ -107,10 +107,7 @@ export function PartidaEditar() {
   }, [participantes]);
 
   // Placar derivado em tempo real (canônico via calcularPlacarDeParticipantes)
-  const placarAoVivo = useMemo(
-    () => calcularPlacarDeParticipantes(participantes),
-    [participantes]
-  );
+  const placarAoVivo = useMemo(() => calcularPlacarDeParticipantes(participantes), [participantes]);
 
   // Candidatos para inclusão no modal
   const candidatosAdicionar = useMemo(() => {
@@ -212,11 +209,7 @@ export function PartidaEditar() {
     setFeedback(null);
 
     try {
-      await salvarEdicaoCompletaPartida(
-        partidaId,
-        participantes,
-        primeiraVez
-      );
+      await salvarEdicaoCompletaPartida(partidaId, participantes, primeiraVez);
 
       invalidarCache('jogos');
       invalidarCache('resumo');

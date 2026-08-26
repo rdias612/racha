@@ -50,7 +50,9 @@ export function isSuperAdmin(username?: string | null): boolean {
  * Garante que jogadores com usernames configurados em `SUPERADMINS` sempre
  * recebam `is_admin: true` no cliente, mesmo se o banco ainda não refletir.
  */
-export function aplicarSuperAdmin<T extends { username: string; is_admin: boolean }>(jogador: T): T {
+export function aplicarSuperAdmin<T extends { username: string; is_admin: boolean }>(
+  jogador: T
+): T {
   return {
     ...jogador,
     is_admin: Boolean(jogador.is_admin || isSuperAdmin(jogador.username)),
@@ -122,9 +124,7 @@ export async function listarTodosJogadores(): Promise<JogadorLista[]> {
     .order('username');
 
   if (error) throw error;
-  return (data ?? [])
-    .filter((j) => !isRandomUsername(j.username))
-    .map(mapearJogadorLista);
+  return (data ?? []).filter((j) => !isRandomUsername(j.username)).map(mapearJogadorLista);
 }
 
 // Salva um lote de alterações de mensalista/admin numa única RPC transacional

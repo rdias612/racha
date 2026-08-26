@@ -285,8 +285,6 @@ export function GestaoJogadores() {
     }
   }
 
-
-
   if (carregando) return <SkeletonGestao />;
 
   return (

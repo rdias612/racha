@@ -66,9 +66,7 @@ export function useListbox<T>({
   const opcaoRefs = useRef<Array<HTMLLIElement | null>>([]);
 
   const indiceAtual = opcoes.findIndex((o) => o.value === value);
-  const [destaque, setDestaque] = useState<number>(
-    indiceAtual >= 0 ? indiceAtual : indicePadrao
-  );
+  const [destaque, setDestaque] = useState<number>(indiceAtual >= 0 ? indiceAtual : indicePadrao);
 
   useEffect(() => {
     if (!aberto) return;
@@ -120,9 +118,7 @@ export function useListbox<T>({
   function onKeyDown(e: ReactKeyboardEvent<HTMLButtonElement>) {
     if (disabled) return;
 
-    const habilitadas = opcoes
-      .map((o, i) => ({ o, i }))
-      .filter(({ o }) => !o.disabled);
+    const habilitadas = opcoes.map((o, i) => ({ o, i })).filter(({ o }) => !o.disabled);
 
     function mover(delta: number) {
       if (habilitadas.length === 0) return;

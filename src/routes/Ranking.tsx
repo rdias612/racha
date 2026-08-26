@@ -160,10 +160,6 @@ export function Ranking() {
     [linhas]
   );
 
-  useEffect(() => {
-    setMinimoPartidas((minimo) => Math.min(minimo, maximoPartidas));
-  }, [maximoPartidas]);
-
   const colunasOrdenacao = useMemo<ColunaTabela[]>(
     () => [
       { key: 'username', label: 'Atleta' },
@@ -314,7 +310,7 @@ export function Ranking() {
               min={0}
               max={maximoPartidas}
               value={minimoPartidas}
-              onChange={(e) => setMinimoPartidas(Number(e.target.value))}
+              onChange={(e) => setMinimoPartidas((Number(e.target.value) ?? 0) <= maximoPartidas ? Number(e.target.value) : maximoPartidas)}
               className="w-full accent-destaque"
             />
           </div>
@@ -462,9 +458,7 @@ function TabelaRanking({
                     direcao === 'asc' ? 'ascending' : direcao === 'desc' ? 'descending' : 'none'
                   }
                   className={`p-0 font-display font-bold uppercase tracking-wider text-xs ${
-                    ehAtleta
-                      ? 'w-px whitespace-nowrap text-left sm:min-w-44'
-                      : 'text-right'
+                    ehAtleta ? 'w-px whitespace-nowrap text-left sm:min-w-44' : 'text-right'
                   }`}
                 >
                   <button

@@ -271,7 +271,9 @@ export function PartidaVotar() {
         <div className="mt-3 space-y-1">
           <div className="flex items-center justify-between text-xs font-mono">
             <span className="text-giz-fraco">Progresso da cédula:</span>
-            <span className={todosAvaliados ? 'text-ok font-bold' : 'text-destaque-texto font-bold'}>
+            <span
+              className={todosAvaliados ? 'text-ok font-bold' : 'text-destaque-texto font-bold'}
+            >
               {avaliadosCount}/{alvos.length} avaliados
             </span>
           </div>

@@ -455,27 +455,27 @@ O daemon do `pg_cron` no Supabase avalia expressões em **UTC**. O fuso de Bras�
 
 ## 10. Matriz de "Faça Assim" vs "Não Faça Assim"
 
-| Área                    | ❌ Não Faça Assim (Proibido)                                   | ✅ Faça Assim (Padrão Correto)                                      |
-| ----------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------- |
-| **Identificadores**     | `id UUID DEFAULT gen_random_uuid()`                            | `id bigserial PRIMARY KEY` (Regra Zero UUID)                        |
-| **Migrations**          | `20260822173000_adicionar_tabela.sql`                          | `071_adicionar_tabela.sql` (sequencial 3 dígitos)                   |
-| **Segurança em RPCs**   | Funções sem `SECURITY DEFINER` ou sem `search_path`            | `SECURITY DEFINER SET search_path = public`                         |
-| **Permissões SQL**      | Esquecer `GRANT EXECUTE` na migration                          | `GRANT EXECUTE ON FUNCTION ... TO anon, authenticated;`             |
-| **Edição de Partida**   | Deletar e reinserir participantes em múltiplos steps do client | Usar a RPC atômica `salvar_edicao_partida(p_id, p_jsonb)`           |
-| **Consultas Agregadas** | Baixar a tabela `votes` inteira para calcular médias no front  | Usar a RPC `obter_medias_notas_jogadores()`                         |
-| **Layout / Estrutura**  | Empilhar dezenas de cards isolados com borda e sombra          | Listas contínuas com `divide-y` (cards só para destaque semântico)  |
-| **Design / Cores**      | Usar cores Tailwind padrão (`bg-blue-600`, `text-gray-900`)    | Usar tokens semânticos (`bg-destaque`, `text-giz`, `bg-superficie`) |
-| **Design / Cantos**     | `rounded-xl`, `rounded-2xl`, sombras suaves `shadow-lg`        | Cantos duros `rounded-[4px]`, `shadow-carimbo`, `border-borda`      |
-| **Tipografia**          | Usar fontes genéricas em tudo                                  | `font-display uppercase` em títulos/badges e `font-mono` em números |
-| **Tom de Voz / Nomes**  | Termos SaaS genéricos ("Dashboard", "MVP", "Winrate")          | Glossário canônico ("Boletim Oficial", "Craque", "Mais Eficiente")  |
+| Área                    | ❌ Não Faça Assim (Proibido)                                   | ✅ Faça Assim (Padrão Correto)                                          |
+| ----------------------- | -------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| **Identificadores**     | `id UUID DEFAULT gen_random_uuid()`                            | `id bigserial PRIMARY KEY` (Regra Zero UUID)                            |
+| **Migrations**          | `20260822173000_adicionar_tabela.sql`                          | `071_adicionar_tabela.sql` (sequencial 3 dígitos)                       |
+| **Segurança em RPCs**   | Funções sem `SECURITY DEFINER` ou sem `search_path`            | `SECURITY DEFINER SET search_path = public`                             |
+| **Permissões SQL**      | Esquecer `GRANT EXECUTE` na migration                          | `GRANT EXECUTE ON FUNCTION ... TO anon, authenticated;`                 |
+| **Edição de Partida**   | Deletar e reinserir participantes em múltiplos steps do client | Usar a RPC atômica `salvar_edicao_partida(p_id, p_jsonb)`               |
+| **Consultas Agregadas** | Baixar a tabela `votes` inteira para calcular médias no front  | Usar a RPC `obter_medias_notas_jogadores()`                             |
+| **Layout / Estrutura**  | Empilhar dezenas de cards isolados com borda e sombra          | Listas contínuas com `divide-y` (cards só para destaque semântico)      |
+| **Design / Cores**      | Usar cores Tailwind padrão (`bg-blue-600`, `text-gray-900`)    | Usar tokens semânticos (`bg-destaque`, `text-giz`, `bg-superficie`)     |
+| **Design / Cantos**     | `rounded-xl`, `rounded-2xl`, sombras suaves `shadow-lg`        | Cantos duros `rounded-[4px]`, `shadow-carimbo`, `border-borda`          |
+| **Tipografia**          | Usar fontes genéricas em tudo                                  | `font-display uppercase` em títulos/badges e `font-mono` em números     |
+| **Tom de Voz / Nomes**  | Termos SaaS genéricos ("Dashboard", "MVP", "Winrate")          | Glossário canônico ("Boletim Oficial", "Craque", "Mais Eficiente")      |
 | **Inputs / Forms**      | Inputs sem anel de foco visível ou com texto menor que 16px    | `focus-visible:outline-destaque-texto` e `text-base` (anti-zoom no iOS) |
-| **Diálogos**            | `if (window.confirm('Excluir?'))`                              | `<ConfirmDialog open={...} onConfirm={...} />`                      |
-| **Feedback Rápido**     | `alert('Salvo com sucesso!')`                                  | `<Snackbar mensagem="..." tipo="sucesso" />` com haptics            |
-| **Rules of Hooks**      | Colocar `useEffect` ou `useMemo` após `if (!isAdmin) return`   | Declarar todos os hooks no topo e posicionar o guard no final       |
-| **Race Conditions**     | `useEffect` assíncrono sem flag de cancelamento                | Usar `let ativo = true; return () => { ativo = false; };`           |
-| **UX Mobile**           | Botões pequenos com altura menor que 44px                      | `min-h-[44px]` em todos os botões e alvos de toque                  |
-| **Navegação**           | `navigate(-1)` seco (quebra se acessado via deep-link)         | `voltar(navigate, '/jogos')` de `src/lib/navegacao.ts`              |
-| **Erros na UI**         | Exibir `error.message` cru ("Failed to fetch")                 | Usar `formatarMensagemErro(err)` de `src/lib/erros.ts`              |
+| **Diálogos**            | `if (window.confirm('Excluir?'))`                              | `<ConfirmDialog open={...} onConfirm={...} />`                          |
+| **Feedback Rápido**     | `alert('Salvo com sucesso!')`                                  | `<Snackbar mensagem="..." tipo="sucesso" />` com haptics                |
+| **Rules of Hooks**      | Colocar `useEffect` ou `useMemo` após `if (!isAdmin) return`   | Declarar todos os hooks no topo e posicionar o guard no final           |
+| **Race Conditions**     | `useEffect` assíncrono sem flag de cancelamento                | Usar `let ativo = true; return () => { ativo = false; };`               |
+| **UX Mobile**           | Botões pequenos com altura menor que 44px                      | `min-h-[44px]` em todos os botões e alvos de toque                      |
+| **Navegação**           | `navigate(-1)` seco (quebra se acessado via deep-link)         | `voltar(navigate, '/jogos')` de `src/lib/navegacao.ts`                  |
+| **Erros na UI**         | Exibir `error.message` cru ("Failed to fetch")                 | Usar `formatarMensagemErro(err)` de `src/lib/erros.ts`                  |
 
 ---
 

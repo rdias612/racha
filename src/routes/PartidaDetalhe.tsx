@@ -279,24 +279,24 @@ export function PartidaDetalhe() {
           </div>
           <div className="divide-y divide-borda">
             {notasOrdenadas.map((n) => (
-                <div
-                  key={n.target_id}
-                  className="flex items-center justify-between px-3 py-2 text-sm hover:bg-superficie-2 transition"
-                >
-                  <div className="flex items-center gap-2 text-giz">
-                    <Avatar username={n.username} size="xs" />
-                    <span className="font-medium">
-                      {n.is_craque ? '⭐ ' : ''}@{n.username}
-                    </span>
-                  </div>
-                  <span className="font-mono text-sm font-bold text-destaque-texto tabular-nums">
-                    {Number(n.avg_rating).toFixed(1)}{' '}
-                    <span className="text-xs font-normal text-giz-fraco font-mono">
-                      ({n.vote_count}v)
-                    </span>
+              <div
+                key={n.target_id}
+                className="flex items-center justify-between px-3 py-2 text-sm hover:bg-superficie-2 transition"
+              >
+                <div className="flex items-center gap-2 text-giz">
+                  <Avatar username={n.username} size="xs" />
+                  <span className="font-medium">
+                    {n.is_craque ? '⭐ ' : ''}@{n.username}
                   </span>
                 </div>
-              ))}
+                <span className="font-mono text-sm font-bold text-destaque-texto tabular-nums">
+                  {Number(n.avg_rating).toFixed(1)}{' '}
+                  <span className="text-xs font-normal text-giz-fraco font-mono">
+                    ({n.vote_count}v)
+                  </span>
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -542,7 +542,9 @@ function BotoesAdmin({
         onClick={() => onAtualizar('pendente')}
         title="Pendente"
         className={`${mini} ${
-          status === 'pendente' ? 'border-destaque bg-destaque/20 text-destaque-texto font-bold' : off
+          status === 'pendente'
+            ? 'border-destaque bg-destaque/20 text-destaque-texto font-bold'
+            : off
         }`}
       >
         ⏳

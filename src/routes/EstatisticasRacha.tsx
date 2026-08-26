@@ -244,11 +244,7 @@ function TabelaDuplas({
   ) {
     const ativa = colunaOrdenacao === coluna;
     const justifyClass =
-      align === 'left'
-        ? 'justify-start'
-        : align === 'right'
-          ? 'justify-end'
-          : 'justify-center';
+      align === 'left' ? 'justify-start' : align === 'right' ? 'justify-end' : 'justify-center';
 
     return (
       <th
@@ -310,7 +306,9 @@ function TabelaDuplas({
               </td>
               <td
                 className={`px-3 py-2.5 text-center font-mono text-xs font-bold tabular-nums ${
-                  colunaOrdenacao === 'pontos' ? 'text-destaque-texto font-black' : 'text-destaque-texto'
+                  colunaOrdenacao === 'pontos'
+                    ? 'text-destaque-texto font-black'
+                    : 'text-destaque-texto'
                 }`}
               >
                 {par.pontos}
