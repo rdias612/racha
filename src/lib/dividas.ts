@@ -52,25 +52,30 @@ export interface DividaPorJogador {
   dividas: Divida[];
 }
 
+export const SELECT_DIVIDA =
+  'id, jogador_id, tipo, natureza, valor, descricao, referencia, partida_id, data_divida, paga, data_pagamento, created_at, jogadores(username, is_mensalista, chave_pix, telefone)';
+
+/**
+ * Mapeia uma linha bruta da tabela `dividas` (com join em `jogadores`) para a interface `Divida`,
+ * normalizando a natureza do lançamento com fallback defensivo para 'receita'.
+ */
+export function mapearLinhaDivida(row: unknown): Divida {
+  const r = row as unknown as Divida;
+  return {
+    ...r,
+    natureza: (r.natureza ?? 'receita') as NaturezaLancamento,
+  };
+}
+
 /** Lista todas as dívidas/lançamentos em aberto (paga = false), já com username do jogador. */
 export async function listarDividasEmAberto(): Promise<Divida[]> {
   const { data, error } = await supabase
     .from('dividas')
-    .select(
-      'id, jogador_id, tipo, natureza, valor, descricao, referencia, partida_id, data_divida, paga, data_pagamento, created_at, jogadores(username, is_mensalista, chave_pix, telefone)'
-    )
+    .select(SELECT_DIVIDA)
     .eq('paga', false)
     .order('data_divida', { ascending: false });
   if (error) throw error;
-  // Cast via unknown: o cliente Supabase infere `jogadores` como array, mas em
-  // runtime o join m:1 devolve um objeto (ou null). Vide migration 051 (FK única).
-  return (data ?? []).map((row) => {
-    const r = row as unknown as Divida;
-    return {
-      ...r,
-      natureza: r.natureza ?? 'receita',
-    };
-  });
+  return (data ?? []).map(mapearLinhaDivida);
 }
 
 /** Linha da view `dividas_resumo` (total devido + qtd por jogador — só receitas). */
@@ -146,21 +151,13 @@ export async function listarLancamentosPorPeriodo(
 ): Promise<Divida[]> {
   const { data, error } = await supabase
     .from('dividas')
-    .select(
-      'id, jogador_id, tipo, natureza, valor, descricao, referencia, partida_id, data_divida, paga, data_pagamento, created_at, jogadores(username, is_mensalista)'
-    )
+    .select(SELECT_DIVIDA)
     .gte('data_divida', dataInicio)
     .lte('data_divida', dataFim)
     .order('data_divida', { ascending: true })
     .order('id', { ascending: true });
   if (error) throw error;
-  return (data ?? []).map((row) => {
-    const r = row as unknown as Divida;
-    return {
-      ...r,
-      natureza: r.natureza ?? 'receita',
-    };
-  });
+  return (data ?? []).map(mapearLinhaDivida);
 }
 
 function escaparXml(valor: string): string {

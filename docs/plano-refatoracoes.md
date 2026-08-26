@@ -288,15 +288,13 @@ Componente idêntico em `Perfil.tsx:393-404` e `Estatisticas.tsx:410-421`; inter
 
 ## Queries e estado (frontend)
 
-### P2-12. Select de colunas de `jogadores` copiado 4x + pós-processamento superadmin triplicado
+### P2-12. ✅ Select de colunas de `jogadores` copiado 4x + pós-processamento superadmin triplicado
 
-`lib/jogadores.ts:58-60, 74-76, 430-432` + `SessaoContext.tsx:59-64` (string literal de 9 colunas); `{ ...j, is_admin: j.is_admin || isSuperAdmin(j.username) }` em `jogadores.ts:65-68, 82-85, 438-441` + `SessaoContext.tsx:70-72`.
-**Refatoração**: `COLUNAS_JOGADOR_LISTA` + `aplicarSuperAdmin(j)`; as listagens nascem de um builder comum (documentar a intenção de `listarJogadoresAtivos` incluir randoms — hoje implícita, ver `jogadores.ts:55-69` vs `:71-86`).
+> Corrigido em 2026-08-25: definidos `COLUNAS_JOGADOR_LISTA`, `aplicarSuperAdmin` e `mapearJogadorLista` em `src/lib/jogadores.ts`. Refatoradas as consultas em `listarJogadoresAtivos`, `listarTodosJogadores`, `listarGoleiros` e a sincronização de sessão em `src/context/SessaoContext.tsx`. Adicionadas notas de design documentando a intenção explícita de `listarJogadoresAtivos` incluir placeholders `random` (slots temporários para escalação/partidas) enquanto `listarTodosJogadores` filtra `random` (catálogo administrativo de atletas reais).
 
-### P2-13. Queries de `dividas` duplicadas
+### P2-13. ✅ Queries de `dividas` duplicadas
 
-`lib/dividas.ts:56-74` e `:143-164` — mesmo select de 12 colunas + join + mapeamento `natureza ?? 'receita'` + cast duplo.
-**Refatoração**: `SELECT_DIVIDA` + `mapearLinhaDivida(row)`; idealmente migrar a coluna para `NOT NULL DEFAULT 'receita'` e remover a normalização espalhada (`:115`).
+> Corrigido em 2026-08-25: definidos `SELECT_DIVIDA` e o mapeador canônico `mapearLinhaDivida` em `src/lib/dividas.ts`, unificando a projeção de 13 colunas com join em `jogadores` e a normalização de `natureza` para `'receita'`/`'despesa'` nas funções `listarDividasEmAberto` e `listarLancamentosPorPeriodo`.
 
 ### P2-14. Chaves de cache como strings mágicas + `'resumo'` sem ano
 

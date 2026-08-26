@@ -35,12 +35,50 @@ export interface JogadorLista {
   partidas_ultimos_2_meses?: number;
 }
 
+export const COLUNAS_JOGADOR_LISTA =
+  'id, username, posicao, is_admin, is_ativo, is_mensalista, posicao_b, chave_pix, telefone';
+
 export const SUPERADMINS = ['dico', 'tadeu', 'natal'];
 export const MAX_MENSALISTAS = 14;
 
 export function isSuperAdmin(username?: string | null): boolean {
   if (!username) return false;
   return SUPERADMINS.includes(username.trim().toLowerCase());
+}
+
+/**
+ * Garante que jogadores com usernames configurados em `SUPERADMINS` sempre
+ * recebam `is_admin: true` no cliente, mesmo se o banco ainda não refletir.
+ */
+export function aplicarSuperAdmin<T extends { username: string; is_admin: boolean }>(jogador: T): T {
+  return {
+    ...jogador,
+    is_admin: Boolean(jogador.is_admin || isSuperAdmin(jogador.username)),
+  };
+}
+
+/**
+ * Mapeia uma linha bruta da tabela `jogadores` para a interface canônica `JogadorLista`,
+ * normalizando tipos de posição e aplicando privilégios de superadmin.
+ */
+export function mapearJogadorLista(j: {
+  id: number;
+  username: string;
+  posicao: string;
+  is_admin: boolean;
+  is_ativo: boolean;
+  is_mensalista: boolean;
+  posicao_b?: string | null;
+  chave_pix?: string | null;
+  telefone?: string | null;
+  media_nota?: number;
+  partidas_ultimos_2_meses?: number;
+}): JogadorLista {
+  return aplicarSuperAdmin({
+    ...j,
+    posicao: j.posicao as PosicaoId,
+    posicao_b: (j.posicao_b as PosicaoId | null) ?? null,
+  });
 }
 
 export async function listarUsernames(): Promise<string[]> {
@@ -52,41 +90,41 @@ export async function listarUsernames(): Promise<string[]> {
     .filter((username) => !isRandomUsername(username));
 }
 
+/**
+ * Lista todos os jogadores ativos no sistema.
+ *
+ * NOTA DE DESIGN: Esta listagem INCLUI intencionalmente jogadores temporários "random"
+ * (placeholders de convidados como random1, random2), pois são slots ativos selecionáveis
+ * para escalação, confirmação e edição de partidas em tempo real.
+ */
 export async function listarJogadoresAtivos(): Promise<JogadorLista[]> {
   const { data, error } = await supabase
     .from('jogadores')
-    .select(
-      'id, username, posicao, is_admin, is_ativo, is_mensalista, posicao_b, chave_pix, telefone'
-    )
+    .select(COLUNAS_JOGADOR_LISTA)
     .eq('is_ativo', true)
     .order('username');
 
   if (error) throw error;
-  return (data ?? []).map((j) => ({
-    ...j,
-    posicao: j.posicao as PosicaoId,
-    posicao_b: (j.posicao_b as PosicaoId | null) ?? null,
-    is_admin: j.is_admin || isSuperAdmin(j.username),
-  }));
+  return (data ?? []).map(mapearJogadorLista);
 }
 
+/**
+ * Lista todos os jogadores cadastrados no sistema (ativos e inativos).
+ *
+ * NOTA DE DESIGN: Esta listagem FILTRA intencionalmente jogadores "random" (placeholders),
+ * pois é utilizada para telas administrativas de gestão de atletas, catálogo geral
+ * e controle de mensalistas, onde apenas usuários humanos reais devem ser exibidos.
+ */
 export async function listarTodosJogadores(): Promise<JogadorLista[]> {
   const { data, error } = await supabase
     .from('jogadores')
-    .select(
-      'id, username, posicao, is_admin, is_ativo, is_mensalista, posicao_b, chave_pix, telefone'
-    )
+    .select(COLUNAS_JOGADOR_LISTA)
     .order('username');
 
   if (error) throw error;
   return (data ?? [])
     .filter((j) => !isRandomUsername(j.username))
-    .map((j) => ({
-      ...j,
-      posicao: j.posicao as PosicaoId,
-      posicao_b: (j.posicao_b as PosicaoId | null) ?? null,
-      is_admin: j.is_admin || isSuperAdmin(j.username),
-    }));
+    .map(mapearJogadorLista);
 }
 
 // Salva um lote de alterações de mensalista/admin numa única RPC transacional
@@ -392,23 +430,19 @@ export async function alternarStatusAtivoJogador(
   if (error) throw error;
 }
 
+/**
+ * Lista todos os goleiros (ativos e inativos), ordenados primeiro por status ativo e depois por username.
+ */
 export async function listarGoleiros(): Promise<JogadorLista[]> {
   const { data, error } = await supabase
     .from('jogadores')
-    .select(
-      'id, username, posicao, is_admin, is_ativo, is_mensalista, posicao_b, chave_pix, telefone'
-    )
+    .select(COLUNAS_JOGADOR_LISTA)
     .or('posicao.eq.goleiro,posicao_b.eq.goleiro')
     .order('is_ativo', { ascending: false })
     .order('username');
 
   if (error) throw error;
-  return (data ?? []).map((j) => ({
-    ...j,
-    posicao: j.posicao as PosicaoId,
-    posicao_b: (j.posicao_b as PosicaoId | null) ?? null,
-    is_admin: j.is_admin || isSuperAdmin(j.username),
-  }));
+  return (data ?? []).map(mapearJogadorLista);
 }
 
 export interface StatsJogador {

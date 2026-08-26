@@ -9,7 +9,7 @@ import {
 } from 'react';
 import type { PosicaoId } from '../lib/times';
 import { supabase } from '../lib/supabase';
-import { isSuperAdmin } from '../lib/jogadores';
+import { aplicarSuperAdmin, COLUNAS_JOGADOR_LISTA } from '../lib/jogadores';
 
 export interface JogadorLogado {
   id: number;
@@ -45,10 +45,7 @@ function lerDoStorage(): JogadorLogado | null {
 export function SessaoProvider({ children }: { children: ReactNode }) {
   const [jogador, setJogadorState] = useState<JogadorLogado | null>(() => {
     const cached = lerDoStorage();
-    if (cached && isSuperAdmin(cached.username)) {
-      return { ...cached, is_admin: true };
-    }
-    return cached;
+    return cached ? aplicarSuperAdmin(cached) : null;
   });
 
   useEffect(() => {
@@ -62,18 +59,13 @@ export function SessaoProvider({ children }: { children: ReactNode }) {
     async function sincronizarJogador() {
       const { data, error } = await supabase
         .from('jogadores')
-        .select(
-          'id, username, posicao, is_admin, is_ativo, is_mensalista, posicao_b, chave_pix, telefone'
-        )
+        .select(COLUNAS_JOGADOR_LISTA)
         .eq('id', snapshot.id)
         .maybeSingle();
 
       if (!ativo || error || !data || !data.is_ativo) return;
 
-      const jogadorAtualizado = data as JogadorLogado;
-      if (isSuperAdmin(jogadorAtualizado.username)) {
-        jogadorAtualizado.is_admin = true;
-      }
+      const jogadorAtualizado = aplicarSuperAdmin(data as JogadorLogado);
 
       if (
         jogadorAtualizado.id !== snapshot.id ||
@@ -97,14 +89,13 @@ export function SessaoProvider({ children }: { children: ReactNode }) {
   // quando o Provider re-renderiza sem mudança de sessão.
   const setJogador = useCallback((novoJogador: JogadorLogado | null) => {
     if (novoJogador) {
-      if (isSuperAdmin(novoJogador.username)) {
-        novoJogador = { ...novoJogador, is_admin: true };
-      }
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(novoJogador));
+      const jogadorTratado = aplicarSuperAdmin(novoJogador);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(jogadorTratado));
+      setJogadorState(jogadorTratado);
     } else {
       localStorage.removeItem(STORAGE_KEY);
+      setJogadorState(null);
     }
-    setJogadorState(novoJogador);
   }, []);
 
   const logout = useCallback(() => setJogador(null), [setJogador]);
