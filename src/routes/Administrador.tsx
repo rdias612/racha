@@ -30,6 +30,8 @@ import {
   listarDividasEmAberto,
   listarLancamentosPorPeriodo,
   listarResumoDevedores,
+  montarLembreteWhatsApp,
+  isMigrationAusenteNatureza,
   quitarDivida,
   quitarDividasJogador,
   registrarDivida,
@@ -127,7 +129,7 @@ export function Administrador() {
                 : null;
           const msg = formatarMensagemErro(motivo, 'Erro ao carregar lançamentos.');
           erros.push(
-            /natureza|column|schema|PGRST/i.test(msg)
+            isMigrationAusenteNatureza(msg)
               ? 'Aplique a migration 078_dividas_natureza_despesa.sql no Supabase para receitas/despesas.'
               : msg
           );
@@ -329,14 +331,7 @@ export function Administrador() {
 
   function copiarLembreteWhatsApp(e: React.MouseEvent, g: DividaPorJogador) {
     e.stopPropagation();
-    const linhas = g.dividas
-      .map(
-        (d) =>
-          `• ${labelTipoDivida(d.tipo)} (${formatarDataLista(d.data_divida)}): ${formatarReais(Number(d.valor))}${d.descricao ? ` — ${d.descricao}` : ''}`
-      )
-      .join('\n');
-
-    const texto = `⚽ *Súmula Financeira — Racha Gragoatá*\n\nFala @${g.username}! Segue o resumo das pendências em aberto:\n\n${linhas}\n\n*Total em aberto: ${formatarReais(g.total_devido)}*\n\nValeu pela força e nos vemos quinta! 👊`;
+    const texto = montarLembreteWhatsApp(g, formatarReais, formatarDataLista);
 
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
       navigator.clipboard

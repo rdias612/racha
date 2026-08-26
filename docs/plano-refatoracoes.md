@@ -398,15 +398,15 @@ Componente idêntico em `Perfil.tsx:393-404` e `Estatisticas.tsx:410-421`; inter
 > Corrigido em 2026-08-25: substituído `text-sm` por `text-base` e `focus:outline-none focus:border-destaque` por `focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2` em todos os inputs e selects fora do padrão do design system. Abrangência: 3 password inputs em `Perfil.tsx`, 1 input de username + 2 selects de posição em `NovoJogador.tsx`, 1 input de data em `PartidaNova.tsx`. Varredura final confirmou zero ocorrências de `focus:outline-none` remanescentes em `src/`.
 > **Onde**: `src/routes/Perfil.tsx`, `src/routes/NovoJogador.tsx`, `src/routes/PartidaNova.tsx`.
 
-### P2-35. Regras mensalista/admin/goleiro duplicadas entre telas
+### P2-35. ✅ Regras mensalista/admin/goleiro duplicadas entre telas
 
-`NovoJogador.tsx:146-149,199-203,229-233` vs `GestaoJogadores.tsx:113-201` — "goleiro é isento", "admin exige mensalista", "superadmin imutável" implementadas duas vezes.
-**Refatoração**: predicados em `lib/jogadores.ts` (`poderaSerAdmin(j)`, `isentoMensalidade(j)`).
+> Corrigido em 2026-08-25: extraídos predicados canônicos `isentoMensalidade(j)` e `podeSerAdmin(j)` para `src/lib/jogadores.ts`. `isentoMensalidade` encapsula a regra "goleiro é isento de mensalidade" e `podeSerAdmin` a regra "admin exige mensalista não-goleiro". Ambas as telas `NovoJogador.tsx` e `GestaoJogadores.tsx` substituíram as verificações inline `posicao === 'goleiro'` e `!is_mensalista` pelos predicados importados.
+> **Onde**: `src/lib/jogadores.ts`, `src/routes/NovoJogador.tsx`, `src/routes/GestaoJogadores.tsx`.
 
-### P2-36. Template de cobrança WhatsApp + detecção de migration embutidos na UI
+### P2-36. ✅ Template de cobrança WhatsApp + detecção de migration embutidos na UI
 
-`Administrador.tsx:344-365` (montagem da mensagem) e `:139-141` (regex de migration ausente).
-**Refatoração**: `lib/dividas.ts → montarLembreteWhatsApp(g)`; a detecção de migration é conhecimento de infra que vazou para a UI.
+> Corrigido em 2026-08-25: extraída função `montarLembreteWhatsApp(g, formatarReais, formatarDataLista)` para `src/lib/dividas.ts`, removendo a montagem inline da mensagem de `Administrador.tsx`. Extraído também o predicado `isMigrationAusenteNatureza(msg)` para `src/lib/dividas.ts`, encapsulando o regex de detecção de schema ausente (`/natureza|column|schema|PGRST/i`) e eliminando conhecimento de infra da UI. `Administrador.tsx` agora apenas chama as funções de lib.
+> **Onde**: `src/lib/dividas.ts`, `src/routes/Administrador.tsx`.
 
 ---
 
@@ -437,10 +437,10 @@ Componente idêntico em `Perfil.tsx:393-404` e `Estatisticas.tsx:410-421`; inter
 `PartidaEditar.tsx:233-235`, `PartidaNovaTimes.tsx:111`, `PartidaTimes.tsx:190`, `PartidaVotar.tsx:236`, `GestaoGoleiros.tsx:170`, `Login.tsx:41-43` — `navigate`/`setState` disparam mesmo após unmount.
 **Refatoração**: guardar o id do timer e limpar no cleanup.
 
-### P3-5. Estado espelho via useEffect
+### P3-5. ✅ Estado espelho via useEffect
 
-`Ranking.tsx:126-128` — efeito que "clampa" `minimoPartidas`; derivar no render ou resetar no `onChange`.
-**Refatoração**: remover o efeito.
+> Corrigido em 2026-08-25: removido o `useEffect` que "clampava" `minimoPartidas` para baixo sempre que `maximoPartidas` mudava (snap-back do slider ao recarregar dados); o clamp agora roda no `onChange` do range, limitando o valor a `maximoPartidas`. Mantido apenas o `useEffect` legítimo de reset de filtros/ordenação ao trocar a métrica.
+> **Onde**: `src/routes/Ranking.tsx`.
 
 ### P3-6. Constantes grandes recriadas por render
 

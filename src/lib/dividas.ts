@@ -142,6 +142,33 @@ export function labelTipoDivida(tipo: TipoDivida | string): string {
 }
 
 /**
+ * Detecta se uma mensagem de erro indica que a migration de natureza está ausente.
+ * Encapsula o conhecimento de infra para não vazar regex de banco para a UI.
+ */
+export function isMigrationAusenteNatureza(msg: string): boolean {
+  return /natureza|column|schema|PGRST/i.test(msg);
+}
+
+/**
+ * Monta o texto do lembrete de cobrança para WhatsApp a partir de um grupo de dívidas.
+ * A formatação textual é conhecimento do domínio financeiro, não da UI.
+ */
+export function montarLembreteWhatsApp(
+  g: DividaPorJogador,
+  formatarReais: (v: number) => string,
+  formatarDataLista: (d: string) => string
+): string {
+  const linhas = g.dividas
+    .map(
+      (d) =>
+        `• ${labelTipoDivida(d.tipo)} (${formatarDataLista(d.data_divida)}): ${formatarReais(Number(d.valor))}${d.descricao ? ` — ${d.descricao}` : ''}`
+    )
+    .join('\n');
+
+  return `⚽ *Súmula Financeira — Racha Gragoatá*\n\nFala @${g.username}! Segue o resumo das pendências em aberto:\n\n${linhas}\n\n*Total em aberto: ${formatarReais(g.total_devido)}*\n\nValeu pela força e nos vemos quinta! 👊`;
+}
+
+/**
  * Histórico completo (pagos e em aberto) por `data_divida` inclusiva.
  * A tabela `dividas` preserva todos os lançamentos; quitação só marca `paga = true`.
  */

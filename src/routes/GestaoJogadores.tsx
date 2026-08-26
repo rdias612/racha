@@ -7,6 +7,8 @@ import {
   salvarCaracteristicasJogadores,
   resetarSenhaJogador,
   isSuperAdmin,
+  isentoMensalidade,
+  podeSerAdmin,
   MAX_MENSALISTAS,
   type JogadorLista,
 } from '../lib/jogadores';
@@ -145,7 +147,7 @@ export function GestaoJogadores() {
   if (!isAdmin) return <Navigate to="/" replace />;
 
   function alternarMensalistaDraft(jOriginal: JogadorLista) {
-    if (jOriginal.posicao === 'goleiro') {
+    if (isentoMensalidade(jOriginal)) {
       setMensagemErro('Goleiros não pagam para jogar e são isentos de mensalidade.');
       return;
     }
@@ -203,7 +205,7 @@ export function GestaoJogadores() {
     const estadoAtual = obterEstadoDraft(jOriginal);
 
     // Regra: Apenas mensalistas podem ser admin
-    if (!estadoAtual.is_mensalista) {
+    if (!podeSerAdmin(estadoAtual)) {
       setMensagemErro(
         `Apenas jogadores mensalistas podem ser administradores. Torne "@${jOriginal.username}" mensalista primeiro.`
       );

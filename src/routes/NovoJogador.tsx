@@ -7,6 +7,7 @@ import { MensagemEstado } from '../components/Estado';
 import { User, Shield, Star, Copy, Check, UserPlus } from 'lucide-react';
 import { BotaoVoltar } from '../components/BotaoVoltar';
 import { formatarMensagemErro } from '../lib/erros';
+import { isentoMensalidade } from '../lib/jogadores';
 
 export function NovoJogador() {
   const isAdmin = useAdmin();
@@ -138,7 +139,7 @@ export function NovoJogador() {
                 onChange={(e) => {
                   const val = e.target.value as PosicaoId;
                   setPosicao(val);
-                  if (val === 'goleiro') {
+                  if (isentoMensalidade({ posicao: val })) {
                     setIsMensalista(false);
                     setIsAdminNovo(false);
                   }
@@ -182,7 +183,7 @@ export function NovoJogador() {
 
           <label
             className={`flex items-start gap-3 p-3 rounded-[3px] border border-borda bg-superficie-2 transition ${
-              posicao === 'goleiro'
+              isentoMensalidade({ posicao })
                 ? 'opacity-60 cursor-not-allowed'
                 : 'hover:border-destaque/40 cursor-pointer'
             }`}
@@ -190,7 +191,7 @@ export function NovoJogador() {
             <input
               type="checkbox"
               checked={isMensalista}
-              disabled={posicao === 'goleiro'}
+              disabled={isentoMensalidade({ posicao })}
               onChange={(e) => {
                 const val = e.target.checked;
                 setIsMensalista(val);
@@ -200,10 +201,10 @@ export function NovoJogador() {
             />
             <div className="text-xs">
               <span className="font-display font-bold uppercase tracking-wider text-giz block">
-                É Mensalista{posicao === 'goleiro' ? ' (Não aplicável)' : ''}
+                É Mensalista{isentoMensalidade({ posicao }) ? ' (Não aplicável)' : ''}
               </span>
               <span className="text-giz-fraco">
-                {posicao === 'goleiro'
+                {isentoMensalidade({ posicao })
                   ? 'Goleiros não pagam para jogar (isentos de mensalidade e taxa de avulso).'
                   : 'Tem vaga garantida na confirmação das partidas e contribuição mensal.'}
               </span>
@@ -212,7 +213,7 @@ export function NovoJogador() {
 
           <label
             className={`flex items-start gap-3 p-3 rounded-[3px] border border-borda bg-superficie-2 transition ${
-              posicao === 'goleiro'
+              isentoMensalidade({ posicao })
                 ? 'opacity-60 cursor-not-allowed'
                 : 'hover:border-destaque/40 cursor-pointer'
             }`}
@@ -220,7 +221,7 @@ export function NovoJogador() {
             <input
               type="checkbox"
               checked={isAdminNovo}
-              disabled={posicao === 'goleiro'}
+              disabled={isentoMensalidade({ posicao })}
               onChange={(e) => {
                 const val = e.target.checked;
                 setIsAdminNovo(val);
@@ -230,7 +231,7 @@ export function NovoJogador() {
             />
             <div className="text-xs">
               <span className="font-display font-bold uppercase tracking-wider text-giz block">
-                É Administrador{posicao === 'goleiro' ? ' (Não aplicável)' : ''}
+                É Administrador{isentoMensalidade({ posicao }) ? ' (Não aplicável)' : ''}
               </span>
               <span className="text-giz-fraco">
                 Pode criar, editar partidas, lançar eventos e gerenciar o racha (requer ser

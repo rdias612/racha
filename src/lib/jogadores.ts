@@ -47,6 +47,22 @@ export function isSuperAdmin(username?: string | null): boolean {
 }
 
 /**
+ * Goleiros são isentos de mensalidade e taxa de avulso.
+ * Usado para bloquear os checkboxes de mensalista/admin em formulários.
+ */
+export function isentoMensalidade(j: { posicao: string }): boolean {
+  return j.posicao === 'goleiro';
+}
+
+/**
+ * Apenas jogadores mensalistas não-goleiros podem ser administradores.
+ * Superadmins são imutáveis — esta função não se aplica a eles.
+ */
+export function podeSerAdmin(j: { posicao: string; is_mensalista: boolean }): boolean {
+  return !isentoMensalidade(j) && j.is_mensalista;
+}
+
+/**
  * Garante que jogadores com usernames configurados em `SUPERADMINS` sempre
  * recebam `is_admin: true` no cliente, mesmo se o banco ainda não refletir.
  */
