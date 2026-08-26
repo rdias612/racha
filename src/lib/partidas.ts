@@ -415,3 +415,27 @@ export async function salvarEdicaoCompletaPartida(
 
   return true;
 }
+
+// --- Partida Draft Atual ---
+
+// Critério único canônico: a partida em status 'draft' com a data de jogo mais próxima
+// (ascending). Todas as telas que precisam da "próxima partida" devem usar esta função.
+export interface PartidaDraftAtual {
+  id: number;
+  data_jogo: string;
+  confirmacao_closes_at: string | null;
+}
+
+export async function obterPartidaDraftAtual(): Promise<PartidaDraftAtual | null> {
+  const { data, error } = await supabase
+    .from('partidas')
+    .select('id, data_jogo, confirmacao_closes_at')
+    .eq('status', 'draft')
+    .order('data_jogo', { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  return data as PartidaDraftAtual | null;
+}

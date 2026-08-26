@@ -164,7 +164,7 @@ A proteção por geração existe no cache de módulo, mas (a) o `useEffect` gra
 O domínio vive em `lib/partidas.ts`/`lib/jogadores.ts`; esses acessos diretos quebram o padrão e dificultam teste/reuso.
 **Refatoração**: wrappers nas libs (`criarJogador`, `trocarSenha`, `fazerLoginRpc`, `carregarStatsJogador`, `obterPartidaDraftAtual`).
 
-### P1-6. Regra de "partida draft atual" com dois critérios divergentes
+### P1-6. ✅ Regra de "partida draft atual" com dois critérios divergentes
 
 **Onde**: `src/lib/notificacoes.ts:116-130` (`order by id desc`) vs `src/routes/Resumo.tsx:62-67` (`order by data_jogo asc`)
 Com dois drafts no banco, as telas exibem partidas diferentes como "a próxima".

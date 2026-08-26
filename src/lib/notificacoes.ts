@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+export { obterPartidaDraftAtual, type PartidaDraftAtual } from './partidas';
 
 export interface NotificacoesConfig {
   id: number;
@@ -26,12 +27,6 @@ export interface NotificacoesConfig {
   votacao_template_30m_msg: string | null;
   updated_at?: string;
   updated_by?: number | null;
-}
-
-export interface PartidaDraftAtual {
-  id: number;
-  data_jogo: string;
-  confirmacao_closes_at: string | null;
 }
 
 export async function obterConfiguracoesNotificacoes(adminId: number): Promise<NotificacoesConfig> {
@@ -102,16 +97,3 @@ export async function dispararConfirmacaoManual(adminId: number, partidaId: numb
   if (error) throw error;
 }
 
-export async function obterPartidaDraftAtual(): Promise<PartidaDraftAtual | null> {
-  const { data, error } = await supabase
-    .from('partidas')
-    .select('id, data_jogo, confirmacao_closes_at')
-    .eq('status', 'draft')
-    .order('id', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (error) throw error;
-
-  return data as PartidaDraftAtual | null;
-}

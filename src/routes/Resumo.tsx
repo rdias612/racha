@@ -5,8 +5,14 @@ import { SkeletonResumo } from '../components/Skeletons';
 import { BotaoInstalar } from '../components/BotaoInstalar';
 import { CardNotificacoes } from '../components/CardNotificacoes';
 import { PullToRefresh } from '../components/PullToRefresh';
+
 import { supabase } from '../lib/supabase';
-import { carregarParticipantes, vagasOcupadas, CAPACIDADE_PARTIDA } from '../lib/partidas';
+import {
+  carregarParticipantes,
+  vagasOcupadas,
+  CAPACIDADE_PARTIDA,
+  obterPartidaDraftAtual,
+} from '../lib/partidas';
 import { formatarDataCompleta, formatarDataMobile } from '../lib/formatacao';
 import { useCache } from '../hooks/useCache';
 
@@ -58,23 +64,17 @@ export function Resumo() {
   const buscar = useCallback(async (): Promise<DadosResumo> => {
     const [respResumo, respProx] = await Promise.all([
       supabase.rpc('resumo_ano', { p_ano: ano }),
-      supabase
-        .from('partidas')
-        .select('id, data_jogo, confirmacao_closes_at')
-        .eq('status', 'draft')
-        .order('data_jogo', { ascending: true })
-        .limit(1)
-        .maybeSingle(),
+      obterPartidaDraftAtual(),
     ]);
 
     if (respResumo.error) throw respResumo.error;
 
     let proxima: DadosResumo['proxima'] = null;
-    if (respProx.data) {
-      const parts = await carregarParticipantes(respProx.data.id);
+    if (respProx) {
+      const parts = await carregarParticipantes(respProx.id);
       proxima = {
-        id: respProx.data.id,
-        data_jogo: respProx.data.data_jogo,
+        id: respProx.id,
+        data_jogo: respProx.data_jogo,
         ocupadas: vagasOcupadas(parts),
       };
     }
