@@ -57,7 +57,7 @@ export function Avatar({ username, nome, posicao, size = 'md', className = '' }:
   return (
     <div className={`relative inline-flex items-center justify-center shrink-0 ${className}`}>
       <div
-        className={`rounded-[3px] border border-borda/60 font-display font-bold flex items-center justify-center text-white shadow-sm tracking-tight ${sizeClass}`}
+        className={`rounded-[3px] border border-borda/60 font-display font-bold flex items-center justify-center text-branco-time shadow-sm tracking-tight ${sizeClass}`}
         style={{ backgroundColor: corBg }}
         title={idTexto}
       >
@@ -65,7 +65,7 @@ export function Avatar({ username, nome, posicao, size = 'md', className = '' }:
       </div>
       {siglaPosicao && posicao && (
         <span
-          className="absolute -bottom-1 -right-1 rounded-[2px] bg-[#f4f1e8] text-[#0d0d0e] font-display font-bold px-1 py-0 text-[8px] leading-tight border border-[#35302a] shadow-xs"
+          className="absolute -bottom-1 -right-1 rounded-[2px] bg-branco-time text-preto-time font-display font-bold px-1 py-0 text-[8px] leading-tight border border-led-borda shadow-xs"
           title={POSICOES[posicao]}
         >
           {siglaPosicao}

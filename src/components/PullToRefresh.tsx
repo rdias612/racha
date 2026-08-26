@@ -1,4 +1,5 @@
 import { useState, useRef, type ReactNode, type TouchEvent } from 'react';
+import { vibrateLight } from '../lib/haptics';
 
 interface PullToRefreshProps {
   onRefresh: () => Promise<void> | void;
@@ -18,54 +19,104 @@ function getScrollTop(el: HTMLElement | null): number {
 }
 
 export function PullToRefresh({ onRefresh, children, threshold = 60 }: PullToRefreshProps) {
-  const [pullDistance, setPullDistance] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const startY = useRef<number | null>(null);
+  const pullDistance = useRef(0);
+  const cruzouThreshold = useRef(false);
+
+  const indicatorRef = useRef<HTMLDivElement>(null);
+  const spinnerRef = useRef<HTMLDivElement>(null);
+  const textoRef = useRef<HTMLSpanElement>(null);
+
+  function atualizarIndicador(dist: number, atingiu: boolean) {
+    if (!indicatorRef.current) return;
+    indicatorRef.current.style.height = `${dist}px`;
+    indicatorRef.current.style.opacity = dist > 0 ? '1' : '0';
+
+    if (spinnerRef.current) {
+      const rot = Math.min(1, dist / threshold) * 360;
+      spinnerRef.current.style.transform = `rotate(${rot}deg)`;
+    }
+    if (textoRef.current) {
+      textoRef.current.textContent = atingiu ? 'Solte para atualizar' : 'Puxe para atualizar';
+    }
+  }
 
   function handleTouchStart(e: TouchEvent<HTMLDivElement>) {
+    if (refreshing) return;
     const scrollPos = getScrollTop(e.currentTarget);
     const touch = e.touches[0];
     if (scrollPos === 0 && e.touches.length === 1 && touch) {
       startY.current = touch.clientY;
+      pullDistance.current = 0;
+      cruzouThreshold.current = false;
+    } else {
+      startY.current = null;
     }
   }
 
   function handleTouchMove(e: TouchEvent<HTMLDivElement>) {
     if (startY.current === null || refreshing) return;
-    const scrollPos = getScrollTop(e.currentTarget);
-    if (scrollPos > 0) {
-      setPullDistance(0);
-      startY.current = null;
-      return;
-    }
 
     const touch = e.touches[0];
     if (!touch) return;
-    const currentY = touch.clientY;
-    const diff = currentY - startY.current;
+    const diff = touch.clientY - startY.current;
 
-    if (diff > 0) {
-      // Aplica resistência ao puxar
-      const distance = Math.min(diff * 0.5, threshold * 1.5);
-      setPullDistance(distance);
+    if (diff <= 0) {
+      if (pullDistance.current > 0) {
+        pullDistance.current = 0;
+        atualizarIndicador(0, false);
+      }
+      return;
     }
+
+    // Aplica resistência ao puxar
+    const distance = Math.min(diff * 0.5, threshold * 1.5);
+    pullDistance.current = distance;
+
+    const atingiu = distance >= threshold;
+    if (atingiu !== cruzouThreshold.current) {
+      cruzouThreshold.current = atingiu;
+      if (atingiu) vibrateLight();
+    }
+
+    atualizarIndicador(distance, atingiu);
   }
 
   async function handleTouchEnd() {
-    if (startY.current === null) return;
+    if (startY.current === null || refreshing) return;
     startY.current = null;
 
-    if (pullDistance >= threshold && !refreshing) {
+    const dist = pullDistance.current;
+    const atingiu = dist >= threshold;
+
+    if (atingiu) {
       setRefreshing(true);
-      setPullDistance(threshold);
+      if (indicatorRef.current) {
+        indicatorRef.current.style.height = `${threshold}px`;
+        indicatorRef.current.style.opacity = '1';
+      }
+      if (textoRef.current) {
+        textoRef.current.textContent = 'Atualizando súmula...';
+      }
       try {
         await onRefresh();
       } finally {
         setRefreshing(false);
-        setPullDistance(0);
+        pullDistance.current = 0;
+        cruzouThreshold.current = false;
+        if (indicatorRef.current) {
+          indicatorRef.current.style.height = '0px';
+          indicatorRef.current.style.opacity = '0';
+        }
       }
     } else {
-      setPullDistance(0);
+      pullDistance.current = 0;
+      cruzouThreshold.current = false;
+      if (indicatorRef.current) {
+        indicatorRef.current.style.height = '0px';
+        indicatorRef.current.style.opacity = '0';
+      }
     }
   }
 
@@ -76,33 +127,24 @@ export function PullToRefresh({ onRefresh, children, threshold = 60 }: PullToRef
       onTouchEnd={handleTouchEnd}
       className="relative min-h-full overflow-hidden"
     >
-      {/* Indicador visual de Pull */}
-      {(pullDistance > 0 || refreshing) && (
-        <div
-          style={{ height: `${pullDistance}px` }}
-          className="flex items-center justify-center transition-all duration-150 ease-out overflow-hidden"
-        >
-          <div className="flex items-center gap-2 text-xs font-mono text-giz-fraco py-2">
-            <div
-              className={`w-4 h-4 border-2 border-destaque border-t-transparent rounded-full ${
-                refreshing ? 'animate-spin' : ''
-              }`}
-              style={{
-                transform: refreshing
-                  ? 'none'
-                  : `rotate(${Math.min(1, pullDistance / threshold) * 360}deg)`,
-              }}
-            />
-            <span>
-              {refreshing
-                ? 'Atualizando súmula...'
-                : pullDistance >= threshold
-                  ? 'Solte para atualizar'
-                  : 'Puxe para atualizar'}
-            </span>
-          </div>
+      {/* Indicador visual de Pull (controlado via DOM ref para 60fps sem disparar re-render no touchmove) */}
+      <div
+        ref={indicatorRef}
+        style={{ height: '0px', opacity: 0 }}
+        className="flex items-center justify-center transition-[height,opacity] duration-150 ease-out overflow-hidden"
+      >
+        <div className="flex items-center gap-2 text-xs font-mono text-giz-fraco py-2">
+          <div
+            ref={spinnerRef}
+            className={`w-4 h-4 border-2 border-destaque border-t-transparent rounded-full ${
+              refreshing ? 'animate-spin' : ''
+            }`}
+          />
+          <span ref={textoRef}>
+            {refreshing ? 'Atualizando súmula...' : 'Puxe para atualizar'}
+          </span>
         </div>
-      )}
+      </div>
       {children}
     </div>
   );

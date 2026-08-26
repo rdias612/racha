@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import { NavLink, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { POSICOES, type PosicaoId } from '../lib/times';
@@ -135,18 +135,6 @@ export function Ranking() {
 
   const linhas = dados ?? [];
 
-  const maximoPartidas = Math.max(6, ...linhas.map((linha) => linha.partidas));
-
-  useEffect(() => {
-    setMinimoPartidas((minimo) => Math.min(minimo, maximoPartidas));
-  }, [maximoPartidas]);
-
-  if (carregando) return <SkeletonRanking />;
-  // Erro apenas na primeira visita (sem cache): com dados em tela, a falha de
-  // revalidação em background é tolerada silenciosamente.
-  if (erro && !dados)
-    return <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">{erro}</MensagemEstado>;
-
   function valorOrdenacao(linha: LinhaRanking, coluna: ColunaOrdenacao) {
     if (coluna === 'username') return linha.username;
     if (coluna === 'media_gols') {
@@ -167,29 +155,51 @@ export function Ranking() {
     setDirecaoOrdenacao(coluna === 'username' ? 'asc' : 'desc');
   }
 
-  const colunasOrdenacao: ColunaTabela[] = [
-    { key: 'username', label: 'Atleta' },
-    { key: configuracao.campo, label: configuracao.coluna },
-    ...(metrica === 'gols' ? [{ key: 'media_gols' as const, label: 'Média' }] : []),
-    { key: 'percentual_vitorias', label: '%V' },
-    { key: 'partidas', label: 'J' },
-    { key: 'vitorias', label: 'V' },
-    { key: 'empates', label: 'E' },
-    { key: 'derrotas', label: 'D' },
-  ];
+  const maximoPartidas = useMemo(
+    () => Math.max(6, ...linhas.map((linha) => linha.partidas)),
+    [linhas]
+  );
 
-  const linhasOrdenadas = [...linhas].sort((a, b) => {
-    const valorA = valorOrdenacao(a, colunaOrdenacao);
-    const valorB = valorOrdenacao(b, colunaOrdenacao);
-    const fator = direcaoOrdenacao === 'asc' ? 1 : -1;
+  useEffect(() => {
+    setMinimoPartidas((minimo) => Math.min(minimo, maximoPartidas));
+  }, [maximoPartidas]);
 
-    if (typeof valorA === 'string' && typeof valorB === 'string') {
-      return valorA.localeCompare(valorB) * fator;
-    }
-    return (Number(valorA) - Number(valorB)) * fator;
-  });
+  const colunasOrdenacao = useMemo<ColunaTabela[]>(
+    () => [
+      { key: 'username', label: 'Atleta' },
+      { key: configuracao.campo, label: configuracao.coluna },
+      ...(metrica === 'gols' ? [{ key: 'media_gols' as const, label: 'Média' }] : []),
+      { key: 'percentual_vitorias', label: '%V' },
+      { key: 'partidas', label: 'J' },
+      { key: 'vitorias', label: 'V' },
+      { key: 'empates', label: 'E' },
+      { key: 'derrotas', label: 'D' },
+    ],
+    [configuracao.campo, configuracao.coluna, metrica]
+  );
 
-  const linhasFiltradas = linhasOrdenadas.filter((linha) => linha.partidas >= minimoPartidas);
+  const linhasOrdenadas = useMemo(() => {
+    return [...linhas].sort((a, b) => {
+      const valorA = valorOrdenacao(a, colunaOrdenacao);
+      const valorB = valorOrdenacao(b, colunaOrdenacao);
+      const fator = direcaoOrdenacao === 'asc' ? 1 : -1;
+
+      if (typeof valorA === 'string' && typeof valorB === 'string') {
+        return valorA.localeCompare(valorB) * fator;
+      }
+      return (Number(valorA) - Number(valorB)) * fator;
+    });
+  }, [linhas, colunaOrdenacao, direcaoOrdenacao]);
+
+  const linhasFiltradas = useMemo(() => {
+    return linhasOrdenadas.filter((linha) => linha.partidas >= minimoPartidas);
+  }, [linhasOrdenadas, minimoPartidas]);
+
+  if (carregando) return <SkeletonRanking />;
+  // Erro apenas na primeira visita (sem cache): com dados em tela, a falha de
+  // revalidação em background é tolerada silenciosamente.
+  if (erro && !dados)
+    return <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">{erro}</MensagemEstado>;
 
   return (
     <PullToRefresh onRefresh={recarregar}>
@@ -305,7 +315,7 @@ export function Ranking() {
               max={maximoPartidas}
               value={minimoPartidas}
               onChange={(e) => setMinimoPartidas(Number(e.target.value))}
-              className="w-full accent-[#ffb300]"
+              className="w-full accent-destaque"
             />
           </div>
         </div>

@@ -37,8 +37,8 @@ export function Snackbar({
   if (!visivel) return null;
 
   const bgCores: Record<TipoSnackbar, string> = {
-    sucesso: 'bg-ok text-white border-ok/80',
-    erro: 'bg-perigo text-white border-perigo/80',
+    sucesso: 'bg-ok text-branco-time border-ok/80',
+    erro: 'bg-perigo text-branco-time border-perigo/80',
     info: 'bg-superficie text-giz border-borda',
   };
 
@@ -70,7 +70,7 @@ export function Snackbar({
           type="button"
           onClick={onFechar}
           aria-label="Fechar notificação"
-          className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-[2px] p-1.5 hover:bg-black/10 dark:hover:bg-white/20 transition-fast focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-1 cursor-pointer"
+          className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-[2px] p-1.5 hover:bg-black/10 dark:hover:bg-branco-time/20 transition-fast focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-1 cursor-pointer"
         >
           <X className="size-4" aria-hidden="true" />
         </button>

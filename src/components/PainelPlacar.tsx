@@ -148,7 +148,7 @@ export function PainelPlacar({
 
         {/* Bloco Lateral: Time Branco */}
         <div className="flex-1 py-3 px-2.5 text-center border-l border-led-borda flex flex-col items-center justify-center bg-branco-time text-preto-time">
-          <span className="font-display font-bold text-[10px] uppercase tracking-wider text-neutral-600">
+          <span className="font-display font-bold text-[10px] uppercase tracking-wider text-preto-time/70">
             TIME
           </span>
           <span className="font-display font-black text-sm sm:text-base uppercase tracking-widest text-preto-time">

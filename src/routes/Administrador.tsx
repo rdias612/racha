@@ -513,7 +513,7 @@ export function Administrador() {
             disabled={salvando}
             className={`w-full min-h-[44px] flex items-center justify-center gap-1.5 rounded-[4px] border px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs shadow-carimbo transition active:translate-y-px disabled:opacity-50 ${
               fNatureza === 'despesa'
-                ? 'border-perigo bg-perigo text-white'
+                ? 'border-perigo bg-perigo text-branco-time'
                 : 'border-destaque bg-destaque text-destaque-tinta'
             }`}
           >
@@ -696,7 +696,7 @@ export function Administrador() {
                               <button
                                 type="button"
                                 onClick={(e) => handleQuitar(e, d.id, g.username)}
-                                className="min-h-[44px] flex items-center gap-1 rounded-[3px] border border-ok bg-ok px-3 py-1.5 text-xs font-display uppercase tracking-wider font-bold text-white shadow-xs hover:brightness-110"
+                                className="min-h-[44px] flex items-center gap-1 rounded-[3px] border border-ok bg-ok px-3 py-1.5 text-xs font-display uppercase tracking-wider font-bold text-branco-time shadow-xs hover:brightness-110"
                               >
                                 <Check className="size-3.5" />
                                 Pagar

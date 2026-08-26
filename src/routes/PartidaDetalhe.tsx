@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAdmin } from '../hooks/useAdmin';
@@ -172,12 +172,29 @@ export function PartidaDetalhe() {
     }
   }
 
-  const participantesDoTime = (t: TimeId) =>
-    participantes
-      .filter((p) => p.time === t)
-      .sort((a, b) => b.gols - a.gols || b.assistencias - a.assistencias);
+  const participantesPorTime = useMemo(() => {
+    return {
+      a: participantes
+        .filter((p) => p.time === 'a')
+        .sort((a, b) => b.gols - a.gols || b.assistencias - a.assistencias),
+      b: participantes
+        .filter((p) => p.time === 'b')
+        .sort((a, b) => b.gols - a.gols || b.assistencias - a.assistencias),
+    };
+  }, [participantes]);
 
-  const craque = notas.find((n) => n.is_craque) ?? null;
+  const participantesDoTime = useCallback(
+    (t: TimeId) => participantesPorTime[t] ?? [],
+    [participantesPorTime]
+  );
+
+  const notasOrdenadas = useMemo(() => {
+    return [...notas].sort(
+      (a, b) => Number(b.avg_rating) - Number(a.avg_rating) || b.vote_count - a.vote_count
+    );
+  }, [notas]);
+
+  const craque = useMemo(() => notas.find((n) => n.is_craque) ?? null, [notas]);
   const votacaoAberta =
     partida.status === 'published' &&
     partida.voting_closes_at &&
@@ -260,11 +277,7 @@ export function PartidaDetalhe() {
             Notas da Partida (Súmula)
           </div>
           <div className="divide-y divide-borda">
-            {[...notas]
-              .sort(
-                (a, b) => Number(b.avg_rating) - Number(a.avg_rating) || b.vote_count - a.vote_count
-              )
-              .map((n) => (
+            {notasOrdenadas.map((n) => (
                 <div
                   key={n.target_id}
                   className="flex items-center justify-between px-3 py-2 text-sm hover:bg-superficie-2 transition"
@@ -589,13 +602,14 @@ function Confirmacoes({
   const ocupadas = vagasOcupadas(participantesLocais);
   const livres = Math.max(0, CAPACIDADE_PARTIDA - ocupadas);
 
-  const ordenados = [...participantesLocais].sort((a, b) => {
+  const ordenados = useMemo(() => {
     const peso = (s: StatusConfirmacao) => (s === 'confirmado' ? 0 : s === 'pendente' ? 1 : 2);
-    return (
-      peso(a.status_confirmacao) - peso(b.status_confirmacao) ||
-      (a.username ?? '').localeCompare(b.username ?? '')
+    return [...participantesLocais].sort(
+      (a, b) =>
+        peso(a.status_confirmacao) - peso(b.status_confirmacao) ||
+        (a.username ?? '').localeCompare(b.username ?? '')
     );
-  });
+  }, [participantesLocais]);
 
   async function atualizar(jogadorId: number, alvo: StatusConfirmacao) {
     setErroLocal(null);
@@ -676,17 +690,19 @@ function Confirmacoes({
     }
   }
 
-  const idsNoElenco = new Set(participantesLocais.map((p) => p.jogador_id));
-  const candidatosAvulso = todosAtivos
-    .filter((j) => !idsNoElenco.has(j.id))
-    .sort((a, b) => {
-      const qtdA = partidasRecentes[a.id] ?? 0;
-      const qtdB = partidasRecentes[b.id] ?? 0;
-      if (qtdB !== qtdA) {
-        return qtdB - qtdA;
-      }
-      return a.username.localeCompare(b.username);
-    });
+  const candidatosAvulso = useMemo(() => {
+    const idsNoElenco = new Set(participantesLocais.map((p) => p.jogador_id));
+    return todosAtivos
+      .filter((j) => !idsNoElenco.has(j.id))
+      .sort((a, b) => {
+        const qtdA = partidasRecentes[a.id] ?? 0;
+        const qtdB = partidasRecentes[b.id] ?? 0;
+        if (qtdB !== qtdA) {
+          return qtdB - qtdA;
+        }
+        return a.username.localeCompare(b.username);
+      });
+  }, [participantesLocais, todosAtivos, partidasRecentes]);
 
   return (
     <section className="rounded-[4px] border border-borda bg-superficie overflow-hidden shadow-carimbo">

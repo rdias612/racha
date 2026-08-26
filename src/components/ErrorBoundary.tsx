@@ -26,14 +26,17 @@ export class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 text-center">
-          <h2 className="text-xl font-bold mb-2">Ops! Ocorreu um erro no aplicativo.</h2>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4 max-w-md">
+        <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-fundo text-giz text-center">
+          <h2 className="text-xl font-display font-bold uppercase tracking-wider mb-2 text-giz">
+            Ops! Ocorreu um erro no aplicativo.
+          </h2>
+          <p className="text-sm text-giz-fraco mb-4 max-w-md font-sans">
             {this.state.error?.message || 'Erro inesperado ao renderizar a tela.'}
           </p>
           <button
+            type="button"
             onClick={() => (window.location.href = '/')}
-            className="rounded-lg bg-destaque px-4 py-2 text-sm font-medium text-white shadow hover:opacity-90 transition"
+            className="min-h-[44px] inline-flex items-center justify-center rounded-[4px] bg-destaque px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 transition active:translate-y-px cursor-pointer"
           >
             Voltar para o início
           </button>

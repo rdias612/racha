@@ -78,7 +78,7 @@ export function ConfirmDialog({
             onClick={onConfirm}
             className={`flex-1 min-h-[44px] inline-flex items-center justify-center cursor-pointer rounded-[4px] border font-display uppercase tracking-wider text-xs font-bold transition-fast active:translate-y-px focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2 ${
               tomConfirmar === 'perigo'
-                ? 'border-perigo bg-perigo text-white hover:brightness-110 shadow-carimbo'
+                ? 'border-perigo bg-perigo text-branco-time hover:brightness-110 shadow-carimbo'
                 : 'border-destaque bg-destaque text-destaque-tinta font-black hover:brightness-105 shadow-carimbo-destaque'
             }`}
           >

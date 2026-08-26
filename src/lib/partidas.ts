@@ -210,6 +210,25 @@ export function placarDeEventos(
   return { gols_time_a, gols_time_b };
 }
 
+export function calcularPlacarDeParticipantes(
+  participantes: Array<{ time: TimeId | null; gols?: number | null; gols_contra?: number | null }>
+): { gols_time_a: number; gols_time_b: number } {
+  let gols_time_a = 0;
+  let gols_time_b = 0;
+  for (const p of participantes) {
+    const gols = p.gols ?? 0;
+    const golsContra = p.gols_contra ?? 0;
+    if (p.time === 'a') {
+      gols_time_a += gols;
+      gols_time_b += golsContra;
+    } else if (p.time === 'b') {
+      gols_time_b += gols;
+      gols_time_a += golsContra;
+    }
+  }
+  return { gols_time_a, gols_time_b };
+}
+
 export async function abrirPartida(partidaId: number, adminId?: number | null) {
   const { data, error } = await supabase.rpc('abrir_partida', {
     p_partida_id: partidaId,

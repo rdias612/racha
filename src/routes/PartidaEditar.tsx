@@ -9,6 +9,7 @@ import {
   carregarPartida,
   carregarParticipantes,
   salvarEdicaoCompletaPartida,
+  calcularPlacarDeParticipantes,
   type Partida,
   type ParticipanteEdicao,
 } from '../lib/partidas';
@@ -105,21 +106,11 @@ export function PartidaEditar() {
     return map;
   }, [participantes]);
 
-  // Placar derivado em tempo real
-  const placarAoVivo = useMemo(() => {
-    let placarA = 0;
-    let placarB = 0;
-    for (const p of participantes) {
-      if (p.time === 'a') {
-        placarA += p.gols;
-        placarB += p.gols_contra;
-      } else if (p.time === 'b') {
-        placarB += p.gols;
-        placarA += p.gols_contra;
-      }
-    }
-    return { placarA, placarB };
-  }, [participantes]);
+  // Placar derivado em tempo real (canônico via calcularPlacarDeParticipantes)
+  const placarAoVivo = useMemo(
+    () => calcularPlacarDeParticipantes(participantes),
+    [participantes]
+  );
 
   // Candidatos para inclusão no modal
   const candidatosAdicionar = useMemo(() => {
@@ -263,8 +254,8 @@ export function PartidaEditar() {
 
         {/* Display do Placar ao Vivo */}
         <PainelPlacar
-          golsTimeA={placarAoVivo.placarA}
-          golsTimeB={placarAoVivo.placarB}
+          golsTimeA={placarAoVivo.gols_time_a}
+          golsTimeB={placarAoVivo.gols_time_b}
           jogadoresTimeA={participantesPorTime.a.length}
           jogadoresTimeB={participantesPorTime.b.length}
           variante="edicao"
@@ -650,7 +641,7 @@ function StepperBox({
               ? 'bg-destaque text-destaque-tinta hover:brightness-105 border border-destaque'
               : corAtiva === 'azul'
                 ? 'bg-superficie text-giz hover:bg-superficie-2 border border-borda'
-                : 'bg-perigo text-white hover:bg-perigo/90 border border-perigo'
+                : 'bg-perigo text-branco-time hover:bg-perigo/90 border border-perigo'
           } disabled:opacity-30`}
         >
           +

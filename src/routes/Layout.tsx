@@ -117,7 +117,7 @@ export function Layout() {
         <div
           role="status"
           aria-live="polite"
-          className="flex items-center justify-center gap-2 bg-perigo px-3 py-1.5 text-xs font-mono font-bold uppercase tracking-wider text-white shadow-xs"
+          className="flex items-center justify-center gap-2 bg-perigo px-3 py-1.5 text-xs font-mono font-bold uppercase tracking-wider text-branco-time shadow-xs"
         >
           <WifiOff className="size-3.5 shrink-0" />
           <span>Modo offline — exibindo dados locais salvos</span>

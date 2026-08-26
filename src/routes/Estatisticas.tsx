@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { carregarStatsJogador, isRandomUsername, type StatsJogador } from '../lib/jogadores';
 import { useSessao } from '../context/SessaoContext';
@@ -145,33 +145,42 @@ export function Estatisticas() {
     carregar();
   }, [carregar]);
 
+  const maximoPartidas = useMemo(
+    () => Math.max(DEFAULT_MIN_PARTIDAS, ...parcerias.map((p) => p.partidas)),
+    [parcerias]
+  );
+
+  const parceriasFiltradas = useMemo(
+    () => parcerias.filter((p) => p.partidas >= minimoPartidas),
+    [parcerias, minimoPartidas]
+  );
+
+  const { melhorComp, piorComp, melhorAdv, piorAdv } = useMemo(() => {
+    const comps = parceriasFiltradas.filter((p) => p.tipo === 'companheiro');
+    const advs = parceriasFiltradas.filter((p) => p.tipo === 'adversario');
+
+    const compsOrdenados = [...comps].sort((a, b) => (b.percentual ?? 0) - (a.percentual ?? 0));
+    const advsOrdenados = [...advs].sort((a, b) => (b.percentual ?? 0) - (a.percentual ?? 0));
+
+    return {
+      melhorComp: compsOrdenados[0],
+      piorComp: compsOrdenados.length > 1 ? compsOrdenados[compsOrdenados.length - 1] : undefined,
+      melhorAdv: advsOrdenados[0],
+      piorAdv: advsOrdenados.length > 1 ? advsOrdenados[advsOrdenados.length - 1] : undefined,
+    };
+  }, [parceriasFiltradas]);
+
+  const usernameSelecionado = useMemo(
+    () => jogadores.find((j) => j.id === jogadorSelecionadoId)?.username ?? '',
+    [jogadores, jogadorSelecionadoId]
+  );
+
+  const semParcerias = !melhorComp && !piorComp && !melhorAdv && !piorAdv;
+
   if (carregando) return <SkeletonEstatisticas />;
   if (erro) {
     return <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">{erro}</MensagemEstado>;
   }
-
-  // Filtra parcerias pelo minimo de partidas
-  const parceriasFiltradas = parcerias.filter((p) => p.partidas >= minimoPartidas);
-
-  const comps = parceriasFiltradas.filter((p) => p.tipo === 'companheiro');
-  const advs = parceriasFiltradas.filter((p) => p.tipo === 'adversario');
-
-  // Ordena por aproveitamento (percentual)
-  const compsOrdenados = [...comps].sort((a, b) => (b.percentual ?? 0) - (a.percentual ?? 0));
-  const advsOrdenados = [...advs].sort((a, b) => (b.percentual ?? 0) - (a.percentual ?? 0));
-
-  const melhorComp = compsOrdenados[0];
-  const piorComp =
-    compsOrdenados.length > 1 ? compsOrdenados[compsOrdenados.length - 1] : undefined;
-
-  const melhorAdv = advsOrdenados[0];
-  const piorAdv = advsOrdenados.length > 1 ? advsOrdenados[advsOrdenados.length - 1] : undefined;
-
-  const maximoPartidas = Math.max(DEFAULT_MIN_PARTIDAS, ...parcerias.map((p) => p.partidas));
-
-  const usernameSelecionado = jogadores.find((j) => j.id === jogadorSelecionadoId)?.username ?? '';
-
-  const semParcerias = !melhorComp && !piorComp && !melhorAdv && !piorAdv;
 
   return (
     <PullToRefresh onRefresh={carregar}>
@@ -243,7 +252,7 @@ export function Estatisticas() {
               max={maximoPartidas}
               value={minimoPartidas}
               onChange={(e) => setMinimoPartidas(Number(e.target.value))}
-              className="w-full accent-[#ffb300]"
+              className="w-full accent-destaque"
             />
           </div>
 

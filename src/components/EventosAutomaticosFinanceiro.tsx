@@ -384,7 +384,7 @@ export function EventosAutomaticosFinanceiro({
                 type="checkbox"
                 checked={form.ativo}
                 onChange={(e) => setForm((f) => ({ ...f, ativo: e.target.checked }))}
-                className="accent-[var(--cor-destaque)]"
+                className="accent-destaque size-4 rounded-[2px]"
               />
               <span className="text-sm font-display uppercase tracking-wider text-giz">Ativo</span>
             </label>

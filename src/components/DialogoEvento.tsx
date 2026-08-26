@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useId, useState, useMemo } from 'react';
 import type { MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import type { Participante, TipoEvento } from '../lib/partidas';
@@ -42,16 +42,19 @@ export function DialogoEvento({
     disableEscape: salvando,
   });
 
+  const nome = useMemo(
+    () => (jogador ? formatarNome(jogador.username ?? `#${jogador.jogador_id}`) : ''),
+    [jogador]
+  );
+  const pretos = useMemo(() => jogadores.filter((j) => j.time === 'a'), [jogadores]);
+  const brancos = useMemo(() => jogadores.filter((j) => j.time === 'b'), [jogadores]);
+
   if (!jogador) return null;
 
   function handleConfirmar(tipo: TipoEvento, assistenciaId: number | null) {
     vibrateGoal();
     onConfirmar(tipo, assistenciaId);
   }
-
-  const nome = formatarNome(jogador.username ?? `#${jogador.jogador_id}`);
-  const pretos = jogadores.filter((j) => j.time === 'a');
-  const brancos = jogadores.filter((j) => j.time === 'b');
 
   return createPortal(
     <div
@@ -138,7 +141,7 @@ export function DialogoEvento({
                 onClick={() => handleConfirmar('gol_contra', null)}
                 className={`min-h-[44px] cursor-pointer rounded-[4px] border px-3 py-3 text-xs font-display font-bold uppercase tracking-wider shadow-carimbo transition active:translate-y-px disabled:opacity-40 ${
                   editando && tipoAtual === 'gol_contra'
-                    ? 'border-perigo bg-perigo text-white'
+                    ? 'border-perigo bg-perigo text-branco-time'
                     : 'border-perigo/50 bg-superficie-2 text-perigo hover:bg-perigo/10'
                 }`}
               >

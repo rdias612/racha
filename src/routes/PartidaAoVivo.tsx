@@ -332,7 +332,7 @@ export function PartidaAoVivo() {
                     <button
                       type="button"
                       onClick={() => setEventoParaRemover(evento)}
-                      className="min-h-[44px] inline-flex items-center justify-center cursor-pointer rounded-[2px] border border-perigo/40 bg-perigo/10 px-2.5 py-1 text-[11px] font-display font-bold uppercase tracking-wider text-perigo hover:bg-perigo hover:text-white transition"
+                      className="min-h-[44px] inline-flex items-center justify-center cursor-pointer rounded-[2px] border border-perigo/40 bg-perigo/10 px-2.5 py-1 text-[11px] font-display font-bold uppercase tracking-wider text-perigo hover:bg-perigo hover:text-branco-time transition"
                     >
                       Desfazer
                     </button>

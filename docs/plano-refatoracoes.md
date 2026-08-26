@@ -299,25 +299,25 @@ Componente idêntico em `Perfil.tsx:393-404` e `Estatisticas.tsx:410-421`; inter
 `components/EscalacaoTimesEditor.tsx:8` (importado por `hooks/useEscalacaoTimes.ts:2` e `routes/PartidaTimes.tsx:23`) vs `CAPACIDADE_PARTIDA = 14` em `lib/partidas.ts:271`. O acoplamento 14 = 7×2 é implícito.
 **Refatoração**: mover para `lib/times.ts` e derivar `CAPACIDADE_PARTIDA = LIMITE_POR_TIME * 2`.
 
-### P2-16. Regra do placar (gol contra soma para o adversário) reimplementada no cliente
+### P2-16. ✅ Regra do placar (gol contra soma para o adversário) reimplementada no cliente
 
-`PartidaEditar.tsx:105-118` duplica a fórmula da view `partida_placar` e de `placarDeEventos` (`lib/partidas.ts`, usada por `PartidaAoVivo.tsx:88`).
-**Refatoração**: `calcularPlacarDeParticipantes(participantes)` em `lib/partidas.ts` — única implementação testável.
+> Corrigido em 2026-08-25: criada função canônica e testável `calcularPlacarDeParticipantes(participantes)` em `src/lib/partidas.ts`. Integrada em `src/routes/PartidaEditar.tsx` eliminando o loop duplicado de cálculo de gols próprios e gols contra.
+> **Onde**: `src/lib/partidas.ts`, `src/routes/PartidaEditar.tsx`.
 
-### P2-17. Ordenações/filtros recomputados a cada render (sem `useMemo`)
+### P2-17. ✅ Ordenações/filtros recomputados a cada render (sem `useMemo`)
 
-`Ranking.tsx:167-178` (sort da tabela inteira) e `:124`; `EstatisticasRacha.tsx:115-127`; `Estatisticas.tsx:154-170`; `GestaoJogadores.tsx:100-111`; `PartidaDetalhe.tsx:638-644/725-735`; `DialogoEvento.tsx:76-77` (filtros a cada toque no ao-vivo).
-**Refatoração**: envolver em `useMemo` com dependências explícitas.
+> Corrigido em 2026-08-25: memoizadas com `useMemo` todas as operações de ordenação, filtros pesados e cálculos derivados em `Ranking.tsx` (linhas, colunas, máximo de partidas), `EstatisticasRacha.tsx` (pares ordenados e melhor/pior), `Estatisticas.tsx` (parcerias, filtros, destaques e username), `GestaoJogadores.tsx` (rascunhos, contagens de mensalistas/admins e filtros), `PartidaDetalhe.tsx` (escalação por time, notas ordenadas, ordenação de presença e candidatos avulsos) e `DialogoEvento.tsx` (nome e separação por time). Todos os hooks foram rigorosamente posicionados no topo dos componentes antes de quaisquer retornos condicionais (Strict Rules of Hooks).
+> **Onde**: `src/routes/Ranking.tsx`, `src/routes/EstatisticasRacha.tsx`, `src/routes/Estatisticas.tsx`, `src/routes/GestaoJogadores.tsx`, `src/routes/PartidaDetalhe.tsx`, `src/components/DialogoEvento.tsx`.
 
-### P2-18. `PullToRefresh` dispara `setState` a cada touchmove
+### P2-18. ✅ `PullToRefresh` dispara `setState` a cada touchmove
 
-`components/PullToRefresh.tsx:50` — re-render da rota inteira ~60x/s durante o gesto; `getScrollTop` caminha a árvore a cada move.
-**Refatoração**: acumular distância em `ref` + aplicar `style.transform` direto (ou rAF); cachear `getScrollTop` no touchstart; só setar estado ao cruzar o threshold.
+> Corrigido em 2026-08-25: refatorado `src/components/PullToRefresh.tsx` para acumular a distância de arrasto em `ref` e manipular o elemento indicador diretamente via DOM (`ref.style`), eliminando completamente os re-renders da rota inteira (~60 FPS) durante o gesto de touch. Adicionados cacheamento de `getScrollTop` no `touchstart`, detecção de cruzamento de threshold com haptics (`vibrateLight`), e acionamento de estado de refresh apenas no `touchend`.
+> **Onde**: `src/components/PullToRefresh.tsx`.
 
-### P2-19. Cores genéricas Tailwind e hex fora de token
+### P2-19. ✅ Cores genéricas Tailwind e hex fora de token
 
-`text-neutral-600` em `PartidaDetalhe.tsx:253`; `text-white` em `Administrador.tsx:536,719`, `PartidaAoVivo.tsx:332`, `PartidaEditar.tsx:729`, `GestaoJogadores.tsx:571`, `CampoPartida.tsx:235-240`, `DialogoEvento.tsx:163`, `ErrorBoundary.tsx:29-39`; `accent-[#ffb300]` em `Ranking.tsx:294`, `Estatisticas.tsx:283`, `NovoJogador.tsx:204,234` (#ffb300 é exatamente o `destaque`); paleta hex de `CampoPartida.tsx:21-22/36-37/128-159` (tokens existem no `index.css`).
-**Refatoração**: substituir por tokens (`text-giz`, `text-destaque-tinta`, `accent-destaque`, `bg-preto-time`...).
+> Corrigido em 2026-08-25: auditados e substituídos todos os usos de cores fora de token (`text-white`, `text-neutral-*`, `accent-[#ffb300]`, hexadecimais em SVG) pelos tokens semânticos do Design System ("Súmula de Quinta"): `text-branco-time`, `text-preto-time`, `text-giz`, `text-giz-fraco`, `text-destaque-tinta`, `accent-destaque`, `var(--cor-campo)` e `var(--cor-campo-linha)`.
+> **Onde**: `src/components/ErrorBoundary.tsx`, `src/components/CampoPartida.tsx`, `src/components/Avatar.tsx`, `src/components/PainelPlacar.tsx`, `src/components/Snackbar.tsx`, `src/components/ConfirmDialog.tsx`, `src/components/DialogoEvento.tsx`, `src/components/EventosAutomaticosFinanceiro.tsx`, `src/routes/Administrador.tsx`, `src/routes/PartidaAoVivo.tsx`, `src/routes/PartidaEditar.tsx`, `src/routes/GestaoJogadores.tsx`, `src/routes/Layout.tsx`, `src/routes/Ranking.tsx`, `src/routes/Estatisticas.tsx`, `src/routes/NovoJogador.tsx`.
 
 ### P2-20. `TIMES[t].cor` divergente dos tokens — cor de time diferente entre telas
 

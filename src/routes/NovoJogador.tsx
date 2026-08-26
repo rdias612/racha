@@ -196,7 +196,7 @@ export function NovoJogador() {
                 setIsMensalista(val);
                 if (!val) setIsAdminNovo(false);
               }}
-              className="accent-[#ffb300] size-4 rounded mt-0.5"
+              className="accent-destaque size-4 rounded-[2px] mt-0.5"
             />
             <div className="text-xs">
               <span className="font-display font-bold uppercase tracking-wider text-giz block">
@@ -226,7 +226,7 @@ export function NovoJogador() {
                 setIsAdminNovo(val);
                 if (val) setIsMensalista(true);
               }}
-              className="accent-[#ffb300] size-4 rounded mt-0.5"
+              className="accent-destaque size-4 rounded-[2px] mt-0.5"
             />
             <div className="text-xs">
               <span className="font-display font-bold uppercase tracking-wider text-giz block">

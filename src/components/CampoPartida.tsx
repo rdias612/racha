@@ -18,8 +18,6 @@ const AREA_GOL_L = 18.32;
 const AREA_GOL_P = 5.5;
 const RAIO_CENTRO = 9.15;
 const MARCA_PENALTI = 11;
-const VERDE_ESCURO = '#16281c';
-const VERDE_CLARO = '#1b3323';
 
 function ChipJogador({
   jogador,
@@ -102,7 +100,7 @@ function MarcacoesCampo() {
       preserveAspectRatio="none"
       aria-hidden="true"
     >
-      {/* Faixas de grama contextual */}
+      {/* Faixas de grama contextual com var(--cor-campo) */}
       {Array.from({ length: faixas }).map((_, i) => (
         <rect
           key={i}
@@ -110,14 +108,15 @@ function MarcacoesCampo() {
           y={i * hFaixa}
           width={LARGURA}
           height={hFaixa}
-          fill={i % 2 === 0 ? VERDE_ESCURO : VERDE_CLARO}
+          fill="var(--cor-campo)"
+          opacity={i % 2 === 0 ? 1 : 0.88}
         />
       ))}
 
-      {/* Linhas de marcação com cor campo-linha */}
+      {/* Linhas de marcação com cor var(--cor-campo-linha) */}
       <g
         fill="none"
-        stroke="#2c4433"
+        stroke="var(--cor-campo-linha)"
         strokeWidth="0.8"
         strokeLinecap="square"
         strokeLinejoin="miter"
@@ -130,14 +129,14 @@ function MarcacoesCampo() {
 
         {/* Círculo central */}
         <circle cx={xMeio} cy={yMeio} r={RAIO_CENTRO} />
-        <circle cx={xMeio} cy={yMeio} r={0.7} fill="#2c4433" />
+        <circle cx={xMeio} cy={yMeio} r={0.7} fill="var(--cor-campo-linha)" />
 
         {/* Grande área superior (Time Preto) */}
         <path d={`M ${xPen} ${y1} V ${y1 + AREA_PENALTI_P} H ${xPen2} V ${y1}`} />
         {/* Pequena área superior */}
         <path d={`M ${xGol} ${y1} V ${y1 + AREA_GOL_P} H ${xGol2} V ${y1}`} />
         {/* Ponto penal superior */}
-        <circle cx={xMeio} cy={y1 + MARCA_PENALTI} r={0.7} fill="#2c4433" />
+        <circle cx={xMeio} cy={y1 + MARCA_PENALTI} r={0.7} fill="var(--cor-campo-linha)" />
         {/* Meia-lua superior */}
         <path
           d={`M ${xMeio - 7.3} ${y1 + AREA_PENALTI_P} A ${RAIO_CENTRO} ${RAIO_CENTRO} 0 0 0 ${xMeio + 7.3} ${y1 + AREA_PENALTI_P}`}
@@ -148,7 +147,7 @@ function MarcacoesCampo() {
         {/* Pequena área inferior */}
         <path d={`M ${xGol} ${y2} V ${y2 - AREA_GOL_P} H ${xGol2} V ${y2}`} />
         {/* Ponto penal inferior */}
-        <circle cx={xMeio} cy={y2 - MARCA_PENALTI} r={0.7} fill="#2c4433" />
+        <circle cx={xMeio} cy={y2 - MARCA_PENALTI} r={0.7} fill="var(--cor-campo-linha)" />
         {/* Meia-lua inferior */}
         <path
           d={`M ${xMeio - 7.3} ${y2 - AREA_PENALTI_P} A ${RAIO_CENTRO} ${RAIO_CENTRO} 0 0 1 ${xMeio + 7.3} ${y2 - AREA_PENALTI_P}`}

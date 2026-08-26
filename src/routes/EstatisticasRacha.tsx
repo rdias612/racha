@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
 import { AbasEstatisticas } from '../components/AbasEstatisticas';
 import { MensagemEstado } from '../components/Estado';
@@ -114,26 +114,30 @@ export function EstatisticasRacha() {
     setDirecaoOrdenacao(coluna === 'dupla' ? 'asc' : 'desc');
   }
 
+  const paresOrdenados = useMemo(() => {
+    return pares
+      ? [...pares].sort((a, b) => compararPares(a, b, colunaOrdenacao, direcaoOrdenacao))
+      : [];
+  }, [pares, colunaOrdenacao, direcaoOrdenacao]);
+
+  const paresMelhorPior = useMemo(() => {
+    return pares
+      ? [...pares].sort((a, b) =>
+          compararPares(a, b, colunaOrdenacao === 'dupla' ? 'pontos' : colunaOrdenacao, 'desc')
+        )
+      : [];
+  }, [pares, colunaOrdenacao]);
+
+  const melhor = paresMelhorPior[0] ?? null;
+  const pior =
+    paresMelhorPior.length > 1 ? (paresMelhorPior[paresMelhorPior.length - 1] ?? null) : null;
+
   if (erro) {
     return <MensagemEstado tipo="erro">Falha ao carregar: {erro}</MensagemEstado>;
   }
   if (carregando && pares === null) {
     return <SkeletonEstatisticas />;
   }
-
-  const paresOrdenados = pares
-    ? [...pares].sort((a, b) => compararPares(a, b, colunaOrdenacao, direcaoOrdenacao))
-    : [];
-
-  const paresMelhorPior = pares
-    ? [...pares].sort((a, b) =>
-        compararPares(a, b, colunaOrdenacao === 'dupla' ? 'pontos' : colunaOrdenacao, 'desc')
-      )
-    : [];
-
-  const melhor = paresMelhorPior[0] ?? null;
-  const pior =
-    paresMelhorPior.length > 1 ? (paresMelhorPior[paresMelhorPior.length - 1] ?? null) : null;
 
   return (
     <PullToRefresh onRefresh={carregar}>

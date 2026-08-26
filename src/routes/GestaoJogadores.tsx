@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
@@ -81,32 +81,68 @@ export function GestaoJogadores() {
     };
   }, []);
 
-  if (!isAdmin) return <Navigate to="/" replace />;
-
   // Função para obter o estado de um jogador (original mesclado com rascunho)
-  function obterEstadoDraft(j: JogadorLista): JogadorLista {
-    const draft = rascunhos[j.id];
-    if (!draft) return j;
-    return {
-      ...j,
-      is_mensalista: draft.is_mensalista,
-      is_admin: isSuperAdmin(j.username) ? true : draft.is_admin,
-    };
-  }
+  const obterEstadoDraft = useCallback(
+    (j: JogadorLista): JogadorLista => {
+      const draft = rascunhos[j.id];
+      if (!draft) return j;
+      return {
+        ...j,
+        is_mensalista: draft.is_mensalista,
+        is_admin: isSuperAdmin(j.username) ? true : draft.is_admin,
+      };
+    },
+    [rascunhos]
+  );
 
   // Estatísticas calculadas sobre o estado de Rascunho (em tempo real)
-  const jogadoresDraft = jogadores.map(obterEstadoDraft);
+  const jogadoresDraft = useMemo(
+    () => jogadores.map(obterEstadoDraft),
+    [jogadores, obterEstadoDraft]
+  );
+
   const totalJogadores = jogadores.length;
-  const totalMensalistas = jogadoresDraft.filter((j) => j.is_mensalista).length;
-  const totalAvulsos = jogadoresDraft.filter(
-    (j) => !j.is_mensalista && j.posicao !== 'goleiro'
-  ).length;
-  const totalAdmins = jogadoresDraft.filter((j) => j.is_admin || isSuperAdmin(j.username)).length;
-  const totalSuperAdmins = jogadoresDraft.filter((j) => isSuperAdmin(j.username)).length;
+  const { totalMensalistas, totalAvulsos, totalAdmins, totalSuperAdmins } = useMemo(() => {
+    let mensalistas = 0;
+    let avulsos = 0;
+    let admins = 0;
+    let superAdmins = 0;
+
+    for (const j of jogadoresDraft) {
+      if (j.is_mensalista) mensalistas++;
+      if (!j.is_mensalista && j.posicao !== 'goleiro') avulsos++;
+      if (j.is_admin || isSuperAdmin(j.username)) admins++;
+      if (isSuperAdmin(j.username)) superAdmins++;
+    }
+
+    return {
+      totalMensalistas: mensalistas,
+      totalAvulsos: avulsos,
+      totalAdmins: admins,
+      totalSuperAdmins: superAdmins,
+    };
+  }, [jogadoresDraft]);
 
   const qtdModificacoes = Object.keys(rascunhos).length;
   const temAlteracoes = qtdModificacoes > 0;
   const limiteAtingido = totalMensalistas >= MAX_MENSALISTAS;
+
+  // Filtragem da lista com estado de rascunho
+  const jogadoresFiltrados = useMemo(() => {
+    const termo = busca.trim().toLowerCase();
+    return jogadoresDraft.filter((j) => {
+      const matchBusca = !termo || j.username.toLowerCase().includes(termo);
+      if (!matchBusca) return false;
+
+      if (filtro === 'mensalistas') return j.is_mensalista;
+      if (filtro === 'avulsos') return !j.is_mensalista && j.posicao !== 'goleiro';
+      if (filtro === 'admins') return j.is_admin || isSuperAdmin(j.username);
+
+      return true;
+    });
+  }, [jogadoresDraft, busca, filtro]);
+
+  if (!isAdmin) return <Navigate to="/" replace />;
 
   function alternarMensalistaDraft(jOriginal: JogadorLista) {
     if (jOriginal.posicao === 'goleiro') {
@@ -249,18 +285,7 @@ export function GestaoJogadores() {
     }
   }
 
-  // Filtragem da lista com estado de rascunho
-  const jogadoresFiltrados = jogadoresDraft.filter((j) => {
-    const matchBusca = j.username.toLowerCase().includes(busca.toLowerCase());
 
-    if (!matchBusca) return false;
-
-    if (filtro === 'mensalistas') return j.is_mensalista;
-    if (filtro === 'avulsos') return !j.is_mensalista && j.posicao !== 'goleiro';
-    if (filtro === 'admins') return j.is_admin || isSuperAdmin(j.username);
-
-    return true;
-  });
 
   if (carregando) return <SkeletonGestao />;
 
@@ -534,7 +559,7 @@ export function GestaoJogadores() {
                       <div
                         className={`size-4 rounded-[2px] flex items-center justify-center border transition ${
                           j.is_mensalista
-                            ? 'bg-ok border-ok text-white'
+                            ? 'bg-ok border-ok text-branco-time'
                             : 'border-borda bg-superficie'
                         }`}
                       >
