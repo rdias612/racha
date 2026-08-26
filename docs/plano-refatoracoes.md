@@ -277,10 +277,10 @@ Componente idêntico em `Perfil.tsx:393-404` e `Estatisticas.tsx:410-421`; inter
 
 > Corrigido em 2026-08-25: adicionados tokens de LED `--cor-led-fundo`, `--cor-led-fundo-hover` e `--cor-led-borda` ao `src/index.css`. Criado componente unificado `src/components/PainelPlacar.tsx` com as variantes `completo`, `compacto` e `edicao`, eliminando hexadecimais inline em `PartidaDetalhe.tsx`, `Jogos.tsx`, `PartidaEditar.tsx`, `CampoPartida.tsx` e `Skeletons.tsx`.
 
-### P2-10. Motor de listbox duplicado (~200 linhas): `SelectSumula` vs `SeletorNota`
+### P2-10. ✅ Motor de listbox duplicado (`useListbox`: `SelectSumula` vs `SeletorNota`)
 
-`SelectSumula.tsx:29-213` e `SeletorNota.tsx:26-202` — mesmo combobox+listbox (estado, `opcaoRefs`, `scrollIntoView`, clique fora, teclado — inclusive o mesmo bug P0-14 duplicado). `SeletorNota` é um `SelectSumula` com opções 1-10 e `font-mono`.
-**Refatoração**: hook `useListbox({ opcoes, value, onChange, disabled })`; os dois viram cascas de render.
+> Corrigido em 2026-08-25: criado hook canônico `src/hooks/useListbox.ts` com gerenciamento de estado (`aberto`, `destaque`, `listaId`), auto-scroll (`scrollIntoView`), fechamento ao clicar fora (`mousedown`), navegação completa por teclado acessível (ArrowDown, ArrowUp com wrap cíclico e filtro de desabilitados, Home, End, Enter, Space, Escape, Tab) e haptics (`vibrateLight`). Refatorados `src/components/SelectSumula.tsx` e `src/components/SeletorNota.tsx` como cascas puras de renderização, substituindo ícone inline por `ChevronDown` do Lucide.
+> **Onde**: `src/hooks/useListbox.ts`, `src/components/SelectSumula.tsx`, `src/components/SeletorNota.tsx`.
 
 ### P2-11. ✅ Casca de modal duplicada em 4 arquivos
 

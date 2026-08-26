@@ -1,12 +1,11 @@
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import { ChevronDown } from 'lucide-react';
-import { vibrateLight } from '../lib/haptics';
+import { useListbox, type ListboxOpcao } from '../hooks/useListbox';
 
-export interface SelectSumulaOpcao {
+export type SelectSumulaOpcao = ListboxOpcao<string> & {
   value: string;
   label: string;
   disabled?: boolean;
-}
+};
 
 interface SelectSumulaProps {
   value: string;
@@ -38,110 +37,27 @@ export function SelectSumula({
   triggerClassName = '',
   'aria-label': ariaLabel,
 }: SelectSumulaProps) {
-  const [aberto, setAberto] = useState(false);
-  const idBase = useId();
-  const listaId = `${idBase}-lista`;
-  const containerRef = useRef<HTMLDivElement>(null);
-  const opcaoRefs = useRef<Array<HTMLLIElement | null>>([]);
-
-  const indiceAtual = Math.max(
-    0,
-    opcoes.findIndex((o) => o.value === value)
-  );
-  const [destaque, setDestaque] = useState(indiceAtual);
+  const {
+    aberto,
+    destaque,
+    containerRef,
+    opcaoRefs,
+    listaId,
+    alternar,
+    selecionar,
+    setDestaque,
+    onKeyDown,
+  } = useListbox<string>({
+    opcoes,
+    value,
+    onChange,
+    disabled,
+    id,
+  });
 
   const selecionada = opcoes.find((o) => o.value === value);
   const rotulo = selecionada?.label ?? placeholder;
   const vazio = !selecionada || selecionada.value === '';
-
-  useEffect(() => {
-    if (!aberto) return;
-    setDestaque(indiceAtual);
-  }, [aberto, indiceAtual]);
-
-  useEffect(() => {
-    if (!aberto) return;
-    opcaoRefs.current[destaque]?.scrollIntoView({ block: 'nearest' });
-  }, [aberto, destaque]);
-
-  useEffect(() => {
-    if (!aberto) return;
-    function handleClick(e: MouseEvent) {
-      if (!containerRef.current?.contains(e.target as Node)) {
-        setAberto(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [aberto]);
-
-  function abrir() {
-    if (disabled || aberto) return;
-    vibrateLight();
-    setAberto(true);
-  }
-
-  function selecionar(opcao: SelectSumulaOpcao) {
-    if (opcao.disabled) return;
-    vibrateLight();
-    onChange(opcao.value);
-    setAberto(false);
-  }
-
-  function onKeyDown(e: KeyboardEvent<HTMLButtonElement>) {
-    if (disabled) return;
-
-    const habilitadas = opcoes.map((o, i) => ({ o, i })).filter(({ o }) => !o.disabled);
-
-    function mover(delta: number) {
-      if (habilitadas.length === 0) return;
-      const pos = habilitadas.findIndex(({ i }) => i === destaque);
-      const base = pos < 0 ? 0 : pos;
-      const next = habilitadas[(base + delta + habilitadas.length) % habilitadas.length];
-      if (next) setDestaque(next.i);
-    }
-
-    if (!aberto) {
-      if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        abrir();
-      }
-      return;
-    }
-
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        mover(1);
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        mover(-1);
-        break;
-      case 'Home':
-        e.preventDefault();
-        if (habilitadas[0]) setDestaque(habilitadas[0].i);
-        break;
-      case 'End':
-        e.preventDefault();
-        if (habilitadas.length > 0) setDestaque(habilitadas[habilitadas.length - 1].i);
-        break;
-      case 'Enter':
-      case ' ':
-        e.preventDefault();
-        if (opcoes[destaque] && !opcoes[destaque].disabled) {
-          selecionar(opcoes[destaque]);
-        }
-        break;
-      case 'Escape':
-        e.preventDefault();
-        setAberto(false);
-        break;
-      case 'Tab':
-        setAberto(false);
-        break;
-    }
-  }
 
   return (
     <div ref={containerRef} className={`relative ${className}`}>
@@ -158,7 +74,7 @@ export function SelectSumula({
         aria-label={ariaLabel}
         aria-required={required || undefined}
         disabled={disabled}
-        onClick={() => (aberto ? setAberto(false) : abrir())}
+        onClick={alternar}
         onKeyDown={onKeyDown}
         className={`select-sumula flex w-full min-h-[44px] items-center justify-between gap-2 rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-left text-base shadow-xs transition focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2 disabled:opacity-40 ${triggerClassName}`}
       >

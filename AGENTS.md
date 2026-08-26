@@ -96,6 +96,9 @@ racha/
 │   │   ├── useCache.ts        # Cache em memória SWR (stale-while-revalidate) com dedupe e invalidação
 │   │   ├── useEscalacaoTimes.ts # Hook de sorteio automático e manipulação de times
 │   │   ├── useJogadorLogado.ts  # Atalho para dados do atleta conectado
+│   │   ├── useListbox.ts      # Motor unificado de listbox/combobox acessível
+│   │   ├── useModalA11y.ts    # Gerenciamento de foco, focus trap e acessibilidade de modais
+│   │   ├── useSnackbar.ts     # Hook gerenciador de notificações efêmeras com haptics
 │   │   └── useSwipeTabs.ts    # Gesto touch de swipe entre abas com trava vertical
 │   ├── lib/
 │   │   ├── dividas.ts         # Métodos de consulta e quitação financeira

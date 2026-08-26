@@ -1,5 +1,5 @@
-import { useEffect, useId, useRef, useState } from 'react';
-import { vibrateLight } from '../lib/haptics';
+import { ChevronDown } from 'lucide-react';
+import { useListbox, type ListboxOpcao } from '../hooks/useListbox';
 
 interface SeletorNotaProps {
   /** Nota atual (1-10). `undefined` = ainda não avaliado. */
@@ -17,7 +17,10 @@ interface SeletorNotaProps {
   variant?: 'full' | 'compact';
 }
 
-const NOTAS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+const OPCOES_NOTAS: Array<ListboxOpcao<number>> = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => ({
+  value: n,
+  label: String(n),
+}));
 
 /**
  * Dropdown acessível (combobox + listbox) para escolher nota de 1 a 10.
@@ -31,93 +34,25 @@ export function SeletorNota({
   variant = 'full',
 }: SeletorNotaProps) {
   const compact = variant === 'compact';
-  const [aberto, setAberto] = useState(false);
-  const [destaque, setDestaque] = useState<number>(value ?? 5);
-  const idBase = useId();
-  const listaId = `${idBase}-lista`;
-  const containerRef = useRef<HTMLDivElement>(null);
-  const opcaoRefs = useRef<Array<HTMLLIElement | null>>([]);
-
   const definido = value !== undefined;
 
-  // Quando abre, posiciona o destaque na nota atual (ou meio da escala).
-  useEffect(() => {
-    if (aberto) setDestaque(value ?? 5);
-  }, [aberto, value]);
-
-  // Rola até a opção em destaque.
-  useEffect(() => {
-    if (!aberto) return;
-    const el = opcaoRefs.current[destaque - 1];
-    el?.scrollIntoView({ block: 'nearest' });
-  }, [aberto, destaque]);
-
-  // Fecha ao clicar fora.
-  useEffect(() => {
-    if (!aberto) return;
-    function handleClick(e: MouseEvent) {
-      if (!containerRef.current?.contains(e.target as Node)) {
-        setAberto(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [aberto]);
-
-  function abrirSeFechado() {
-    if (disabled || aberto) return;
-    vibrateLight();
-    setAberto(true);
-  }
-
-  function selecionar(n: number) {
-    vibrateLight();
-    onChange(n);
-    setAberto(false);
-  }
-
-  function onKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
-    if (disabled) return;
-
-    if (!aberto) {
-      if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        abrirSeFechado();
-      }
-      return;
-    }
-
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setDestaque((d) => Math.min(10, d + 1));
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setDestaque((d) => Math.max(1, d - 1));
-        break;
-      case 'Home':
-        e.preventDefault();
-        setDestaque(1);
-        break;
-      case 'End':
-        e.preventDefault();
-        setDestaque(10);
-        break;
-      case 'Enter':
-      case ' ':
-        e.preventDefault();
-        selecionar(destaque);
-        break;
-      case 'Escape':
-        e.preventDefault();
-        setAberto(false);
-        break;
-      case 'Tab':
-        setAberto(false);
-        break;
-    }
-  }
+  const {
+    aberto,
+    destaque,
+    containerRef,
+    opcaoRefs,
+    listaId,
+    alternar,
+    selecionar,
+    setDestaque,
+    onKeyDown,
+  } = useListbox<number>({
+    opcoes: OPCOES_NOTAS,
+    value,
+    onChange,
+    disabled,
+    indicePadrao: 4, // Nota 5 (índice 4) como destaque inicial quando value for undefined
+  });
 
   return (
     <div ref={containerRef} className={`relative ${className}`}>
@@ -127,10 +62,12 @@ export function SeletorNota({
         aria-haspopup="listbox"
         aria-expanded={aberto}
         aria-controls={aberto ? listaId : undefined}
-        aria-activedescendant={aberto ? `${listaId}-opcao-${destaque}` : undefined}
+        aria-activedescendant={
+          aberto && OPCOES_NOTAS[destaque] ? `${listaId}-opcao-${destaque}` : undefined
+        }
         aria-label="Selecionar nota"
         disabled={disabled}
-        onClick={() => (aberto ? setAberto(false) : abrirSeFechado())}
+        onClick={alternar}
         onKeyDown={onKeyDown}
         className={`flex items-center justify-between rounded-[4px] border border-borda bg-superficie text-left text-sm disabled:opacity-40 shadow-xs transition focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2 ${
           compact ? 'min-h-[44px] w-24 px-3' : 'min-h-[44px] w-full px-3'
@@ -143,16 +80,10 @@ export function SeletorNota({
         >
           {definido ? value : 'Nota'}
         </span>
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 20 20"
-          className={`h-4 w-4 text-giz-fraco transition-transform ${aberto ? 'rotate-180' : ''}`}
-        >
-          <path
-            fill="currentColor"
-            d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.06l3.71-3.83a.75.75 0 1 1 1.08 1.04l-4.25 4.39a.75.75 0 0 1-1.08 0L5.21 8.27a.75.75 0 0 1 .02-1.06Z"
-          />
-        </svg>
+        <ChevronDown
+          className={`size-4 shrink-0 text-giz-fraco transition-transform ${aberto ? 'rotate-180' : ''}`}
+          aria-hidden
+        />
       </button>
 
       {aberto && (
@@ -165,28 +96,28 @@ export function SeletorNota({
             compact ? 'right-0 min-w-[11rem] sm:left-0 sm:right-auto' : 'w-full'
           }`}
         >
-          {NOTAS.map((n) => {
-            const selecionado = n === value;
-            const emDestaque = n === destaque;
+          {OPCOES_NOTAS.map((opcao, i) => {
+            const selecionado = opcao.value === value;
+            const emDestaque = i === destaque;
             return (
               <li
-                key={n}
-                id={`${listaId}-opcao-${n}`}
+                key={opcao.value}
+                id={`${listaId}-opcao-${i}`}
                 ref={(el) => {
-                  opcaoRefs.current[n - 1] = el;
+                  opcaoRefs.current[i] = el;
                 }}
                 role="option"
                 aria-selected={selecionado}
                 onMouseDown={(e) => {
-                  e.preventDefault(); // mantém foco no botão/lista
-                  selecionar(n);
+                  e.preventDefault(); // mantém foco no botão
+                  selecionar(opcao);
                 }}
-                onMouseEnter={() => setDestaque(n)}
+                onMouseEnter={() => setDestaque(i)}
                 className={`flex min-h-[44px] cursor-pointer items-center justify-between rounded-[3px] px-3 py-2 text-sm font-mono ${
                   emDestaque ? 'bg-superficie-2 text-giz' : ''
                 } ${selecionado ? 'font-bold text-destaque bg-destaque/10' : 'text-giz-fraco'}`}
               >
-                <span>{n}</span>
+                <span>{opcao.value}</span>
                 {selecionado && (
                   <span aria-hidden="true" className="text-xs font-bold text-destaque">
                     ✓
