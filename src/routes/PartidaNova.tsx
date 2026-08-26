@@ -184,7 +184,7 @@ export function PartidaNova() {
             type="date"
             value={dataJogo}
             onChange={(e) => setDataJogo(e.target.value)}
-            className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz font-mono shadow-xs focus:outline-none focus:border-destaque"
+            className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz font-mono shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2"
           />
         </label>
 

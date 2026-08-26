@@ -42,11 +42,35 @@ function inscrever(cb: () => void) {
   };
 }
 
+// Guard contra duplo registro em reloads HMR (Vite hot-reload chama o
+// módulo mais de uma vez em desenvolvimento).
+let iniciado = false;
+
 /**
- * Deve ser chamado uma vez no boot do app (main.tsx). Registra os listeners
- * globais de `beforeinstallprompt` e `appinstalled`.
+ * Registra o service worker (`/sw.js`) de forma assíncrona após o `load`.
+ * A flag `iniciado` garante que o registro seja feito exatamente uma vez,
+ * mesmo que `initPWA` seja invocado novamente por HMR.
+ * Falhas são silenciosas: o app continua funcionando sem SW.
+ */
+function registrarServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      // Falha silenciosa: o app continua funcionando sem SW.
+    });
+  });
+}
+
+/**
+ * Deve ser chamado uma vez no boot do app (main.tsx). Registra o service
+ * worker e os listeners globais de `beforeinstallprompt` e `appinstalled`.
  */
 export function initPWA() {
+  if (iniciado) return;
+  iniciado = true;
+
+  registrarServiceWorker();
+
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault(); // impede o banner/mini-infobar automático do Chrome
     deferredPrompt = e as BeforeInstallPromptEvent;

@@ -388,15 +388,15 @@ Componente idêntico em `Perfil.tsx:393-404` e `Estatisticas.tsx:410-421`; inter
 > Corrigido em 2026-08-25: adicionadas as flags estritas `"noImplicitOverride": true`, `"noImplicitReturns": true` e `"noPropertyAccessFromIndexSignature": true` aos arquivos `tsconfig.app.json` e `tsconfig.node.json`. Corrigidos os erros apontados pelo compilador em `ErrorBoundary.tsx` (modificadores `override`), `Snackbar.tsx` (consistência de retorno em `useEffect`) e `pwa.ts` (acesso por index signature). Configurados em `vercel.json` os headers HTTP `Cache-Control: no-cache, no-store, must-revalidate` e `Service-Worker-Allowed: /` para `/sw.js`, `/index.html`, `/offline.html` e `/manifest.webmanifest`, além de `Cache-Control: public, max-age=31536000, immutable` para os assets versionados em `/assets/(.*)`.
 > **Onde**: `tsconfig.app.json`, `tsconfig.node.json`, `vercel.json`, `src/components/ErrorBoundary.tsx`, `src/components/Snackbar.tsx`, `src/lib/pwa.ts`.
 
-### P2-33. Registro do service worker dividido entre arquivos + comentário mentiroso
+### P2-33. ✅ Registro do service worker dividido entre arquivos + comentário mentiroso
 
-`main.tsx:19-29` vs `lib/pwa.ts:49-61` — comentário afirma que `initPWA` "registra o service worker", mas o registro está inline no `main.tsx`; `initPWA` acumula listeners em HMR sem guard.
-**Refatoração**: mover `registrarServiceWorker()` para `pwa.ts`, flag `let iniciado = false`.
+> Corrigido em 2026-08-25: criada função privada `registrarServiceWorker()` em `src/lib/pwa.ts`, com guard `if (!('serviceWorker' in navigator)) return`. A flag `let iniciado = false` foi adicionada ao escopo de módulo e verificada no início de `initPWA()`, garantindo que listeners e registro ocorram exatamente uma vez mesmo em reloads HMR. O bloco inline de registro removido de `main.tsx`. Comentário de `initPWA` atualizado para descrever corretamente o que a função faz.
+> **Onde**: `src/lib/pwa.ts`, `src/main.tsx`.
 
-### P2-34. Inputs fora do padrão anti-zoom/foco do design-system
+### P2-34. ✅ Inputs fora do padrão anti-zoom/foco do design-system
 
-`Perfil.tsx:340,349,358` (senhas `text-sm` + `focus:outline-none`), `NovoJogador.tsx:122,141-151,165-169` (`text-sm`, sem altura mínima), `Estatisticas.tsx:244`.
-**Refatoração**: `text-base` + `focus-visible:outline-destaque` (design-system 4.2, item 5).
+> Corrigido em 2026-08-25: substituído `text-sm` por `text-base` e `focus:outline-none focus:border-destaque` por `focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2` em todos os inputs e selects fora do padrão do design system. Abrangência: 3 password inputs em `Perfil.tsx`, 1 input de username + 2 selects de posição em `NovoJogador.tsx`, 1 input de data em `PartidaNova.tsx`. Varredura final confirmou zero ocorrências de `focus:outline-none` remanescentes em `src/`.
+> **Onde**: `src/routes/Perfil.tsx`, `src/routes/NovoJogador.tsx`, `src/routes/PartidaNova.tsx`.
 
 ### P2-35. Regras mensalista/admin/goleiro duplicadas entre telas
 

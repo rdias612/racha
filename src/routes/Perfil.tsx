@@ -342,7 +342,7 @@ export function Perfil() {
             autoComplete="current-password"
             value={senhaAtual}
             onChange={(e) => setSenhaAtual(e.target.value)}
-            className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz font-mono shadow-xs focus:outline-none focus:border-destaque"
+            className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz font-mono shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2"
             required
           />
           <input
@@ -351,7 +351,7 @@ export function Perfil() {
             autoComplete="new-password"
             value={senhaNova}
             onChange={(e) => setSenhaNova(e.target.value)}
-            className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz font-mono shadow-xs focus:outline-none focus:border-destaque"
+            className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz font-mono shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2"
             required
           />
           <input
@@ -360,7 +360,7 @@ export function Perfil() {
             autoComplete="new-password"
             value={senhaConfirma}
             onChange={(e) => setSenhaConfirma(e.target.value)}
-            className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz font-mono shadow-xs focus:outline-none focus:border-destaque"
+            className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz font-mono shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2"
             required
           />
           {erroSenha && <MensagemEstado>{erroSenha}</MensagemEstado>}

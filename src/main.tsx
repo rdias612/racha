@@ -20,10 +20,3 @@ createRoot(document.getElementById('root')!).render(
 // instalação (captura o beforeinstallprompt para exibir botão customizado
 // em vez do mini-infobar automático do Chrome).
 initPWA();
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {
-      // Falha silenciosa: o app continua funcionando sem SW.
-    });
-  });
-}

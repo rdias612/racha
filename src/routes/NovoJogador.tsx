@@ -114,7 +114,7 @@ export function NovoJogador() {
                 autoCorrect="off"
                 autoComplete="username"
                 placeholder="ex: joaosilva"
-                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2.5 text-sm text-giz font-mono shadow-xs focus:outline-none focus:border-destaque"
+                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2.5 text-base text-giz font-mono shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2"
                 required
               />
             </label>
@@ -143,7 +143,7 @@ export function NovoJogador() {
                     setIsAdminNovo(false);
                   }
                 }}
-                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz shadow-xs focus:outline-none focus:border-destaque"
+                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2"
               >
                 {(Object.keys(POSICOES) as PosicaoId[]).map((p) => (
                   <option key={p} value={p}>
@@ -161,7 +161,7 @@ export function NovoJogador() {
                 value={posicaoB}
                 onChange={(e) => setPosicaoB(e.target.value as PosicaoId)}
                 disabled={posicao === 'goleiro'}
-                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz shadow-xs focus:outline-none focus:border-destaque disabled:opacity-40"
+                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2 disabled:opacity-40"
               >
                 {(Object.keys(POSICOES_B) as (keyof typeof POSICOES_B)[]).map((p) => (
                   <option key={p} value={p}>
