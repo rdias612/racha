@@ -764,7 +764,7 @@ function Confirmacoes({
           <button
             type="button"
             onClick={abrirAvulso}
-            className="w-full px-3 py-2 text-xs font-display font-bold uppercase tracking-wider text-destaque hover:bg-superficie-2 transition"
+            className="w-full min-h-[44px] flex items-center justify-center px-3 py-2 text-xs font-display font-bold uppercase tracking-wider text-destaque hover:bg-superficie-2 transition cursor-pointer"
           >
             {mostrandoAvulso
               ? 'Fechar seleção'
@@ -778,7 +778,7 @@ function Confirmacoes({
                   type="button"
                   disabled={processando !== null}
                   onClick={() => adicionar(j.id)}
-                  className="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-giz hover:bg-superficie-2 active:translate-y-px transition"
+                  className="w-full min-h-[44px] flex items-center justify-between gap-2 px-3 py-2 text-sm text-giz hover:bg-superficie-2 active:translate-y-px transition cursor-pointer"
                 >
                   <span className="flex items-center gap-2 min-w-0">
                     <Avatar username={j.username} size="xs" />

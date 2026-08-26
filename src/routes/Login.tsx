@@ -143,7 +143,7 @@ export function Login() {
                 onFocus={() => setAberto(true)}
                 onBlur={fecharComAtraso}
                 onKeyDown={navegarTeclado}
-                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2.5 pr-10 text-sm text-giz shadow-xs focus:outline-none focus:border-destaque"
+                className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2.5 pr-10 text-base sm:text-sm text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2"
                 required
                 disabled={carregandoUsernames || !!erroUsernames}
               />
@@ -156,7 +156,7 @@ export function Login() {
                   setAberto((a) => !a);
                   refInput.current?.focus();
                 }}
-                className="absolute right-1 top-1/2 -translate-y-1/2 rounded-[2px] p-1.5 text-giz-fraco hover:text-giz"
+                className="absolute right-1 top-1/2 -translate-y-1/2 rounded-[2px] p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-giz-fraco hover:text-giz cursor-pointer"
               >
                 <svg
                   className={`w-4 h-4 text-destaque transition-transform ${aberto ? 'rotate-180' : ''}`}
@@ -183,7 +183,7 @@ export function Login() {
                         tabIndex={-1}
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => selecionar(nome)}
-                        className={`w-full text-left px-3 py-2 text-sm rounded-[3px] transition ${
+                        className={`w-full min-h-[44px] flex items-center text-left px-3 py-2 text-sm rounded-[3px] transition cursor-pointer ${
                           i === indiceAtivo
                             ? 'bg-superficie-2 text-destaque font-bold'
                             : 'text-giz hover:bg-superficie-2'
@@ -212,7 +212,7 @@ export function Login() {
               enterKeyHint="go"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
-              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2.5 text-sm text-giz shadow-xs focus:outline-none focus:border-destaque font-mono"
+              className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2.5 text-base sm:text-sm text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2 font-mono"
               required
             />
           </div>

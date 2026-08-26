@@ -243,21 +243,21 @@ function TabelaDuplas({
       align === 'left'
         ? 'justify-start'
         : align === 'right'
-          ? 'justify-end ml-auto'
-          : 'justify-center mx-auto';
+          ? 'justify-end'
+          : 'justify-center';
 
     return (
       <th
         scope="col"
         aria-sort={ativa ? (direcaoOrdenacao === 'asc' ? 'ascending' : 'descending') : 'none'}
-        className={`px-3 py-2 ${
+        className={`p-0 ${
           align === 'left' ? 'text-left' : align === 'right' ? 'text-right' : 'text-center'
         }`}
       >
         <button
           type="button"
           onClick={() => onOrdenar(coluna)}
-          className={`group inline-flex items-center gap-1 font-display font-bold uppercase tracking-wider text-xs transition cursor-pointer select-none ${justifyClass} ${
+          className={`w-full min-h-[44px] px-3 py-2 group inline-flex items-center gap-1 font-display font-bold uppercase tracking-wider text-xs transition cursor-pointer select-none ${justifyClass} ${
             ativa ? 'text-destaque font-black' : 'text-giz-fraco hover:text-giz'
           }`}
           title={`Ordenar por ${label}`}

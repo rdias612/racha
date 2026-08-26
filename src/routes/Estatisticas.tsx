@@ -204,7 +204,7 @@ export function Estatisticas() {
             id="select-jogador-stats"
             value={jogadorSelecionadoId ?? ''}
             onChange={(e) => setJogadorSelecionadoId(Number(e.target.value))}
-            className="w-full rounded-[3px] border border-borda bg-superficie-2 px-3 py-2 text-sm text-giz font-medium focus:outline-none focus:border-destaque"
+            className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm text-giz font-medium focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2"
           >
             {jogadores.map((j) => (
               <option key={j.id} value={j.id}>

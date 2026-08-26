@@ -358,7 +358,7 @@ export function GestaoGoleiros() {
                 ) : (
                   <div className="mt-2.5 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
                     {/* Telefone */}
-                    <div className="flex items-center gap-2 text-giz-fraco min-h-[36px]">
+                    <div className="flex items-center gap-2 text-giz-fraco min-h-[44px]">
                       <Phone className="size-3.5 shrink-0 text-destaque" />
                       {temTel ? (
                         zapLink ? (
@@ -366,7 +366,7 @@ export function GestaoGoleiros() {
                             href={zapLink}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-destaque hover:underline py-1 inline-flex items-center gap-1"
+                            className="text-destaque hover:underline py-1 inline-flex items-center gap-1 min-h-[44px]"
                           >
                             <span>{g.telefone}</span>
                             <span className="text-[10px]">↗</span>
@@ -380,7 +380,7 @@ export function GestaoGoleiros() {
                     </div>
 
                     {/* Chave PIX */}
-                    <div className="flex items-center justify-between gap-2 text-giz-fraco min-h-[36px]">
+                    <div className="flex items-center justify-between gap-2 text-giz-fraco min-h-[44px]">
                       <div className="flex items-center gap-2 truncate">
                         <CreditCard className="size-3.5 shrink-0 text-destaque" />
                         {temPix ? (

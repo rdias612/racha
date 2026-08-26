@@ -329,7 +329,7 @@ function GrupoJogadores({
           type="button"
           onClick={() => onLimpar(idsDoGrupo)}
           disabled={!podeLimpar}
-          className="text-xs font-mono text-giz-fraco hover:text-perigo disabled:opacity-0 disabled:pointer-events-none transition"
+          className="min-h-[44px] px-2 inline-flex items-center text-xs font-mono text-giz-fraco hover:text-perigo disabled:opacity-0 disabled:pointer-events-none transition cursor-pointer"
         >
           Limpar
         </button>

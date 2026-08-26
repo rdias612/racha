@@ -295,13 +295,13 @@ export function PartidaAoVivo() {
             {[...eventos].reverse().map((evento) => (
               <li
                 key={evento.id}
-                className="flex items-center justify-between gap-2 px-3 py-2 text-sm hover:bg-superficie-2 transition"
+                className="flex items-center justify-between gap-2 px-3 py-1 text-sm hover:bg-superficie-2 transition min-h-[44px]"
               >
                 <button
                   type="button"
                   disabled={!podeRegistrar}
                   onClick={() => podeRegistrar && abrirEdicao(evento)}
-                  className="flex-1 cursor-pointer py-1 text-left text-giz disabled:cursor-default"
+                  className="flex-1 min-h-[44px] flex items-center cursor-pointer py-1 text-left text-giz disabled:cursor-default"
                 >
                   {evento.tipo === 'gol' ? (
                     <span className="font-medium">
@@ -321,18 +321,18 @@ export function PartidaAoVivo() {
                   )}
                 </button>
                 {podeRegistrar && (
-                  <div className="flex items-center gap-1 shrink-0">
+                  <div className="flex items-center gap-1.5 shrink-0">
                     <button
                       type="button"
                       onClick={() => abrirEdicao(evento)}
-                      className="cursor-pointer rounded-[2px] border border-destaque/40 bg-destaque/10 px-2 py-1 text-[11px] font-display font-bold uppercase tracking-wider text-destaque hover:bg-destaque hover:text-destaque-tinta transition"
+                      className="min-h-[44px] inline-flex items-center justify-center cursor-pointer rounded-[2px] border border-destaque/40 bg-destaque/10 px-2.5 py-1 text-[11px] font-display font-bold uppercase tracking-wider text-destaque hover:bg-destaque hover:text-destaque-tinta transition"
                     >
                       Editar
                     </button>
                     <button
                       type="button"
                       onClick={() => setEventoParaRemover(evento)}
-                      className="cursor-pointer rounded-[2px] border border-perigo/40 bg-perigo/10 px-2 py-1 text-[11px] font-display font-bold uppercase tracking-wider text-perigo hover:bg-perigo hover:text-white transition"
+                      className="min-h-[44px] inline-flex items-center justify-center cursor-pointer rounded-[2px] border border-perigo/40 bg-perigo/10 px-2.5 py-1 text-[11px] font-display font-bold uppercase tracking-wider text-perigo hover:bg-perigo hover:text-white transition"
                     >
                       Desfazer
                     </button>

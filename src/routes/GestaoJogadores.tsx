@@ -387,7 +387,7 @@ export function GestaoJogadores() {
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
           <button
             onClick={() => setFiltro('todos')}
-            className={`min-h-[36px] px-3 py-1.5 rounded-[3px] font-display font-bold uppercase tracking-wider transition shrink-0 ${
+            className={`min-h-[44px] px-3 py-1.5 rounded-[3px] font-display font-bold uppercase tracking-wider transition shrink-0 cursor-pointer ${
               filtro === 'todos'
                 ? 'bg-destaque text-destaque-tinta shadow-carimbo'
                 : 'bg-superficie border border-borda text-giz-fraco hover:text-giz hover:bg-superficie-2'
@@ -397,7 +397,7 @@ export function GestaoJogadores() {
           </button>
           <button
             onClick={() => setFiltro('mensalistas')}
-            className={`min-h-[36px] px-3 py-1.5 rounded-[3px] font-display font-bold uppercase tracking-wider transition shrink-0 ${
+            className={`min-h-[44px] px-3 py-1.5 rounded-[3px] font-display font-bold uppercase tracking-wider transition shrink-0 cursor-pointer ${
               filtro === 'mensalistas'
                 ? 'bg-destaque text-destaque-tinta shadow-carimbo'
                 : 'bg-superficie border border-borda text-giz-fraco hover:text-giz hover:bg-superficie-2'
@@ -407,7 +407,7 @@ export function GestaoJogadores() {
           </button>
           <button
             onClick={() => setFiltro('avulsos')}
-            className={`min-h-[36px] px-3 py-1.5 rounded-[3px] font-display font-bold uppercase tracking-wider transition shrink-0 ${
+            className={`min-h-[44px] px-3 py-1.5 rounded-[3px] font-display font-bold uppercase tracking-wider transition shrink-0 cursor-pointer ${
               filtro === 'avulsos'
                 ? 'bg-destaque text-destaque-tinta shadow-carimbo'
                 : 'bg-superficie border border-borda text-giz-fraco hover:text-giz hover:bg-superficie-2'
@@ -417,7 +417,7 @@ export function GestaoJogadores() {
           </button>
           <button
             onClick={() => setFiltro('admins')}
-            className={`min-h-[36px] px-3 py-1.5 rounded-[3px] font-display font-bold uppercase tracking-wider transition shrink-0 ${
+            className={`min-h-[44px] px-3 py-1.5 rounded-[3px] font-display font-bold uppercase tracking-wider transition shrink-0 cursor-pointer ${
               filtro === 'admins'
                 ? 'bg-destaque text-destaque-tinta shadow-carimbo'
                 : 'bg-superficie border border-borda text-giz-fraco hover:text-giz hover:bg-superficie-2'

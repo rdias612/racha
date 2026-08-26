@@ -212,7 +212,7 @@ export function Ranking() {
           <NavLink
             to="/ranking/pontos"
             className={({ isActive }) =>
-              `flex-1 min-w-max rounded-[3px] px-3 py-1.5 text-center font-display uppercase tracking-wider text-xs font-bold whitespace-nowrap transition ${
+              `flex-1 min-w-max min-h-[44px] flex items-center justify-center rounded-[3px] px-3 py-1.5 text-center font-display uppercase tracking-wider text-xs font-bold whitespace-nowrap transition ${
                 isActive
                   ? 'bg-destaque text-destaque-tinta shadow-xs'
                   : 'text-giz-fraco hover:text-giz hover:bg-superficie-2'
@@ -224,7 +224,7 @@ export function Ranking() {
           <NavLink
             to="/ranking/gols"
             className={({ isActive }) =>
-              `flex-1 min-w-max rounded-[3px] px-3 py-1.5 text-center font-display uppercase tracking-wider text-xs font-bold whitespace-nowrap transition ${
+              `flex-1 min-w-max min-h-[44px] flex items-center justify-center rounded-[3px] px-3 py-1.5 text-center font-display uppercase tracking-wider text-xs font-bold whitespace-nowrap transition ${
                 isActive
                   ? 'bg-destaque text-destaque-tinta shadow-xs'
                   : 'text-giz-fraco hover:text-giz hover:bg-superficie-2'
@@ -236,7 +236,7 @@ export function Ranking() {
           <NavLink
             to="/ranking/assistencias"
             className={({ isActive }) =>
-              `flex-1 min-w-max rounded-[3px] px-3 py-1.5 text-center font-display uppercase tracking-wider text-xs font-bold whitespace-nowrap transition ${
+              `flex-1 min-w-max min-h-[44px] flex items-center justify-center rounded-[3px] px-3 py-1.5 text-center font-display uppercase tracking-wider text-xs font-bold whitespace-nowrap transition ${
                 isActive
                   ? 'bg-destaque text-destaque-tinta shadow-xs'
                   : 'text-giz-fraco hover:text-giz hover:bg-superficie-2'
@@ -248,7 +248,7 @@ export function Ranking() {
           <NavLink
             to="/ranking/gols-contra"
             className={({ isActive }) =>
-              `flex-1 min-w-max rounded-[3px] px-3 py-1.5 text-center font-display uppercase tracking-wider text-xs font-bold whitespace-nowrap transition ${
+              `flex-1 min-w-max min-h-[44px] flex items-center justify-center rounded-[3px] px-3 py-1.5 text-center font-display uppercase tracking-wider text-xs font-bold whitespace-nowrap transition ${
                 isActive
                   ? 'bg-destaque text-destaque-tinta shadow-xs'
                   : 'text-giz-fraco hover:text-giz hover:bg-superficie-2'
@@ -269,7 +269,7 @@ export function Ranking() {
               <button
                 type="button"
                 onClick={() => setPosicaoFiltro('todas')}
-                className={`rounded-[3px] px-2.5 py-1 text-xs font-display font-bold uppercase tracking-wider transition ${
+                className={`min-h-[44px] inline-flex items-center justify-center rounded-[3px] px-3 py-1.5 text-xs font-display font-bold uppercase tracking-wider transition cursor-pointer ${
                   posicaoFiltro === 'todas'
                     ? 'bg-destaque text-destaque-tinta shadow-xs'
                     : 'border border-borda bg-superficie-2 text-giz-fraco hover:text-giz'
@@ -282,7 +282,7 @@ export function Ranking() {
                   key={pos}
                   type="button"
                   onClick={() => setPosicaoFiltro(pos)}
-                  className={`rounded-[3px] px-2.5 py-1 text-xs font-display font-bold uppercase tracking-wider transition ${
+                  className={`min-h-[44px] inline-flex items-center justify-center rounded-[3px] px-3 py-1.5 text-xs font-display font-bold uppercase tracking-wider transition cursor-pointer ${
                     posicaoFiltro === pos
                       ? 'bg-destaque text-destaque-tinta shadow-xs'
                       : 'border border-borda bg-superficie-2 text-giz-fraco hover:text-giz'
@@ -444,14 +444,15 @@ function TabelaRanking({
             {colunasOrdenacao.map((coluna) => {
               const ativa = colunaOrdenacao === coluna.key;
               const direcao = ativa ? direcaoOrdenacao : null;
+              const ehAtleta = coluna.key === 'username';
               return (
                 <th
                   key={coluna.key}
                   aria-sort={
                     direcao === 'asc' ? 'ascending' : direcao === 'desc' ? 'descending' : 'none'
                   }
-                  className={`px-2 py-2 font-display font-bold uppercase tracking-wider text-xs ${
-                    coluna.key === 'username'
+                  className={`p-0 font-display font-bold uppercase tracking-wider text-xs ${
+                    ehAtleta
                       ? 'w-px whitespace-nowrap text-left sm:min-w-44'
                       : 'text-right'
                   }`}
@@ -459,7 +460,9 @@ function TabelaRanking({
                   <button
                     type="button"
                     onClick={() => selecionarOrdenacao(coluna.key)}
-                    className={`inline-flex items-center gap-1 min-h-0 ${ativa ? 'text-destaque font-black' : 'hover:text-giz'}`}
+                    className={`w-full min-h-[44px] px-2 py-2 inline-flex items-center gap-1 cursor-pointer select-none transition ${
+                      ehAtleta ? 'justify-start' : 'justify-end'
+                    } ${ativa ? 'text-destaque font-black' : 'hover:text-giz'}`}
                   >
                     <span>{coluna.label}</span>
                     <span aria-hidden="true" className="font-mono text-[10px]">

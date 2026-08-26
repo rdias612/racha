@@ -200,17 +200,10 @@ O fallback client baixa `votes` completa (viola AGENTS 7.5), engole erros com `c
 > Corrigido em 2026-08-25: padronizada a estratégia canônica "lib lança cru, borda usa `formatarMensagemErro`". No `src/lib/erros.ts`, adicionada tipagem `ErroComCodigo` e checagem prioritária de códigos de status PostgreSQL (`23505`, `42501`, `23503`) e PostgREST (`PGRST301`, `PGRST116`), cobrindo violações de RLS e erros de conexão. Removido o re-wrap com `new Error` que descartava metadados em `src/lib/notificacoes.ts`. Substituídas todas as ocorrências de mensagens cruas (`error.message` / `err.message` / `e.message`) nas telas e componentes por `formatarMensagemErro`.
 > **Onde**: `src/lib/erros.ts`, `src/lib/notificacoes.ts`, `src/routes/Login.tsx`, `src/routes/Perfil.tsx`, `src/routes/PartidaVotar.tsx`, `src/routes/PartidaTimes.tsx`, `src/routes/PartidaNovaTimes.tsx`, `src/routes/PartidaNova.tsx`, `src/routes/PartidaEditar.tsx`, `src/routes/PartidaDetalhe.tsx`, `src/routes/PartidaAoVivo.tsx`, `src/routes/NovoJogador.tsx`, `src/routes/Notificacoes.tsx`, `src/routes/GestaoJogadores.tsx`, `src/routes/EstatisticasRacha.tsx`, `src/routes/Estatisticas.tsx`, `src/routes/Administrador.tsx`, `src/routes/Jogos.tsx`, `src/components/ModalNovoGoleiro.tsx`, `src/components/EventosAutomaticosFinanceiro.tsx`.
 
-### P1-12. Alvos de toque abaixo de 44px (viola AGENTS 6.1)
+### P1-12. ✅ Alvos de toque abaixo de 44px (violação de AGENTS 6.1 resolvida)
 
-**Onde**:
-
-- Abas de filtro `min-h-[36px]`: `GestaoJogadores.tsx:424,434,444,454`; pílulas `PartidaEditar.tsx:569`
-- Filtros de posição `px-2.5 py-1`: `Ranking.tsx:255-279`
-- Botões de ordenação do `thead`: `Ranking.tsx:445-454`, `EstatisticasRacha.tsx:285-295`
-- Botões "voltar" texto-puro `text-xs`: `PartidaDetalhe.tsx:186-191`, `Administrador.tsx:373-379`, `Notificacoes.tsx:208-214`, `PartidaVotar.tsx:247-252`, `PartidaNova.tsx:155-160`, `NovoJogador.tsx:76-81`, `PartidaAoVivo.tsx:210-216` (só `GestaoGoleiros.tsx:186-193` está correto)
-- Botões de hora/minuto `min-h-[36px]`: `ModalSelecionarAgendamento.tsx:189,218`; `ModalSelecionarGoleiro.tsx:133,218-225`; `EscalacaoTimesEditor.tsx:174` (`min-h-[32px]`); `CampoPartida.tsx:41` (chips 36px — alvo primário de gol no ao-vivo); `DialogoEvento.tsx:174,188-227`
-
-**Refatoração**: elevar para `min-h-[44px]`; o componente `BotaoVoltar` (P2-1) resolve os 11 voltar de uma vez.
+> Corrigido em 2026-08-25: auditados e elevados todos os alvos de toque interativos para no mínimo `min-h-[44px]`, com padding adequado, `cursor-pointer`, feedback tátil e foco acessível nos tokens do Design System. Padronizadas as abas de métricas e filtros de posição em `Ranking.tsx`, ordenação de colunas do `thead` em `Ranking.tsx` e `EstatisticasRacha.tsx`, abas de filtro em `GestaoJogadores.tsx`, botões de adição de avulsos em `PartidaDetalhe.tsx`, botões de edição/desfazer de eventos em `PartidaAoVivo.tsx`, botão limpar em `PartidaNova.tsx`, links de telefone/WhatsApp em `GestaoGoleiros.tsx`, select de atleta em `Estatisticas.tsx`, botão fechar em `Snackbar.tsx`, e inputs/seleção rápida em `Login.tsx`. Os 11 botões de voltar já haviam sido unificados pelo `BotaoVoltar` (P2-1).
+> **Onde**: `src/routes/GestaoJogadores.tsx`, `src/routes/Ranking.tsx`, `src/routes/EstatisticasRacha.tsx`, `src/routes/PartidaDetalhe.tsx`, `src/routes/PartidaAoVivo.tsx`, `src/routes/PartidaNova.tsx`, `src/routes/GestaoGoleiros.tsx`, `src/routes/Estatisticas.tsx`, `src/routes/Login.tsx`, `src/components/Snackbar.tsx`, `src/components/BotaoVoltar.tsx`.
 
 ### P1-13. ✅ (resolvido por P2-11) Modais sem focus trap / foco inicial (padrão existe só no ConfirmDialog)
 
