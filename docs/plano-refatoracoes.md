@@ -42,7 +42,7 @@ O `GRANT INSERT, UPDATE, DELETE ON partidas, partidas_participantes, votes TO an
 A função só recebe `p_jogador_id`; o comentário na linha 12 admite que o bloqueio de superadmin está "aplicado no front". Qualquer chamada anônima reseta a senha de **qualquer** jogador para `'123'` e depois loga via `fazer_login`.
 **Refatoração**: adicionar `p_admin_id bigint` + gate `IF NOT EXISTS (SELECT 1 FROM jogadores WHERE id = p_admin_id AND is_admin) THEN RETURN false;` — padrão já adotado em `excluir_partida` (066) e `admin_definir_confirmacao`.
 
-### P0-3. Gates de admin bypassáveis com `p_admin_id IS NULL`
+### P0-3. ✅ Gates de admin bypassáveis com `p_admin_id IS NULL`
 
 **Onde**: `supabase/migrations/083_seguranca_goleiros_e_admin_gates.sql:88` e `:88`→`:165` (`salvar_times_e_goleiros_partida` e `abrir_partida`; idem `aplicar_tudo.sql:4561` e `:4632`)
 O gate é `IF p_admin_id IS NOT NULL AND NOT EXISTS (...)` — chamando a RPC **sem** o argumento opcional, a condição inteira é falsa e nenhuma validação roda: anon monta escalação e abre partida. A própria `criar_goleiro_rapido` na mesma migration usa o padrão correto (`IS NULL OR NOT EXISTS`).
