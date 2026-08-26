@@ -28,7 +28,7 @@ import type { JogadorLista } from '../lib/jogadores';
 import { formatarMensagemErro } from '../lib/erros';
 
 const INPUT_CLASS =
-  'w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2';
+  'w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2';
 
 interface EventosAutomaticosFinanceiroProps {
   jogadores: JogadorLista[];
@@ -225,7 +225,7 @@ export function EventosAutomaticosFinanceiro({
     <section className="space-y-3 rounded-[4px] border border-borda bg-superficie p-3.5 shadow-carimbo">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <Zap className="size-4 shrink-0 text-destaque" />
+          <Zap className="size-4 shrink-0 text-destaque-texto" />
           <h3 className="font-display font-bold text-sm uppercase tracking-wider text-giz truncate">
             Eventos automáticos
           </h3>
@@ -442,7 +442,7 @@ export function EventosAutomaticosFinanceiro({
                   onClick={() => abrirEdicao(ev)}
                   title="Editar"
                   aria-label={`Editar ${ev.nome}`}
-                  className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-[3px] border border-borda bg-superficie-2 text-giz-fraco hover:text-destaque hover:border-destaque/50"
+                  className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-[3px] border border-borda bg-superficie-2 text-giz-fraco hover:text-destaque-texto hover:border-destaque/50"
                 >
                   <Pencil className="size-4" />
                 </button>

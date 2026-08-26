@@ -50,7 +50,7 @@ export function Logo({ size = 'md', mostrarTexto = true, className = '' }: LogoP
       {mostrarTexto && (
         <div className="flex flex-col leading-none">
           <span className={`font-display uppercase tracking-[0.08em] text-giz ${TEXT_SIZES[size]}`}>
-            RACHA <span className="text-destaque">GRAGOATÁ</span>
+            RACHA <span className="text-destaque-texto">GRAGOATÁ</span>
           </span>
           <span className="text-[9px] font-mono uppercase tracking-widest text-giz-fraco">
             Súmula CBO

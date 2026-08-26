@@ -256,7 +256,7 @@ export function PartidaVotar() {
           {editando ? 'Editar Votos da Súmula' : 'Cédula de Votação'} — Partida #{partida.id}
         </h2>
         <div className="flex items-center justify-between mt-1">
-          <p className="text-xs font-mono font-bold text-destaque">
+          <p className="text-xs font-mono font-bold text-destaque-texto">
             ⏳ Fecha em {horasRestantes}h {minutosRestantes}min
           </p>
           <span className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
@@ -271,7 +271,7 @@ export function PartidaVotar() {
         <div className="mt-3 space-y-1">
           <div className="flex items-center justify-between text-xs font-mono">
             <span className="text-giz-fraco">Progresso da cédula:</span>
-            <span className={todosAvaliados ? 'text-ok font-bold' : 'text-destaque font-bold'}>
+            <span className={todosAvaliados ? 'text-ok font-bold' : 'text-destaque-texto font-bold'}>
               {avaliadosCount}/{alvos.length} avaliados
             </span>
           </div>

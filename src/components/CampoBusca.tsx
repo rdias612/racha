@@ -95,14 +95,14 @@ export function CampoBusca({
         disabled={isDisabled}
         placeholder={placeholder}
         aria-label={ariaLabel}
-        className={`w-full rounded-[4px] border border-borda pl-9 pr-9 py-2 text-base sm:text-sm text-giz placeholder-giz-fraco min-h-[44px] focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed ${classeFundo} ${classeFonte} ${inputClassName}`}
+        className={`w-full rounded-[4px] border border-borda pl-9 pr-9 py-2 text-base sm:text-sm text-giz placeholder-giz-fraco min-h-[44px] focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed ${classeFundo} ${classeFonte} ${inputClassName}`}
       />
       {Boolean(textoAtual) && !isDisabled && (
         <button
           type="button"
           onClick={handleLimpar}
           aria-label="Limpar busca"
-          className="min-h-[44px] min-w-[44px] flex items-center justify-center absolute right-0 top-1/2 -translate-y-1/2 text-giz-fraco hover:text-giz transition cursor-pointer focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2 rounded-[2px]"
+          className="min-h-[44px] min-w-[44px] flex items-center justify-center absolute right-0 top-1/2 -translate-y-1/2 text-giz-fraco hover:text-giz transition cursor-pointer focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2 rounded-[2px]"
         >
           <X className="size-4" aria-hidden="true" />
         </button>

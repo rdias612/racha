@@ -253,7 +253,7 @@ export function GestaoGoleiros() {
                           {g.is_ativo ? 'Ativo' : 'Inativo'}
                         </span>
                         {g.is_admin && (
-                          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono uppercase rounded-[2px] bg-superficie-2 border border-destaque/50 text-destaque">
+                          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono uppercase rounded-[2px] bg-superficie-2 border border-destaque/50 text-destaque-texto">
                             <Shield className="size-2.5" />
                             Admin
                           </span>
@@ -276,7 +276,7 @@ export function GestaoGoleiros() {
                           onClick={() => iniciarEdicao(g)}
                           title="Editar dados"
                           aria-label={`Editar dados de @${g.username}`}
-                          className="min-h-[44px] min-w-[44px] p-2.5 rounded-[4px] border border-borda bg-superficie-2 text-giz-fraco hover:text-giz hover:border-destaque active:translate-y-px transition flex items-center justify-center focus-visible:outline-2 focus-visible:outline-destaque"
+                          className="min-h-[44px] min-w-[44px] p-2.5 rounded-[4px] border border-borda bg-superficie-2 text-giz-fraco hover:text-giz hover:border-destaque active:translate-y-px transition flex items-center justify-center focus-visible:outline-2 focus-visible:outline-destaque-texto"
                         >
                           <Edit2 className="size-4" />
                         </button>
@@ -291,7 +291,7 @@ export function GestaoGoleiros() {
                           }}
                           title={g.is_ativo ? 'Desativar goleiro' : 'Ativar goleiro'}
                           aria-label={`${g.is_ativo ? 'Desativar' : 'Ativar'} @${g.username}`}
-                          className={`min-h-[44px] min-w-[44px] p-2.5 rounded-[4px] border active:translate-y-px transition flex items-center justify-center focus-visible:outline-2 focus-visible:outline-destaque ${
+                          className={`min-h-[44px] min-w-[44px] p-2.5 rounded-[4px] border active:translate-y-px transition flex items-center justify-center focus-visible:outline-2 focus-visible:outline-destaque-texto ${
                             g.is_ativo
                               ? 'border-borda bg-superficie-2 text-giz-fraco hover:text-perigo hover:border-perigo'
                               : 'border-ok/40 bg-ok/15 text-ok hover:bg-ok/25'
@@ -308,7 +308,7 @@ export function GestaoGoleiros() {
                           disabled={salvandoEdicao}
                           title="Salvar alterações"
                           aria-label="Salvar alterações"
-                          className="min-h-[44px] min-w-[44px] p-2.5 rounded-[4px] bg-destaque text-destaque-tinta font-bold shadow-carimbo hover:brightness-105 active:translate-y-px transition flex items-center justify-center disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-destaque"
+                          className="min-h-[44px] min-w-[44px] p-2.5 rounded-[4px] bg-destaque text-destaque-tinta font-bold shadow-carimbo hover:brightness-105 active:translate-y-px transition flex items-center justify-center disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-destaque-texto"
                         >
                           <Save className="size-4" />
                         </button>
@@ -318,7 +318,7 @@ export function GestaoGoleiros() {
                           disabled={salvandoEdicao}
                           title="Cancelar edição"
                           aria-label="Cancelar edição"
-                          className="min-h-[44px] min-w-[44px] p-2.5 rounded-[4px] border border-borda bg-superficie-2 text-giz-fraco hover:text-giz active:translate-y-px transition flex items-center justify-center focus-visible:outline-2 focus-visible:outline-destaque"
+                          className="min-h-[44px] min-w-[44px] p-2.5 rounded-[4px] border border-borda bg-superficie-2 text-giz-fraco hover:text-giz active:translate-y-px transition flex items-center justify-center focus-visible:outline-2 focus-visible:outline-destaque-texto"
                         >
                           <X className="size-4" />
                         </button>
@@ -339,7 +339,7 @@ export function GestaoGoleiros() {
                         value={editTelefone}
                         onChange={(e) => setEditTelefone(e.target.value)}
                         placeholder="ex.: (21) 99999-9999"
-                        className="w-full px-3 py-2 rounded-[4px] border border-borda bg-superficie-2 text-base sm:text-sm font-mono text-giz focus-visible:outline-2 focus-visible:outline-destaque min-h-[44px]"
+                        className="w-full px-3 py-2 rounded-[4px] border border-borda bg-superficie-2 text-base sm:text-sm font-mono text-giz focus-visible:outline-2 focus-visible:outline-destaque-texto min-h-[44px]"
                       />
                     </div>
                     <div>
@@ -351,7 +351,7 @@ export function GestaoGoleiros() {
                         value={editChavePix}
                         onChange={(e) => setEditChavePix(e.target.value)}
                         placeholder="ex.: CPF, e-mail, telefone ou chave aleatória"
-                        className="w-full px-3 py-2 rounded-[4px] border border-borda bg-superficie-2 text-base sm:text-sm font-mono text-giz focus-visible:outline-2 focus-visible:outline-destaque min-h-[44px]"
+                        className="w-full px-3 py-2 rounded-[4px] border border-borda bg-superficie-2 text-base sm:text-sm font-mono text-giz focus-visible:outline-2 focus-visible:outline-destaque-texto min-h-[44px]"
                       />
                     </div>
                   </div>
@@ -359,14 +359,14 @@ export function GestaoGoleiros() {
                   <div className="mt-2.5 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
                     {/* Telefone */}
                     <div className="flex items-center gap-2 text-giz-fraco min-h-[44px]">
-                      <Phone className="size-3.5 shrink-0 text-destaque" />
+                      <Phone className="size-3.5 shrink-0 text-destaque-texto" />
                       {temTel ? (
                         zapLink ? (
                           <a
                             href={zapLink}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-destaque hover:underline py-1 inline-flex items-center gap-1 min-h-[44px]"
+                            className="text-destaque-texto hover:underline py-1 inline-flex items-center gap-1 min-h-[44px]"
                           >
                             <span>{g.telefone}</span>
                             <span className="text-[10px]">↗</span>
@@ -382,7 +382,7 @@ export function GestaoGoleiros() {
                     {/* Chave PIX */}
                     <div className="flex items-center justify-between gap-2 text-giz-fraco min-h-[44px]">
                       <div className="flex items-center gap-2 truncate">
-                        <CreditCard className="size-3.5 shrink-0 text-destaque" />
+                        <CreditCard className="size-3.5 shrink-0 text-destaque-texto" />
                         {temPix ? (
                           <span className="truncate text-giz" title={g.chave_pix ?? ''}>
                             {g.chave_pix}
@@ -398,7 +398,7 @@ export function GestaoGoleiros() {
                           onClick={() => copiarPix(g.id, g.chave_pix!)}
                           title="Copiar Chave PIX"
                           aria-label={`Copiar Chave PIX de @${g.username}`}
-                          className="shrink-0 min-h-[44px] px-2.5 rounded-[3px] border border-borda bg-superficie-2 text-giz-fraco hover:text-giz hover:border-destaque active:translate-y-px transition flex items-center gap-1.5 text-xs font-mono focus-visible:outline-2 focus-visible:outline-destaque"
+                          className="shrink-0 min-h-[44px] px-2.5 rounded-[3px] border border-borda bg-superficie-2 text-giz-fraco hover:text-giz hover:border-destaque active:translate-y-px transition flex items-center gap-1.5 text-xs font-mono focus-visible:outline-2 focus-visible:outline-destaque-texto"
                         >
                           {foiCopiado ? (
                             <>

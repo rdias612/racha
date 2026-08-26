@@ -69,7 +69,7 @@ export function CardNotificacoes() {
         <h3 className="text-xs font-display font-bold uppercase tracking-wider text-giz flex items-center gap-1.5">
           {pushStatus === 'ativado' ? (
             <>
-              <BellRing className="size-4 text-destaque animate-pulse" />
+              <BellRing className="size-4 text-destaque-texto animate-pulse" />
               <span>Lembretes Ativos</span>
             </>
           ) : pushStatus === 'negado' ? (
@@ -79,14 +79,14 @@ export function CardNotificacoes() {
             </>
           ) : (
             <>
-              <Bell className="size-4 text-destaque" />
+              <Bell className="size-4 text-destaque-texto" />
               <span>Lembretes da Quinta</span>
             </>
           )}
         </h3>
 
         {pushStatus === 'ativado' && (
-          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-destaque bg-destaque/15 px-1.5 py-0.5 rounded-[2px] border border-destaque/30">
+          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-destaque-texto bg-destaque/15 px-1.5 py-0.5 rounded-[2px] border border-destaque/30">
             Ativo
           </span>
         )}

@@ -63,7 +63,7 @@ export function Toggle({
         className="sr-only peer"
       />
       <div
-        className={`w-11 h-6 bg-superficie-2 border border-borda rounded-[4px] peer-focus-visible:outline-2 peer-focus-visible:outline-destaque peer-focus-visible:outline-offset-2 peer-checked:bg-destaque peer-checked:border-destaque transition-colors peer peer-checked:after:translate-x-5 peer-checked:after:bg-destaque-tinta peer-checked:after:border-transparent after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-giz-fraco after:border-borda after:border after:rounded-[2px] after:h-5 after:w-5 after:transition-all ${switchClassName}`}
+        className={`w-11 h-6 bg-superficie-2 border border-borda rounded-[4px] peer-focus-visible:outline-2 peer-focus-visible:outline-destaque-texto peer-focus-visible:outline-offset-2 peer-checked:bg-destaque peer-checked:border-destaque transition-colors peer peer-checked:after:translate-x-5 peer-checked:after:bg-destaque-tinta peer-checked:after:border-transparent after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-giz-fraco after:border-borda after:border after:rounded-[2px] after:h-5 after:w-5 after:transition-all ${switchClassName}`}
         aria-hidden="true"
       />
     </label>

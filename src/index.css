@@ -175,14 +175,6 @@ textarea:focus-visible {
   }
 }
 
-@utility text-destaque {
-  color: var(--cor-destaque-texto);
-}
-
-@utility outline-destaque {
-  outline-color: var(--cor-destaque-texto);
-}
-
 @utility no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;

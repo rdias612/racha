@@ -4,8 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Racha Gragoatá</title>
-    <meta name="theme-color" content="#f3efe4" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#12100d" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#12100d" />
+    <script>
+      (function () {
+        try {
+          var salvo = localStorage.getItem('racha_tema');
+          var tema = salvo === 'light' || salvo === 'dark' ? salvo : 'dark';
+          if (tema === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute('content', tema === 'dark' ? '#12100d' : '#f3efe4');
+        } catch (e) {}
+      })();
+    </script>
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />

@@ -31,7 +31,7 @@ export function BotaoInstalar() {
 
   return (
     <section className="rounded-[4px] border border-destaque/40 bg-destaque/10 p-3.5 shadow-carimbo space-y-2">
-      <h3 className="text-xs font-display font-bold uppercase tracking-wider text-destaque flex items-center gap-1.5">
+      <h3 className="text-xs font-display font-bold uppercase tracking-wider text-destaque-texto flex items-center gap-1.5">
         <span aria-hidden="true">📲</span> Instalar App na Tela Inicial
       </h3>
 

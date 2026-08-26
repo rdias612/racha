@@ -87,9 +87,9 @@ Configurados nativamente via Tailwind v4 e variáveis CSS em `src/index.css`.
 | `border-borda`                       | `--cor-borda`          | `#d8d2c0`                  | `#35302a`             | Bordas e divisórias sólidas                        |
 | `text-giz`                           | `--cor-giz`            | `#1e1c18` (tinta escura)   | `#f2efe6` (giz claro) | Texto principal / títulos                          |
 | `text-giz-fraco`                     | `--cor-giz-fraco`      | `#6b6759`                  | `#a39f92`             | Metadados, labels, subtítulos                      |
-| `bg-destaque`                        | `--cor-destaque`       | `#ffb300` (âmbar refletor) | `#ffb300`             | Fundo de ações primárias, badges, abas ativas      |
-| `text-destaque` / `outline-destaque` | `--cor-destaque-texto` | `#92400e` (âmbar escuro)   | `#ffb300` (âmbar)     | Texto/números em destaque e foco visível (WCAG AA) |
-| `text-destaque-tinta`                | `--cor-destaque-tinta` | `#1a1200`                  | `#1a1200`             | Texto de alto contraste sobre `bg-destaque`        |
+| `bg-destaque`                                          | `--cor-destaque`       | `#ffb300` (âmbar refletor) | `#ffb300`             | Fundo de ações primárias, badges, abas ativas      |
+| `text-destaque-texto` / `outline-destaque-texto`       | `--cor-destaque-texto` | `#92400e` (âmbar escuro)   | `#ffb300` (âmbar)     | Texto/números em destaque e foco visível (WCAG AA) |
+| `text-destaque-tinta`                                  | `--cor-destaque-tinta` | `#1a1200`                  | `#1a1200`             | Texto de alto contraste sobre `bg-destaque`        |
 | `bg-ok` / `text-ok`                  | `--cor-ok`             | `#58b368` (verde campo)    | `#58b368`             | Vitórias, confirmações, quitado                    |
 | `bg-perigo` / `text-perigo`          | `--cor-perigo`         | `#e4572e` (laranja alerta) | `#e4572e`             | Derrotas, dívidas, exclusões                       |
 | `bg-preto-time`                      | `--cor-preto-time`     | `#0d0d0e`                  | `#0d0d0e`             | Identidade do Time Preto                           |
@@ -163,7 +163,7 @@ O padrão visual primário para rankings, histórico de jogos e listas de presen
           {item.nome}
         </span>
       </div>
-      <span className="font-mono text-sm font-bold text-destaque tabular-nums">
+      <span className="font-mono text-sm font-bold text-destaque-texto tabular-nums">
         {item.pontos} pts
       </span>
     </div>
@@ -213,7 +213,7 @@ Cards com borda e sombra são utilizados **apenas** quando houver necessidade se
 - **Estilização Padronizada:**
   - Fundo `bg-superficie-2`, borda `border-borda`, cantos `rounded-[4px]`.
   - Altura confortável (`min-h-[44px]`), texto `font-sans text-base` (evita zoom automático no iOS).
-  - Foco acessível com anel âmbar: `focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2`.
+  - Foco acessível com anel âmbar: `focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2`.
 - **Dropdowns / `<select>`:** Customizados com ícone SVG discreto, tipografia legível e contraste alto.
 
 ### 3.5 Placar LED de Partida
@@ -252,7 +252,7 @@ Cards com borda e sombra são utilizados **apenas** quando houver necessidade se
 ┌─────────────────────────────────────────────────────────────────────────┐
 │ 🔴 NÍVEL 1: REGRAS OBRIGATÓRIAS (MUST) — INVIOLÁVEIS                    │
 │ 1. Alvos de toque de no mínimo 44px (min-h-[44px]).                     │
-│ 2. Foco visível acessível (outline-destaque com outline-offset).         │
+│ 2. Foco visível acessível (outline-destaque-texto com outline-offset).   │
 │ 3. Tokens semânticos estritos (não hardcodar hexadecimais no JSX).       │
 │ 4. Regras de Hooks do React 19 (hooks incondicionais no topo).          │
 │ 5. Operações compostas no banco em RPCs atômicas (PostgreSQL).          │
@@ -274,7 +274,7 @@ Cards com borda e sombra são utilizados **apenas** quando houver necessidade se
 
 ### 4.2 Acessibilidade & Inclusão (a11y)
 
-- **Contraste de Cores:** Todos os pares de texto/fundo atendem ao critério de contraste mínimo WCAG AA (≥ 4.5:1 para texto normal e ≥ 3:1 para foco/UI). O token de destaque é desacoplado entre fundo e texto: enquanto fundos e botões (`bg-destaque`) utilizam o âmbar refletor (`#ffb300`) com tinta escura (`text-destaque-tinta`: `#1a1200`), textos, números e foco visível (`text-destaque`, `outline-destaque`) utilizam `--cor-destaque-texto`, que resolve dinamicamente para âmbar escurecido (`#92400e`, contraste ≥ 5,8:1) no tema claro e para âmbar refletor (`#ffb300`, contraste ≥ 10,6:1) no tema escuro.
+- **Contraste de Cores:** Todos os pares de texto/fundo atendem ao critério de contraste mínimo WCAG AA (≥ 4.5:1 para texto normal e ≥ 3:1 para foco/UI). O token de destaque é desacoplado entre fundo e texto: enquanto fundos e botões (`bg-destaque`) utilizam o âmbar refletor (`#ffb300`) com tinta escura (`text-destaque-tinta`: `#1a1200`), textos, números e foco visível (`text-destaque-texto`, `outline-destaque-texto`) utilizam `--cor-destaque-texto`, que resolve dinamicamente para âmbar escurecido (`#92400e`, contraste ≥ 5,8:1) no tema claro e para âmbar refletor (`#ffb300`, contraste ≥ 10,6:1) no tema escuro.
 - **Comunicação Multimodal:** Nunca use apenas cor para indicar status. Sempre acompanhe com ícones (`Check`, `Clock`, `AlertTriangle`, `X`) e texto legível por leitores de tela.
 - **Teclado & Leitores de Tela:** Todos os botões, abas e modais possuem marcação semântica (`aria-expanded`, `aria-selected`, `aria-current="page"`, `role="tab"`).
 

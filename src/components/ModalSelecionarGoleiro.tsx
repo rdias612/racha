@@ -83,7 +83,7 @@ export function ModalSelecionarGoleiro({
           <button
             type="button"
             onClick={handleNovoGoleiro}
-            className="w-full min-h-[44px] px-3 py-2 rounded-[3px] border border-destaque/40 bg-destaque/10 text-destaque hover:bg-destaque hover:text-destaque-tinta transition font-display font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 active:translate-y-px cursor-pointer"
+            className="w-full min-h-[44px] px-3 py-2 rounded-[3px] border border-destaque/40 bg-destaque/10 text-destaque-texto hover:bg-destaque hover:text-destaque-tinta transition font-display font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 active:translate-y-px cursor-pointer"
           >
             <UserPlus className="size-3.5" />
             <span>Cadastrar Novo Goleiro</span>
@@ -131,7 +131,7 @@ export function ModalSelecionarGoleiro({
                   <div className="flex items-center gap-1.5">
                     <span
                       className={`truncate font-display text-sm uppercase tracking-wider ${
-                        isSelecionado ? 'font-bold text-destaque' : 'font-bold text-giz'
+                        isSelecionado ? 'font-bold text-destaque-texto' : 'font-bold text-giz'
                       }`}
                     >
                       {g.username}
@@ -142,7 +142,7 @@ export function ModalSelecionarGoleiro({
 
               <div className="shrink-0 flex items-center gap-1.5">
                 {isSelecionado && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[2px] bg-destaque/20 border border-destaque text-destaque text-[11px] font-mono font-bold">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[2px] bg-destaque/20 border border-destaque text-destaque-texto text-[11px] font-mono font-bold">
                     <Check className="size-3" />
                     Escalado
                   </span>

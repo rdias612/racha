@@ -253,7 +253,7 @@ export function Comparador() {
                 onClick={trocarLados}
                 disabled={idB === null}
                 aria-label="Inverter lados do confronto"
-                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[4px] border border-borda bg-superficie-2 p-2 text-giz shadow-carimbo transition hover:bg-superficie hover:text-destaque active:translate-y-px focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[4px] border border-borda bg-superficie-2 p-2 text-giz shadow-carimbo transition hover:bg-superficie hover:text-destaque-texto active:translate-y-px focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ArrowLeftRight className="size-4" aria-hidden="true" />
               </button>
@@ -275,7 +275,7 @@ export function Comparador() {
               id="select-atleta-a"
               value={idA ?? ''}
               onChange={(e) => setIdA(e.target.value === '' ? null : Number(e.target.value))}
-              className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2"
+              className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2"
             >
               <option value="">Escolha o atleta…</option>
               {jogadores.map((j) => (
@@ -297,7 +297,7 @@ export function Comparador() {
               id="select-atleta-b"
               value={idB ?? ''}
               onChange={(e) => setIdB(e.target.value === '' ? null : Number(e.target.value))}
-              className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2"
+              className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2"
             >
               <option value="">Escolha o adversário…</option>
               {jogadores.map((j) => (
@@ -419,17 +419,17 @@ export function Comparador() {
                         onTouchStart={() => preCarregarRota(destino)}
                         onMouseEnter={() => preCarregarRota(destino)}
                         onFocus={() => preCarregarRota(destino)}
-                        className="flex min-h-[44px] items-center justify-between gap-2 px-1 py-2 transition hover:bg-superficie-2/50 focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2"
+                        className="flex min-h-[44px] items-center justify-between gap-2 px-1 py-2 transition hover:bg-superficie-2/50 focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2"
                       >
                         <span className="font-mono text-xs text-giz-fraco">
                           {formatarDataLista(p.data_jogo)}
                         </span>
                         <span className="font-mono text-sm font-bold tabular-nums text-giz">
-                          <span className={vencedor === 'a' ? 'text-destaque' : undefined}>
+                          <span className={vencedor === 'a' ? 'text-destaque-texto' : undefined}>
                             {golsA}
                           </span>
                           {' × '}
-                          <span className={vencedor === 'b' ? 'text-destaque' : undefined}>
+                          <span className={vencedor === 'b' ? 'text-destaque-texto' : undefined}>
                             {golsB}
                           </span>
                         </span>
@@ -490,7 +490,7 @@ function LinhaComparativa({ metrica }: { metrica: MetricaComparativa }) {
       <div className="flex items-baseline justify-between gap-3">
         <span
           className={`w-12 shrink-0 text-right font-mono text-sm font-bold tabular-nums ${
-            dominante === 'a' ? 'text-destaque' : 'text-giz'
+            dominante === 'a' ? 'text-destaque-texto' : 'text-giz'
           }`}
         >
           {exibirValorMetrica(metrica, valorA)}
@@ -500,7 +500,7 @@ function LinhaComparativa({ metrica }: { metrica: MetricaComparativa }) {
         </span>
         <span
           className={`w-12 shrink-0 text-left font-mono text-sm font-bold tabular-nums ${
-            dominante === 'b' ? 'text-destaque' : 'text-giz'
+            dominante === 'b' ? 'text-destaque-texto' : 'text-giz'
           }`}
         >
           {exibirValorMetrica(metrica, valorB)}

@@ -159,7 +159,7 @@ Antes de criar, estilizar ou refatorar qualquer componente, tela ou fluxo visual
 ### 4.2 Resumo dos Pilares Invioláveis de Interface
 
 1. **Padrão Estrutural (Listas Contínuas vs. Cards)**: O padrão visual primário para rankings, histórico de jogos e listas de presença é a **lista contínua minimalista** (`divide-y divide-borda/40 border-y border-borda`). Cards com `shadow-carimbo` e borda são reservados **apenas para destaques semânticos reais** (ex: Próxima Partida, Craque da Partida, Banners Push/Offline, Pódio).
-2. **Tokens Semânticos**: Proibido hardcodar hexadecimais ou cores Tailwind genéricas (`bg-blue-600`, `text-gray-900`) no JSX. Utilize exclusivamente os tokens semânticos (`bg-fundo`, `bg-superficie`, `bg-superficie-2`, `border-borda`, `text-giz`, `text-giz-fraco`, `bg-destaque`, `text-destaque`, `text-destaque-tinta`, `bg-ok`, `bg-perigo`, `bg-campo`, `bg-preto-time`, `bg-branco-time`).
+2. **Tokens Semânticos**: Proibido hardcodar hexadecimais ou cores Tailwind genéricas (`bg-blue-600`, `text-gray-900`) no JSX. Utilize exclusivamente os tokens semânticos (`bg-fundo`, `bg-superficie`, `bg-superficie-2`, `border-borda`, `text-giz`, `text-giz-fraco`, `bg-destaque`, `text-destaque-texto`, `text-destaque-tinta`, `bg-ok`, `bg-perigo`, `bg-campo`, `bg-preto-time`, `bg-branco-time`).
 3. **Tríade Tipográfica Estrita**:
    - **`font-display` (`Barlow Condensed`)**: Títulos, nomes de jogadores, cabeçalhos de súmula, badges, crachás e botões (com `uppercase tracking-wider` ou `tracking-widest`).
    - **`font-sans` (`Archivo`)**: Corpo de texto, formulários, alertas, modais e descrições.
@@ -167,7 +167,7 @@ Antes de criar, estilizar ou refatorar qualquer componente, tela ou fluxo visual
 4. **Geometria, Cantos e Sombras-Carimbo**:
    - Cantos duros: `rounded-[2px]` (badges compactas), `rounded-[3px]` (avatares), `rounded-[4px]` (botões, inputs, cards e modais) e no máximo `rounded-[6px]` (diálogos tela cheia).
    - Sombras secas sem blur: `shadow-carimbo`, `shadow-carimbo-destaque`, `shadow-carimbo-preto`.
-5. **Formulários e Foco Acessível**: Inputs e selects em `bg-superficie-2`, `rounded-[4px]`, `text-base` (previne zoom indesejado no iOS) e foco acessível visível (`focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2`).
+5. **Formulários e Foco Acessível**: Inputs e selects em `bg-superficie-2`, `rounded-[4px]`, `text-base` (previne zoom indesejado no iOS) e foco acessível visível (`focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2`).
 6. **Tom de Voz e Glossário Canônico**: Seguir os 3 níveis de comunicação definidos no `design-system.md` (1. Oficial/Administrativo, 2. Funcional/Amigável, 3. Resenha/Pós-Jogo) e os termos oficiais (_Boletim Oficial_, _Artilheiro Oficial_, _Maestro do Racha_, _Craque da Rodada_, _Quadro de Presença_).
 
 ---
@@ -468,7 +468,7 @@ O daemon do `pg_cron` no Supabase avalia expressões em **UTC**. O fuso de Bras�
 | **Design / Cantos**     | `rounded-xl`, `rounded-2xl`, sombras suaves `shadow-lg`        | Cantos duros `rounded-[4px]`, `shadow-carimbo`, `border-borda`      |
 | **Tipografia**          | Usar fontes genéricas em tudo                                  | `font-display uppercase` em títulos/badges e `font-mono` em números |
 | **Tom de Voz / Nomes**  | Termos SaaS genéricos ("Dashboard", "MVP", "Winrate")          | Glossário canônico ("Boletim Oficial", "Craque", "Mais Eficiente")  |
-| **Inputs / Forms**      | Inputs sem anel de foco visível ou com texto menor que 16px    | `focus-visible:outline-destaque` e `text-base` (anti-zoom no iOS)   |
+| **Inputs / Forms**      | Inputs sem anel de foco visível ou com texto menor que 16px    | `focus-visible:outline-destaque-texto` e `text-base` (anti-zoom no iOS) |
 | **Diálogos**            | `if (window.confirm('Excluir?'))`                              | `<ConfirmDialog open={...} onConfirm={...} />`                      |
 | **Feedback Rápido**     | `alert('Salvo com sucesso!')`                                  | `<Snackbar mensagem="..." tipo="sucesso" />` com haptics            |
 | **Rules of Hooks**      | Colocar `useEffect` ou `useMemo` após `if (!isAdmin) return`   | Declarar todos os hooks no topo e posicionar o guard no final       |

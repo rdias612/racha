@@ -259,7 +259,7 @@ export function PartidaNova() {
       />
 
       {jogadores.length < TOTAL_PARTICIPANTES && (
-        <p className="text-xs font-mono text-destaque">
+        <p className="text-xs font-mono text-destaque-texto">
           Aviso: há apenas {jogadores.length} jogadores ativos. Uma partida precisa de{' '}
           {TOTAL_PARTICIPANTES}.
         </p>

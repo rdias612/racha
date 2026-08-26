@@ -260,7 +260,7 @@ export function Perfil() {
                 placeholder={jogador.username}
                 value={usernameNovo}
                 onChange={(e) => setUsernameNovo(e.target.value.toLowerCase().trim())}
-                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm font-mono text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2 min-h-[44px]"
+                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm font-mono text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2 min-h-[44px]"
               />
             </div>
             {erroUsername && <MensagemEstado tipo="erro">{erroUsername}</MensagemEstado>}
@@ -280,7 +280,7 @@ export function Perfil() {
       <section className="rounded-[4px] border border-borda bg-superficie p-3.5 shadow-carimbo space-y-3">
         <div>
           <h3 className="text-xs font-display font-bold uppercase tracking-wider text-giz flex items-center gap-1.5">
-            <CreditCard className="size-3.5 text-destaque" />
+            <CreditCard className="size-3.5 text-destaque-texto" />
             <span>Dados de Pagamento (PIX / WhatsApp)</span>
           </h3>
           <p className="text-[11px] font-sans text-giz-fraco mt-0.5">
@@ -291,7 +291,7 @@ export function Perfil() {
         <form onSubmit={salvarDadosContato} className="space-y-3">
           <div>
             <label className="block text-[10px] font-display font-bold uppercase tracking-wider text-giz-fraco mb-1 flex items-center gap-1">
-              <Phone className="size-3.5 text-destaque" />
+              <Phone className="size-3.5 text-destaque-texto" />
               <span>Telefone / WhatsApp</span>
             </label>
             <input
@@ -299,13 +299,13 @@ export function Perfil() {
               placeholder="(21) 99999-9999"
               value={telefone}
               onChange={(e) => setTelefone(e.target.value)}
-              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm font-mono text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2 min-h-[44px]"
+              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm font-mono text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2 min-h-[44px]"
             />
           </div>
 
           <div>
             <label className="block text-[10px] font-display font-bold uppercase tracking-wider text-giz-fraco mb-1 flex items-center gap-1">
-              <CreditCard className="size-3.5 text-destaque" />
+              <CreditCard className="size-3.5 text-destaque-texto" />
               <span>Chave PIX</span>
             </label>
             <input
@@ -313,7 +313,7 @@ export function Perfil() {
               placeholder="CPF, e-mail, telefone ou chave aleatória"
               value={chavePix}
               onChange={(e) => setChavePix(e.target.value)}
-              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm font-mono text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2 min-h-[44px]"
+              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm font-mono text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2 min-h-[44px]"
             />
           </div>
 
@@ -323,7 +323,7 @@ export function Perfil() {
           <button
             type="submit"
             disabled={salvandoContato}
-            className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-destaque"
+            className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-destaque-texto"
           >
             {salvandoContato ? 'Salvando dados…' : 'Salvar dados de pagamento'}
           </button>

@@ -319,20 +319,20 @@ Componente idêntico em `Perfil.tsx:393-404` e `Estatisticas.tsx:410-421`; inter
 > Corrigido em 2026-08-25: auditados e substituídos todos os usos de cores fora de token (`text-white`, `text-neutral-*`, `accent-[#ffb300]`, hexadecimais em SVG) pelos tokens semânticos do Design System ("Súmula de Quinta"): `text-branco-time`, `text-preto-time`, `text-giz`, `text-giz-fraco`, `text-destaque-tinta`, `accent-destaque`, `var(--cor-campo)` e `var(--cor-campo-linha)`.
 > **Onde**: `src/components/ErrorBoundary.tsx`, `src/components/CampoPartida.tsx`, `src/components/Avatar.tsx`, `src/components/PainelPlacar.tsx`, `src/components/Snackbar.tsx`, `src/components/ConfirmDialog.tsx`, `src/components/DialogoEvento.tsx`, `src/components/EventosAutomaticosFinanceiro.tsx`, `src/routes/Administrador.tsx`, `src/routes/PartidaAoVivo.tsx`, `src/routes/PartidaEditar.tsx`, `src/routes/GestaoJogadores.tsx`, `src/routes/Layout.tsx`, `src/routes/Ranking.tsx`, `src/routes/Estatisticas.tsx`, `src/routes/NovoJogador.tsx`.
 
-### P2-20. `TIMES[t].cor` divergente dos tokens — cor de time diferente entre telas
+### P2-20. ✅ `TIMES[t].cor` divergente dos tokens — cor de time diferente entre telas
 
-`lib/times.ts:8-9` define `#111827`/`#f9fafb` (cinzas Tailwind), mas os tokens canônicos são `#0d0d0e`/`#f4f1e8` — o chip de time em `CampoPartida.tsx:40` fica com cor **diferente** do badge em `EscalacaoTimesEditor.tsx:151`/`ModalSelecionarGoleiro.tsx:95`.
-**Refatoração**: alinhar `TIMES` aos valores canônicos (ou expor classes tokenizadas em vez de hex).
+> Corrigido em 2026-08-25: alinhado `TIMES` em `src/lib/times.ts` aos valores hexadecimais canônicos do Design System (`#0d0d0e` para Preto e `#f4f1e8` para Branco) e adicionadas classes tokenizadas de fundo, texto e borda (`bgClasse`, `textClasse`, `borderClasse`), garantindo coerência visual absoluta entre prancheta tática (`CampoPartida.tsx`), crachás (`Avatar.tsx`), editores de time (`EscalacaoTimesEditor.tsx`) e modais.
+> **Onde**: `src/lib/times.ts`.
 
-### P2-21. `@utility text-destaque` sombreia o utilitário gerado por token
+### P2-21. ✅ `@utility text-destaque` sombreia o utilitário gerado por token
 
-`index.css:172-178` redefine `text-destaque` para `var(--cor-destaque-texto)` (#92400e), enquanto `--color-destaque` (#ffb300) geraria `text-destaque` claro. Se alguém apagar a `@utility`, **234 usos** mudam de cor sem erro de build. O nome coerente `text-destaque-texto` tem 0 usos.
-**Refatoração**: codemod `text-destaque` → `text-destaque-texto` (onde a semântica for texto escuro sobre claro) e deletar as `@utility` de sobreposição — eliminar a armadilha.
+> Corrigido em 2026-08-25: realizado codemod integral substituindo `text-destaque` e `outline-destaque` por `text-destaque-texto` e `outline-destaque-texto` em todos os componentes, rotas e documentação (`design-system.md` e `AGENTS.md`) onde a semântica era de texto/foco em contraste WCAG AA sobre fundos claros/escuros. Removidas as declarações `@utility text-destaque` e `@utility outline-destaque` de `src/index.css`, eliminando a armadilha de sombreamento do utilitário Tailwind v4.
+> **Onde**: `src/index.css`, `design-system.md`, `AGENTS.md`, `src/components/*`, `src/routes/*`.
 
-### P2-22. Tema: flash claro no boot + `theme-color` ignora escolha manual
+### P2-22. ✅ Tema: flash claro no boot + `theme-color` ignora escolha manual
 
-`lib/tema.ts:21-29` (classe `.dark` só no `useEffect`), `index.html:7-8` (`prefers-color-scheme`), `public/manifest.webmanifest:10-11` (fixo dark).
-**Refatoração**: script inline no `<head>` lendo `localStorage.racha_tema` antes do primeiro paint; atualizar `meta[name=theme-color]` no `useTema`.
+> Corrigido em 2026-08-25: adicionado script síncrono inline no `<head>` de `index.html` que inspeciona `localStorage.getItem('racha_tema')` e `matchMedia('(prefers-color-scheme: dark)')` aplicando a classe `.dark` no elemento raiz (`documentElement`) e sincronizando a meta tag `theme-color` (`#0f0e0c` escuro / `#f4f1e8` claro) antes do primeiro frame de renderização, eliminando qualquer flash claro indesejado. Atualizada a função `aplicarTema(tema)` em `src/lib/tema.ts` para sincronizar dinamicamente a meta tag `theme-color` durante a alternância manual do usuário.
+> **Onde**: `index.html`, `src/lib/tema.ts`.
 
 ## Banco (P2)
 

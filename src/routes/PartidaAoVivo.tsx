@@ -233,14 +233,14 @@ export function PartidaAoVivo() {
           <span
             className={`inline-block font-display font-black uppercase tracking-widest text-[10px] border px-2 py-0.5 rounded-[2px] shadow-xs ${
               partida.status === 'live'
-                ? 'border-destaque text-destaque bg-destaque/10'
+                ? 'border-destaque text-destaque-texto bg-destaque/10'
                 : 'border-borda text-giz-fraco bg-superficie-2'
             }`}
           >
             {STATUS_LABEL[partida.status]}
           </span>
           {aoVivo && (
-            <p className="text-[10px] font-mono text-destaque flex items-center justify-end gap-1 mt-1 animate-pulse">
+            <p className="text-[10px] font-mono text-destaque-texto flex items-center justify-end gap-1 mt-1 animate-pulse">
               <span className="size-1.5 rounded-full bg-destaque" /> AO VIVO
             </p>
           )}
@@ -284,7 +284,7 @@ export function PartidaAoVivo() {
       <section className="rounded-[4px] border border-borda bg-superficie shadow-carimbo overflow-hidden">
         <div className="border-b border-borda bg-superficie-2 px-3 py-2 text-xs font-display font-bold uppercase tracking-wider text-giz flex items-center justify-between">
           <span>Eventos da Súmula</span>
-          <span className="font-mono text-destaque font-bold">({eventos.length})</span>
+          <span className="font-mono text-destaque-texto font-bold">({eventos.length})</span>
         </div>
         {eventos.length === 0 ? (
           <p className="px-3 py-4 text-xs font-mono text-giz-fraco text-center">
@@ -325,7 +325,7 @@ export function PartidaAoVivo() {
                     <button
                       type="button"
                       onClick={() => abrirEdicao(evento)}
-                      className="min-h-[44px] inline-flex items-center justify-center cursor-pointer rounded-[2px] border border-destaque/40 bg-destaque/10 px-2.5 py-1 text-[11px] font-display font-bold uppercase tracking-wider text-destaque hover:bg-destaque hover:text-destaque-tinta transition"
+                      className="min-h-[44px] inline-flex items-center justify-center cursor-pointer rounded-[2px] border border-destaque/40 bg-destaque/10 px-2.5 py-1 text-[11px] font-display font-bold uppercase tracking-wider text-destaque-texto hover:bg-destaque hover:text-destaque-tinta transition"
                     >
                       Editar
                     </button>

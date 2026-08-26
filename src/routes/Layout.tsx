@@ -141,12 +141,12 @@ export function Layout() {
                   : 'Mudar para modo escuro (refletor)'
               }
               title={tema === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
-              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[4px] border border-borda bg-superficie p-2 text-giz shadow-carimbo hover:bg-superficie-2 hover:text-destaque transition-fast active:translate-y-px"
+              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[4px] border border-borda bg-superficie p-2 text-giz shadow-carimbo hover:bg-superficie-2 hover:text-destaque-texto transition-fast active:translate-y-px"
             >
               {tema === 'dark' ? (
-                <Sun className="size-4 text-destaque" />
+                <Sun className="size-4 text-destaque-texto" />
               ) : (
-                <Moon className="size-4 text-destaque" />
+                <Moon className="size-4 text-destaque-texto" />
               )}
             </button>
 
@@ -160,7 +160,7 @@ export function Layout() {
                 >
                   <span className="font-display tracking-wider font-bold">ADMIN</span>
                   <ChevronDown
-                    className={`size-3.5 text-destaque transition-transform duration-200 ${menuAberto ? 'rotate-180' : ''}`}
+                    className={`size-3.5 text-destaque-texto transition-transform duration-200 ${menuAberto ? 'rotate-180' : ''}`}
                   />
                 </button>
 
@@ -171,9 +171,9 @@ export function Layout() {
                       <Link
                         to="/gestao-jogadores"
                         onClick={() => setMenuAberto(false)}
-                        className="flex min-h-[44px] items-center gap-2.5 rounded-[3px] px-3 py-2 text-xs font-medium text-giz hover:bg-superficie-2 hover:text-destaque transition-fast"
+                        className="flex min-h-[44px] items-center gap-2.5 rounded-[3px] px-3 py-2 text-xs font-medium text-giz hover:bg-superficie-2 hover:text-destaque-texto transition-fast"
                       >
-                        <Users className="size-4 text-destaque shrink-0" />
+                        <Users className="size-4 text-destaque-texto shrink-0" />
                         <span className="font-display font-bold uppercase tracking-wider text-xs">
                           Gestão de Jogadores
                         </span>
@@ -182,7 +182,7 @@ export function Layout() {
                       <Link
                         to="/gestao-goleiros"
                         onClick={() => setMenuAberto(false)}
-                        className="flex min-h-[44px] items-center gap-2.5 rounded-[3px] px-3 py-2 text-xs font-medium text-giz hover:bg-superficie-2 hover:text-destaque transition-fast"
+                        className="flex min-h-[44px] items-center gap-2.5 rounded-[3px] px-3 py-2 text-xs font-medium text-giz hover:bg-superficie-2 hover:text-destaque-texto transition-fast"
                       >
                         <span className="text-sm shrink-0" role="img" aria-label="Luva">
                           🧤
@@ -195,9 +195,9 @@ export function Layout() {
                       <Link
                         to="/jogador/novo"
                         onClick={() => setMenuAberto(false)}
-                        className="flex min-h-[44px] items-center gap-2.5 rounded-[3px] px-3 py-2 text-xs font-medium text-giz hover:bg-superficie-2 hover:text-destaque transition-fast"
+                        className="flex min-h-[44px] items-center gap-2.5 rounded-[3px] px-3 py-2 text-xs font-medium text-giz hover:bg-superficie-2 hover:text-destaque-texto transition-fast"
                       >
-                        <UserPlus className="size-4 text-destaque shrink-0" />
+                        <UserPlus className="size-4 text-destaque-texto shrink-0" />
                         <span className="font-display font-bold uppercase tracking-wider text-xs">
                           + Novo Jogador
                         </span>
@@ -206,9 +206,9 @@ export function Layout() {
                       <Link
                         to="/administrador"
                         onClick={() => setMenuAberto(false)}
-                        className="flex min-h-[44px] items-center gap-2.5 rounded-[3px] px-3 py-2 text-xs font-medium text-giz hover:bg-superficie-2 hover:text-destaque transition-fast"
+                        className="flex min-h-[44px] items-center gap-2.5 rounded-[3px] px-3 py-2 text-xs font-medium text-giz hover:bg-superficie-2 hover:text-destaque-texto transition-fast"
                       >
-                        <Wallet className="size-4 text-destaque shrink-0" />
+                        <Wallet className="size-4 text-destaque-texto shrink-0" />
                         <span className="font-display font-bold uppercase tracking-wider text-xs">
                           Financeiro & Súmula
                         </span>
@@ -217,9 +217,9 @@ export function Layout() {
                       <Link
                         to="/notificacoes"
                         onClick={() => setMenuAberto(false)}
-                        className="flex min-h-[44px] items-center gap-2.5 rounded-[3px] px-3 py-2 text-xs font-medium text-giz hover:bg-superficie-2 hover:text-destaque transition-fast"
+                        className="flex min-h-[44px] items-center gap-2.5 rounded-[3px] px-3 py-2 text-xs font-medium text-giz hover:bg-superficie-2 hover:text-destaque-texto transition-fast"
                       >
-                        <Bell className="size-4 text-destaque shrink-0" />
+                        <Bell className="size-4 text-destaque-texto shrink-0" />
                         <span className="font-display font-bold uppercase tracking-wider text-xs">
                           Notificações Push
                         </span>
@@ -263,7 +263,7 @@ export function Layout() {
               className={({ isActive }) =>
                 `relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
                   isActive
-                    ? "text-destaque font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
+                    ? "text-destaque-texto font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
                     : 'text-giz-fraco hover:text-giz'
                 }`
               }
@@ -278,7 +278,7 @@ export function Layout() {
               className={({ isActive }) =>
                 `relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
                   isActive
-                    ? "text-destaque font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
+                    ? "text-destaque-texto font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
                     : 'text-giz-fraco hover:text-giz'
                 }`
               }
@@ -292,7 +292,7 @@ export function Layout() {
               {...preCarregarAbaRanking}
               className={`relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
                 rankingAtivo
-                  ? "text-destaque font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
+                  ? "text-destaque-texto font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
                   : 'text-giz-fraco hover:text-giz'
               }`}
             >
@@ -305,7 +305,7 @@ export function Layout() {
               {...preCarregarAbaEstatisticas}
               className={`relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
                 estatisticasAtivo
-                  ? "text-destaque font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
+                  ? "text-destaque-texto font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
                   : 'text-giz-fraco hover:text-giz'
               }`}
             >
@@ -321,7 +321,7 @@ export function Layout() {
               className={({ isActive }) =>
                 `relative flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-3 py-1.5 transition ${
                   isActive
-                    ? "text-destaque font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
+                    ? "text-destaque-texto font-bold after:content-[''] after:absolute after:top-0 after:inset-x-3 after:h-0.5 after:bg-destaque"
                     : 'text-giz-fraco hover:text-giz'
                 }`
               }

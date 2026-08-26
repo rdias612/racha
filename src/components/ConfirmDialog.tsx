@@ -68,7 +68,7 @@ export function ConfirmDialog({
             ref={cancelRef}
             type="button"
             onClick={onClose}
-            className="flex-1 min-h-[44px] inline-flex items-center justify-center cursor-pointer rounded-[4px] border border-borda bg-superficie-2 font-display uppercase tracking-wider text-xs font-bold text-giz shadow-carimbo hover:bg-superficie transition-fast active:translate-y-px focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2"
+            className="flex-1 min-h-[44px] inline-flex items-center justify-center cursor-pointer rounded-[4px] border border-borda bg-superficie-2 font-display uppercase tracking-wider text-xs font-bold text-giz shadow-carimbo hover:bg-superficie transition-fast active:translate-y-px focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2"
           >
             {textoCancelar}
           </button>
@@ -76,7 +76,7 @@ export function ConfirmDialog({
             ref={confirmRef}
             type="button"
             onClick={onConfirm}
-            className={`flex-1 min-h-[44px] inline-flex items-center justify-center cursor-pointer rounded-[4px] border font-display uppercase tracking-wider text-xs font-bold transition-fast active:translate-y-px focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2 ${
+            className={`flex-1 min-h-[44px] inline-flex items-center justify-center cursor-pointer rounded-[4px] border font-display uppercase tracking-wider text-xs font-bold transition-fast active:translate-y-px focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2 ${
               tomConfirmar === 'perigo'
                 ? 'border-perigo bg-perigo text-branco-time hover:brightness-110 shadow-carimbo'
                 : 'border-destaque bg-destaque text-destaque-tinta font-black hover:brightness-105 shadow-carimbo-destaque'

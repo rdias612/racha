@@ -133,7 +133,7 @@ export function Ranking() {
     buscar
   );
 
-  const linhas = dados ?? [];
+  const linhas = useMemo(() => dados ?? [], [dados]);
 
   function valorOrdenacao(linha: LinhaRanking, coluna: ColunaOrdenacao) {
     if (coluna === 'username') return linha.username;
@@ -307,7 +307,7 @@ export function Ranking() {
           <div>
             <div className="flex items-center justify-between text-xs font-display font-bold uppercase tracking-wider text-giz-fraco mb-1">
               <span>Mínimo de partidas</span>
-              <span className="font-mono text-destaque">{minimoPartidas} jogos</span>
+              <span className="font-mono text-destaque-texto">{minimoPartidas} jogos</span>
             </div>
             <input
               type="range"
@@ -472,7 +472,7 @@ function TabelaRanking({
                     onClick={() => selecionarOrdenacao(coluna.key)}
                     className={`w-full min-h-[44px] px-2 py-2 inline-flex items-center gap-1 cursor-pointer select-none transition ${
                       ehAtleta ? 'justify-start' : 'justify-end'
-                    } ${ativa ? 'text-destaque font-black' : 'hover:text-giz'}`}
+                    } ${ativa ? 'text-destaque-texto font-black' : 'hover:text-giz'}`}
                   >
                     <span>{coluna.label}</span>
                     <span aria-hidden="true" className="font-mono text-[10px]">

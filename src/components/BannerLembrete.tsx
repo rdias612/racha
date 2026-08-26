@@ -108,12 +108,12 @@ export function BannerLembrete() {
           <Link
             key={p.id}
             to={`/partida/${p.id}/votar`}
-            className="flex min-h-[44px] items-center justify-between gap-2 text-xs hover:opacity-85 transition rounded-[4px] px-2 py-1 focus-visible:outline-2 focus-visible:outline-destaque"
+            className="flex min-h-[44px] items-center justify-between gap-2 text-xs hover:opacity-85 transition rounded-[4px] px-2 py-1 focus-visible:outline-2 focus-visible:outline-destaque-texto"
           >
             <span className="font-display font-bold uppercase tracking-wider text-giz">
               ⚡ Urna Aberta — Partida #{p.id}
             </span>
-            <span className="font-mono text-xs font-bold text-destaque tabular-nums">
+            <span className="font-mono text-xs font-bold text-destaque-texto tabular-nums">
               fecha em {formatarRestante(restante)}
             </span>
           </Link>

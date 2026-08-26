@@ -172,7 +172,7 @@ export function DialogoEvento({
               onClick={() => handleConfirmar('gol', null)}
               className={`mt-4 w-full min-h-[44px] cursor-pointer rounded-[4px] border px-3 py-2.5 text-xs font-display font-bold uppercase tracking-wider shadow-carimbo transition active:translate-y-px disabled:opacity-40 ${
                 editando && assistenciaAtual == null && tipoAtual === 'gol'
-                  ? 'border-destaque bg-destaque/15 text-destaque font-bold'
+                  ? 'border-destaque bg-destaque/15 text-destaque-texto font-bold'
                   : 'border-borda bg-superficie-2 text-giz hover:bg-superficie'
               }`}
             >

@@ -303,7 +303,7 @@ export function PartidaEditar() {
                         : 'bg-preto-time hover:bg-superficie-2 hover:text-giz text-branco-time border border-led-borda'
                     }`}
                   >
-                    <UserPlus className="size-3.5 text-destaque" />
+                    <UserPlus className="size-3.5 text-destaque-texto" />
                     <span>+ Adicionar</span>
                   </button>
                 }
@@ -333,7 +333,7 @@ export function PartidaEditar() {
                                 {p.username ? `@${p.username}` : `#${p.jogador_id}`}
                               </span>
                               {temEstatisticas && (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-destaque bg-destaque/10 border border-destaque/30 px-1.5 py-0.2 rounded-[2px] shrink-0">
+                                <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-destaque-texto bg-destaque/10 border border-destaque/30 px-1.5 py-0.2 rounded-[2px] shrink-0">
                                   {p.gols > 0 && `⚽ ${p.gols}`}
                                   {p.assistencias > 0 && `🅰️ ${p.assistencias}`}
                                   {p.gols_contra > 0 && `GC ${p.gols_contra}`}
@@ -356,9 +356,9 @@ export function PartidaEditar() {
                             type="button"
                             onClick={() => moverTime(p.jogador_id)}
                             title={`Mover para o Time ${outroTimeNome}`}
-                            className="min-h-[44px] inline-flex items-center gap-1 px-3 py-1.5 rounded-[3px] border border-borda bg-superficie-2 text-[11px] font-display font-bold uppercase tracking-wider text-giz hover:text-destaque active:translate-y-px transition cursor-pointer shadow-carimbo"
+                            className="min-h-[44px] inline-flex items-center gap-1 px-3 py-1.5 rounded-[3px] border border-borda bg-superficie-2 text-[11px] font-display font-bold uppercase tracking-wider text-giz hover:text-destaque-texto active:translate-y-px transition cursor-pointer shadow-carimbo"
                           >
-                            <ArrowLeftRight className="size-3.5 text-destaque" />
+                            <ArrowLeftRight className="size-3.5 text-destaque-texto" />
                             <span>{outroTimeNome}</span>
                           </button>
                           <button
@@ -455,7 +455,7 @@ export function PartidaEditar() {
         open={modalTime !== null}
         onClose={() => setModalTime(null)}
         titulo={modalTime ? `Adicionar ao ${TIMES[modalTime].nome}` : ''}
-        icone={<UserPlus className="size-4 text-destaque" />}
+        icone={<UserPlus className="size-4 text-destaque-texto" />}
         tamanhoMaximo="md"
         posicao="centro"
         rodape={
@@ -528,7 +528,7 @@ export function PartidaEditar() {
                 <span className="text-[10px] font-display uppercase tracking-wider text-giz-fraco">
                   {j.posicao === 'goleiro' ? '🧤 Goleiro' : (POSICOES[j.posicao] ?? 'Linha')}
                 </span>
-                <span className="min-h-[32px] inline-flex items-center px-2.5 py-1 rounded-[2px] bg-destaque/15 text-destaque text-xs font-display font-bold uppercase tracking-wider">
+                <span className="min-h-[32px] inline-flex items-center px-2.5 py-1 rounded-[2px] bg-destaque/15 text-destaque-texto text-xs font-display font-bold uppercase tracking-wider">
                   + Escalar
                 </span>
               </div>
@@ -595,7 +595,7 @@ function StepperBox({
 
   const bgStyle = ativo
     ? corAtiva === 'destaque'
-      ? 'bg-destaque/10 border-destaque/60 text-destaque'
+      ? 'bg-destaque/10 border-destaque/60 text-destaque-texto'
       : corAtiva === 'azul'
         ? 'bg-superficie-2 border-destaque text-giz'
         : 'bg-perigo/10 border-perigo/60 text-perigo'
@@ -603,7 +603,7 @@ function StepperBox({
 
   const numColor = ativo
     ? corAtiva === 'destaque'
-      ? 'text-destaque font-bold'
+      ? 'text-destaque-texto font-bold'
       : corAtiva === 'azul'
         ? 'text-giz font-bold'
         : 'text-perigo font-bold'

@@ -151,7 +151,7 @@ export function Resumo() {
         {/* Cabeçalho Editorial de Súmula */}
         <div className="flex items-end justify-between sumula-header pb-2">
           <div>
-            <p className="text-[10px] font-mono uppercase tracking-widest text-destaque font-bold">
+            <p className="text-[10px] font-mono uppercase tracking-widest text-destaque-texto font-bold">
               BOLETIM OFICIAL DO RACHA
             </p>
             <h1 className="font-display font-bold text-2xl uppercase tracking-wider text-giz">
@@ -211,7 +211,7 @@ function Destaque({ titulo, badge, nome, valor, detalhe }: DestaqueProps) {
         </p>
       </div>
       <div className="mt-2 pt-2 border-t border-borda">
-        <p className="font-mono text-sm font-bold text-destaque tabular-nums">{valor}</p>
+        <p className="font-mono text-sm font-bold text-destaque-texto tabular-nums">{valor}</p>
         {detalhe && (
           <p className="font-mono text-[10px] text-giz-fraco mt-0.5 truncate">{detalhe}</p>
         )}
@@ -235,7 +235,7 @@ function CardProximaPartida({
         <span className="font-display font-black text-[10px] uppercase tracking-widest text-destaque-tinta bg-destaque px-2 py-0.5 rounded-[2px] shadow-xs">
           PRÓXIMA QUINTA
         </span>
-        <span className="font-mono text-xs font-bold text-destaque tabular-nums">
+        <span className="font-mono text-xs font-bold text-destaque-texto tabular-nums">
           {proxima.ocupadas}/{CAPACIDADE_PARTIDA} VAGAS
         </span>
       </div>

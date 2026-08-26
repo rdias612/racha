@@ -4,11 +4,28 @@ export interface TimeInfo {
   id: TimeId;
   nome: string;
   cor: string;
+  bgClasse: string;
+  textClasse: string;
+  borderClasse: string;
 }
 
 export const TIMES = {
-  a: { id: 'a', nome: 'Time Preto', cor: '#111827' },
-  b: { id: 'b', nome: 'Time Branco', cor: '#f9fafb' },
+  a: {
+    id: 'a',
+    nome: 'Time Preto',
+    cor: '#0d0d0e',
+    bgClasse: 'bg-preto-time',
+    textClasse: 'text-branco-time',
+    borderClasse: 'border-led-borda',
+  },
+  b: {
+    id: 'b',
+    nome: 'Time Branco',
+    cor: '#f4f1e8',
+    bgClasse: 'bg-branco-time',
+    textClasse: 'text-preto-time',
+    borderClasse: 'border-borda',
+  },
 } as const satisfies Record<TimeId, TimeInfo>;
 
 export const POSICOES = {

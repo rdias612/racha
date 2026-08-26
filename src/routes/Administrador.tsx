@@ -55,11 +55,11 @@ function primeiroDiaMesStr() {
 }
 
 const COR_TIPO: Record<TipoDivida, string> = {
-  mensalidade: 'bg-destaque/15 text-destaque border-destaque/40',
+  mensalidade: 'bg-destaque/15 text-destaque-texto border-destaque/40',
   avulso: 'bg-ok/15 text-ok border-ok/40',
   goleiro: 'bg-campo/20 text-giz border-borda',
   campo: 'bg-superficie-2 text-giz border-borda',
-  eventos: 'bg-destaque/10 text-destaque border-destaque/30',
+  eventos: 'bg-destaque/10 text-destaque-texto border-destaque/30',
   outro: 'bg-superficie-2 text-giz-fraco border-borda',
 };
 
@@ -360,7 +360,7 @@ export function Administrador() {
 
         <div className="flex items-center justify-between sumula-header pb-2">
           <div className="flex items-center gap-2">
-            <Wallet className="size-5 text-destaque" />
+            <Wallet className="size-5 text-destaque-texto" />
             <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
               Controle Financeiro
             </h2>
@@ -460,7 +460,7 @@ export function Administrador() {
                 inputMode="decimal"
                 value={fValor}
                 onChange={(e) => setFValor(e.target.value)}
-                className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz font-mono shadow-xs focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2"
+                className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz font-mono shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2"
                 required
               />
             </label>
@@ -473,7 +473,7 @@ export function Administrador() {
                 type="date"
                 value={fData}
                 onChange={(e) => setFData(e.target.value)}
-                className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz font-mono shadow-xs focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2"
+                className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz font-mono shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2"
               />
             </label>
 
@@ -486,7 +486,7 @@ export function Administrador() {
                 value={fReferencia}
                 onChange={(e) => setFReferencia(e.target.value)}
                 placeholder="ex.: 2026-08"
-                className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz font-mono shadow-xs focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2"
+                className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz font-mono shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2"
               />
             </label>
 
@@ -503,7 +503,7 @@ export function Administrador() {
                     ? 'ex.: Aluguel do campo — agosto'
                     : 'ex.: Mensalidade Agosto/2026'
                 }
-                className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2"
+                className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2"
               />
             </label>
           </div>
@@ -529,7 +529,7 @@ export function Administrador() {
         {/* Exportação do histórico */}
         <section className="space-y-3 rounded-[4px] border border-borda bg-superficie p-3.5 shadow-carimbo">
           <div className="flex items-center gap-2">
-            <FileSpreadsheet className="size-4 text-destaque" />
+            <FileSpreadsheet className="size-4 text-destaque-texto" />
             <h3 className="font-display font-bold text-sm uppercase tracking-wider text-giz">
               Exportar período
             </h3>
@@ -547,7 +547,7 @@ export function Administrador() {
                 type="date"
                 value={exportDe}
                 onChange={(e) => setExportDe(e.target.value)}
-                className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz font-mono shadow-xs focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2"
+                className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz font-mono shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2"
               />
             </label>
             <label className="block">
@@ -558,7 +558,7 @@ export function Administrador() {
                 type="date"
                 value={exportAte}
                 onChange={(e) => setExportAte(e.target.value)}
-                className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz font-mono shadow-xs focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2"
+                className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz font-mono shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2"
               />
             </label>
           </div>
@@ -568,7 +568,7 @@ export function Administrador() {
             disabled={exportando}
             className="w-full min-h-[44px] flex items-center justify-center gap-1.5 rounded-[4px] border border-borda bg-superficie-2 px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-giz shadow-carimbo transition active:translate-y-px hover:border-destaque disabled:opacity-50"
           >
-            <FileSpreadsheet className="size-4 text-destaque" />
+            <FileSpreadsheet className="size-4 text-destaque-texto" />
             {exportando ? 'Gerando…' : 'Exportar Excel'}
           </button>
         </section>
@@ -617,7 +617,7 @@ export function Administrador() {
                       className="flex min-h-[44px] items-center gap-2 px-3 py-2 cursor-pointer hover:bg-superficie-2 transition"
                     >
                       <ChevronDown
-                        className={`size-4 shrink-0 text-destaque transition-transform ${
+                        className={`size-4 shrink-0 text-destaque-texto transition-transform ${
                           aberto ? 'rotate-180' : ''
                         }`}
                       />
@@ -625,7 +625,7 @@ export function Administrador() {
                         <div className="flex items-center gap-1.5">
                           <span className="truncate text-sm font-bold text-giz">@{g.username}</span>
                           {g.is_mensalista && (
-                            <span className="shrink-0 rounded-[2px] border border-destaque/40 bg-destaque/15 px-1.5 py-0.5 text-[9px] font-display uppercase tracking-wider font-bold text-destaque">
+                            <span className="shrink-0 rounded-[2px] border border-destaque/40 bg-destaque/15 px-1.5 py-0.5 text-[9px] font-display uppercase tracking-wider font-bold text-destaque-texto">
                               mensalista
                             </span>
                           )}
@@ -643,7 +643,7 @@ export function Administrador() {
                           onClick={(e) => copiarLembreteWhatsApp(e, g)}
                           title="Copiar lembrete WhatsApp"
                           aria-label={`Copiar cobrança de @${g.username} para WhatsApp`}
-                          className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-[3px] border border-borda bg-superficie-2 p-2 text-giz-fraco hover:text-destaque hover:border-destaque/50 transition"
+                          className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-[3px] border border-borda bg-superficie-2 p-2 text-giz-fraco hover:text-destaque-texto hover:border-destaque/50 transition"
                         >
                           <MessageSquare className="size-4" />
                         </button>
@@ -683,7 +683,7 @@ export function Administrador() {
                               {d.partida_id && (
                                 <Link
                                   to={`/partida/${d.partida_id}`}
-                                  className="inline-block text-[11px] font-mono text-destaque hover:underline"
+                                  className="inline-block text-[11px] font-mono text-destaque-texto hover:underline"
                                 >
                                   ver partida →
                                 </Link>
@@ -771,7 +771,7 @@ export function Administrador() {
                               navigator.clipboard.writeText(d.jogadores!.chave_pix!);
                               mostrarSnackbar('sucesso', 'Chave PIX copiada!');
                             }}
-                            className="inline-flex items-center gap-1 text-xs font-mono text-destaque hover:underline min-h-[44px] px-2 py-1 active:translate-y-px transition focus-visible:outline-2 focus-visible:outline-destaque"
+                            className="inline-flex items-center gap-1 text-xs font-mono text-destaque-texto hover:underline min-h-[44px] px-2 py-1 active:translate-y-px transition focus-visible:outline-2 focus-visible:outline-destaque-texto"
                           >
                             <Copy className="size-3.5" />
                             <span>Copiar PIX</span>

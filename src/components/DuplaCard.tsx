@@ -28,7 +28,7 @@ export function DuplaCard({ titulo, par, metrica = 'pontos' }: DuplaCardProps) {
           {titulo}
         </h4>
         {par && badgeTexto && (
-          <span className="inline-flex items-center shrink-0 rounded-[2px] bg-destaque/10 border border-destaque/40 px-2 py-0.5 text-xs font-mono font-bold text-destaque">
+          <span className="inline-flex items-center shrink-0 rounded-[2px] bg-destaque/10 border border-destaque/40 px-2 py-0.5 text-xs font-mono font-bold text-destaque-texto">
             {badgeTexto}
           </span>
         )}

@@ -231,9 +231,9 @@ function TabelaDuplas({
       );
     }
     return direcaoOrdenacao === 'asc' ? (
-      <ArrowUp className="size-3 text-destaque shrink-0" />
+      <ArrowUp className="size-3 text-destaque-texto shrink-0" />
     ) : (
-      <ArrowDown className="size-3 text-destaque shrink-0" />
+      <ArrowDown className="size-3 text-destaque-texto shrink-0" />
     );
   }
 
@@ -262,7 +262,7 @@ function TabelaDuplas({
           type="button"
           onClick={() => onOrdenar(coluna)}
           className={`w-full min-h-[44px] px-3 py-2 group inline-flex items-center gap-1 font-display font-bold uppercase tracking-wider text-xs transition cursor-pointer select-none ${justifyClass} ${
-            ativa ? 'text-destaque font-black' : 'text-giz-fraco hover:text-giz'
+            ativa ? 'text-destaque-texto font-black' : 'text-giz-fraco hover:text-giz'
           }`}
           title={`Ordenar por ${label}`}
         >
@@ -310,7 +310,7 @@ function TabelaDuplas({
               </td>
               <td
                 className={`px-3 py-2.5 text-center font-mono text-xs font-bold tabular-nums ${
-                  colunaOrdenacao === 'pontos' ? 'text-destaque font-black' : 'text-destaque'
+                  colunaOrdenacao === 'pontos' ? 'text-destaque-texto font-black' : 'text-destaque-texto'
                 }`}
               >
                 {par.pontos}
@@ -331,7 +331,7 @@ function TabelaDuplas({
               </td>
               <td
                 className={`px-3 py-2.5 text-right font-mono text-xs tabular-nums font-semibold ${
-                  colunaOrdenacao === 'percentual' ? 'font-bold text-destaque' : 'text-giz'
+                  colunaOrdenacao === 'percentual' ? 'font-bold text-destaque-texto' : 'text-giz'
                 }`}
               >
                 {par.percentual === null ? '—' : `${Math.round(par.percentual * 100)}%`}

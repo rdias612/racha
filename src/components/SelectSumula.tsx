@@ -76,7 +76,7 @@ export function SelectSumula({
         disabled={disabled}
         onClick={alternar}
         onKeyDown={onKeyDown}
-        className={`select-sumula flex w-full min-h-[44px] items-center justify-between gap-2 rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-left text-base shadow-xs transition focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2 disabled:opacity-40 ${triggerClassName}`}
+        className={`select-sumula flex w-full min-h-[44px] items-center justify-between gap-2 rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-left text-base shadow-xs transition focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2 disabled:opacity-40 ${triggerClassName}`}
       >
         <span className={`min-w-0 truncate ${vazio ? 'text-giz-fraco' : 'text-giz'}`}>
           {rotulo}
@@ -121,7 +121,7 @@ export function SelectSumula({
                     : emDestaque
                       ? 'bg-superficie-2 text-giz'
                       : 'text-giz'
-                } ${selecionado ? 'font-bold text-destaque bg-destaque/10' : ''}`}
+                } ${selecionado ? 'font-bold text-destaque-texto bg-destaque/10' : ''}`}
               >
                 <span className="truncate">{opcao.label}</span>
               </li>

@@ -112,7 +112,7 @@ export function ModalBase({
                 type="button"
                 onClick={onClose}
                 aria-label="Fechar modal"
-                className="p-1 rounded-[4px] text-giz-fraco hover:text-giz hover:bg-superficie transition min-h-[44px] min-w-[44px] flex items-center justify-center focus-visible:outline-2 focus-visible:outline-destaque shrink-0 cursor-pointer"
+                className="p-1 rounded-[4px] text-giz-fraco hover:text-giz hover:bg-superficie transition min-h-[44px] min-w-[44px] flex items-center justify-center focus-visible:outline-2 focus-visible:outline-destaque-texto shrink-0 cursor-pointer"
               >
                 <X className="size-4" />
               </button>

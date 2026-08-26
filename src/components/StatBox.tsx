@@ -21,7 +21,7 @@ export function StatBox({ label, value, className = '', extra }: StatBoxProps) {
     <div
       className={`rounded-[4px] border border-borda bg-superficie px-2 py-2.5 text-center shadow-carimbo ${className}`}
     >
-      <div className="font-mono text-xl sm:text-2xl font-black text-destaque tabular-nums">
+      <div className="font-mono text-xl sm:text-2xl font-black text-destaque-texto tabular-nums">
         {value}
       </div>
       <div className="font-display text-[10px] font-bold uppercase tracking-wider text-giz-fraco">

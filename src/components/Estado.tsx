@@ -19,7 +19,7 @@ export function Carregando({
         aria-live="polite"
         className={`flex items-center gap-2 py-2 text-xs font-display uppercase tracking-wider text-giz-fraco ${className}`}
       >
-        <Loader2 className="size-3.5 animate-spin text-destaque" aria-hidden="true" />
+        <Loader2 className="size-3.5 animate-spin text-destaque-texto" aria-hidden="true" />
         <span>{children}</span>
       </div>
     );
@@ -32,7 +32,7 @@ export function Carregando({
       className={`mx-auto w-full max-w-2xl space-y-4 px-3 py-6 sm:px-4 ${className}`}
     >
       <div className="flex items-center gap-2 font-display text-xs uppercase tracking-widest text-giz-fraco">
-        <Loader2 className="size-4 animate-spin text-destaque" aria-hidden="true" />
+        <Loader2 className="size-4 animate-spin text-destaque-texto" aria-hidden="true" />
         <span>{children}</span>
       </div>
       <div className="space-y-3">

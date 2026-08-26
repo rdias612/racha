@@ -44,7 +44,7 @@ export function BotaoVoltar({
     <button
       type="button"
       onClick={handleClick}
-      className={`inline-flex items-center gap-1.5 text-xs font-mono text-giz-fraco hover:text-giz transition min-h-[44px] -ml-1 px-1 rounded-[2px] cursor-pointer focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2 ${className}`}
+      className={`inline-flex items-center gap-1.5 text-xs font-mono text-giz-fraco hover:text-giz transition min-h-[44px] -ml-1 px-1 rounded-[2px] cursor-pointer focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2 ${className}`}
     >
       <ArrowLeft className="size-4" aria-hidden="true" />
       <span>{conteudo}</span>

@@ -202,7 +202,7 @@ export function Notificacoes() {
       {/* Cabeçalho da Súmula */}
       <div className="flex items-center justify-between sumula-header pb-2">
         <div className="flex items-center gap-2">
-          <Bell className="size-5 text-destaque" />
+          <Bell className="size-5 text-destaque-texto" />
           <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
             Gestão de Notificações
           </h2>
@@ -237,7 +237,7 @@ export function Notificacoes() {
 
           {!config.confirmacao_ativo && (
             <div className="rounded-[4px] border border-borda/60 bg-superficie-2/70 p-2.5 flex items-center gap-2 text-xs text-giz-fraco">
-              <Info className="size-4 text-destaque shrink-0" />
+              <Info className="size-4 text-destaque-texto shrink-0" />
               <span>
                 Notificações desativadas. A partida continuará sendo criada normalmente na
                 segunda-feira.
@@ -248,7 +248,7 @@ export function Notificacoes() {
           {/* Dia e Horário do Disparo — Botão que abre modal dedicado */}
           <div className="pt-1">
             <span className="flex items-center gap-1 text-xs font-display uppercase tracking-wider text-giz-fraco mb-1.5">
-              <Calendar className="size-3.5 text-destaque" />
+              <Calendar className="size-3.5 text-destaque-texto" />
               Dia e Horário do Disparo
             </span>
             <button
@@ -257,13 +257,13 @@ export function Notificacoes() {
               className="w-full min-h-[48px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2.5 text-left font-mono transition flex items-center justify-between gap-2 shadow-xs active:translate-y-px hover:border-destaque"
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <Clock className="size-4 text-destaque shrink-0" />
+                <Clock className="size-4 text-destaque-texto shrink-0" />
                 <span className="text-base sm:text-sm text-giz font-bold truncate">
                   {nomeDiaSemana(config.confirmacao_dia_semana)} ·{' '}
                   {config.confirmacao_horario.slice(0, 5)}
                 </span>
               </div>
-              <span className="text-[11px] font-display font-bold uppercase tracking-wider text-destaque shrink-0">
+              <span className="text-[11px] font-display font-bold uppercase tracking-wider text-destaque-texto shrink-0">
                 Alterar
               </span>
             </button>
@@ -285,13 +285,13 @@ export function Notificacoes() {
 
             {/* Badges de Variáveis */}
             <div className="flex flex-wrap gap-1.5">
-              <span className="rounded-[2px] border border-destaque/30 bg-destaque/10 px-1.5 py-0.5 text-[10px] font-mono text-destaque">
+              <span className="rounded-[2px] border border-destaque/30 bg-destaque/10 px-1.5 py-0.5 text-[10px] font-mono text-destaque-texto">
                 {'{dia_jogo}'}
               </span>
-              <span className="rounded-[2px] border border-destaque/30 bg-destaque/10 px-1.5 py-0.5 text-[10px] font-mono text-destaque">
+              <span className="rounded-[2px] border border-destaque/30 bg-destaque/10 px-1.5 py-0.5 text-[10px] font-mono text-destaque-texto">
                 {'{hora_jogo}'}
               </span>
-              <span className="rounded-[2px] border border-destaque/30 bg-destaque/10 px-1.5 py-0.5 text-[10px] font-mono text-destaque">
+              <span className="rounded-[2px] border border-destaque/30 bg-destaque/10 px-1.5 py-0.5 text-[10px] font-mono text-destaque-texto">
                 {'{prazo}'}
               </span>
             </div>
@@ -310,7 +310,7 @@ export function Notificacoes() {
                   )
                 }
                 placeholder="Confirme sua presença"
-                className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque"
+                className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto"
               />
             </label>
 
@@ -328,7 +328,7 @@ export function Notificacoes() {
                   )
                 }
                 placeholder="Tem racha {dia_jogo} {hora_jogo}! Reserve sua vaga até {prazo}."
-                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque"
+                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto"
               />
             </label>
           </div>
@@ -337,7 +337,7 @@ export function Notificacoes() {
           <div className="space-y-3 pt-3 border-t border-borda">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <h4 className="font-display font-bold text-xs uppercase tracking-wider text-destaque">
+                <h4 className="font-display font-bold text-xs uppercase tracking-wider text-destaque-texto">
                   Reforço de Confirmação (2º Aviso)
                 </h4>
                 <p className="text-xs text-giz-fraco mt-0.5">
@@ -367,7 +367,7 @@ export function Notificacoes() {
                     <span className="text-base sm:text-sm text-giz font-bold truncate">
                       {nomeReforcoHoras(config.reforco_horas_antes_prazo)}
                     </span>
-                    <span className="text-[11px] font-display font-bold uppercase tracking-wider text-destaque shrink-0">
+                    <span className="text-[11px] font-display font-bold uppercase tracking-wider text-destaque-texto shrink-0">
                       Alterar
                     </span>
                   </button>
@@ -387,7 +387,7 @@ export function Notificacoes() {
                       )
                     }
                     placeholder="Últimas horas para confirmar presença"
-                    className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque"
+                    className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto"
                   />
                 </label>
 
@@ -405,7 +405,7 @@ export function Notificacoes() {
                       )
                     }
                     placeholder="O prazo para confirmação encerra em {prazo}. Garanta sua vaga no racha!"
-                    className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque"
+                    className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto"
                   />
                 </label>
               </div>
@@ -550,7 +550,7 @@ export function Notificacoes() {
                           {b.label}
                         </span>
                         <ChevronDown
-                          className={`size-4 text-destaque transition-transform ${aberto ? 'rotate-180' : ''}`}
+                          className={`size-4 text-destaque-texto transition-transform ${aberto ? 'rotate-180' : ''}`}
                         />
                       </button>
 
@@ -572,7 +572,7 @@ export function Notificacoes() {
                                 )
                               }
                               placeholder={b.placeholderTit}
-                              className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie px-3 py-2 text-base sm:text-sm text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque"
+                              className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie px-3 py-2 text-base sm:text-sm text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto"
                             />
                           </label>
 
@@ -592,7 +592,7 @@ export function Notificacoes() {
                                 )
                               }
                               placeholder={b.placeholderMsg}
-                              className="w-full rounded-[4px] border border-borda bg-superficie px-3 py-2 text-base sm:text-sm text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque"
+                              className="w-full rounded-[4px] border border-borda bg-superficie px-3 py-2 text-base sm:text-sm text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto"
                             />
                           </label>
                         </div>
@@ -621,7 +621,7 @@ export function Notificacoes() {
             <div className="rounded-[4px] border border-borda bg-superficie-2 p-3 flex flex-col justify-between space-y-3">
               <div className="space-y-1">
                 <div className="flex items-center gap-1.5 text-xs font-display uppercase tracking-wider font-bold text-giz">
-                  <Smartphone className="size-4 text-destaque shrink-0" />
+                  <Smartphone className="size-4 text-destaque-texto shrink-0" />
                   <span>Testar Notificação</span>
                 </div>
                 <p className="text-xs text-giz-fraco">
@@ -641,7 +641,7 @@ export function Notificacoes() {
                   disabled={disparandoTeste}
                   className="w-full min-h-[44px] flex items-center justify-center gap-1.5 rounded-[4px] border border-borda bg-superficie px-3 py-2 font-display font-bold uppercase tracking-wider text-xs text-giz hover:bg-superficie-2 hover:border-destaque/50 shadow-xs transition active:translate-y-px disabled:opacity-50"
                 >
-                  <Send className="size-3.5 text-destaque" />
+                  <Send className="size-3.5 text-destaque-texto" />
                   {disparandoTeste ? 'Enfileirando…' : 'Testar no meu celular'}
                 </button>
               )}
@@ -651,7 +651,7 @@ export function Notificacoes() {
             <div className="rounded-[4px] border border-borda bg-superficie-2 p-3 flex flex-col justify-between space-y-3">
               <div className="space-y-1">
                 <div className="flex items-center gap-1.5 text-xs font-display uppercase tracking-wider font-bold text-giz">
-                  <RefreshCw className="size-4 text-destaque shrink-0" />
+                  <RefreshCw className="size-4 text-destaque-texto shrink-0" />
                   <span>Reenviar Convite</span>
                 </div>
                 <p className="text-xs text-giz-fraco">
@@ -665,7 +665,7 @@ export function Notificacoes() {
                 type="button"
                 disabled={!partidaDraft || disparandoReenvio}
                 onClick={() => setConfirmReenvioAberto(true)}
-                className="w-full min-h-[44px] flex items-center justify-center gap-1.5 rounded-[4px] border border-destaque/40 bg-destaque/10 px-3 py-2 font-display font-bold uppercase tracking-wider text-xs text-destaque hover:bg-destaque/20 shadow-xs transition active:translate-y-px disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full min-h-[44px] flex items-center justify-center gap-1.5 rounded-[4px] border border-destaque/40 bg-destaque/10 px-3 py-2 font-display font-bold uppercase tracking-wider text-xs text-destaque-texto hover:bg-destaque/20 shadow-xs transition active:translate-y-px disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <RefreshCw className={`size-3.5 ${disparandoReenvio ? 'animate-spin' : ''}`} />
                 {disparandoReenvio ? 'Reenviando…' : 'Reenviar convite agora'}

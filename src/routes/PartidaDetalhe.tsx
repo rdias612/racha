@@ -142,6 +142,30 @@ export function PartidaDetalhe() {
     };
   }, [carregar]);
 
+  const participantesPorTime = useMemo(() => {
+    return {
+      a: participantes
+        .filter((p) => p.time === 'a')
+        .sort((a, b) => b.gols - a.gols || b.assistencias - a.assistencias),
+      b: participantes
+        .filter((p) => p.time === 'b')
+        .sort((a, b) => b.gols - a.gols || b.assistencias - a.assistencias),
+    };
+  }, [participantes]);
+
+  const participantesDoTime = useCallback(
+    (t: TimeId) => participantesPorTime[t] ?? [],
+    [participantesPorTime]
+  );
+
+  const notasOrdenadas = useMemo(() => {
+    return [...notas].sort(
+      (a, b) => Number(b.avg_rating) - Number(a.avg_rating) || b.vote_count - a.vote_count
+    );
+  }, [notas]);
+
+  const craque = useMemo(() => notas.find((n) => n.is_craque) ?? null, [notas]);
+
   if (carregando) return <SkeletonDetalhe />;
   if (!partida)
     return (
@@ -172,29 +196,6 @@ export function PartidaDetalhe() {
     }
   }
 
-  const participantesPorTime = useMemo(() => {
-    return {
-      a: participantes
-        .filter((p) => p.time === 'a')
-        .sort((a, b) => b.gols - a.gols || b.assistencias - a.assistencias),
-      b: participantes
-        .filter((p) => p.time === 'b')
-        .sort((a, b) => b.gols - a.gols || b.assistencias - a.assistencias),
-    };
-  }, [participantes]);
-
-  const participantesDoTime = useCallback(
-    (t: TimeId) => participantesPorTime[t] ?? [],
-    [participantesPorTime]
-  );
-
-  const notasOrdenadas = useMemo(() => {
-    return [...notas].sort(
-      (a, b) => Number(b.avg_rating) - Number(a.avg_rating) || b.vote_count - a.vote_count
-    );
-  }, [notas]);
-
-  const craque = useMemo(() => notas.find((n) => n.is_craque) ?? null, [notas]);
   const votacaoAberta =
     partida.status === 'published' &&
     partida.voting_closes_at &&
@@ -223,7 +224,7 @@ export function PartidaDetalhe() {
             {STATUS_LABEL[partida.status]}
           </Badge>
           {partida.status === 'published' && partida.voting_closes_at && (
-            <p className="text-[10px] font-mono text-destaque mt-1">
+            <p className="text-[10px] font-mono text-destaque-texto mt-1">
               Urna fecha {formatarFechamento(partida.voting_closes_at)}
             </p>
           )}
@@ -246,13 +247,13 @@ export function PartidaDetalhe() {
           {/* Fita adesiva translúcida no canto */}
           <div className="absolute -top-2.5 -right-2.5 w-10 h-3.5 bg-destaque/30 rotate-45 pointer-events-none rounded-xs border border-destaque/40" />
 
-          <div className="bg-preto-time border border-destaque/40 text-destaque font-display font-black text-xs uppercase tracking-[0.2em] px-4 py-0.5 rounded-[2px] shadow-xs">
+          <div className="bg-preto-time border border-destaque/40 text-destaque-texto font-display font-black text-xs uppercase tracking-[0.2em] px-4 py-0.5 rounded-[2px] shadow-xs">
             CRAQUE DA PARTIDA
           </div>
 
           <div className="flex items-center justify-center gap-4 my-1">
             <div className="text-right">
-              <span className="block font-mono text-3xl sm:text-4xl font-black text-destaque tabular-nums leading-none">
+              <span className="block font-mono text-3xl sm:text-4xl font-black text-destaque-texto tabular-nums leading-none">
                 {Number(craque.avg_rating).toFixed(1)}
               </span>
               <span className="text-[10px] font-mono text-giz-fraco uppercase">
@@ -288,7 +289,7 @@ export function PartidaDetalhe() {
                       {n.is_craque ? '⭐ ' : ''}@{n.username}
                     </span>
                   </div>
-                  <span className="font-mono text-sm font-bold text-destaque tabular-nums">
+                  <span className="font-mono text-sm font-bold text-destaque-texto tabular-nums">
                     {Number(n.avg_rating).toFixed(1)}{' '}
                     <span className="text-xs font-normal text-giz-fraco font-mono">
                       ({n.vote_count}v)
@@ -336,7 +337,7 @@ export function PartidaDetalhe() {
                         </div>
                         <div className="shrink-0 flex items-center gap-1 font-mono text-[11px]">
                           {p.gols > 0 && (
-                            <span className="font-bold text-destaque" title="Gols">
+                            <span className="font-bold text-destaque-texto" title="Gols">
                               ⚽{p.gols}
                             </span>
                           )}
@@ -453,7 +454,7 @@ export function PartidaDetalhe() {
       />
 
       {partida.status === 'published' && !votacaoAberta && (
-        <p className="text-center text-xs font-mono text-destaque">
+        <p className="text-center text-xs font-mono text-destaque-texto">
           As urnas fecharam. O craque está sendo apurado.
         </p>
       )}
@@ -482,7 +483,7 @@ function BotoesSelf({ status, podeConf, ocupadas, processando, onAtualizar }: Pr
           disabled={processando || !podeConf}
           onClick={() => onAtualizar('confirmado')}
           title={lotado ? 'Vagas esgotadas' : undefined}
-          className={`${btn} border-destaque bg-destaque/15 text-destaque shadow-xs hover:bg-destaque hover:text-destaque-tinta`}
+          className={`${btn} border-destaque bg-destaque/15 text-destaque-texto shadow-xs hover:bg-destaque hover:text-destaque-tinta`}
         >
           Vou jogar
         </button>
@@ -541,7 +542,7 @@ function BotoesAdmin({
         onClick={() => onAtualizar('pendente')}
         title="Pendente"
         className={`${mini} ${
-          status === 'pendente' ? 'border-destaque bg-destaque/20 text-destaque font-bold' : off
+          status === 'pendente' ? 'border-destaque bg-destaque/20 text-destaque-texto font-bold' : off
         }`}
       >
         ⏳
@@ -710,7 +711,7 @@ function Confirmacoes({
         <h3 className="text-xs font-display font-bold uppercase tracking-wider text-giz">
           Confirmações de Presença
         </h3>
-        <span className="font-mono text-xs font-bold text-destaque tabular-nums">
+        <span className="font-mono text-xs font-bold text-destaque-texto tabular-nums">
           {ocupadas}/{CAPACIDADE_PARTIDA} vagas
         </span>
       </div>
@@ -738,7 +739,7 @@ function Confirmacoes({
                   <p className="truncate text-sm font-bold text-giz">
                     {p.username || `#${p.jogador_id}`}
                     {ehSelf && (
-                      <span className="ml-1 text-[10px] font-mono text-destaque">(você)</span>
+                      <span className="ml-1 text-[10px] font-mono text-destaque-texto">(você)</span>
                     )}
                   </p>
                   <Badge variante="status" status={p.status_confirmacao}>
@@ -780,7 +781,7 @@ function Confirmacoes({
           <button
             type="button"
             onClick={abrirAvulso}
-            className="w-full min-h-[44px] flex items-center justify-center px-3 py-2 text-xs font-display font-bold uppercase tracking-wider text-destaque hover:bg-superficie-2 transition cursor-pointer"
+            className="w-full min-h-[44px] flex items-center justify-center px-3 py-2 text-xs font-display font-bold uppercase tracking-wider text-destaque-texto hover:bg-superficie-2 transition cursor-pointer"
           >
             {mostrandoAvulso
               ? 'Fechar seleção'

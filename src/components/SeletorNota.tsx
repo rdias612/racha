@@ -69,13 +69,15 @@ export function SeletorNota({
         disabled={disabled}
         onClick={alternar}
         onKeyDown={onKeyDown}
-        className={`flex items-center justify-between rounded-[4px] border border-borda bg-superficie text-left text-sm disabled:opacity-40 shadow-xs transition focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2 ${
+        className={`flex items-center justify-between rounded-[4px] border border-borda bg-superficie text-left text-sm disabled:opacity-40 shadow-xs transition focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2 ${
           compact ? 'min-h-[44px] w-24 px-3' : 'min-h-[44px] w-full px-3'
         }`}
       >
         <span
           className={
-            definido ? 'font-mono font-bold text-destaque text-base' : 'text-giz-fraco text-xs'
+            definido
+              ? 'font-mono font-bold text-destaque-texto text-base'
+              : 'text-giz-fraco text-xs'
           }
         >
           {definido ? value : 'Nota'}
@@ -115,11 +117,11 @@ export function SeletorNota({
                 onMouseEnter={() => setDestaque(i)}
                 className={`flex min-h-[44px] cursor-pointer items-center justify-between rounded-[3px] px-3 py-2 text-sm font-mono ${
                   emDestaque ? 'bg-superficie-2 text-giz' : ''
-                } ${selecionado ? 'font-bold text-destaque bg-destaque/10' : 'text-giz-fraco'}`}
+                } ${selecionado ? 'font-bold text-destaque-texto bg-destaque/10' : 'text-giz-fraco'}`}
               >
                 <span>{opcao.value}</span>
                 {selecionado && (
-                  <span aria-hidden="true" className="text-xs font-bold text-destaque">
+                  <span aria-hidden="true" className="text-xs font-bold text-destaque-texto">
                     ✓
                   </span>
                 )}

@@ -78,7 +78,7 @@ export function NovoJogador() {
       <div className="sumula-header pb-2 flex items-baseline justify-between">
         <div>
           <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz flex items-center gap-2">
-            <UserPlus className="size-5 text-destaque" />
+            <UserPlus className="size-5 text-destaque-texto" />
             Novo Jogador da Súmula
           </h2>
           <p className="text-xs font-mono text-giz-fraco mt-0.5">
@@ -97,7 +97,7 @@ export function NovoJogador() {
         {/* Seção 1: Identificação */}
         <div className="rounded-[4px] border border-borda bg-superficie p-4 space-y-3 shadow-carimbo">
           <div className="flex items-center gap-2 text-xs font-display font-bold uppercase tracking-wider text-giz-fraco">
-            <User className="size-4 text-destaque" />
+            <User className="size-4 text-destaque-texto" />
             Identificação do Atleta
           </div>
 
@@ -124,7 +124,7 @@ export function NovoJogador() {
         {/* Seção 2: Posições em Campo */}
         <div className="rounded-[4px] border border-borda bg-superficie p-4 space-y-3 shadow-carimbo">
           <div className="flex items-center gap-2 text-xs font-display font-bold uppercase tracking-wider text-giz-fraco">
-            <Star className="size-4 text-destaque" />
+            <Star className="size-4 text-destaque-texto" />
             Posições em Campo
           </div>
 
@@ -176,7 +176,7 @@ export function NovoJogador() {
         {/* Seção 3: Configurações & Permissões */}
         <div className="rounded-[4px] border border-borda bg-superficie p-4 space-y-3 shadow-carimbo">
           <div className="flex items-center gap-2 text-xs font-display font-bold uppercase tracking-wider text-giz-fraco mb-1">
-            <Shield className="size-4 text-destaque" />
+            <Shield className="size-4 text-destaque-texto" />
             Configurações & Permissões
           </div>
 
@@ -243,12 +243,12 @@ export function NovoJogador() {
         {/* Seção 4: Senha Padrão */}
         <div className="rounded-[4px] border border-destaque/40 bg-destaque/10 p-3.5 flex items-center justify-between gap-3 text-xs shadow-carimbo">
           <div>
-            <span className="font-display font-bold uppercase tracking-wider text-destaque block">
+            <span className="font-display font-bold uppercase tracking-wider text-destaque-texto block">
               Senha inicial padrão:
             </span>
             <span className="text-giz-fraco text-xs">
               O jogador utilizará a senha{' '}
-              <code className="font-mono font-bold text-destaque bg-superficie px-1.5 py-0.5 rounded-[2px] border border-destaque/30">
+              <code className="font-mono font-bold text-destaque-texto bg-superficie px-1.5 py-0.5 rounded-[2px] border border-destaque/30">
                 123
               </code>{' '}
               no primeiro acesso.

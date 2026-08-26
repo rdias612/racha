@@ -116,7 +116,7 @@ export function EscalacaoTimesEditor({
           type="button"
           onClick={onAutoEscalar}
           disabled={totalConfirmados < LIMITE_POR_TIME * 2}
-          className="shrink-0 inline-flex items-center gap-1.5 rounded-[3px] border border-destaque bg-destaque/15 px-3 py-2 text-xs font-display font-bold uppercase tracking-wider text-destaque shadow-xs hover:bg-destaque hover:text-destaque-tinta transition active:translate-y-px disabled:opacity-40"
+          className="shrink-0 inline-flex items-center gap-1.5 rounded-[3px] border border-destaque bg-destaque/15 px-3 py-2 text-xs font-display font-bold uppercase tracking-wider text-destaque-texto shadow-xs hover:bg-destaque hover:text-destaque-tinta transition active:translate-y-px disabled:opacity-40"
         >
           <Wand2 className="size-3.5" />
           <span>Equilibrar</span>
@@ -143,7 +143,7 @@ export function EscalacaoTimesEditor({
             >
               <div>
                 <BadgeTime time={t} className="mb-1.5" />
-                <div className="font-mono text-xl font-bold text-destaque tabular-nums">
+                <div className="font-mono text-xl font-bold text-destaque-texto tabular-nums">
                   {count}/{LIMITE_POR_TIME} de linha
                 </div>
               </div>
@@ -159,7 +159,7 @@ export function EscalacaoTimesEditor({
                       <button
                         type="button"
                         onClick={() => onAbrirModalNovoGoleiro(t)}
-                        className="text-xs font-mono text-destaque hover:underline min-h-[44px] px-1 inline-flex items-center"
+                        className="text-xs font-mono text-destaque-texto hover:underline min-h-[44px] px-1 inline-flex items-center"
                       >
                         + Novo
                       </button>
@@ -182,7 +182,7 @@ export function EscalacaoTimesEditor({
                         {nomeGoleiro ? nomeGoleiro : '-- Toque para escolher --'}
                       </span>
                     </div>
-                    <span className="text-[11px] font-display font-bold uppercase tracking-wider text-destaque shrink-0">
+                    <span className="text-[11px] font-display font-bold uppercase tracking-wider text-destaque-texto shrink-0">
                       {temGoleiro ? 'Trocar' : 'Escolher'}
                     </span>
                   </button>
@@ -228,7 +228,7 @@ export function EscalacaoTimesEditor({
                     </span>
                   )}
                   <span
-                    className="shrink-0 text-xs font-mono font-bold text-destaque"
+                    className="shrink-0 text-xs font-mono font-bold text-destaque-texto"
                     title={`Média: ${notaJogador.toFixed(1)}★`}
                   >
                     {notaJogador.toFixed(1)}★

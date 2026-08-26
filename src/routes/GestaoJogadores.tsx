@@ -296,7 +296,7 @@ export function GestaoJogadores() {
       <div className="sumula-header pb-2 flex items-baseline justify-between">
         <div>
           <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz flex items-center gap-2">
-            <Users className="size-5 text-destaque" />
+            <Users className="size-5 text-destaque-texto" />
             Gestão de Atletas
           </h2>
           <p className="text-xs font-mono text-giz-fraco mt-0.5">
@@ -313,9 +313,9 @@ export function GestaoJogadores() {
 
       {limiteAtingido && (
         <div className="rounded-[4px] border border-destaque/50 bg-destaque/10 p-3 text-xs text-giz flex items-start gap-2.5 shadow-carimbo">
-          <UserCheck2 className="size-4 text-destaque shrink-0 mt-0.5" />
+          <UserCheck2 className="size-4 text-destaque-texto shrink-0 mt-0.5" />
           <div>
-            <span className="font-display font-bold uppercase tracking-wider text-destaque block">
+            <span className="font-display font-bold uppercase tracking-wider text-destaque-texto block">
               Limite Máximo Atingido ({MAX_MENSALISTAS}/{MAX_MENSALISTAS} Mensalistas)
             </span>
             <span className="text-giz-fraco text-xs font-mono">
@@ -333,7 +333,7 @@ export function GestaoJogadores() {
             <span className="text-[10px] font-display font-bold uppercase tracking-wider">
               Total Geral
             </span>
-            <Users className="size-4 text-destaque" />
+            <Users className="size-4 text-destaque-texto" />
           </div>
           <div className="text-2xl font-mono font-black text-giz tabular-nums">
             {totalJogadores}
@@ -378,9 +378,9 @@ export function GestaoJogadores() {
             <span className="text-[10px] font-display font-bold uppercase tracking-wider">
               Admins
             </span>
-            <Shield className="size-4 text-destaque" />
+            <Shield className="size-4 text-destaque-texto" />
           </div>
-          <div className="text-2xl font-mono font-black text-destaque tabular-nums">
+          <div className="text-2xl font-mono font-black text-destaque-texto tabular-nums">
             {totalAdmins}
           </div>
         </div>
@@ -390,9 +390,9 @@ export function GestaoJogadores() {
             <span className="text-[10px] font-display font-bold uppercase tracking-wider">
               Superadmins
             </span>
-            <Crown className="size-4 text-destaque" />
+            <Crown className="size-4 text-destaque-texto" />
           </div>
-          <div className="text-2xl font-mono font-black text-destaque tabular-nums">
+          <div className="text-2xl font-mono font-black text-destaque-texto tabular-nums">
             {totalSuperAdmins}
           </div>
         </div>
@@ -486,8 +486,8 @@ export function GestaoJogadores() {
                         </span>
 
                         {modificado && (
-                          <span className="inline-flex items-center gap-1 rounded-[2px] bg-destaque/20 border border-destaque/50 px-1.5 py-0.5 text-[9px] font-display font-bold uppercase tracking-wider text-destaque animate-pulse shrink-0">
-                            <Sparkles className="size-3 text-destaque" />
+                          <span className="inline-flex items-center gap-1 rounded-[2px] bg-destaque/20 border border-destaque/50 px-1.5 py-0.5 text-[9px] font-display font-bold uppercase tracking-wider text-destaque-texto animate-pulse shrink-0">
+                            <Sparkles className="size-3 text-destaque-texto" />
                             Pendente
                           </span>
                         )}
@@ -502,7 +502,7 @@ export function GestaoJogadores() {
                           </span>
                         )}
                         {!superadmin && j.is_admin && (
-                          <span className="inline-flex items-center gap-1 rounded-[2px] bg-superficie-2 border border-destaque/50 text-destaque px-1.5 py-0.5 text-[9px] font-display font-bold uppercase tracking-wider shrink-0">
+                          <span className="inline-flex items-center gap-1 rounded-[2px] bg-superficie-2 border border-destaque/50 text-destaque-texto px-1.5 py-0.5 text-[9px] font-display font-bold uppercase tracking-wider shrink-0">
                             <Shield className="size-3" />
                             Admin
                           </span>
@@ -595,9 +595,9 @@ export function GestaoJogadores() {
                     }
                     className={`flex items-center justify-between p-2.5 rounded-[3px] border transition min-h-[44px] ${
                       superadmin
-                        ? 'border-destaque/60 bg-destaque/15 text-destaque cursor-not-allowed'
+                        ? 'border-destaque/60 bg-destaque/15 text-destaque-texto cursor-not-allowed'
                         : j.is_admin
-                          ? 'border-destaque/60 bg-destaque/10 text-destaque hover:bg-destaque/20'
+                          ? 'border-destaque/60 bg-destaque/10 text-destaque-texto hover:bg-destaque/20'
                           : !j.is_mensalista
                             ? 'border-borda bg-superficie-2 text-giz-fraco/50'
                             : 'border-borda bg-superficie-2 text-giz-fraco hover:text-giz hover:border-destaque/40'
@@ -623,7 +623,7 @@ export function GestaoJogadores() {
                     <span className="text-[10px] font-mono opacity-80 flex items-center gap-1">
                       {superadmin ? (
                         <>
-                          <Crown className="size-3 text-destaque" />
+                          <Crown className="size-3 text-destaque-texto" />
                           <span>Superadmin</span>
                         </>
                       ) : j.is_admin ? (

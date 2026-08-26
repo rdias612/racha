@@ -213,7 +213,7 @@ export function Estatisticas() {
             id="select-jogador-stats"
             value={jogadorSelecionadoId ?? ''}
             onChange={(e) => setJogadorSelecionadoId(Number(e.target.value))}
-            className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm text-giz font-medium focus-visible:outline-2 focus-visible:outline-destaque focus-visible:outline-offset-2"
+            className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm text-giz font-medium focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2"
           >
             {jogadores.map((j) => (
               <option key={j.id} value={j.id}>
@@ -243,7 +243,7 @@ export function Estatisticas() {
           <div className="rounded-[4px] border border-borda bg-superficie p-3 shadow-carimbo space-y-1">
             <div className="flex items-center justify-between text-xs font-display font-bold uppercase tracking-wider text-giz-fraco">
               <span>Mínimo de partidas conjuntas</span>
-              <span className="font-mono text-destaque">{minimoPartidas} jogos</span>
+              <span className="font-mono text-destaque-texto">{minimoPartidas} jogos</span>
             </div>
             <input
               id="filtro-minimo-partidas"
@@ -351,7 +351,7 @@ function ParceriaDestaqueCard({
           {titulo}
         </h4>
         {destaque && (
-          <span className="font-mono text-xs font-black text-destaque tabular-nums">
+          <span className="font-mono text-xs font-black text-destaque-texto tabular-nums">
             {metrica === 'mais_gols'
               ? `${destaque.valor ?? 0} gols`
               : (destaque.valor ?? 0).toFixed(1)}
@@ -393,7 +393,7 @@ function ParceriaCard({ titulo, parceria, minimoPartidas }: ParceriaCardProps) {
           {titulo}
         </h4>
         {parceria && (
-          <span className="font-mono text-xs font-black text-destaque tabular-nums">
+          <span className="font-mono text-xs font-black text-destaque-texto tabular-nums">
             {Math.round((parceria.percentual ?? 0) * 100)}%
           </span>
         )}
