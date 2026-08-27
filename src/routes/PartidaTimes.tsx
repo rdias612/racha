@@ -46,23 +46,33 @@ export function PartidaTimes() {
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
-  // Só os confirmados que não são goleiros entram na escalação de linha.
-  const confirmadosLinhaIds = useMemo(
+  // Só os confirmados que atuam na linha (posicao da participação <> 'goleiro')
+  // entram na escalação dos 14. Híbridos (goleiro de perfil que joga na linha)
+  // entram com a posição da participação — seu papel real na partida.
+  const confirmadosLinha = useMemo(
     () =>
-      new Set(
-        participantes
-          .filter((p) => p.status_confirmacao === 'confirmado' && p.posicao !== 'goleiro')
-          .map((p) => p.jogador_id)
-      ),
+      participantes.filter((p) => p.status_confirmacao === 'confirmado' && p.posicao !== 'goleiro'),
     [participantes]
+  );
+  const papelPartidaPorId = useMemo(
+    () => new Map(confirmadosLinha.map((p) => [p.jogador_id, p.posicao])),
+    [confirmadosLinha]
   );
 
   const confirmadosJogadores = useMemo(
     () =>
       jogadoresAtivos
-        .filter((j) => confirmadosLinhaIds.has(j.id))
+        .filter((j) => papelPartidaPorId.has(j.id))
+        // Sobrepõe a posição do perfil pela posição da participação (papel na
+        // partida): confirmado na linha, o atleta conta apenas como linha —
+        // aptidão de gol (posicao_b = 'goleiro') não entra no sorteio.
+        .map((j) => ({
+          ...j,
+          posicao: papelPartidaPorId.get(j.id) ?? j.posicao,
+          posicao_b: j.posicao_b === 'goleiro' ? null : j.posicao_b,
+        }))
         .sort((a, b) => (a.username ?? '').localeCompare(b.username ?? '')),
-    [jogadoresAtivos, confirmadosLinhaIds]
+    [jogadoresAtivos, papelPartidaPorId]
   );
 
   const { times, setTimes, feedback, setFeedback, atribuirTime, autoEscalar } = useEscalacaoTimes({

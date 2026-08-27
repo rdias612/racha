@@ -258,6 +258,27 @@ $$;
 GRANT EXECUTE ON FUNCTION substituir_template_financeiro(text, date, text) TO anon, authenticated;
 
 -- ----------------------------------------------------------------------------
+-- 3.3 Posição de Linha de Híbrido (Goleiro de Perfil que Joga na Linha)
+CREATE OR REPLACE FUNCTION posicao_linha_hibrido(p_jogador_id bigint)
+RETURNS text
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT CASE
+    WHEN j.posicao = 'goleiro'
+     AND j.posicao_b IS NOT NULL
+     AND j.posicao_b <> 'goleiro'
+    THEN j.posicao_b
+    ELSE NULL
+  END
+  FROM jogadores j
+  WHERE j.id = p_jogador_id;
+$$;
+
+GRANT EXECUTE ON FUNCTION posicao_linha_hibrido(bigint) TO anon, authenticated;
+
 -- 4. VIEWS CANÔNICAS
 -- ----------------------------------------------------------------------------
 
@@ -967,7 +988,7 @@ BEGIN
   SELECT
     v_partida_id,
     j.id,
-    j.posicao,
+    COALESCE(posicao_linha_hibrido(j.id), j.posicao),
     'pendente'
   FROM jogadores j
   WHERE j.is_mensalista = true
@@ -1026,10 +1047,20 @@ BEGIN
     END IF;
   END IF;
 
-  UPDATE partidas_participantes
-    SET status_confirmacao = p_status,
-        confirmado_em = CASE WHEN p_status = 'confirmado' THEN now() ELSE NULL END
-    WHERE partida_id = p_partida_id AND jogador_id = p_jogador_id;
+UPDATE partidas_participantes pp
+  SET status_confirmacao = p_status,
+      confirmado_em = CASE WHEN p_status = 'confirmado' THEN now() ELSE NULL END,
+      -- Híbrido confirmado na linha assume a posição de linha;
+      -- goleiro puro permanece 'goleiro'.
+      posicao = CASE
+        WHEN p_status = 'confirmado'
+         AND pp.posicao = 'goleiro'
+         AND pp.time IS NULL
+         AND posicao_linha_hibrido(p_jogador_id) IS NOT NULL
+        THEN posicao_linha_hibrido(p_jogador_id)
+        ELSE pp.posicao
+      END
+  WHERE pp.partida_id = p_partida_id AND pp.jogador_id = p_jogador_id;
 
   RETURN true;
 END;
@@ -1076,7 +1107,9 @@ BEGIN
   END IF;
 
   INSERT INTO partidas_participantes (partida_id, jogador_id, posicao, status_confirmacao, confirmado_em)
-    SELECT p_partida_id, j.id, j.posicao, 'confirmado', now()
+    SELECT p_partida_id, j.id,
+           COALESCE(posicao_linha_hibrido(j.id), j.posicao),
+           'confirmado', now()
     FROM jogadores j
     WHERE j.id = p_jogador_id;
   RETURN true;
@@ -1113,11 +1146,19 @@ BEGIN
     RETURN false;
   END IF;
 
-  UPDATE partidas_participantes
+  UPDATE partidas_participantes pp
   SET status_confirmacao = p_status,
-      confirmado_em = CASE WHEN p_status = 'confirmado' THEN now() ELSE NULL END
-  WHERE partida_id = p_partida_id
-    AND jogador_id = p_jogador_id;
+      confirmado_em = CASE WHEN p_status = 'confirmado' THEN now() ELSE NULL END,
+      posicao = CASE
+        WHEN p_status = 'confirmado'
+         AND pp.posicao = 'goleiro'
+         AND pp.time IS NULL
+         AND posicao_linha_hibrido(p_jogador_id) IS NOT NULL
+        THEN posicao_linha_hibrido(p_jogador_id)
+        ELSE pp.posicao
+      END
+  WHERE pp.partida_id = p_partida_id
+    AND pp.jogador_id = p_jogador_id;
 
   RETURN FOUND;
 END;
@@ -1141,7 +1182,7 @@ AS $$
 DECLARE
   elem jsonb;
 BEGIN
-  IF p_admin_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM jogadores WHERE id = p_admin_id AND is_admin = true) THEN
+  IF p_admin_id IS NULL OR NOT EXISTS (SELECT 1 FROM jogadores WHERE id = p_admin_id AND is_admin = true) THEN
     RAISE EXCEPTION 'Acesso negado: apenas administradores podem alterar a escalação.';
   END IF;
 
@@ -1152,7 +1193,13 @@ BEGIN
   FOR elem IN SELECT * FROM jsonb_array_elements(p_times_linha)
   LOOP
     UPDATE partidas_participantes
-    SET time = (elem->>'time')::char(1)
+    SET time = (elem->>'time')::char(1),
+        posicao = COALESCE(
+          CASE WHEN posicao_linha_hibrido((elem->>'jogador_id')::bigint) IS NOT NULL
+               THEN posicao_linha_hibrido((elem->>'jogador_id')::bigint)
+          END,
+          posicao
+        )
     WHERE partida_id = p_partida_id
       AND jogador_id = (elem->>'jogador_id')::bigint;
   END LOOP;
