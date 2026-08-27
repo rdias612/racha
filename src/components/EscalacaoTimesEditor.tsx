@@ -261,6 +261,43 @@ export function EscalacaoTimesEditor({
         </button>
       </div>
 
+      {/* Pré-visualização da escalação lado a lado (ordem idêntica ao "Copiar escalações") */}
+      <div className="rounded-[4px] border border-borda bg-superficie shadow-carimbo overflow-hidden">
+        <div className="px-3 py-2 bg-superficie-2 border-b border-borda flex items-center justify-between">
+          <span className="font-display font-bold text-xs uppercase tracking-wider text-giz">
+            Escalação Lado a Lado
+          </span>
+        </div>
+        <div className="grid grid-cols-2">
+          {colunasEscalacao.map((col, idx) => (
+            <div key={col.time} className={idx === 0 ? 'border-r border-borda' : ''}>
+              <div className="px-2 py-2 border-b border-borda flex items-center justify-between gap-1">
+                <BadgeTime time={col.time} tamanho="xs" />
+                {col.media !== null && (
+                  <span
+                    className="font-mono text-[10px] font-bold text-destaque-texto tabular-nums"
+                    title="Média de notas dos jogadores de linha"
+                  >
+                    {col.media.toFixed(1)}★
+                  </span>
+                )}
+              </div>
+              <div className="divide-y divide-borda/40">
+                {temSelecaoGoleiros && (
+                  <LinhaEscalacao posicao="goleiro" nome={col.nomeGoleiro ?? null} />
+                )}
+                {col.jogadores.map((j) => (
+                  <LinhaEscalacao key={j.id} posicao={j.posicao} nome={j.username} />
+                ))}
+                {col.vazia && (
+                  <p className="px-2 py-2 text-center font-mono text-[10px] text-giz-fraco">—</p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Painel com os 2 times, contadores e Seleção de Goleiros */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {(['a', 'b'] as TimeId[]).map((t) => {
@@ -329,44 +366,6 @@ export function EscalacaoTimesEditor({
             </div>
           );
         })}
-      </div>
-
-      {/* Pré-visualização da escalação lado a lado (ordem idêntica ao "Copiar escalações") */}
-      <div className="rounded-[4px] border border-borda bg-superficie shadow-carimbo overflow-hidden">
-        <div className="px-3 py-2 bg-superficie-2 border-b border-borda flex items-center justify-between">
-          <span className="font-display font-bold text-xs uppercase tracking-wider text-giz">
-            Escalação Lado a Lado
-          </span>
-          <span className="text-[10px] font-mono text-giz-fraco">mesma ordem do copiar</span>
-        </div>
-        <div className="grid grid-cols-2">
-          {colunasEscalacao.map((col, idx) => (
-            <div key={col.time} className={idx === 0 ? 'border-r border-borda' : ''}>
-              <div className="px-2 py-2 border-b border-borda flex items-center justify-between gap-1">
-                <BadgeTime time={col.time} tamanho="xs" />
-                {col.media !== null && (
-                  <span
-                    className="font-mono text-[10px] font-bold text-destaque-texto tabular-nums"
-                    title="Média de notas dos jogadores de linha"
-                  >
-                    {col.media.toFixed(1)}★
-                  </span>
-                )}
-              </div>
-              <div className="divide-y divide-borda/40">
-                {temSelecaoGoleiros && (
-                  <LinhaEscalacao posicao="goleiro" nome={col.nomeGoleiro ?? null} />
-                )}
-                {col.jogadores.map((j) => (
-                  <LinhaEscalacao key={j.id} posicao={j.posicao} nome={j.username} />
-                ))}
-                {col.vazia && (
-                  <p className="px-2 py-2 text-center font-mono text-[10px] text-giz-fraco">—</p>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* Lista dos confirmados com botões Preto/Branco */}
