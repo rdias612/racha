@@ -88,8 +88,8 @@ export function Perfil() {
       return;
     }
 
-    const limpo = usernameNovo.toLowerCase().trim();
-    if (limpo === jogador!.username.toLowerCase().trim()) {
+    const limpo = usernameNovo.trim();
+    if (limpo.toLowerCase() === jogador!.username.toLowerCase()) {
       setErroUsername('O novo usuário é igual ao atual.');
       vibrateError();
       return;
@@ -259,7 +259,7 @@ export function Perfil() {
                 type="text"
                 placeholder={jogador.username}
                 value={usernameNovo}
-                onChange={(e) => setUsernameNovo(e.target.value.toLowerCase().trim())}
+                onChange={(e) => setUsernameNovo(e.target.value)}
                 className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm font-mono text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2 min-h-[44px]"
               />
             </div>

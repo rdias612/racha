@@ -9,11 +9,13 @@ export function isRandomUsername(username?: string | null): boolean {
 }
 
 export function validarFormatoUsername(username: string): string | null {
-  const limpo = username.trim().toLowerCase();
-  if (!limpo || limpo.length < 2) return 'O usuário deve ter ao menos 2 caracteres.';
+  // Aceita letras (com acentos: ç, ã, é...), números e sublinhado.
+  // Maiúsculas e minúsculas são preservadas.
+  const limpo = username.trim();
+  if (limpo.length < 2) return 'O usuário deve ter ao menos 2 caracteres.';
   if (limpo.length > 30) return 'O usuário deve ter no máximo 30 caracteres.';
-  if (!/^[a-z0-9._-]+$/.test(limpo)) {
-    return 'Use apenas letras minúsculas, números, ponto, hífen ou sublinhado.';
+  if (!/^[a-zA-ZÀ-ÖØ-öø-ÿ_]+$/.test(limpo)) {
+    return 'Use apenas letras, números e sublinhado (_).';
   }
   if (isRandomUsername(limpo)) {
     return 'O prefixo "random" é reservado para convidados temporários.';
@@ -164,7 +166,7 @@ export async function salvarCaracteristicasJogadores(
 export async function atualizarUsernameJogador(id: number, novoUsername: string): Promise<void> {
   const { data, error } = await supabase.rpc('alterar_username', {
     p_jogador_id: id,
-    p_novo_username: novoUsername.trim().toLowerCase(),
+    p_novo_username: novoUsername.trim(),
   });
 
   if (error) throw error;
