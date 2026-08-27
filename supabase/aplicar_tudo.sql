@@ -614,16 +614,13 @@ BEGIN
     RAISE EXCEPTION 'O apelido escolhido é reservado pelo sistema.';
   END IF;
 
-  -- Proteção de usernames reservados (governança): ninguém pode ASSUMIR
-  -- um nome reservado que não seja o próprio.
-  IF v_username_limpo IN ('dico', 'tadeu', 'natal') THEN
-    SELECT username INTO v_username_atual FROM jogadores WHERE id = p_jogador_id;
-    IF v_username_atual IS DISTINCT FROM v_username_limpo THEN
-      RAISE EXCEPTION 'Este nome de usuário é reservado para a governança do racha.';
-    END IF;
+  -- Unicidade case-insensitive: nenhum atleta pode assumir o username de
+  -- outro atleta (proteção de identidade). Igual exata ao próprio é "sem mudança".
+  IF v_username_limpo = v_username_atual THEN
+    RAISE EXCEPTION 'O novo usuário informado é igual ao atual.';
   END IF;
 
-  IF EXISTS (SELECT 1 FROM jogadores WHERE username = v_username_limpo AND id <> p_jogador_id) THEN
+  IF EXISTS (SELECT 1 FROM jogadores WHERE LOWER(username) = LOWER(v_username_limpo) AND id <> p_jogador_id) THEN
     RAISE EXCEPTION 'Este apelido já está em uso por outro atleta.';
   END IF;
 

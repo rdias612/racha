@@ -23,6 +23,19 @@ const ORDEM_POSICOES_TEXTO: PosicaoId[] = [
 ];
 
 /**
+ * Ordena os jogadores de um time pela ordem do texto copiado:
+ * posição (ORDEM_POSICOES_TEXTO) e, dentro dela, ordem alfabética.
+ */
+function ordenarPorPosicaoTexto(jogadores: JogadorLista[]): JogadorLista[] {
+  return [...jogadores].sort((x, y) => {
+    const px = ORDEM_POSICOES_TEXTO.indexOf(x.posicao);
+    const py = ORDEM_POSICOES_TEXTO.indexOf(y.posicao);
+    if (px !== py) return px - py;
+    return x.username.localeCompare(y.username);
+  });
+}
+
+/**
  * Monta o texto das escalações para colar no WhatsApp (Branco primeiro):
  *
  * Time BRANCO (media 6.5)
@@ -43,14 +56,7 @@ function montarTextoEscalacao(params: {
   goleirosPorTime: Partial<Record<TimeId, string | undefined>>;
 }): string {
   const blocos = (['b', 'a'] as TimeId[]).map((t) => {
-    const doTime = params.jogadores
-      .filter((j) => params.times[j.id] === t)
-      .sort((x, y) => {
-        const px = ORDEM_POSICOES_TEXTO.indexOf(x.posicao);
-        const py = ORDEM_POSICOES_TEXTO.indexOf(y.posicao);
-        if (px !== py) return px - py;
-        return (x.username ?? '').localeCompare(y.username ?? '');
-      });
+    const doTime = ordenarPorPosicaoTexto(params.jogadores.filter((j) => params.times[j.id] === t));
 
     let cabecalho = `Time ${t === 'a' ? 'PRETO' : 'BRANCO'}`;
     if (doTime.length > 0) {
@@ -68,6 +74,24 @@ function montarTextoEscalacao(params: {
     return linhas.join('\n');
   });
   return blocos.join('\n\n');
+}
+
+/** Linha da pré-visualização lado a lado: posição + nome (igual ao texto copiado). */
+function LinhaEscalacao({ posicao, nome }: { posicao: PosicaoId; nome: string | null }) {
+  return (
+    <div className="flex items-baseline gap-1.5 px-2 py-1.5">
+      <span className="w-16 shrink-0 font-mono text-[10px] uppercase tracking-wider text-giz-fraco">
+        {POSICOES[posicao]}
+      </span>
+      {nome ? (
+        <span className="min-w-0 truncate font-display text-sm font-bold uppercase tracking-wide text-giz">
+          {nome}
+        </span>
+      ) : (
+        <span className="font-mono text-xs text-giz-fraco">—</span>
+      )}
+    </div>
+  );
 }
 
 export interface EscalacaoTimesEditorProps {
@@ -136,6 +160,31 @@ export function EscalacaoTimesEditor({
 
   const temSelecaoGoleiros = Boolean(onSelecionarGoleiroA && onSelecionarGoleiroB);
 
+  const nomeGoleiroA = goleirosDisponiveis.find((g) => g.id === goleiroA)?.username;
+  const nomeGoleiroB = goleirosDisponiveis.find((g) => g.id === goleiroB)?.username;
+
+  /** Colunas da pré-visualização lado a lado (Branco | Preto), na ordem do copiar. */
+  const colunasEscalacao = useMemo(() => {
+    const goleirosPorTime: Partial<Record<TimeId, string | undefined>> = {
+      a: nomeGoleiroA,
+      b: nomeGoleiroB,
+    };
+    return (['b', 'a'] as TimeId[]).map((t) => {
+      const doTime = ordenarPorPosicaoTexto(jogadores.filter((j) => times[j.id] === t));
+      const media =
+        doTime.length > 0
+          ? doTime.reduce((s, j) => s + (mediasNotas[j.id] ?? 6.0), 0) / doTime.length
+          : null;
+      return {
+        time: t,
+        jogadores: doTime,
+        nomeGoleiro: goleirosPorTime[t],
+        media,
+        vazia: !temSelecaoGoleiros && doTime.length === 0,
+      };
+    });
+  }, [jogadores, times, mediasNotas, nomeGoleiroA, nomeGoleiroB, temSelecaoGoleiros]);
+
   const goleiroAValido = !temSelecaoGoleiros || (goleiroA !== null && !times[goleiroA]);
   const goleiroBValido = !temSelecaoGoleiros || (goleiroB !== null && !times[goleiroB]);
   const goleirosDistintos =
@@ -163,10 +212,7 @@ export function EscalacaoTimesEditor({
       jogadores,
       times,
       mediasNotas,
-      goleirosPorTime: {
-        a: goleirosDisponiveis.find((g) => g.id === goleiroA)?.username,
-        b: goleirosDisponiveis.find((g) => g.id === goleiroB)?.username,
-      },
+      goleirosPorTime: { a: nomeGoleiroA, b: nomeGoleiroB },
     });
 
     if (typeof navigator === 'undefined' || !navigator.clipboard) {
@@ -283,6 +329,44 @@ export function EscalacaoTimesEditor({
             </div>
           );
         })}
+      </div>
+
+      {/* Pré-visualização da escalação lado a lado (ordem idêntica ao "Copiar escalações") */}
+      <div className="rounded-[4px] border border-borda bg-superficie shadow-carimbo overflow-hidden">
+        <div className="px-3 py-2 bg-superficie-2 border-b border-borda flex items-center justify-between">
+          <span className="font-display font-bold text-xs uppercase tracking-wider text-giz">
+            Escalação Lado a Lado
+          </span>
+          <span className="text-[10px] font-mono text-giz-fraco">mesma ordem do copiar</span>
+        </div>
+        <div className="grid grid-cols-2">
+          {colunasEscalacao.map((col, idx) => (
+            <div key={col.time} className={idx === 0 ? 'border-r border-borda' : ''}>
+              <div className="px-2 py-2 border-b border-borda flex items-center justify-between gap-1">
+                <BadgeTime time={col.time} tamanho="xs" />
+                {col.media !== null && (
+                  <span
+                    className="font-mono text-[10px] font-bold text-destaque-texto tabular-nums"
+                    title="Média de notas dos jogadores de linha"
+                  >
+                    {col.media.toFixed(1)}★
+                  </span>
+                )}
+              </div>
+              <div className="divide-y divide-borda/40">
+                {temSelecaoGoleiros && (
+                  <LinhaEscalacao posicao="goleiro" nome={col.nomeGoleiro ?? null} />
+                )}
+                {col.jogadores.map((j) => (
+                  <LinhaEscalacao key={j.id} posicao={j.posicao} nome={j.username} />
+                ))}
+                {col.vazia && (
+                  <p className="px-2 py-2 text-center font-mono text-[10px] text-giz-fraco">—</p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Lista dos confirmados com botões Preto/Branco */}
