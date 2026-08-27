@@ -7,7 +7,7 @@ import {
   atualizarUsernameJogador,
   atualizarDadosPixTelefone,
   carregarStatsJogador,
-  isSuperAdmin,
+  isSuperAdminId,
   validarFormatoUsername,
   type StatsJogador,
 } from '../lib/jogadores';
@@ -204,7 +204,7 @@ export function Perfil() {
               <h2 className="truncate font-display text-xl font-bold uppercase tracking-wider text-giz">
                 @{jogador.username}
               </h2>
-              {isSuperAdmin(jogador.username) && (
+              {isSuperAdminId(jogador.id) && (
                 <span className="shrink-0 rounded-[2px] bg-destaque px-1.5 py-0.5 font-display text-[9px] font-black uppercase tracking-wider text-destaque-tinta shadow-xs">
                   Admin
                 </span>
@@ -248,32 +248,26 @@ export function Perfil() {
           </p>
         </div>
 
-        {isSuperAdmin(jogador.username) ? (
-          <p className="text-xs font-mono text-giz-fraco italic">
-            O username de superadministradores é permanente.
-          </p>
-        ) : (
-          <form onSubmit={alterarUsername} className="space-y-3">
-            <div>
-              <input
-                type="text"
-                placeholder={jogador.username}
-                value={usernameNovo}
-                onChange={(e) => setUsernameNovo(e.target.value)}
-                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm font-mono text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2 min-h-[44px]"
-              />
-            </div>
-            {erroUsername && <MensagemEstado tipo="erro">{erroUsername}</MensagemEstado>}
-            {okUsername && <MensagemEstado tipo="sucesso">{okUsername}</MensagemEstado>}
-            <button
-              type="submit"
-              disabled={salvandoUsername || !usernameNovo.trim()}
-              className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-50"
-            >
-              {salvandoUsername ? 'Salvando…' : 'Salvar novo username'}
-            </button>
-          </form>
-        )}
+        <form onSubmit={alterarUsername} className="space-y-3">
+          <div>
+            <input
+              type="text"
+              placeholder={jogador.username}
+              value={usernameNovo}
+              onChange={(e) => setUsernameNovo(e.target.value)}
+              className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm font-mono text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2 min-h-[44px]"
+            />
+          </div>
+          {erroUsername && <MensagemEstado tipo="erro">{erroUsername}</MensagemEstado>}
+          {okUsername && <MensagemEstado tipo="sucesso">{okUsername}</MensagemEstado>}
+          <button
+            type="submit"
+            disabled={salvandoUsername || !usernameNovo.trim()}
+            className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-50"
+          >
+            {salvandoUsername ? 'Salvando…' : 'Salvar novo username'}
+          </button>
+        </form>
       </section>
 
       {/* Dados de Pagamento / PIX e Contato */}

@@ -593,6 +593,7 @@ SET search_path = public
 AS $$
 DECLARE
   v_username_limpo text;
+  v_username_atual text;
   v_is_admin       boolean := false;
 BEGIN
   IF p_admin_id IS NOT NULL THEN
@@ -611,6 +612,15 @@ BEGIN
 
   IF v_username_limpo ~ '^random[0-9]*$' THEN
     RAISE EXCEPTION 'O apelido escolhido é reservado pelo sistema.';
+  END IF;
+
+  -- Proteção de usernames reservados (governança): ninguém pode ASSUMIR
+  -- um nome reservado que não seja o próprio.
+  IF v_username_limpo IN ('dico', 'tadeu', 'natal') THEN
+    SELECT username INTO v_username_atual FROM jogadores WHERE id = p_jogador_id;
+    IF v_username_atual IS DISTINCT FROM v_username_limpo THEN
+      RAISE EXCEPTION 'Este nome de usuário é reservado para a governança do racha.';
+    END IF;
   END IF;
 
   IF EXISTS (SELECT 1 FROM jogadores WHERE username = v_username_limpo AND id <> p_jogador_id) THEN
@@ -814,7 +824,9 @@ BEGIN
       RAISE EXCEPTION 'Jogador % não encontrado.', v_id;
     END IF;
 
-    IF LOWER(v_username) IN ('dico', 'tadeu', 'natal') THEN
+    -- Superadmins são permanentemente admin e mensalistas: intocáveis.
+    -- Gate por ID (dico=1, natal=2, tadeu=5) — username pode mudar.
+    IF v_id IN (1, 2, 5) THEN
       CONTINUE;
     END IF;
 

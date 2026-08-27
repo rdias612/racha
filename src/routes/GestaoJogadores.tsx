@@ -6,7 +6,7 @@ import {
   listarTodosJogadores,
   salvarCaracteristicasJogadores,
   resetarSenhaJogador,
-  isSuperAdmin,
+  isSuperAdminId,
   isentoMensalidade,
   podeSerAdmin,
   MAX_MENSALISTAS,
@@ -91,7 +91,7 @@ export function GestaoJogadores() {
       return {
         ...j,
         is_mensalista: draft.is_mensalista,
-        is_admin: isSuperAdmin(j.username) ? true : draft.is_admin,
+        is_admin: isSuperAdminId(j.id) ? true : draft.is_admin,
       };
     },
     [rascunhos]
@@ -113,8 +113,8 @@ export function GestaoJogadores() {
     for (const j of jogadoresDraft) {
       if (j.is_mensalista) mensalistas++;
       if (!j.is_mensalista && j.posicao !== 'goleiro') avulsos++;
-      if (j.is_admin || isSuperAdmin(j.username)) admins++;
-      if (isSuperAdmin(j.username)) superAdmins++;
+      if (j.is_admin || isSuperAdminId(j.id)) admins++;
+      if (isSuperAdminId(j.id)) superAdmins++;
     }
 
     return {
@@ -138,7 +138,7 @@ export function GestaoJogadores() {
 
       if (filtro === 'mensalistas') return j.is_mensalista;
       if (filtro === 'avulsos') return !j.is_mensalista && j.posicao !== 'goleiro';
-      if (filtro === 'admins') return j.is_admin || isSuperAdmin(j.username);
+      if (filtro === 'admins') return j.is_admin || isSuperAdminId(j.id);
 
       return true;
     });
@@ -169,7 +169,7 @@ export function GestaoJogadores() {
     let novoAdmin = estadoAtual.is_admin;
 
     // Regra: Se estiver deixando de ser mensalista, deixa obrigatoriamente de ser admin (exceto superadmin)
-    if (!novoMensalista && estadoAtual.is_admin && !isSuperAdmin(jOriginal.username)) {
+    if (!novoMensalista && estadoAtual.is_admin && !isSuperAdminId(jOriginal.id)) {
       novoAdmin = false;
       setMensagemSucesso(
         `O status de administrador de "@${jOriginal.username}" foi desativado (apenas mensalistas podem ser admins).`
@@ -195,7 +195,7 @@ export function GestaoJogadores() {
   }
 
   function alternarAdminDraft(jOriginal: JogadorLista) {
-    if (isSuperAdmin(jOriginal.username)) {
+    if (isSuperAdminId(jOriginal.id)) {
       setMensagemErro(
         `O usuário "${jOriginal.username}" é Superadmin permanente. O acesso de administrador não pode ser alterado.`
       );
@@ -464,7 +464,7 @@ export function GestaoJogadores() {
         <div className="space-y-3">
           {jogadoresFiltrados.map((j) => {
             const jOriginal = jogadores.find((orig) => orig.id === j.id)!;
-            const superadmin = isSuperAdmin(j.username);
+            const superadmin = isSuperAdminId(j.id);
             const modificado = Boolean(rascunhos[j.id]);
             const bloqMensalista = !j.is_mensalista && limiteAtingido;
 

@@ -310,7 +310,11 @@ export function Ranking() {
               min={0}
               max={maximoPartidas}
               value={minimoPartidas}
-              onChange={(e) => setMinimoPartidas((Number(e.target.value) ?? 0) <= maximoPartidas ? Number(e.target.value) : maximoPartidas)}
+              onChange={(e) =>
+                setMinimoPartidas(
+                  Number(e.target.value) <= maximoPartidas ? Number(e.target.value) : maximoPartidas
+                )
+              }
               className="w-full accent-destaque"
             />
           </div>

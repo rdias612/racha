@@ -40,12 +40,18 @@ export interface JogadorLista {
 export const COLUNAS_JOGADOR_LISTA =
   'id, username, posicao, is_admin, is_ativo, is_mensalista, posicao_b, chave_pix, telefone';
 
-export const SUPERADMINS = ['dico', 'tadeu', 'natal'];
+/**
+ * IDs (bigserial do banco) dos superadministradores permanentes.
+ * Fonte da verdade: base de dados atual (dico=1, tadeu=5, natal=2).
+ * A identificação é por ID (não por username) para que superadmins possam
+ * alterar o próprio username sem perder os privilégios de governança.
+ */
+export const SUPERADMIN_IDS = [1, 2, 5];
 export const MAX_MENSALISTAS = 14;
 
-export function isSuperAdmin(username?: string | null): boolean {
-  if (!username) return false;
-  return SUPERADMINS.includes(username.trim().toLowerCase());
+export function isSuperAdminId(id?: number | null): boolean {
+  if (id == null) return false;
+  return SUPERADMIN_IDS.includes(id);
 }
 
 /**
@@ -65,15 +71,13 @@ export function podeSerAdmin(j: { posicao: string; is_mensalista: boolean }): bo
 }
 
 /**
- * Garante que jogadores com usernames configurados em `SUPERADMINS` sempre
+ * Garante que jogadores com IDs configurados em `SUPERADMIN_IDS` sempre
  * recebam `is_admin: true` no cliente, mesmo se o banco ainda não refletir.
  */
-export function aplicarSuperAdmin<T extends { username: string; is_admin: boolean }>(
-  jogador: T
-): T {
+export function aplicarSuperAdmin<T extends { id: number; is_admin: boolean }>(jogador: T): T {
   return {
     ...jogador,
-    is_admin: Boolean(jogador.is_admin || isSuperAdmin(jogador.username)),
+    is_admin: Boolean(jogador.is_admin || isSuperAdminId(jogador.id)),
   };
 }
 
