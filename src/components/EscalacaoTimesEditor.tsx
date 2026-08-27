@@ -25,25 +25,24 @@ const ORDEM_POSICOES_TEXTO: PosicaoId[] = [
 /**
  * Monta o texto das escalações para colar no WhatsApp (Branco primeiro):
  *
- * Time BRANCO
+ * Time BRANCO (media 6.5)
  * Goleiro nome      (apenas quando já escolhido)
  * Zagueiro nome
  * ...
  *
- * Time PRETO
+ * Time PRETO (media 6.4)
  * ...
+ *
+ * A média considera apenas os jogadores de linha do time (padrão 6.0 sem nota),
+ * mesmo critério do feedback do sorteio automático.
  */
 function montarTextoEscalacao(params: {
   jogadores: JogadorLista[];
   times: Record<number, TimeId>;
+  mediasNotas: Record<number, number>;
   goleirosPorTime: Partial<Record<TimeId, string | undefined>>;
 }): string {
   const blocos = (['b', 'a'] as TimeId[]).map((t) => {
-    const linhas: string[] = [`Time ${t === 'a' ? 'PRETO' : 'BRANCO'}`];
-
-    const nomeGoleiro = params.goleirosPorTime[t];
-    if (nomeGoleiro) linhas.push(`${POSICOES.goleiro} ${nomeGoleiro}`);
-
     const doTime = params.jogadores
       .filter((j) => params.times[j.id] === t)
       .sort((x, y) => {
@@ -52,6 +51,18 @@ function montarTextoEscalacao(params: {
         if (px !== py) return px - py;
         return (x.username ?? '').localeCompare(y.username ?? '');
       });
+
+    let cabecalho = `Time ${t === 'a' ? 'PRETO' : 'BRANCO'}`;
+    if (doTime.length > 0) {
+      const media =
+        doTime.reduce((s, j) => s + (params.mediasNotas[j.id] ?? 6.0), 0) / doTime.length;
+      cabecalho += ` (media ${media.toFixed(1)})`;
+    }
+    const linhas: string[] = [cabecalho];
+
+    const nomeGoleiro = params.goleirosPorTime[t];
+    if (nomeGoleiro) linhas.push(`${POSICOES.goleiro} ${nomeGoleiro}`);
+
     for (const j of doTime) linhas.push(`${POSICOES[j.posicao]} ${j.username}`);
 
     return linhas.join('\n');
@@ -141,7 +152,8 @@ export function EscalacaoTimesEditor({
   const totalConfirmados = jogadores.length;
 
   function handleCopiarEscalacao() {
-    const algumEscalado = jogadores.some((j) => times[j.id]) || goleiroA !== null || goleiroB !== null;
+    const algumEscalado =
+      jogadores.some((j) => times[j.id]) || goleiroA !== null || goleiroB !== null;
     if (!algumEscalado) {
       mostrarErro('Escale os times antes de copiar.');
       return;
@@ -150,6 +162,7 @@ export function EscalacaoTimesEditor({
     const texto = montarTextoEscalacao({
       jogadores,
       times,
+      mediasNotas,
       goleirosPorTime: {
         a: goleirosDisponiveis.find((g) => g.id === goleiroA)?.username,
         b: goleirosDisponiveis.find((g) => g.id === goleiroB)?.username,
