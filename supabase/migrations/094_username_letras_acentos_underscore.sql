@@ -63,8 +63,9 @@ BEGIN
     RAISE EXCEPTION 'Usuários Superadmin possuem identificador permanente por motivos de governança.';
   END IF;
 
-  -- 7. Verifica se é igual ao atual (case-insensitive)
-  IF LOWER(v_username_limpo) = LOWER(v_jogador.username) THEN
+  -- 7. Verifica se é exatamente igual ao atual
+  -- (mudar apenas maiúsculas/minúsculas é permitido — case é preservado)
+  IF v_username_limpo = v_jogador.username THEN
     RAISE EXCEPTION 'O novo usuário informado é igual ao atual.';
   END IF;
 

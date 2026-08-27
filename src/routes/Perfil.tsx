@@ -89,7 +89,8 @@ export function Perfil() {
     }
 
     const limpo = usernameNovo.trim();
-    if (limpo.toLowerCase() === jogador!.username.toLowerCase()) {
+    // Mudança apenas de maiúsculas/minúsculas é permitida.
+    if (limpo === jogador!.username) {
       setErroUsername('O novo usuário é igual ao atual.');
       vibrateError();
       return;
