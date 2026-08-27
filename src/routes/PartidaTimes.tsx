@@ -249,6 +249,7 @@ export function PartidaTimes() {
         onSelecionarGoleiroA={setGoleiroA}
         onSelecionarGoleiroB={setGoleiroB}
         onAbrirModalNovoGoleiro={handleAbrirModalNovoGoleiro}
+        mostrarCopiarEscalacao
       />
 
       <ModalNovoGoleiro

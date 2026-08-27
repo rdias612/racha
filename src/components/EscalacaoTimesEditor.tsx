@@ -1,7 +1,9 @@
 import { type ReactNode, useMemo, useState } from 'react';
-import { Wand2 } from 'lucide-react';
+import { Copy, Wand2 } from 'lucide-react';
 import { type JogadorLista } from '../lib/jogadores';
-import { type TimeId } from '../lib/times';
+import { POSICOES, type PosicaoId, type TimeId } from '../lib/times';
+import { useSnackbar } from '../hooks/useSnackbar';
+import { Snackbar } from './Snackbar';
 import { MensagemEstado } from './Estado';
 import { ModalSelecionarGoleiro } from './ModalSelecionarGoleiro';
 import { BotaoVoltar } from './BotaoVoltar';
@@ -9,6 +11,53 @@ import { BarraAcaoInferior } from './BarraAcaoInferior';
 import { BadgeTime } from './BadgeTime';
 
 export const LIMITE_POR_TIME = 7;
+
+/** Ordem de exibição das posições no texto copiado para o WhatsApp. */
+const ORDEM_POSICOES_TEXTO: PosicaoId[] = [
+  'goleiro',
+  'zagueiro',
+  'lateral',
+  'meia',
+  'atacante',
+  'random',
+];
+
+/**
+ * Monta o texto das escalações para colar no WhatsApp (Branco primeiro):
+ *
+ * Time BRANCO
+ * Goleiro nome      (apenas quando já escolhido)
+ * Zagueiro nome
+ * ...
+ *
+ * Time PRETO
+ * ...
+ */
+function montarTextoEscalacao(params: {
+  jogadores: JogadorLista[];
+  times: Record<number, TimeId>;
+  goleirosPorTime: Partial<Record<TimeId, string | undefined>>;
+}): string {
+  const blocos = (['b', 'a'] as TimeId[]).map((t) => {
+    const linhas: string[] = [`Time ${t === 'a' ? 'PRETO' : 'BRANCO'}`];
+
+    const nomeGoleiro = params.goleirosPorTime[t];
+    if (nomeGoleiro) linhas.push(`${POSICOES.goleiro} ${nomeGoleiro}`);
+
+    const doTime = params.jogadores
+      .filter((j) => params.times[j.id] === t)
+      .sort((x, y) => {
+        const px = ORDEM_POSICOES_TEXTO.indexOf(x.posicao);
+        const py = ORDEM_POSICOES_TEXTO.indexOf(y.posicao);
+        if (px !== py) return px - py;
+        return (x.username ?? '').localeCompare(y.username ?? '');
+      });
+    for (const j of doTime) linhas.push(`${POSICOES[j.posicao]} ${j.username}`);
+
+    return linhas.join('\n');
+  });
+  return blocos.join('\n\n');
+}
 
 export interface EscalacaoTimesEditorProps {
   titulo: string;
@@ -34,6 +83,8 @@ export interface EscalacaoTimesEditorProps {
   onSelecionarGoleiroA?: (id: number | null) => void;
   onSelecionarGoleiroB?: (id: number | null) => void;
   onAbrirModalNovoGoleiro?: (time: TimeId) => void;
+  /** Exibe botão secundário para copiar as escalações (colar no WhatsApp). */
+  mostrarCopiarEscalacao?: boolean;
 }
 
 export function EscalacaoTimesEditor({
@@ -59,8 +110,10 @@ export function EscalacaoTimesEditor({
   onSelecionarGoleiroA,
   onSelecionarGoleiroB,
   onAbrirModalNovoGoleiro,
+  mostrarCopiarEscalacao = false,
 }: EscalacaoTimesEditorProps) {
   const [modalGoleiroTime, setModalGoleiroTime] = useState<TimeId | null>(null);
+  const { mostrarSucesso, mostrarErro, snackbarProps } = useSnackbar();
 
   const contagemTime = useMemo(() => {
     const c: Record<TimeId, number> = { a: 0, b: 0 };
@@ -86,6 +139,32 @@ export function EscalacaoTimesEditor({
     !salvando;
 
   const totalConfirmados = jogadores.length;
+
+  function handleCopiarEscalacao() {
+    const algumEscalado = jogadores.some((j) => times[j.id]) || goleiroA !== null || goleiroB !== null;
+    if (!algumEscalado) {
+      mostrarErro('Escale os times antes de copiar.');
+      return;
+    }
+
+    const texto = montarTextoEscalacao({
+      jogadores,
+      times,
+      goleirosPorTime: {
+        a: goleirosDisponiveis.find((g) => g.id === goleiroA)?.username,
+        b: goleirosDisponiveis.find((g) => g.id === goleiroB)?.username,
+      },
+    });
+
+    if (typeof navigator === 'undefined' || !navigator.clipboard) {
+      mostrarErro('Não foi possível copiar as escalações.');
+      return;
+    }
+    navigator.clipboard
+      .writeText(texto)
+      .then(() => mostrarSucesso('Escalações copiadas!'))
+      .catch(() => mostrarErro('Não foi possível copiar as escalações.'));
+  }
 
   return (
     <div className="px-3 py-4 pb-28 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
@@ -293,6 +372,16 @@ export function EscalacaoTimesEditor({
             : undefined
         }
       >
+        {mostrarCopiarEscalacao && (
+          <button
+            type="button"
+            onClick={handleCopiarEscalacao}
+            className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque/15 px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-destaque-texto shadow-xs hover:bg-destaque/25 active:translate-y-px transition inline-flex items-center justify-center gap-1.5"
+          >
+            <Copy className="size-3.5" aria-hidden="true" />
+            <span>Copiar escalações</span>
+          </button>
+        )}
         <button
           type="button"
           onClick={onSalvar}
@@ -302,6 +391,8 @@ export function EscalacaoTimesEditor({
           {salvando ? salvandoRotulo : salvarRotulo}
         </button>
       </BarraAcaoInferior>
+
+      {mostrarCopiarEscalacao && <Snackbar {...snackbarProps} />}
 
       {temSelecaoGoleiros && modalGoleiroTime && (
         <ModalSelecionarGoleiro
