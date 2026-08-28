@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
-import { UserPlus, Trash2, ArrowLeftRight } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 import { useAdmin } from '../hooks/useAdmin';
 import { invalidarCache } from '../hooks/useCache';
 import { CHAVE_JOGOS, chaveResumo } from '../lib/chavesCache';
 import { listarJogadoresAtivos, type JogadorLista } from '../lib/jogadores';
-import { TIMES, POSICOES, type TimeId } from '../lib/times';
+import { TIMES, type TimeId } from '../lib/times';
 import {
   carregarPartida,
   carregarParticipantes,
@@ -16,17 +16,14 @@ import {
 } from '../lib/partidas';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { ConfirmDialog } from '../components/ConfirmDialog';
-import { Avatar } from '../components/Avatar';
+import { CartaoJogadorEdicao } from '../components/CartaoJogadorEdicao';
+import { ModalEscalarJogador } from '../components/ModalEscalarJogador';
 import { formatarDataCompleta } from '../lib/formatacao';
 import { BotaoVoltar } from '../components/BotaoVoltar';
 import { BarraAcaoInferior } from '../components/BarraAcaoInferior';
-import { CampoBusca } from '../components/CampoBusca';
 import { PainelPlacar } from '../components/PainelPlacar';
 import { CabecalhoTime } from '../components/CabecalhoTime';
-import { ModalBase } from '../components/ModalBase';
 import { formatarMensagemErro } from '../lib/erros';
-
-type FiltroModal = 'todos' | 'goleiros' | 'linha' | 'mensalistas' | 'avulsos';
 
 export function PartidaEditar() {
   const isAdmin = useAdmin();
@@ -43,10 +40,8 @@ export function PartidaEditar() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [confirmandoSalvar, setConfirmandoSalvar] = useState(false);
 
-  // Modal de adição e diálogo de remoção
+  // Modal de adição (montagem condicional) e diálogo de remoção
   const [modalTime, setModalTime] = useState<TimeId | null>(null);
-  const [buscaJogador, setBuscaJogador] = useState('');
-  const [filtroModal, setFiltroModal] = useState<FiltroModal>('todos');
   const [jogadorParaRemover, setJogadorParaRemover] = useState<ParticipanteEdicao | null>(null);
 
   const timerNavegacaoRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -120,23 +115,6 @@ export function PartidaEditar() {
   // Placar derivado em tempo real (canônico via calcularPlacarDeParticipantes)
   const placarAoVivo = useMemo(() => calcularPlacarDeParticipantes(participantes), [participantes]);
 
-  // Candidatos para inclusão no modal
-  const candidatosAdicionar = useMemo(() => {
-    const idsEscalados = new Set(participantes.map((p) => p.jogador_id));
-    const termo = buscaJogador.trim().toLowerCase();
-
-    return jogadoresAtivos
-      .filter((j) => !idsEscalados.has(j.id))
-      .filter((j) => {
-        if (filtroModal === 'goleiros') return j.posicao === 'goleiro';
-        if (filtroModal === 'linha') return j.posicao !== 'goleiro';
-        if (filtroModal === 'mensalistas') return j.is_mensalista;
-        if (filtroModal === 'avulsos') return !j.is_mensalista;
-        return true;
-      })
-      .filter((j) => !termo || j.username.toLowerCase().includes(termo));
-  }, [jogadoresAtivos, participantes, buscaJogador, filtroModal]);
-
   if (!isAdmin) return <Navigate to="/" replace />;
   if (partida?.status === 'live') {
     return <Navigate to={`/partida/${partidaId}/ao-vivo`} replace />;
@@ -209,8 +187,6 @@ export function PartidaEditar() {
     };
     setParticipantes((prev) => [...prev, novo]);
     setModalTime(null);
-    setBuscaJogador('');
-    setFiltroModal('todos');
   }
 
   async function salvar() {
@@ -299,11 +275,7 @@ export function PartidaEditar() {
                 acoes={
                   <button
                     type="button"
-                    onClick={() => {
-                      setBuscaJogador('');
-                      setFiltroModal('todos');
-                      setModalTime(t);
-                    }}
+                    onClick={() => setModalTime(t)}
                     className={`min-h-[44px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-xs font-display font-bold uppercase tracking-wider shadow-carimbo active:translate-y-px transition cursor-pointer ${
                       ehPreto
                         ? 'bg-superficie text-giz border border-borda hover:bg-superficie-2'
@@ -318,108 +290,23 @@ export function PartidaEditar() {
 
               {/* Lista de Cards de Jogadores */}
               <div className="space-y-2">
-                {lista.map((p) => {
-                  const ehGoleiro = p.posicao === 'goleiro';
-                  const temEstatisticas = p.gols > 0 || p.assistencias > 0 || p.gols_contra > 0;
-
-                  return (
-                    <div
-                      key={p.jogador_id}
-                      className={`rounded-[4px] border p-3 bg-superficie transition shadow-carimbo space-y-2.5 ${
-                        temEstatisticas ? 'border-destaque/60 bg-destaque/5' : 'border-borda'
-                      }`}
-                    >
-                      {/* Linha 1: Perfil do Jogador + Ações (Mover / Excluir) */}
-                      <div className="flex items-center justify-between gap-2">
-                        {/* Identificação do Jogador */}
-                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                          <Avatar username={p.username ?? ''} size="sm" />
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-bold text-sm text-giz truncate">
-                                {p.username ? `@${p.username}` : `#${p.jogador_id}`}
-                              </span>
-                              {temEstatisticas && (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-destaque-texto bg-destaque/10 border border-destaque/30 px-1.5 py-0.2 rounded-[2px] shrink-0">
-                                  {p.gols > 0 && `⚽ ${p.gols}`}
-                                  {p.assistencias > 0 && `🅰️ ${p.assistencias}`}
-                                  {p.gols_contra > 0 && `GC ${p.gols_contra}`}
-                                </span>
-                              )}
-                            </div>
-                            <span className="text-[11px] font-display uppercase tracking-wider text-giz-fraco flex items-center gap-1">
-                              {ehGoleiro ? (
-                                <span className="text-ok font-bold">🧤 Goleiro</span>
-                              ) : (
-                                <span>{POSICOES[p.posicao] ?? 'Linha'}</span>
-                              )}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Botões de Ação */}
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => moverTime(p.jogador_id)}
-                            title={`Mover para o Time ${outroTimeNome}`}
-                            className="min-h-[44px] inline-flex items-center gap-1 px-3 py-1.5 rounded-[3px] border border-borda bg-superficie-2 text-[11px] font-display font-bold uppercase tracking-wider text-giz hover:text-destaque-texto active:translate-y-px transition cursor-pointer shadow-carimbo"
-                          >
-                            <ArrowLeftRight className="size-3.5 text-destaque-texto" />
-                            <span>{outroTimeNome}</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => tentarRemover(p)}
-                            title="Remover jogador da partida"
-                            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-[3px] border border-perigo/40 bg-superficie-2 text-perigo hover:bg-perigo/10 active:translate-y-px transition cursor-pointer shadow-carimbo"
-                          >
-                            <Trash2 className="size-4" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Linha 2: 3 Steppers Espaçosos (Gols, Assistências, Gols Contra) */}
-                      <div className="pt-2 border-t border-borda grid grid-cols-3 gap-2">
-                        <StepperBox
-                          icone="⚽"
-                          label="Gols"
-                          valor={p.gols}
-                          corAtiva="destaque"
-                          onMenos={() => ajustar(p.jogador_id, 'gols', -1)}
-                          onMais={() => ajustar(p.jogador_id, 'gols', 1)}
-                        />
-                        <StepperBox
-                          icone="🅰️"
-                          label="Assists"
-                          valor={p.assistencias}
-                          corAtiva="azul"
-                          onMenos={() => ajustar(p.jogador_id, 'assistencias', -1)}
-                          onMais={() => ajustar(p.jogador_id, 'assistencias', 1)}
-                        />
-                        <StepperBox
-                          icone="🥅"
-                          label="GC"
-                          valor={p.gols_contra}
-                          corAtiva="perigo"
-                          onMenos={() => ajustar(p.jogador_id, 'gols_contra', -1)}
-                          onMais={() => ajustar(p.jogador_id, 'gols_contra', 1)}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
+                {lista.map((p) => (
+                  <CartaoJogadorEdicao
+                    key={p.jogador_id}
+                    participante={p}
+                    outroTimeNome={outroTimeNome}
+                    onMover={moverTime}
+                    onSolicitarRemover={tentarRemover}
+                    onAjustar={ajustar}
+                  />
+                ))}
 
                 {lista.length === 0 && (
                   <div className="rounded-[4px] border border-dashed border-borda p-6 text-center text-xs text-giz-fraco bg-superficie-2">
                     <p className="mb-2 font-mono">Nenhum jogador escalado no {TIMES[t].nome}.</p>
                     <button
                       type="button"
-                      onClick={() => {
-                        setBuscaJogador('');
-                        setFiltroModal('todos');
-                        setModalTime(t);
-                      }}
+                      onClick={() => setModalTime(t)}
                       className="min-h-[44px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-xs font-display font-bold uppercase tracking-wider bg-destaque text-destaque-tinta shadow-carimbo cursor-pointer"
                     >
                       <UserPlus className="size-3.5" />
@@ -458,99 +345,15 @@ export function PartidaEditar() {
       </BarraAcaoInferior>
 
       {/* Modal para Adicionar Jogador com Busca e Filtros Rápidos */}
-      <ModalBase
-        open={modalTime !== null}
-        onClose={() => setModalTime(null)}
-        titulo={modalTime ? `Adicionar ao ${TIMES[modalTime].nome}` : ''}
-        icone={<UserPlus className="size-4 text-destaque-texto" />}
-        tamanhoMaximo="md"
-        posicao="centro"
-        rodape={
-          <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={() => setModalTime(null)}
-              className="min-h-[44px] px-4 py-2 rounded-[3px] border border-borda text-xs font-display font-bold uppercase tracking-wider text-giz hover:bg-superficie cursor-pointer"
-            >
-              Fechar
-            </button>
-          </div>
-        }
-      >
-        {/* Busca & Filtros */}
-        <div className="p-3 border-b border-borda space-y-2 bg-superficie">
-          <CampoBusca
-            valor={buscaJogador}
-            aoMudar={setBuscaJogador}
-            placeholder="Buscar por @username..."
-            autoFocus
-          />
-
-          {/* Filtros em Pílula */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-xs no-scrollbar">
-            {(
-              [
-                { id: 'todos', label: 'Todos' },
-                { id: 'goleiros', label: '🧤 Goleiros' },
-                { id: 'linha', label: 'Linha' },
-                { id: 'mensalistas', label: 'Mensalistas' },
-                { id: 'avulsos', label: 'Avulsos' },
-              ] as const
-            ).map((f) => (
-              <button
-                key={f.id}
-                type="button"
-                onClick={() => setFiltroModal(f.id)}
-                className={`min-h-[44px] px-2.5 py-1 rounded-[3px] font-display font-bold uppercase tracking-wider whitespace-nowrap transition cursor-pointer ${
-                  filtroModal === f.id
-                    ? 'bg-destaque text-destaque-tinta shadow-carimbo'
-                    : 'bg-superficie-2 border border-borda text-giz-fraco hover:text-giz'
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Lista com scroll otimizado */}
-        <div className="flex-1 overflow-y-auto divide-y divide-borda p-2 space-y-1">
-          {candidatosAdicionar.map((j) => (
-            <button
-              key={j.id}
-              type="button"
-              onClick={() => modalTime && adicionarJogador(j, modalTime)}
-              className="w-full min-h-[48px] p-2.5 rounded-[3px] flex items-center justify-between gap-3 text-left hover:bg-superficie-2 active:translate-y-px transition cursor-pointer"
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <Avatar username={j.username} size="sm" />
-                <div className="min-w-0">
-                  <p className="text-sm font-bold text-giz truncate">@{j.username}</p>
-                  <p className="text-[10px] font-mono text-giz-fraco">
-                    {j.is_mensalista ? 'Mensalista' : 'Avulso'}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <span className="text-[10px] font-display uppercase tracking-wider text-giz-fraco">
-                  {j.posicao === 'goleiro' ? '🧤 Goleiro' : (POSICOES[j.posicao] ?? 'Linha')}
-                </span>
-                <span className="min-h-[32px] inline-flex items-center px-2.5 py-1 rounded-[2px] bg-destaque/15 text-destaque-texto text-xs font-display font-bold uppercase tracking-wider">
-                  + Escalar
-                </span>
-              </div>
-            </button>
-          ))}
-
-          {candidatosAdicionar.length === 0 && (
-            <div className="py-12 text-center text-xs font-mono text-giz-fraco">
-              {buscaJogador
-                ? 'Nenhum jogador encontrado com essa busca.'
-                : 'Nenhum jogador disponível neste filtro.'}
-            </div>
-          )}
-        </div>
-      </ModalBase>
+      {modalTime && (
+        <ModalEscalarJogador
+          timeDestino={modalTime}
+          jogadoresAtivos={jogadoresAtivos}
+          idsEscalados={new Set(participantes.map((p) => p.jogador_id))}
+          onSelecionar={adicionarJogador}
+          onClose={() => setModalTime(null)}
+        />
+      )}
 
       {/* Diálogo de Confirmação de Remoção */}
       <ConfirmDialog
@@ -576,84 +379,6 @@ export function PartidaEditar() {
         }
         textoConfirmar={primeiraVez ? 'Publicar' : 'Salvar'}
       />
-    </div>
-  );
-}
-
-// Componente Stepper em formato de Card para excelente UX Mobile com alvos de 44px
-function StepperBox({
-  icone,
-  label,
-  valor,
-  corAtiva,
-  disabled,
-  onMenos,
-  onMais,
-}: {
-  icone: string;
-  label: string;
-  valor: number;
-  corAtiva: 'destaque' | 'azul' | 'perigo';
-  disabled?: boolean;
-  onMenos: () => void;
-  onMais: () => void;
-}) {
-  const ativo = valor > 0;
-
-  const bgStyle = ativo
-    ? corAtiva === 'destaque'
-      ? 'bg-destaque/10 border-destaque/60 text-destaque-texto'
-      : corAtiva === 'azul'
-        ? 'bg-superficie-2 border-destaque text-giz'
-        : 'bg-perigo/10 border-perigo/60 text-perigo'
-    : 'bg-superficie-2 border-borda text-giz-fraco';
-
-  const numColor = ativo
-    ? corAtiva === 'destaque'
-      ? 'text-destaque-texto font-bold'
-      : corAtiva === 'azul'
-        ? 'text-giz font-bold'
-        : 'text-perigo font-bold'
-    : 'text-giz';
-
-  return (
-    <div
-      className={`rounded-[4px] border p-2 flex flex-col items-center justify-between transition ${bgStyle}`}
-    >
-      <div className="flex items-center gap-1 text-[11px] font-display font-bold uppercase tracking-wider text-giz-fraco mb-1">
-        <span>{icone}</span>
-        <span>{label}</span>
-      </div>
-
-      <div className="w-full flex items-center justify-between gap-1">
-        <button
-          type="button"
-          onClick={onMenos}
-          disabled={disabled || valor === 0}
-          aria-label={`Diminuir ${label}`}
-          className="min-h-[44px] min-w-[44px] rounded-[3px] border border-borda bg-superficie text-giz text-sm font-bold flex items-center justify-center disabled:opacity-20 active:translate-y-px transition shadow-carimbo cursor-pointer"
-        >
-          −
-        </button>
-
-        <span className={`text-base font-mono font-black tabular-nums ${numColor}`}>{valor}</span>
-
-        <button
-          type="button"
-          onClick={onMais}
-          disabled={disabled}
-          aria-label={`Aumentar ${label}`}
-          className={`min-h-[44px] min-w-[44px] rounded-[3px] text-sm font-bold flex items-center justify-center active:translate-y-px transition shadow-carimbo cursor-pointer ${
-            corAtiva === 'destaque'
-              ? 'bg-destaque text-destaque-tinta hover:brightness-105 border border-destaque'
-              : corAtiva === 'azul'
-                ? 'bg-superficie text-giz hover:bg-superficie-2 border border-borda'
-                : 'bg-perigo text-branco-time hover:bg-perigo/90 border border-perigo'
-          } disabled:opacity-30`}
-        >
-          +
-        </button>
-      </div>
     </div>
   );
 }
