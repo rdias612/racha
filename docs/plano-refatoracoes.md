@@ -366,10 +366,10 @@ Componente idêntico em `Perfil.tsx:393-404` e `Estatisticas.tsx:410-421`; inter
 
 ## Infra/Tooling (P2)
 
-### P2-30. ESLint: react-hooks sem preset recommended; regras que poderiam ser `error`
+### P2-30. ✅ ESLint: react-hooks sem preset recommended; regras que poderiam ser `error`
 
-`eslint.config.js:15-29` — plugin registrado manualmente com 2 regras; `no-explicit-any`/`no-unused-vars` em `warn` (grep: zero `any` explícito em `src` — subir para `error` não quebra nada hoje); `public/sw.js` nunca lintado.
-**Refatoração**: `reactHooks.configs['recommended-latest']`, promover as duas regras, bloco de lint para `sw.js` com `globals.serviceworker`.
+> Corrigido em 2026-08-27: `eslint-plugin-react-hooks` (v7) agora registrado via preset flat (`reactHooks.configs.flat.recommended`) em vez de registro manual de 2 regras. `@typescript-eslint/no-explicit-any` e `no-unused-vars` promovidas a `error` (zero violações — base já estava limpa). Criado bloco de lint dedicado para `public/sw.js` com `globals.serviceworker` (regras base de JS, sem TS) e o script `lint` passou a cobri-lo (`eslint src public/sw.js`) — primeira vez que o service worker é lintado, o que revelou e corrigiu um inicializador inútil em `sw.js:47`. Decisão documentada no config: o `flat['recommended-latest']` do plugin v7 ativa 17 regras do React Compiler que produzem 22 erros arquiteturais no código atual (`set-state-in-effect` ×17, `purity` ×2, `static-components` ×1) — essas 3 regras ficam deliberadamente `off` com comentário explicativo; religá-las exige refatoração dedicada.
+> **Onde**: `eslint.config.js`, `package.json` (scripts `lint`/`lint:fix`), `public/sw.js`.
 
 ### P2-31. ✅ Strict mode do TypeScript incompleto + `vercel.json` sem headers de cache do SW
 
