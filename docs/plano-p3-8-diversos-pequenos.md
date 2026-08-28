@@ -1,7 +1,7 @@
 # 📋 Plano de Implementação: P3-8 — Diversos Pequenos
 
 > **Item da Auditoria**: `P3-8` de [`docs/plano-refatoracoes.md`](./plano-refatoracoes.md)  
-> **Status**: Proposto / Planejamento Arquitetural (Auditado e Aprovado por Subagentes)  
+> **Status**: ✅ Concluído / Implementado (13 itens executados e validados)  
 > **Fontes Canônicas**: [`AGENTS.md`](../AGENTS.md) e [`design-system.md`](../design-system.md)  
 > **Escopo**: 13 melhorias pontuais em componentes, hooks, bibliotecas de domínio (`src/lib/`), service worker (`public/sw.js`) e shell HTML (`index.html`).
 

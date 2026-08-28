@@ -147,6 +147,8 @@ export interface ParRacha {
   percentual: number | null;
 }
 
+export type ColunaOrdenacaoDuplas = 'pontos' | 'partidas' | 'percentual' | 'vitorias' | 'dupla';
+
 export async function carregarParesRacha(minPartidas: number = 5) {
   const { data, error } = await supabase.rpc('pares_racha', {
     p_min_partidas: minPartidas,
@@ -290,6 +292,7 @@ export async function finalizarPartida(partidaId: number) {
 
 // 14 de linha = 2 times x 7 jogadores (LIMITE_POR_TIME).
 export const CAPACIDADE_PARTIDA = LIMITE_POR_TIME * 2;
+export const STORAGE_NOVA_PARTIDA = 'racha_nova_partida';
 
 export function vagasOcupadas(participantes: Participante[]): number {
   return participantes.filter((p) => p.status_confirmacao === 'confirmado').length;

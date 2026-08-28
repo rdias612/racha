@@ -488,3 +488,19 @@ export async function carregarStatsJogador(
     vitorias: data.vitorias ?? 0,
   };
 }
+
+/**
+ * Comparador reutilizável para ordenar jogadores elegíveis/avulsos por presença recente
+ * (mais partidas primeiro), com desempate por username em ordem alfabética.
+ */
+export function compararPorPresencaRecente(
+  partidasRecentes: Record<number, number>
+): (a: JogadorLista, b: JogadorLista) => number {
+  return (a, b) => {
+    const qtdA = partidasRecentes[a.id] ?? 0;
+    const qtdB = partidasRecentes[b.id] ?? 0;
+    if (qtdB !== qtdA) return qtdB - qtdA;
+    return a.username.localeCompare(b.username);
+  };
+}
+

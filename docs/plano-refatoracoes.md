@@ -437,21 +437,23 @@ Componente idêntico em `Perfil.tsx:393-404` e `Estatisticas.tsx:410-421`; inter
 > Corrigido em 2026-08-27: varredura O(n×m) do `.find` dentro do `.some` (checagem de goleiro por time) substituída por `jogadoresPorId`, um `Map<number, JogadorLista>` via `useMemo` com lookup O(1), usado também no `atribuirTime`. `NOTA_PADRAO = 6.0` agora é exportada de `escalacao.ts` e usada no feedback de equilíbrio do `autoEscalar` (antes `6.0` inline duplicado). Sobre a sincronização com props: o ajuste via adjust-state-during-render **não era exigido pelo fluxo** — nenhum caller passava `initialTimes` (opção morta); `PartidaTimes` hidrata os times salvos via `setTimes` no próprio `useEffect` de carga e `PartidaNovaTimes` começa limpo. A opção `initialTimes` foi removida (zero code slop), eliminando o hazard de estado stale em vez de mascará-lo com sync.
 > **Onde**: `src/hooks/useEscalacaoTimes.ts`, `src/lib/escalacao.ts`.
 
-### P3-8. Diversos pequenos
+### P3-8. ✅ Diversos pequenos
 
-- `ModalNovoGoleiro.tsx` — sem `createPortal`, sem lock de scroll, estado não resetado entre aberturas
-- `useSwipeTabs.ts:161-170` — objeto `handlers` recriado por render → `useMemo`
-- `DuplaCard.tsx:2` — importa tipo de `../routes/EstatisticasRacha` (inversão de camadas) → mover para `lib/partidas.ts`
-- `DialogoEvento.tsx:92` — `rounded-t-[8px]` acima do máximo canônico `[6px]`
-- `tema.ts:28` — `localStorage.setItem` sem try/catch (quebra em Safari privado)
-- `dividas.ts:166-261` — `baixarExcelLancamentos` mistura camada de dados com DOM/XML → mover para `lib/exportacao.ts`
-- `pwa.ts:140-153` — ver P1-14
-- `Administrador.tsx:40-53` (`hojeStr`/`mesAtualStr`/`primeiroDiaMesStr`), `PartidaNovaTimes.tsx:19` + `PartidaNova.tsx:16` (`STORAGE_KEY` duplicada), `PartidaNova.tsx:13-14` (`LIMITE_LINHA=14` local vs `CAPACIDADE_PARTIDA`) → mover para `lib/formatacao.ts`/`lib/partidas.ts` (fonte única da regra de capacidade)
-- Ordenação de candidatos por partidas recentes duplicada: `PartidaDetalhe.tsx:726-735` vs `PartidaNova.tsx:98-112` → helper em `lib/jogadores.ts`
-- Elenco completo via `history.state` entre 3 telas (`PartidaNova.tsx:283`, `PartidaConfirma.tsx:97-104`, `PartidaNovaTimes.tsx`) — morre no refresh → persistir selecionados no rascunho/localStorage e passar só ids
-- `sw.js:60-62` — `renotify: true` sem `tag` garantida (ignorado silenciosamente quando `payload.tag`/`id` indefinidos)
-- Favicon ausente — sem `<link rel="icon">` nem `favicon.ico` em `public/` (404 + SW tenta cacheá-lo)
-- `ErrorBoundary.tsx:29-39` — único componente com paleta `neutral-*`/`rounded-lg`/`shadow` fora do design system → reescrever com tokens
+> Corrigido em 2026-08-28: implementados todos os 13 itens refinados em `docs/plano-p3-8-diversos-pequenos.md`:
+> 1. `ModalNovoGoleiro.tsx` — reset defensivo de estado (`nome`, `telefone`, `chavePix`, `erro`) via `useEffect` no fechamento/abertura.
+> 2. `useSwipeTabs.ts` — memoização dos handlers touch via `useMemo`.
+> 3. `DuplaCard.tsx` — `ColunaOrdenacaoDuplas` centralizado em `src/lib/partidas.ts`, eliminando import de rota em componente.
+> 4. `DialogoEvento.tsx` — ajuste geométrico de cantos para `rounded-t-[6px]` (teto do Design System).
+> 5. `tema.ts` — `try/catch` defensivo em `localStorage` e sincronização do `<meta name="theme-color">`.
+> 6. `exportacao.ts` — módulo dedicado criado para `escaparXml` e `baixarExcelLancamentos`, desacoplando I/O de `dividas.ts`.
+> 7. `pwa.ts` & `SessaoContext.tsx` — erro propagado em `statusPush` e desconexão imediata se `is_ativo === false`.
+> 8. Constantes centralizadas — `hojeStr`, `mesAtualStr`, `primeiroDiaMesStr` em `formatacao.ts`; `STORAGE_NOVA_PARTIDA` e `CAPACIDADE_PARTIDA` em `partidas.ts`.
+> 9. `jogadores.ts` — helper puro `compararPorPresencaRecente` reutilizado em `PartidaDetalhe.tsx` e `PartidaNova.tsx`.
+> 10. `PartidaNova.tsx` — conformidade estrita com hooks do React 19 no topo e fluxo desacoplado de `history.state`.
+> 11. `sw.js` — tag com fallback garantido para notificações com `renotify: true`.
+> 12. `index.html` — links canônicos de favicon SVG e PNG 192px no `<head>`.
+> 13. `ErrorBoundary.tsx` — render enquadrado no Design System "Súmula de Quinta" (`bg-superficie`, `shadow-carimbo-preto`, badge `perigo`).
+> **Onde**: `src/components/`, `src/hooks/`, `src/lib/`, `src/routes/`, `public/sw.js`, `index.html`.
 
 ## Banco e Infra (P3)
 

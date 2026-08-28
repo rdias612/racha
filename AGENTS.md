@@ -127,8 +127,8 @@ racha/
 │       ├── PartidaAoVivo.tsx  # Operação de campo em tempo real
 │       ├── PartidaVotar.tsx   # Cédula de votação de notas com autosave
 │       ├── PartidaEditar.tsx  # Edição transacional de súmula
-│       ├── PartidaNova.tsx    # Criação manual de novo jogo
-│       ├── PartidaConfirma.tsx# Presença e escalação da nova partida
+│       ├── PartidaNova.tsx    # Criação manual de novo jogo (cria o draft e redireciona para a divisão de times)
+│       ├── PartidaTimes.tsx   # Divisão de times e seleção de goleiros (tela única do fluxo semanal e manual)
 │       ├── GestaoJogadores.tsx# Gerenciamento de atletas e mensalistas
 │       └── Administrador.tsx  # Painel financeiro de dívidas e cobranças
 ├── supabase/
@@ -275,8 +275,7 @@ Sempre que implementar botões de retorno ("Voltar"), use a função utilitária
 No `Layout.tsx`, a barra de navegação inferior é automaticamente ocultada em telas de fluxo focado (criação, edição, votação e jogo ao vivo) através da regex:
 
 ```tsx
-const isFluxoFocado =
-  /^\/partida\/(nova(\/times|\/confirma)?|\d+\/(votar|editar|ao-vivo|times))/.test(pathname);
+const isFluxoFocado = /^\/partida\/(nova|\d+\/(votar|editar|ao-vivo|times))/.test(pathname);
 ```
 
 Quando verdadeiro, o `<main>` recebe padding inferior adequado para fixação das barras de ação diretamente na base da tela.

@@ -169,13 +169,14 @@ export async function statusPush(jogadorId: number): Promise<StatusPush> {
   const subscription = await subscriptionAtual();
   if (!subscription) return 'desativado';
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('push_subscriptions')
     .select('endpoint')
     .eq('jogador_id', jogadorId)
     .eq('endpoint', subscription.endpoint)
     .maybeSingle();
-  return error ? 'desativado' : 'ativado';
+  if (error) throw error;
+  return data ? 'ativado' : 'desativado';
 }
 
 export async function ativarPush(jogadorId: number) {

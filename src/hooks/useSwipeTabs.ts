@@ -1,4 +1,4 @@
-import { useRef, useCallback, type TouchEvent } from 'react';
+import { useRef, useCallback, useMemo, type TouchEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { vibrateLight } from '../lib/haptics';
 
@@ -158,14 +158,17 @@ export function useSwipeTabs({
     [activeTab, disabled, navigate, onChangeTab, tabs, threshold]
   );
 
-  return {
-    onTouchStart: handleTouchStart,
-    onTouchMove: handleTouchMove,
-    onTouchEnd: handleTouchEnd,
-    handlers: {
+  return useMemo(
+    () => ({
       onTouchStart: handleTouchStart,
       onTouchMove: handleTouchMove,
       onTouchEnd: handleTouchEnd,
-    },
-  };
+      handlers: {
+        onTouchStart: handleTouchStart,
+        onTouchMove: handleTouchMove,
+        onTouchEnd: handleTouchEnd,
+      },
+    }),
+    [handleTouchStart, handleTouchMove, handleTouchEnd]
+  );
 }

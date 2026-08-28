@@ -70,7 +70,7 @@ export function DialogoEvento({
         aria-labelledby={tituloId}
         tabIndex={-1}
         onKeyDown={handleKeyDown}
-        className={`w-full max-w-sm rounded-t-[8px] border-t-2 border-x-2 sm:border-2 border-borda bg-superficie p-5 shadow-carimbo-preto transition sm:rounded-[6px] ${
+        className={`w-full max-w-sm rounded-t-[6px] border-t-2 border-x-2 sm:border-2 border-borda bg-superficie p-5 shadow-carimbo-preto transition sm:rounded-[6px] ${
           visivel ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
         }`}
       >

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import {
+  compararPorPresencaRecente,
   listarJogadoresAtivos,
   obterPartidasRecentesJogadores,
   type JogadorLista,
@@ -16,9 +17,8 @@ import { BotaoVoltar } from '../components/BotaoVoltar';
 import { BarraAcaoInferior } from '../components/BarraAcaoInferior';
 import { CampoBusca } from '../components/CampoBusca';
 import { formatarMensagemErro } from '../lib/erros';
+import { CAPACIDADE_PARTIDA, STORAGE_NOVA_PARTIDA } from '../lib/partidas';
 
-const LIMITE_LINHA = 14;
-const STORAGE_KEY = 'racha_nova_partida';
 const HORA_PADRAO = '19:00';
 
 interface EstadoPersistido {
@@ -46,7 +46,7 @@ export function PartidaNova() {
     let ativo = true;
     let estadoInicial: EstadoPersistido | null = null;
     try {
-      const cru = localStorage.getItem(STORAGE_KEY);
+      const cru = localStorage.getItem(STORAGE_NOVA_PARTIDA);
       if (cru) {
         const parsed = JSON.parse(cru) as EstadoPersistido;
         if (
@@ -87,7 +87,7 @@ export function PartidaNova() {
   useEffect(() => {
     if (!hidratado) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ selecionados, dataJogo }));
+      localStorage.setItem(STORAGE_NOVA_PARTIDA, JSON.stringify({ selecionados, dataJogo }));
     } catch {
       // Storage indisponível — ignora silenciosamente.
     }
@@ -110,18 +110,13 @@ export function PartidaNova() {
           (j) =>
             !j.is_mensalista && j.posicao !== 'goleiro' && j.username.toLowerCase().includes(termo)
         )
-        .sort((a, b) => {
-          const qtdA = partidasRecentes[a.id] ?? 0;
-          const qtdB = partidasRecentes[b.id] ?? 0;
-          if (qtdB !== qtdA) return qtdB - qtdA;
-          return a.username.localeCompare(b.username);
-        }),
+        .sort(compararPorPresencaRecente(partidasRecentes)),
     [jogadores, termo, partidasRecentes]
   );
 
   // Contadores derivados.
   const linhaSel = selecionados.length;
-  const podeCriar = linhaSel === LIMITE_LINHA && Boolean(dataJogo) && !salvando;
+  const podeCriar = linhaSel === CAPACIDADE_PARTIDA && Boolean(dataJogo) && !salvando;
 
   if (!isAdmin) return <Navigate to="/" replace />;
   if (carregando) return <Carregando>Carregando jogadores</Carregando>;
@@ -131,7 +126,7 @@ export function PartidaNova() {
       if (prev.includes(id)) {
         return prev.filter((x) => x !== id);
       }
-      if (prev.length >= LIMITE_LINHA) return prev;
+      if (prev.length >= CAPACIDADE_PARTIDA) return prev;
       return [...prev, id];
     });
   }
@@ -170,7 +165,7 @@ export function PartidaNova() {
       if (!novaPartidaId) throw new Error('Falha ao criar partida (rollback).');
 
       try {
-        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(STORAGE_NOVA_PARTIDA);
       } catch {
         // Storage indisponível — ignora silenciosamente.
       }
@@ -218,7 +213,7 @@ export function PartidaNova() {
         {/* Card de cota de linha */}
         <div
           className={`rounded-[3px] border p-2.5 flex items-center justify-between transition ${
-            linhaSel >= LIMITE_LINHA
+            linhaSel >= CAPACIDADE_PARTIDA
               ? 'border-ok/60 bg-ok/10 text-ok'
               : 'border-borda bg-superficie-2 text-giz-fraco'
           }`}
@@ -232,8 +227,8 @@ export function PartidaNova() {
             </span>
           </div>
           <span className="font-mono text-sm font-bold tabular-nums">
-            {linhaSel >= LIMITE_LINHA ? '✓ ' : ''}
-            {linhaSel}/{LIMITE_LINHA}
+            {linhaSel >= CAPACIDADE_PARTIDA ? '✓ ' : ''}
+            {linhaSel}/{CAPACIDADE_PARTIDA}
           </span>
         </div>
       </div>
@@ -253,7 +248,7 @@ export function PartidaNova() {
         selecionados={selecionados}
         onToggle={toggleSelecionado}
         onLimpar={limparGrupo}
-        cotaLinhaCheia={linhaSel >= LIMITE_LINHA}
+        cotaLinhaCheia={linhaSel >= CAPACIDADE_PARTIDA}
       />
       <GrupoJogadores
         titulo="Avulsos"
@@ -261,14 +256,14 @@ export function PartidaNova() {
         selecionados={selecionados}
         onToggle={toggleSelecionado}
         onLimpar={limparGrupo}
-        cotaLinhaCheia={linhaSel >= LIMITE_LINHA}
+        cotaLinhaCheia={linhaSel >= CAPACIDADE_PARTIDA}
       />
 
       {/* Barra Fixa Inferior */}
       <BarraAcaoInferior
         legenda={
           !podeCriar && !salvando
-            ? `Selecione exatamente ${LIMITE_LINHA} jogadores de linha para avançar.`
+            ? `Selecione exatamente ${CAPACIDADE_PARTIDA} jogadores de linha para avançar.`
             : undefined
         }
       >
@@ -279,7 +274,7 @@ export function PartidaNova() {
         >
           {salvando
             ? 'Criando partida…'
-            : `Avançar para Escalação (${selecionados.length}/${LIMITE_LINHA})`}
+            : `Avançar para Escalação (${selecionados.length}/${CAPACIDADE_PARTIDA})`}
         </button>
       </BarraAcaoInferior>
     </div>

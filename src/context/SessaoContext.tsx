@@ -52,7 +52,19 @@ export function SessaoProvider({ children }: { children: ReactNode }) {
         .eq('id', snapshot.id)
         .maybeSingle();
 
-      if (!ativo || error || !data || !data.is_ativo) return;
+      if (!ativo || error) return;
+
+      if (data && !data.is_ativo) {
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+        } catch {
+          /* ignore */
+        }
+        setJogadorState(null);
+        return;
+      }
+
+      if (!data) return;
 
       const jogadorAtualizado = aplicarSuperAdmin(data as JogadorLogado);
 

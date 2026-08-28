@@ -1,5 +1,4 @@
-import type { ParRacha } from '../lib/partidas';
-import type { ColunaOrdenacaoDuplas } from '../routes/EstatisticasRacha';
+import type { ColunaOrdenacaoDuplas, ParRacha } from '../lib/partidas';
 import { Avatar } from './Avatar';
 
 interface DuplaCardProps {

@@ -7,6 +7,7 @@ import { invalidarCache } from '../hooks/useCache';
 import { CHAVE_JOGOS, chaveResumo } from '../lib/chavesCache';
 import { POSICOES, type TimeId } from '../lib/times';
 import {
+  compararPorPresencaRecente,
   isRandomUsername,
   listarJogadoresAtivos,
   obterPartidasRecentesJogadores,
@@ -696,14 +697,7 @@ function Confirmacoes({
     const idsNoElenco = new Set(participantesLocais.map((p) => p.jogador_id));
     return todosAtivos
       .filter((j) => !idsNoElenco.has(j.id))
-      .sort((a, b) => {
-        const qtdA = partidasRecentes[a.id] ?? 0;
-        const qtdB = partidasRecentes[b.id] ?? 0;
-        if (qtdB !== qtdA) {
-          return qtdB - qtdA;
-        }
-        return a.username.localeCompare(b.username);
-      });
+      .sort(compararPorPresencaRecente(partidasRecentes));
   }, [participantesLocais, todosAtivos, partidasRecentes]);
 
   return (

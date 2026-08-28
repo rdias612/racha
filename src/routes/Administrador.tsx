@@ -18,14 +18,20 @@ import { PullToRefresh } from '../components/PullToRefresh';
 import { SelectSumula } from '../components/SelectSumula';
 import { Snackbar } from '../components/Snackbar';
 import { useSnackbar } from '../hooks/useSnackbar';
-import { formatarReais, formatarDataLista } from '../lib/formatacao';
+import {
+  formatarReais,
+  formatarDataLista,
+  hojeStr,
+  mesAtualStr,
+  primeiroDiaMesStr,
+} from '../lib/formatacao';
+import { baixarExcelLancamentos } from '../lib/exportacao';
 import { isRandomUsername, listarJogadoresAtivos, type JogadorLista } from '../lib/jogadores';
 import { BotaoVoltar } from '../components/BotaoVoltar';
 import { formatarMensagemErro } from '../lib/erros';
 import {
   NATUREZAS_LANCAMENTO,
   TIPOS_DIVIDA,
-  baixarExcelLancamentos,
   labelTipoDivida,
   listarDividasEmAberto,
   listarLancamentosPorPeriodo,
@@ -40,21 +46,6 @@ import {
   type NaturezaLancamento,
   type TipoDivida,
 } from '../lib/dividas';
-
-function hojeStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
-    d.getDate()
-  ).padStart(2, '0')}`;
-}
-function mesAtualStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-}
-function primeiroDiaMesStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
-}
 
 const COR_TIPO: Record<TipoDivida, string> = {
   mensalidade: 'bg-destaque/15 text-destaque-texto border-destaque/40',

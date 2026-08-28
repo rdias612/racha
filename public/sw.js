@@ -53,11 +53,12 @@ self.addEventListener('push', (event) => {
 
   const id = payload.partida_id || payload.id;
   const url = payload.url || (id ? `/partida/${id}/votar` : '/');
+  const tagNotificacao = payload.tag || (id ? `votar-partida-${id}` : 'racha-notificacao-geral');
   event.waitUntil(
     self.registration.showNotification(payload.title || 'Racha', {
-      body: payload.body || 'Há uma votação de partida pendente.',
+      body: payload.body || 'Há uma nova notificação do racha.',
       data: { url },
-      tag: payload.tag || (id ? `votar-partida-${id}` : undefined),
+      tag: tagNotificacao,
       renotify: true,
       vibrate: [100, 50, 100, 50, 300],
     })

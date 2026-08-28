@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { UserPlus, Phone, CreditCard } from 'lucide-react';
 import { MensagemEstado } from './Estado';
 import { ModalBase } from './ModalBase';
@@ -16,6 +16,15 @@ export function ModalNovoGoleiro({ open, onClose, onSalvar }: ModalNovoGoleiroPr
   const [chavePix, setChavePix] = useState('');
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) {
+      setNome('');
+      setTelefone('');
+      setChavePix('');
+      setErro(null);
+    }
+  }, [open]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
