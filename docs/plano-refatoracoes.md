@@ -437,10 +437,10 @@ Componente idêntico em `Perfil.tsx:393-404` e `Estatisticas.tsx:410-421`; inter
 > Corrigido em 2026-08-27: extraídas as constantes de módulo `VARIAVEIS_CONVITE`, `BUCKETS_VOTACAO` e `TEMPLATES_VOTACAO` no topo de `src/routes/Notificacoes.tsx`, eliminando a recriação de arrays e objetos literais estáticos a cada ciclo de render. Tipadas estritamente as chaves de campos (`titField`, `msgField`, `field`) com base em `NotificacoesConfig`, eliminando asserções e casts duplos inseguros no binding dos formulários.
 > **Onde**: `src/routes/Notificacoes.tsx`.
 
-### P3-7. `useEscalacaoTimes` não sincroniza com props + varredura O(n²)
+### P3-7. ✅ `useEscalacaoTimes` não sincroniza com props + varredura O(n²)
 
-`hooks/useEscalacaoTimes.ts:21` (`useState(initialTimes)` sem sync) e `:44-49` (`.find` dentro de `.some`).
-**Refatoração**: `Map<number, JogadorLista>` via `useMemo`; sincronizar via adjust-state-during-render se o fluxo exigir. Exportar `NOTA_PADRAO` de `escalacao.ts:14` (hoje `6.0` inline em `:91,94` duplica a constante).
+> Corrigido em 2026-08-27: varredura O(n×m) do `.find` dentro do `.some` (checagem de goleiro por time) substituída por `jogadoresPorId`, um `Map<number, JogadorLista>` via `useMemo` com lookup O(1), usado também no `atribuirTime`. `NOTA_PADRAO = 6.0` agora é exportada de `escalacao.ts` e usada no feedback de equilíbrio do `autoEscalar` (antes `6.0` inline duplicado). Sobre a sincronização com props: o ajuste via adjust-state-during-render **não era exigido pelo fluxo** — nenhum caller passava `initialTimes` (opção morta); `PartidaTimes` hidrata os times salvos via `setTimes` no próprio `useEffect` de carga e `PartidaNovaTimes` começa limpo. A opção `initialTimes` foi removida (zero code slop), eliminando o hazard de estado stale em vez de mascará-lo com sync.
+> **Onde**: `src/hooks/useEscalacaoTimes.ts`, `src/lib/escalacao.ts`.
 
 ### P3-8. Diversos pequenos
 

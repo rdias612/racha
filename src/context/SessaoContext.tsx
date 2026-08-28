@@ -8,11 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 import { supabase } from '../lib/supabase';
-import {
-  aplicarSuperAdmin,
-  COLUNAS_JOGADOR_LISTA,
-  type JogadorLista,
-} from '../lib/jogadores';
+import { aplicarSuperAdmin, COLUNAS_JOGADOR_LISTA, type JogadorLista } from '../lib/jogadores';
 
 export type JogadorLogado = JogadorLista;
 

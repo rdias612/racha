@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { gerarEscalacaoAutomatica } from '../lib/escalacao';
+import { useState, useCallback, useMemo } from 'react';
+import { gerarEscalacaoAutomatica, NOTA_PADRAO } from '../lib/escalacao';
 import type { JogadorLista } from '../lib/jogadores';
 import { LIMITE_POR_TIME, type TimeId } from '../lib/times';
 import { vibrateWarning, vibrateSuccess } from '../lib/haptics';
@@ -7,23 +7,26 @@ import { vibrateWarning, vibrateSuccess } from '../lib/haptics';
 export interface UseEscalacaoTimesOptions {
   jogadores: JogadorLista[];
   mediasNotas: Record<number, number>;
-  initialTimes?: Record<number, TimeId>;
   limitePorTime?: number;
 }
 
 export function useEscalacaoTimes({
   jogadores,
   mediasNotas,
-  initialTimes = {},
   limitePorTime = LIMITE_POR_TIME,
 }: UseEscalacaoTimesOptions) {
-  const [times, setTimes] = useState<Record<number, TimeId>>(initialTimes);
+  // Times sempre nascem vazios: a hidratação (partida já salva) é feita pelo
+  // caller via `setTimes` após carregar os dados — sem prop de valor inicial
+  // que precisasse de sincronização.
+  const [times, setTimes] = useState<Record<number, TimeId>>({});
   const [feedback, setFeedback] = useState<string | null>(null);
+
+  const jogadoresPorId = useMemo(() => new Map(jogadores.map((j) => [j.id, j])), [jogadores]);
 
   const atribuirTime = useCallback(
     (id: number, time: TimeId) => {
       setFeedback(null);
-      const jogador = jogadores.find((j) => j.id === id);
+      const jogador = jogadoresPorId.get(id);
       if (!jogador) return;
 
       const ehGoleiro = jogador.posicao === 'goleiro';
@@ -44,7 +47,7 @@ export function useEscalacaoTimes({
         ([jidStr, tm]) =>
           tm === time &&
           Number(jidStr) !== id &&
-          jogadores.find((x) => x.id === Number(jidStr))?.posicao === 'goleiro'
+          jogadoresPorId.get(Number(jidStr))?.posicao === 'goleiro'
       );
       if (ehGoleiro && destinoTemGoleiro) {
         vibrateWarning();
@@ -65,7 +68,7 @@ export function useEscalacaoTimes({
 
       setTimes((prev) => ({ ...prev, [id]: time }));
     },
-    [jogadores, times, limitePorTime]
+    [times, limitePorTime, jogadoresPorId]
   );
 
   const autoEscalar = useCallback(() => {
@@ -87,10 +90,14 @@ export function useEscalacaoTimes({
     const timeAPart = proposta.filter((p) => p.time === 'a');
     const timeBPart = proposta.filter((p) => p.time === 'b');
     const avgA = timeAPart.length
-      ? (timeAPart.reduce((s, p) => s + (p.media_nota ?? 6.0), 0) / timeAPart.length).toFixed(1)
+      ? (
+          timeAPart.reduce((s, p) => s + (p.media_nota ?? NOTA_PADRAO), 0) / timeAPart.length
+        ).toFixed(1)
       : '0.0';
     const avgB = timeBPart.length
-      ? (timeBPart.reduce((s, p) => s + (p.media_nota ?? 6.0), 0) / timeBPart.length).toFixed(1)
+      ? (
+          timeBPart.reduce((s, p) => s + (p.media_nota ?? NOTA_PADRAO), 0) / timeBPart.length
+        ).toFixed(1)
       : '0.0';
     vibrateSuccess();
     setFeedback(`Times equilibrados! (Preto ${avgA}★ vs Branco ${avgB}★)`);

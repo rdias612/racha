@@ -55,7 +55,8 @@ const VARIAVEIS_CONVITE = ['{dia_jogo}', '{hora_jogo}', '{prazo}'] as const;
 interface BucketVotacaoItem {
   readonly key: string;
   readonly label: string;
-  readonly field: 'votacao_bucket_6h' | 'votacao_bucket_3h' | 'votacao_bucket_1h' | 'votacao_bucket_30m';
+  readonly field:
+    'votacao_bucket_6h' | 'votacao_bucket_3h' | 'votacao_bucket_1h' | 'votacao_bucket_30m';
 }
 
 const BUCKETS_VOTACAO: readonly BucketVotacaoItem[] = [

@@ -11,7 +11,9 @@ export interface ParticipanteForm {
   media_nota?: number;
 }
 
-const NOTA_PADRAO = 6.0;
+// Nota assumida quando o atleta ainda não tem média avaliada (usada também
+// pelo hook useEscalacaoTimes no feedback de equilíbrio dos times).
+export const NOTA_PADRAO = 6.0;
 const JITTER_NOTA = 0.1;
 
 function embaralhar<T>(array: T[]): T[] {
