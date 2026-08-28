@@ -124,7 +124,7 @@ export function Resumo() {
           titulo: 'Mais Eficiente',
           badge: '📈 % VITÓRIAS',
           nome: resumo.eficiente_username ? `@${resumo.eficiente_username}` : null,
-          valor: `${Math.round((resumo.eficiente_percentual ?? 0) * 100)}% vitórias`,
+          valor: `${Math.round(resumo.eficiente_percentual ?? 0)}% vitórias`,
           detalhe: `${resumo.eficiente_vitorias ?? 0}V em ${resumo.eficiente_partidas ?? 0} jogos`,
         },
         {
