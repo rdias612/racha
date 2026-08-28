@@ -18,10 +18,10 @@ import {
   obterMediasNotasJogadores,
   type JogadorLista,
 } from '../lib/jogadores';
-import { type TimeId } from '../lib/times';
+import { LIMITE_POR_TIME, type TimeId } from '../lib/times';
 import { formatarDataCompleta, formatarDataMobile } from '../lib/formatacao';
 import { Carregando, MensagemEstado } from '../components/Estado';
-import { EscalacaoTimesEditor, LIMITE_POR_TIME } from '../components/EscalacaoTimesEditor';
+import { EscalacaoTimesEditor } from '../components/EscalacaoTimesEditor';
 import { ModalNovoGoleiro } from '../components/ModalNovoGoleiro';
 import { voltar } from '../lib/navegacao';
 import { formatarMensagemErro } from '../lib/erros';

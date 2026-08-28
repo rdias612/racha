@@ -36,36 +36,30 @@
 O `GRANT INSERT, UPDATE, DELETE ON partidas, partidas_participantes, votes TO anon, authenticated` e o `GRANT UPDATE ON jogadores TO anon` nunca foram revogados — a migration `069` só revogou o `SELECT` de `senha_hash`. Sem RLS no banco, qualquer pessoa com a anon key (embutida no bundle) pode fazer `PATCH /rest/v1/jogadores?id=eq.N` com `{"is_admin": true}` ou `{"senha_hash": "x"}` e assumir qualquer conta, editar votos alheios fora da janela de 24h e mudar status de partidas.
 **Refatoração**: migration nova `REVOKE INSERT, UPDATE, DELETE ON partidas, partidas_participantes, votes, dividas, push_subscriptions, jogadores FROM anon, authenticated;`. Toda escrita já tem RPC `SECURITY DEFINER` correspondente.
 
-### P0-2. `resetar_senha` sem gate de admin — takeover de qualquer jogador
-
-**Onde**: `supabase/migrations/065_rpc_resetar_senha.sql:16-31`
-A função só recebe `p_jogador_id`; o comentário na linha 12 admite que o bloqueio de superadmin está "aplicado no front". Qualquer chamada anônima reseta a senha de **qualquer** jogador para `'123'` e depois loga via `fazer_login`.
-**Refatoração**: adicionar `p_admin_id bigint` + gate `IF NOT EXISTS (SELECT 1 FROM jogadores WHERE id = p_admin_id AND is_admin) THEN RETURN false;` — padrão já adotado em `excluir_partida` (066) e `admin_definir_confirmacao`.
-
-### P0-3. ✅ Gates de admin bypassáveis com `p_admin_id IS NULL`
+### P0-2. ✅ Gates de admin bypassáveis com `p_admin_id IS NULL`
 
 **Onde**: `supabase/migrations/083_seguranca_goleiros_e_admin_gates.sql:88` e `:88`→`:165` (`salvar_times_e_goleiros_partida` e `abrir_partida`; idem `aplicar_tudo.sql:4561` e `:4632`)
 O gate é `IF p_admin_id IS NOT NULL AND NOT EXISTS (...)` — chamando a RPC **sem** o argumento opcional, a condição inteira é falsa e nenhuma validação roda: anon monta escalação e abre partida. A própria `criar_goleiro_rapido` na mesma migration usa o padrão correto (`IS NULL OR NOT EXISTS`).
 **Refatoração**: inverter para `IF p_admin_id IS NULL OR NOT EXISTS (...) THEN RAISE EXCEPTION ...`.
 
-### P0-4. ✅ Overload antigo de `abrir_partida(bigint)` continua grantado
+### P0-3. ✅ Overload antigo de `abrir_partida(bigint)` continua grantado
 
 **Onde**: `aplicar_tudo.sql:4311-4365` (versão sem gate, com `GRANT EXECUTE ... TO anon` na linha 4365)
 A 083 criou `abrir_partida(bigint, bigint)` com gate, mas não fez `DROP FUNCTION` da assinatura antiga — `CREATE OR REPLACE` com assinatura diferente não substitui o overload. O atacante chama a assinatura antiga e abre a partida sem validar admin.
 **Refatoração**: `DROP FUNCTION abrir_partida(bigint);` na migration `088_drop_abrir_partida_overload_antigo.sql`.
 
-### P0-5. Bug de SQL no mestre: `aplicar_tudo.sql` falha ao aplicar
+### P0-4. Bug de SQL no mestre: `aplicar_tudo.sql` falha ao aplicar
 
 **Onde**: `supabase/aplicar_tudo.sql:3159` — `FROM todos` dentro do `pares_racha` recriado no bloco 076; a migration original correta usa `FROM agregado a` (`076_remover_coluna_nome_jogadores.sql:630`)
 A função é `LANGUAGE sql`: o PostgreSQL valida o corpo no `CREATE`, então o script mestre **quebra com `missing FROM-clause entry for table "todos"`** antes de terminar. O mestre foi editado à mão e divergiu.
 **Refatoração**: corrigir para `FROM agregado a` e passar a gerar o mestre por concatenação automática das migrations (ou `supabase db dump`), nunca edição manual.
 
-### P0-6. `aplicar_tudo.sql` não é auto-suficiente (referencia objetos que não cria)
+### P0-5. `aplicar_tudo.sql` não é auto-suficiente (referencia objetos que não cria)
 
 **Onde**: verificado por grep — `partida_eventos` usada em `aplicar_tudo.sql:1952, 4036, 4350, 4662` (tabela criada só na migration `047`); `sincronizar_contadores_partida` chamada em `:1675, 3970`; colunas `telefone`/`chave_pix` usadas em `:4518-4537` (criadas só na `082`); `resetar_senha` (065) e `excluir_partida` (066) ausentes do mestre embora o app as use; grants de schema da `016` também ausentes.
 **Refatoração**: incluir os blocos 016/047/065/066/082 no mestre, ou extinguir o mestre e documentar `supabase db push` + `supabase db reset` como fluxo único.
 
-### P0-7. Escrita direta em `dividas` e `push_subscriptions` para anon + senhas em texto puro
+### P0-6. Escrita direta em `dividas` e `push_subscriptions` para anon + senhas em texto puro
 
 **Onde**: `036_create_push_notifications.sql:25` e `051_create_dividas.sql:26-27` (grants totais a anon); senhas: `021_plaintext_passwords.sql` + `022_seed_jogadores.sql` (todos os admins com `'123'`)
 Sem RLS, anon pode `DELETE /rest/v1/push_subscriptions` (derrubar notificações de todos), quitar dívidas de quem quiser, criar dívidas para vítimas. As RPCs `quitar_divida`/`quitar_dividas_jogador` também não têm gate de admin. As senhas em texto puro são risco aceito historicamente, mas os caminhos de UPDATE do P0-1 os transformam em takeover completo (o `pgcrypto` da migration 002 está habilitado e não é usado).
@@ -73,25 +67,25 @@ Sem RLS, anon pode `DELETE /rest/v1/push_subscriptions` (derrubar notificações
 
 ## Frontend (Bugs reais)
 
-### P0-8. ✅ Query com coluna inexistente (`match_id`) engole erro — votos anteriores nunca carregam
+### P0-7. ✅ Query com coluna inexistente (`match_id`) engole erro — votos anteriores nunca carregam
 
 **Onde**: `src/routes/PartidaVotar.tsx:118`
 A tabela `votes` tem a coluna `partida_id` (migration 006); `.eq('match_id', partidaId)` retorna erro PGRST204 **sempre**, mas a desestruturação `const { data: meusVotos }` sem checar `error` engole a falha — a tela sempre cai no rascunho do localStorage e a função "editar voto" está quebrada em produção.
 **Refatoração**: corrigir para `partida_id` e mover a leitura para `lib/partidas.ts` (`carregarMeusVotos(partidaId, voterId)`) — `votes` já é consultado à mão em 4 lugares (`BannerLembrete.tsx:42`, `PartidaDetalhe.tsx:76`, `PartidaVotar.tsx:116`, fallback em `lib/jogadores.ts:180`).
 
-### P0-9. ✅ `Math.random()` dentro do comparator de `sort` viola o contrato
+### P0-8. ✅ `Math.random()` dentro do comparator de `sort` viola o contrato
 
 **Onde**: `src/lib/escalacao.ts:91-93`
 `(a, b) => b.nota - a.nota + (Math.random() * 0.2 - 0.1)` gera ruído **por comparação**: o mesmo par pode ser ordenado `a<b` e `b<a`, produzindo ordem não especificada. O `embaralhar()` das linhas 53-54 é trabalho morto (o `sort` total por nota na linha 64 descarta a ordem).
 **Refatoração**: aplicar jitter fixo uma vez por jogador antes de ordenar (`notaEfetiva = nota + (rng() * 0.2 - 0.1)` como campo derivado) e remover o `embaralhar` antes de sorts totais.
 
-### P0-10. ✅ `SessaoContext` sem flag de cleanup — race condition real
+### P0-9. ✅ `SessaoContext` sem flag de cleanup — race condition real
 
 **Onde**: `src/context/SessaoContext.tsx:54-86`
 `sincronizarJogador` é assíncrona dentro de `useEffect` sem `let ativo = true`. Se `jogador` mudar com o fetch em voo, duas syncs intercalam e a resposta mais antiga pode resolver por último, sobrescrevendo estado novo com dado obsoleto. Agravado pelos non-null assertions `jogador!.id` (linhas 64, 74-78).
 **Refatoração**: flag `ativo` + capturar `const id = jogador.id` antes do await (elimina os `!`).
 
-### P0-11. ✅ useEffects assíncronos sem flag `ativo` (viola AGENTS 5.2)
+### P0-10. ✅ useEffects assíncronos sem flag `ativo` (viola AGENTS 5.2)
 
 **Onde** (telas fora de `useCache`):
 
@@ -105,19 +99,19 @@ A tabela `votes` tem a coluna `partida_id` (migration 006); `.eq('match_id', par
 
 **Refatoração**: aplicar o padrão canônico do AGENTS 5.2 (referência correta: `PartidaDetalhe.tsx:134-140`). No `BannerLembrete`, separar "fetch" de "agendamento" (deps `[jogadorId]` apenas, valor atual via ref) e pausar quando `document.hidden`.
 
-### P0-12. ✅ Múltiplos round-trips sem transação em lote de jogadores
+### P0-11. ✅ Múltiplos round-trips sem transação em lote de jogadores
 
 **Onde**: `src/routes/GestaoJogadores.tsx:243-253`
 `salvarTodasAlteracoes` faz `for (...) await atualizarCaracteristicasJogador(...)` — falha no meio deixa metade dos jogadores alterada, mas a tela já cometeu `setJogadores(jogadoresDraft)` antes (`:256`). Viola a atomicidade do AGENTS 7.4.
 **Refatoração**: RPC em lote `salvar_caracteristicas_jogadores(p_jsonb)`; só atualizar estado local após sucesso.
 
-### P0-13. ✅ Snackbar de sucesso otimista antes da confirmação do servidor
+### P0-12. ✅ Snackbar de sucesso otimista antes da confirmação do servidor
 
 **Onde**: `src/routes/Administrador.tsx:232-243` e `:264-271`
 `handleQuitar`/`handleQuitarTodas` exibiam "Lançamento marcado como quitado" **antes** do `await quitarDivida(...)`; em falha o usuário recebia toast de sucesso seguido de erro.
 **Refatoração**: mover o toast de sucesso para depois do `await` (o rollback otimista da UI pode permanecer).
 
-### P0-14. ✅ Navegação por teclado quebrada nos dois listbox customizados
+### P0-13. ✅ Navegação por teclado quebrada nos dois listbox customizados
 
 **Onde**: `src/components/SelectSumula.tsx:175` e `src/components/SeletorNota.tsx:164`
 O handler de teclado estava preso ao `<ul tabIndex={-1}>`, mas o foco nunca saía do botão gatilho — ArrowUp/Down não faziam nada e Enter **fechava** o popup. Usuário de teclado abria mas não conseguia escolher.
@@ -170,16 +164,15 @@ O domínio vive em `lib/partidas.ts`/`lib/jogadores.ts`; esses acessos diretos q
 Com dois drafts no banco, as telas exibem partidas diferentes como "a próxima".
 **Refatoração**: expor `obterPartidaDraftAtual` em `lib/partidas.ts` com critério único documentado.
 
-### P1-7. Regra de "votação aberta" inconsistente entre telas
+### P1-7. ✅ Regra de "votação aberta" inconsistente entre telas
 
-**Onde**: `src/routes/PartidaVotar.tsx:80-81` (`!p.voting_closes_at || ...` = nulo é aberto) vs `src/routes/PartidaDetalhe.tsx:176-179` (nulo é fechado)
-**Refatoração**: extrair `votacaoAberta(partida)` em `lib/partidas.ts` (AGENTS 8.1).
+> Corrigido em 2026-08-27: extraída a função pura e canônica `votacaoAberta(partida)` em `src/lib/partidas.ts` aplicando estritamente as regras de negócio de AGENTS 8.1 (status `'published'`, `voting_closes_at` presente e válido, e timestamp futuro). Substituídas todas as checagens inline divergentes e comparações de string em `PartidaVotar.tsx`, `PartidaDetalhe.tsx` e `BannerLembrete.tsx`.
+> **Onde**: `src/lib/partidas.ts`, `src/routes/PartidaVotar.tsx`, `src/routes/PartidaDetalhe.tsx`, `src/components/BannerLembrete.tsx`.
 
-### P1-8. Fallback de médias baixa a tabela `votes` inteira + duplica regra SQL
+### P1-8. ✅ Fallback de médias baixa a tabela votes inteira + duplica regra SQL
 
-**Onde**: `src/lib/jogadores.ts:180-211`
-O fallback client baixa `votes` completa (viola AGENTS 7.5), engole erros com `catch {}`/`return {}` (silencia falha de rede como "média inexistente") e reimplementa a média aparada que já existe na RPC 070 — duas cópias para sincronizar à mão para sempre.
-**Refatoração**: garantir a RPC como única fonte; remover fallback ou propagar erro como as demais funções de lib.
+> Corrigido em 2026-08-27: removido o fallback client em `src/lib/jogadores.ts` que consultava a tabela inteira `votes` e recalculava a média aparada no JavaScript. A função `obterMediasNotasJogadores` (e o alias `carregarMediasNotasJogadores`) agora consulta unicamente a RPC `obter_medias_notas_jogadores` do PostgreSQL e propaga eventuais erros diretamente (throw), alinhando-se aos padrões canônicos de integridade e tratamento de erros do projeto.
+> **Onde**: `src/lib/jogadores.ts:193-211`.
 
 ### P1-9. ✅ (resolvido pela P0-12) Checagem de `MAX_MENSALISTAS` com race condition (TOCTOU)
 
@@ -223,10 +216,10 @@ O fallback client baixa `votes` completa (viola AGENTS 7.5), engole erros com `c
 `FOR elem IN jsonb_array_elements LOOP INSERT` executa N statements com EXCEPTION/ROLLBACK manual.
 **Refatoração**: `INSERT INTO ... SELECT ... FROM jsonb_array_elements(p_participantes) ON CONFLICT ...` — 1 comando atômico.
 
-### P1-16. Cron jobs disparam Edge Functions sem verificar resposta — falha silenciosa acumulável
+### P1-16. ✅ Cron jobs disparam Edge Functions sem verificar resposta — falha silenciosa acumulável
 
-**Onde**: `077` (`aplicar_tudo.sql:3481-3515`) e `agendar-partida-semanal` (`:2119-2126`) — `net.http_post` 2x/min sem `net.http_collect_response` e sem gravar status. Se o secret girar ou a função entrar em loop de 401/500, nenhum push sai e nada registra.
-**Refatoração**: `net.http_collect_response` com timeout + tabela `cron_execucoes (job, status, body, created_at)` alertando entradas repetidas com erro.
+> Corrigido em 2026-08-27: criada a migration `099_cron_http_response_logging.sql` e sincronizado `aplicar_tudo.sql`. Criada a tabela de auditoria `cron_execucoes` com índices e política de retenção de 30 dias. Implementada a função PL/pgSQL `disparar_e_registrar_cron_http` com `SECURITY DEFINER` e `SET search_path = public`, com disparo assíncrono via `net.http_post`, coleta e validação de resposta HTTP com timeout e fallback (`net._http_response` / `net.http_collect_response`), gravação de status code, resposta e erro em `cron_execucoes`, além de registro explícito de falhas na ausência do secret no Vault. Atualizadas as RPCs `disparar_confirmacao_manual`, `disparar_push_teste`, `salvar_configuracoes_notificacoes` e os jobs `enviar-push-reminders-1min` e `agendar-partida-semanal`.
+> **Onde**: `supabase/migrations/099_cron_http_response_logging.sql`, `supabase/aplicar_tudo.sql`.
 
 ---
 

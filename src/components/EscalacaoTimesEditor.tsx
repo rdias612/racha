@@ -1,7 +1,7 @@
 import { type ReactNode, useMemo, useState } from 'react';
 import { Copy, Wand2 } from 'lucide-react';
 import { type JogadorLista } from '../lib/jogadores';
-import { POSICOES, type PosicaoId, type TimeId } from '../lib/times';
+import { LIMITE_POR_TIME, POSICOES, type PosicaoId, type TimeId } from '../lib/times';
 import { useSnackbar } from '../hooks/useSnackbar';
 import { Snackbar } from './Snackbar';
 import { MensagemEstado } from './Estado';
@@ -9,8 +9,6 @@ import { ModalSelecionarGoleiro } from './ModalSelecionarGoleiro';
 import { BotaoVoltar } from './BotaoVoltar';
 import { BarraAcaoInferior } from './BarraAcaoInferior';
 import { BadgeTime } from './BadgeTime';
-
-export const LIMITE_POR_TIME = 7;
 
 /** Ordem de exibição das posições no texto copiado para o WhatsApp. */
 const ORDEM_POSICOES_TEXTO: PosicaoId[] = [

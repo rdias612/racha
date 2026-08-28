@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { TimeId, PosicaoId } from './times';
+import { LIMITE_POR_TIME, type TimeId, type PosicaoId } from './times';
 
 export type StatusPartida = 'draft' | 'live' | 'published' | 'closed';
 export type StatusConfirmacao = 'pendente' | 'confirmado' | 'recusado';
@@ -288,7 +288,8 @@ export async function finalizarPartida(partidaId: number) {
 
 // --- Confirmação de presença ---
 
-export const CAPACIDADE_PARTIDA = 14;
+// 14 de linha = 2 times x 7 jogadores (LIMITE_POR_TIME).
+export const CAPACIDADE_PARTIDA = LIMITE_POR_TIME * 2;
 
 export function vagasOcupadas(participantes: Participante[]): number {
   return participantes.filter((p) => p.status_confirmacao === 'confirmado').length;
@@ -438,4 +439,26 @@ export async function obterPartidaDraftAtual(): Promise<PartidaDraftAtual | null
   if (error) throw error;
 
   return data as PartidaDraftAtual | null;
+}
+
+// --- Votação e Urna ---
+
+/**
+ * Determina se a votação/urna de uma partida está aberta.
+ * Conforme AGENTS.md (seção 8.1):
+ * A votação só está aberta se `status === 'published'`, `voting_closes_at` existir (não for nulo/vazio)
+ * e o prazo ainda não tiver expirado (`new Date(voting_closes_at).getTime() > Date.now()`).
+ * Se `voting_closes_at` for nulo ou status não for 'published', a votação está FECHADA.
+ */
+export function votacaoAberta(
+  partida: { status?: string | null; voting_closes_at?: string | null } | null | undefined
+): boolean {
+  if (!partida || partida.status !== 'published' || !partida.voting_closes_at) {
+    return false;
+  }
+  const timestampFechamento = new Date(partida.voting_closes_at).getTime();
+  if (Number.isNaN(timestampFechamento)) {
+    return false;
+  }
+  return timestampFechamento > Date.now();
 }

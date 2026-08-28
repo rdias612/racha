@@ -189,6 +189,20 @@ CREATE TABLE IF NOT EXISTS notificacoes_config (
   updated_by                  bigint      REFERENCES jogadores(id)
 );
 
+-- 2.10 Histórico e Auditoria de Execuções de Cron / Edge Functions
+CREATE TABLE IF NOT EXISTS cron_execucoes (
+  id           bigserial PRIMARY KEY,
+  job_nome     text NOT NULL,
+  status_code  integer,
+  sucesso      boolean NOT NULL DEFAULT false,
+  resposta     text,
+  erro         text,
+  executado_em timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_cron_execucoes_job_data ON cron_execucoes (job_nome, executado_em DESC);
+CREATE INDEX IF NOT EXISTS idx_cron_execucoes_sucesso ON cron_execucoes (sucesso, executado_em DESC);
+
 -- ----------------------------------------------------------------------------
 -- 3. FUNÇÕES PURAS E UTILITÁRIAS
 -- ----------------------------------------------------------------------------
@@ -2332,6 +2346,188 @@ GRANT EXECUTE ON FUNCTION excluir_evento_financeiro_automatico(bigint, bigint) T
 -- 10. RPCS: CONFIGURAÇÕES E PUSH NOTIFICATIONS
 -- ----------------------------------------------------------------------------
 
+-- 10.0 Disparar e Registrar Execuções HTTP do Cron (com timeout e coleta)
+CREATE OR REPLACE FUNCTION disparar_e_registrar_cron_http(
+  p_job_nome   text,
+  p_url        text,
+  p_headers    jsonb,
+  p_body       jsonb DEFAULT '{}'::jsonb,
+  p_timeout_ms integer DEFAULT 8000
+)
+RETURNS bigint
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_request_id      bigint;
+  v_status_code     integer;
+  v_resposta        text;
+  v_erro            text;
+  v_sucesso         boolean := false;
+  v_execucao_id     bigint;
+  v_start_time      timestamptz := clock_timestamp();
+  v_collected       boolean := false;
+  v_timeout_efetivo integer;
+BEGIN
+  IF p_job_nome IS NULL OR p_url IS NULL THEN
+    INSERT INTO cron_execucoes (job_nome, sucesso, erro)
+    VALUES (COALESCE(p_job_nome, 'desconhecido'), false, 'Parâmetros inválidos: job_nome ou url nulo.')
+    RETURNING id INTO v_execucao_id;
+    RETURN v_execucao_id;
+  END IF;
+
+  v_timeout_efetivo := LEAST(GREATEST(COALESCE(p_timeout_ms, 8000), 1000), 30000);
+
+  -- 1) Disparo da requisição HTTP via pg_net
+  BEGIN
+    SELECT net.http_post(
+      url := p_url,
+      headers := COALESCE(p_headers, '{}'::jsonb),
+      body := COALESCE(p_body, '{}'::jsonb),
+      timeout_milliseconds := v_timeout_efetivo
+    ) INTO v_request_id;
+  EXCEPTION WHEN OTHERS THEN
+    v_erro := format('Falha ao disparar net.http_post: %s (%s)', SQLERRM, SQLSTATE);
+    v_sucesso := false;
+  END;
+
+  -- 2) Coleta e verificação da resposta com timeout
+  IF v_request_id IS NOT NULL THEN
+    WHILE (EXTRACT(EPOCH FROM (clock_timestamp() - v_start_time)) * 1000) < v_timeout_efetivo LOOP
+      BEGIN
+        -- Tenta consultar a tabela de respostas do pg_net
+        SELECT
+          status_code,
+          body,
+          error_msg
+        INTO
+          v_status_code,
+          v_resposta,
+          v_erro
+        FROM net._http_response
+        WHERE id = v_request_id;
+
+        IF FOUND THEN
+          v_collected := true;
+          EXIT;
+        END IF;
+      EXCEPTION WHEN OTHERS THEN
+        -- Fallback para função wrapper se tabela interna não estiver acessível
+        BEGIN
+          SELECT
+            (res).response.status_code,
+            (res).response.body,
+            (res).message
+          INTO
+            v_status_code,
+            v_resposta,
+            v_erro
+          FROM net.http_collect_response(v_request_id, false) AS res;
+
+          IF v_status_code IS NOT NULL OR v_erro IS NOT NULL THEN
+            v_collected := true;
+            EXIT;
+          END IF;
+        EXCEPTION WHEN OTHERS THEN
+          NULL;
+        END;
+      END;
+
+      PERFORM pg_sleep(0.05);
+    END LOOP;
+
+    IF v_collected THEN
+      IF v_status_code >= 200 AND v_status_code < 300 THEN
+        v_sucesso := true;
+      ELSE
+        v_sucesso := false;
+        IF v_erro IS NULL THEN
+          v_erro := format('HTTP status %s retornado pela Edge Function.', COALESCE(v_status_code::text, 'nulo'));
+        END IF;
+      END IF;
+    ELSE
+      v_sucesso := false;
+      v_erro := COALESCE(v_erro, format('Timeout aguardando resposta HTTP após %s ms.', v_timeout_efetivo));
+    END IF;
+  END IF;
+
+  -- 3) Gravação do log de execução
+  INSERT INTO cron_execucoes (
+    job_nome,
+    status_code,
+    sucesso,
+    resposta,
+    erro,
+    executado_em
+  ) VALUES (
+    p_job_nome,
+    v_status_code,
+    v_sucesso,
+    substring(v_resposta FROM 1 FOR 5000),
+    substring(v_erro FROM 1 FOR 2000),
+    now()
+  )
+  RETURNING id INTO v_execucao_id;
+
+  -- 4) Limpeza de histórico com retenção de 30 dias (defensivo)
+  BEGIN
+    DELETE FROM cron_execucoes
+    WHERE executado_em < (now() - interval '30 days');
+  EXCEPTION WHEN OTHERS THEN
+    NULL;
+  END;
+
+  RETURN v_execucao_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION disparar_e_registrar_cron_http(text, text, jsonb, jsonb, integer) TO anon, authenticated;
+
+-- 10.0.1 Obter Execuções Recentes do Cron (Painel Administrativo)
+CREATE OR REPLACE FUNCTION obter_execucoes_cron(
+  p_admin_id bigint,
+  p_limite   integer DEFAULT 50
+)
+RETURNS TABLE (
+  id           bigint,
+  job_nome     text,
+  status_code  integer,
+  sucesso      boolean,
+  resposta     text,
+  erro         text,
+  executado_em timestamptz
+)
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_is_admin boolean;
+BEGIN
+  SELECT is_admin INTO v_is_admin FROM jogadores WHERE id = p_admin_id;
+  IF v_is_admin IS NOT TRUE THEN
+    RAISE EXCEPTION 'Acesso restrito a administradores.';
+  END IF;
+
+  RETURN QUERY
+  SELECT
+    c.id,
+    c.job_nome,
+    c.status_code,
+    c.sucesso,
+    c.resposta,
+    c.erro,
+    c.executado_em
+  FROM cron_execucoes c
+  ORDER BY c.executado_em DESC
+  LIMIT LEAST(GREATEST(COALESCE(p_limite, 50), 1), 200);
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION obter_execucoes_cron(bigint, integer) TO anon, authenticated;
+
 -- 10.1 Salvar Configurações Globais e Reagendar Cron de Confirmação
 CREATE OR REPLACE FUNCTION salvar_configuracoes_notificacoes(
   p_admin_id bigint,
@@ -2411,6 +2607,7 @@ BEGIN
       DECLARE
         v_partida_id bigint;
         v_secret     text;
+        v_headers    jsonb;
       BEGIN
         SELECT criar_partida_semanal_mensalistas() INTO v_partida_id;
         IF v_partida_id IS NULL THEN
@@ -2427,13 +2624,23 @@ BEGIN
             FROM vault.decrypted_secrets
             WHERE name = 'push_cron_secret'
             LIMIT 1;
-          PERFORM net.http_post(
-            url := 'https://jtavmrlllyctkuxefhpc.supabase.co/functions/v1/send-confirmation-requests',
-            headers := jsonb_build_object(
-              'Content-Type', 'application/json',
-              'x-push-cron-secret', v_secret
-            ),
-            body := jsonb_build_object('partida_id', v_partida_id)
+
+          IF v_secret IS NULL THEN
+            INSERT INTO cron_execucoes (job_nome, sucesso, erro)
+            VALUES ('agendar-partida-semanal', false, 'Secret push_cron_secret não encontrado no vault.');
+            RETURN;
+          END IF;
+
+          v_headers := jsonb_build_object(
+            'Content-Type', 'application/json',
+            'x-push-cron-secret', v_secret
+          );
+
+          PERFORM disparar_e_registrar_cron_http(
+            'agendar-partida-semanal:send-confirmation-requests',
+            'https://jtavmrlllyctkuxefhpc.supabase.co/functions/v1/send-confirmation-requests',
+            v_headers,
+            jsonb_build_object('partida_id', v_partida_id)
           );
         END IF;
       END $$;
@@ -2597,6 +2804,7 @@ DECLARE
   v_is_admin   boolean;
   v_status     text;
   v_secret     text;
+  v_headers    jsonb;
 BEGIN
   SELECT is_admin INTO v_is_admin FROM jogadores WHERE id = p_admin_id;
   IF v_is_admin IS NOT TRUE THEN
@@ -2613,16 +2821,23 @@ BEGIN
     WHERE name = 'push_cron_secret'
     LIMIT 1;
 
-  IF v_secret IS NOT NULL THEN
-    PERFORM net.http_post(
-      url := 'https://jtavmrlllyctkuxefhpc.supabase.co/functions/v1/send-confirmation-requests',
-      headers := jsonb_build_object(
-        'Content-Type', 'application/json',
-        'x-push-cron-secret', v_secret
-      ),
-      body := jsonb_build_object('partida_id', p_partida_id, 'reenviar', true)
-    );
+  IF v_secret IS NULL THEN
+    INSERT INTO cron_execucoes (job_nome, sucesso, erro)
+    VALUES ('disparar_confirmacao_manual', false, 'Secret push_cron_secret não encontrado no vault.');
+    RAISE EXCEPTION 'Secret push_cron_secret não configurado no vault.';
   END IF;
+
+  v_headers := jsonb_build_object(
+    'Content-Type', 'application/json',
+    'x-push-cron-secret', v_secret
+  );
+
+  PERFORM disparar_e_registrar_cron_http(
+    'disparar_confirmacao_manual',
+    'https://jtavmrlllyctkuxefhpc.supabase.co/functions/v1/send-confirmation-requests',
+    v_headers,
+    jsonb_build_object('partida_id', p_partida_id, 'reenviar', true)
+  );
 
   RETURN true;
 END;
@@ -2642,6 +2857,7 @@ AS $$
 DECLARE
   v_is_admin boolean;
   v_secret   text;
+  v_headers  jsonb;
 BEGIN
   SELECT is_admin INTO v_is_admin FROM jogadores WHERE id = p_admin_id;
   IF v_is_admin IS NOT TRUE THEN
@@ -2653,16 +2869,23 @@ BEGIN
     WHERE name = 'push_cron_secret'
     LIMIT 1;
 
-  IF v_secret IS NOT NULL THEN
-    PERFORM net.http_post(
-      url := 'https://jtavmrlllyctkuxefhpc.supabase.co/functions/v1/send-test-push',
-      headers := jsonb_build_object(
-        'Content-Type', 'application/json',
-        'x-push-cron-secret', v_secret
-      ),
-      body := jsonb_build_object('jogador_id', p_admin_id)
-    );
+  IF v_secret IS NULL THEN
+    INSERT INTO cron_execucoes (job_nome, sucesso, erro)
+    VALUES ('disparar_push_teste', false, 'Secret push_cron_secret não encontrado no vault.');
+    RAISE EXCEPTION 'Secret push_cron_secret não configurado no vault.';
   END IF;
+
+  v_headers := jsonb_build_object(
+    'Content-Type', 'application/json',
+    'x-push-cron-secret', v_secret
+  );
+
+  PERFORM disparar_e_registrar_cron_http(
+    'disparar_push_teste',
+    'https://jtavmrlllyctkuxefhpc.supabase.co/functions/v1/send-test-push',
+    v_headers,
+    jsonb_build_object('jogador_id', p_admin_id)
+  );
 
   RETURN true;
 END;
@@ -3325,39 +3548,67 @@ BEGIN
   );
 END $$;
 
--- 12.2 Lembretes de Votação (A cada 15 minutos)
+-- 12.2 Enviar Push Reminders (1 minuto)
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'enviar-lembretes-votacao-15m') THEN
     PERFORM cron.unschedule('enviar-lembretes-votacao-15m');
   END IF;
+  IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'enviar-lembretes-votacao-15min') THEN
+    PERFORM cron.unschedule('enviar-lembretes-votacao-15min');
+  END IF;
+  IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'enviar-lembretes-votacao-1min') THEN
+    PERFORM cron.unschedule('enviar-lembretes-votacao-1min');
+  END IF;
+  IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'enviar-push-reminders-1min') THEN
+    PERFORM cron.unschedule('enviar-push-reminders-1min');
+  END IF;
+END;
+$$;
 
-  PERFORM cron.schedule(
-    'enviar-lembretes-votacao-15m',
-    '*/15 * * * *',
-    $job$
-    DECLARE
-      v_secret text;
-    BEGIN
-      SELECT decrypted_secret INTO v_secret
+SELECT cron.schedule(
+  'enviar-push-reminders-1min',
+  '* * * * *',
+  $push_job$
+  DO $$
+  DECLARE
+    v_secret  text;
+    v_headers jsonb;
+  BEGIN
+    SELECT decrypted_secret INTO v_secret
       FROM vault.decrypted_secrets
       WHERE name = 'push_cron_secret'
       LIMIT 1;
 
-      IF v_secret IS NOT NULL THEN
-        PERFORM net.http_post(
-          url := 'https://jtavmrlllyctkuxefhpc.supabase.co/functions/v1/send-voting-reminders',
-          headers := jsonb_build_object(
-            'Content-Type', 'application/json',
-            'x-push-cron-secret', v_secret
-          ),
-          body := '{}'::jsonb
-        );
-      END IF;
-    END;
-    $job$
-  );
-END $$;
+    IF v_secret IS NULL THEN
+      INSERT INTO cron_execucoes (job_nome, sucesso, erro)
+      VALUES ('enviar-push-reminders-1min', false, 'Secret push_cron_secret não encontrado no vault.');
+      RETURN;
+    END IF;
+
+    v_headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'x-push-cron-secret', v_secret
+    );
+
+    -- 1. Lembretes de Votação
+    PERFORM disparar_e_registrar_cron_http(
+      'send-voting-reminders',
+      'https://jtavmrlllyctkuxefhpc.supabase.co/functions/v1/send-voting-reminders',
+      v_headers,
+      '{}'::jsonb
+    );
+
+    -- 2. Reforço de Confirmação de Presença
+    PERFORM disparar_e_registrar_cron_http(
+      'send-confirmation-requests',
+      'https://jtavmrlllyctkuxefhpc.supabase.co/functions/v1/send-confirmation-requests',
+      v_headers,
+      '{}'::jsonb
+    );
+  END $$;
+  $push_job$
+);
 
 -- 12.3 Executar Eventos Financeiros Mensais (Dia 1 às 00:05 BRT / 03:05 UTC)
 DO $$
@@ -3410,6 +3661,7 @@ BEGIN
     DECLARE
       v_partida_id bigint;
       v_secret     text;
+      v_headers    jsonb;
     BEGIN
       SELECT criar_partida_semanal_mensalistas() INTO v_partida_id;
       IF v_partida_id IS NULL THEN
@@ -3426,13 +3678,23 @@ BEGIN
           FROM vault.decrypted_secrets
           WHERE name = 'push_cron_secret'
           LIMIT 1;
-        PERFORM net.http_post(
-          url := 'https://jtavmrlllyctkuxefhpc.supabase.co/functions/v1/send-confirmation-requests',
-          headers := jsonb_build_object(
-            'Content-Type', 'application/json',
-            'x-push-cron-secret', v_secret
-          ),
-          body := jsonb_build_object('partida_id', v_partida_id)
+
+        IF v_secret IS NULL THEN
+          INSERT INTO cron_execucoes (job_nome, sucesso, erro)
+          VALUES ('agendar-partida-semanal', false, 'Secret push_cron_secret não encontrado no vault.');
+          RETURN;
+        END IF;
+
+        v_headers := jsonb_build_object(
+          'Content-Type', 'application/json',
+          'x-push-cron-secret', v_secret
+        );
+
+        PERFORM disparar_e_registrar_cron_http(
+          'agendar-partida-semanal:send-confirmation-requests',
+          'https://jtavmrlllyctkuxefhpc.supabase.co/functions/v1/send-confirmation-requests',
+          v_headers,
+          jsonb_build_object('partida_id', v_partida_id)
         );
       END IF;
     END $$;
@@ -3471,7 +3733,10 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON
   eventos_financeiros_automaticos
 TO anon, authenticated;
 
--- 13.3 Sequences
+-- 13.3 Auditoria e Logs
+GRANT SELECT ON TABLE cron_execucoes TO anon, authenticated;
+
+-- 13.4 Sequences
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;
 
 -- ----------------------------------------------------------------------------

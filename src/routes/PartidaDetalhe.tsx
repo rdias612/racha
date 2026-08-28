@@ -24,6 +24,7 @@ import {
   removerParticipanteDraft,
   vagasOcupadas,
   podeConfirmar,
+  votacaoAberta,
   CAPACIDADE_PARTIDA,
   STATUS_CONFIRMACAO_LABEL,
   STATUS_LABEL,
@@ -196,10 +197,7 @@ export function PartidaDetalhe() {
     }
   }
 
-  const votacaoAberta =
-    partida.status === 'published' &&
-    partida.voting_closes_at &&
-    new Date(partida.voting_closes_at) > new Date();
+  const isVotacaoAberta = votacaoAberta(partida);
   const jaEhParticipante =
     !!jogadorLogado && participantes.some((p) => p.jogador_id === jogadorLogado.id);
   const isRandom = !!jogadorLogado && isRandomUsername(jogadorLogado.username);
@@ -223,7 +221,7 @@ export function PartidaDetalhe() {
           <Badge variante="status" status={partida.status}>
             {STATUS_LABEL[partida.status]}
           </Badge>
-          {partida.status === 'published' && partida.voting_closes_at && (
+          {isVotacaoAberta && partida.voting_closes_at && (
             <p className="text-[10px] font-mono text-destaque-texto mt-1">
               Urna fecha {formatarFechamento(partida.voting_closes_at)}
             </p>
@@ -409,7 +407,7 @@ export function PartidaDetalhe() {
         </div>
       )}
 
-      {votacaoAberta && jaEhParticipante && !isRandom && (
+      {isVotacaoAberta && jaEhParticipante && !isRandom && (
         <div className="space-y-2">
           {jaVotou ? (
             <>
@@ -453,7 +451,7 @@ export function PartidaDetalhe() {
         tomConfirmar="perigo"
       />
 
-      {partida.status === 'published' && !votacaoAberta && (
+      {partida.status === 'published' && !isVotacaoAberta && (
         <p className="text-center text-xs font-mono text-destaque-texto">
           As urnas fecharam. O craque está sendo apurado.
         </p>

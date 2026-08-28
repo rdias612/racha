@@ -28,6 +28,10 @@ export const TIMES = {
   },
 } as const satisfies Record<TimeId, TimeInfo>;
 
+// Jogadores de linha por time. A capacidade de confirmações da partida
+// (CAPACIDADE_PARTIDA em partidas.ts) deriva daqui: LIMITE_POR_TIME * 2.
+export const LIMITE_POR_TIME = 7;
+
 export const POSICOES = {
   goleiro: 'Goleiro',
   zagueiro: 'Zagueiro',

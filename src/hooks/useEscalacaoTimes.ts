@@ -1,8 +1,7 @@
 import { useState, useCallback } from 'react';
-import { LIMITE_POR_TIME } from '../components/EscalacaoTimesEditor';
 import { gerarEscalacaoAutomatica } from '../lib/escalacao';
 import type { JogadorLista } from '../lib/jogadores';
-import type { TimeId } from '../lib/times';
+import { LIMITE_POR_TIME, type TimeId } from '../lib/times';
 import { vibrateWarning, vibrateSuccess } from '../lib/haptics';
 
 export interface UseEscalacaoTimesOptions {

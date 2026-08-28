@@ -190,58 +190,26 @@ export async function resetarSenhaJogador(id: number): Promise<void> {
   if (data !== true) throw new Error('Jogador não encontrado.');
 }
 
+/**
+ * Consulta as médias de notas dos atletas a partir da RPC `obter_medias_notas_jogadores`.
+ * A média aparada é calculada exclusivamente no PostgreSQL (descartando menor e maior nota quando count >= 3).
+ * Função pura de leitura que propaga erros para tratamento na borda.
+ */
 export async function obterMediasNotasJogadores(): Promise<Record<number, number>> {
-  // 1) Tenta obter médias já agregadas no servidor via RPC
-  try {
-    const { data: rpcData, error: rpcError } = await supabase.rpc('obter_medias_notas_jogadores');
-    if (!rpcError && Array.isArray(rpcData)) {
-      const mapa: Record<number, number> = {};
-      for (const item of rpcData) {
-        if (item.jogador_id && item.media_nota != null) {
-          mapa[Number(item.jogador_id)] = Number(item.media_nota);
-        }
-      }
-      return mapa;
-    }
-  } catch {
-    // Continua para fallback caso a RPC ainda não esteja instalada
-  }
+  const { data, error } = await supabase.rpc('obter_medias_notas_jogadores');
 
-  // 2) Fallback para cálculo direto
-  const { data, error } = await supabase.from('votes').select('target_id, rating');
+  if (error) throw error;
 
-  if (error || !data) return {};
-
-  const acumulado: Record<number, number[]> = {};
-  for (const v of data) {
-    const tid = Number(v.target_id);
-    const rat = Number(v.rating);
-    if (!isNaN(tid) && !isNaN(rat)) {
-      if (!acumulado[tid]) {
-        acumulado[tid] = [];
-      }
-      acumulado[tid].push(rat);
+  const mapa: Record<number, number> = {};
+  for (const item of data ?? []) {
+    if (item.jogador_id != null && item.media_nota != null) {
+      mapa[Number(item.jogador_id)] = Number(item.media_nota);
     }
   }
-
-  const medias: Record<number, number> = {};
-  for (const id in acumulado) {
-    const idNum = Number(id);
-    const notas = acumulado[idNum];
-    if (notas && notas.length >= 3) {
-      const soma = notas.reduce((acc, r) => acc + r, 0);
-      const min = Math.min(...notas);
-      const max = Math.max(...notas);
-      const somaAjustada = soma - min - max;
-      const qtdAjustada = notas.length - 2;
-      medias[idNum] = Number((somaAjustada / qtdAjustada).toFixed(2));
-    } else if (notas && notas.length > 0) {
-      const soma = notas.reduce((acc, r) => acc + r, 0);
-      medias[idNum] = Number((soma / notas.length).toFixed(2));
-    }
-  }
-  return medias;
+  return mapa;
 }
+
+export const carregarMediasNotasJogadores = obterMediasNotasJogadores;
 
 export async function obterPartidasRecentesJogadores(meses = 2): Promise<Record<number, number>> {
   // 1) Tenta obter agregação direta do servidor via RPC

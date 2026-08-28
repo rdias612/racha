@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
+import { votacaoAberta } from '../lib/partidas';
 
 interface PartidaAberta {
   id: number;
@@ -35,7 +36,7 @@ export function BannerLembrete() {
       // Busca partidas published com votação aberta
       const { data, error } = await supabase
         .from('partidas')
-        .select('id, voting_closes_at')
+        .select('id, status, voting_closes_at')
         .eq('status', 'published')
         .gt('voting_closes_at', new Date().toISOString());
 
@@ -60,8 +61,8 @@ export function BannerLembrete() {
       const idsVotados = new Set((votados ?? []).map((v) => v.partida_id));
       setPendentes(
         data.filter(
-          (p): p is { id: number; voting_closes_at: string } =>
-            p.voting_closes_at != null && !idsVotados.has(p.id)
+          (p): p is { id: number; voting_closes_at: string; status: string } =>
+            votacaoAberta(p) && p.voting_closes_at != null && !idsVotados.has(p.id)
         )
       );
     } catch {

@@ -8,6 +8,7 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import {
   carregarParticipantes,
   carregarMeusVotos,
+  votacaoAberta,
   type Partida,
   type Participante,
 } from '../lib/partidas';
@@ -91,11 +92,7 @@ export function PartidaVotar() {
           return;
         }
 
-        const agora = new Date().toISOString();
-        const aberta =
-          p.status === 'published' && !!p.voting_closes_at && p.voting_closes_at > agora;
-
-        if (!aberta) {
+        if (!votacaoAberta(p)) {
           if (ativo) {
             setErro('A votação desta partida não está aberta ou o prazo de 24h já expirou.');
             setCarregando(false);

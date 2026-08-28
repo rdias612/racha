@@ -8,6 +8,36 @@ export type Database = {
   };
   public: {
     Tables: {
+      cron_execucoes: {
+        Row: {
+          erro: string | null;
+          executado_em: string;
+          id: number;
+          job_nome: string;
+          resposta: string | null;
+          status_code: number | null;
+          sucesso: boolean;
+        };
+        Insert: {
+          erro?: string | null;
+          executado_em?: string;
+          id?: number;
+          job_nome: string;
+          resposta?: string | null;
+          status_code?: number | null;
+          sucesso?: boolean;
+        };
+        Update: {
+          erro?: string | null;
+          executado_em?: string;
+          id?: number;
+          job_nome?: string;
+          resposta?: string | null;
+          status_code?: number | null;
+          sucesso?: boolean;
+        };
+        Relationships: [];
+      };
       dividas: {
         Row: {
           created_at: string;
