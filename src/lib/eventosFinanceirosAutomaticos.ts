@@ -52,7 +52,7 @@ export async function listarEventosAutomaticos(): Promise<EventoFinanceiroAutoma
   return (data ?? []) as EventoFinanceiroAutomatico[];
 }
 
-export async function salvarEventoAutomatico(input: {
+export interface EventoFinanceiroAutomaticoPayload {
   id?: number;
   nome: string;
   gatilho: GatilhoEventoAuto;
@@ -64,7 +64,11 @@ export async function salvarEventoAutomatico(input: {
   descricao_template: string;
   referencia_template?: string | null;
   ativo?: boolean;
-}): Promise<number> {
+}
+
+export async function salvarEventoAutomatico(
+  input: EventoFinanceiroAutomaticoPayload
+): Promise<number> {
   const payload = {
     nome: input.nome.trim(),
     gatilho: input.gatilho,
