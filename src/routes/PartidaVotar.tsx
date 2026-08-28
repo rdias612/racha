@@ -27,6 +27,7 @@ export function PartidaVotar() {
   const [partida, setPartida] = useState<Partida | null>(null);
   const [alvos, setAlvos] = useState<Participante[]>([]);
   const [notas, setNotas] = useState<Record<number, number>>({});
+  const [notasIniciais, setNotasIniciais] = useState<Record<number, number>>({});
   const [votosOriginais, setVotosOriginais] = useState<Map<number, number>>(new Map());
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
@@ -35,12 +36,17 @@ export function PartidaVotar() {
   const [votosEnviados, setVotosEnviados] = useState(false);
   const [confirmandoSaida, setConfirmandoSaida] = useState(false);
 
+  const editando = votosOriginais.size > 0;
+
   const temModificacoes =
     !votosEnviados &&
     alvos.some((a) => {
       const notaAtual = notas[a.jogador_id];
-      const notaOriginal = votosOriginais.get(a.jogador_id);
-      return notaAtual !== undefined && notaAtual !== notaOriginal;
+      if (editando) {
+        const notaOriginal = votosOriginais.get(a.jogador_id);
+        return notaAtual !== undefined && notaAtual !== notaOriginal;
+      }
+      return notaAtual !== undefined && notaAtual !== notasIniciais[a.jogador_id];
     });
 
   useEffect(() => {
@@ -125,7 +131,7 @@ export function PartidaVotar() {
 
         if (!ativo) return;
 
-        let mapaNotas: Record<number, number> = {};
+        const mapaNotas: Record<number, number> = {};
         const mapaOriginais = new Map<number, number>();
 
         if (meusVotos.length > 0) {
@@ -136,22 +142,31 @@ export function PartidaVotar() {
         } else {
           // Tenta restaurar rascunho prévio do localStorage
           const storageKey = `racha_voto_draft_${partidaId}_${jogador.id}`;
+          let draftObj: Record<string, number> | null = null;
           try {
             const rawDraft = localStorage.getItem(storageKey);
             if (rawDraft) {
-              const draftObj = JSON.parse(rawDraft);
-              if (draftObj && typeof draftObj === 'object') {
-                mapaNotas = draftObj;
+              const parsed = JSON.parse(rawDraft);
+              if (parsed && typeof parsed === 'object') {
+                draftObj = parsed;
               }
             }
           } catch {
             // Ignora falha de localStorage
+          }
+
+          // Se não há voto salvo ou valor no rascunho para o jogador, a nota padrão é 6
+          for (const a of outros) {
+            const notaDraft = draftObj?.[a.jogador_id] ?? draftObj?.[String(a.jogador_id)];
+            mapaNotas[a.jogador_id] =
+              typeof notaDraft === 'number' && Number.isFinite(notaDraft) ? notaDraft : 6;
           }
         }
 
         setPartida(p as Partida);
         setAlvos(outros);
         setNotas(mapaNotas);
+        setNotasIniciais(mapaNotas);
         setVotosOriginais(mapaOriginais);
       } catch (e) {
         if (ativo) {
@@ -190,7 +205,6 @@ export function PartidaVotar() {
 
   const avaliadosCount = alvos.filter((a) => notas[a.jogador_id] !== undefined).length;
   const todosAvaliados = alvos.length > 0 && avaliadosCount === alvos.length;
-  const editando = votosOriginais.size > 0;
 
   function handleVoltar() {
     if (temModificacoes) {

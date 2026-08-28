@@ -51,7 +51,7 @@ export function SeletorNota({
     value,
     onChange,
     disabled,
-    indicePadrao: 4, // Nota 5 (índice 4) como destaque inicial quando value for undefined
+    indicePadrao: 5, // Nota 6 (índice 5 no array [1..10]) como destaque inicial quando value for undefined
   });
 
   return (
@@ -95,7 +95,7 @@ export function SeletorNota({
           tabIndex={-1}
           aria-label="Notas de 1 a 10"
           className={`absolute z-30 mt-1 max-h-64 overflow-auto rounded-[4px] border border-borda bg-superficie p-1 shadow-carimbo-preto scrollbar-sumula ${
-            compact ? 'right-0 min-w-[11rem] sm:left-0 sm:right-auto' : 'w-full'
+            compact ? 'right-0 w-full min-w-full' : 'left-0 w-full'
           }`}
         >
           {OPCOES_NOTAS.map((opcao, i) => {

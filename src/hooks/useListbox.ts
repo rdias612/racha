@@ -76,7 +76,7 @@ export function useListbox<T>({
 
   useEffect(() => {
     if (!aberto) return;
-    opcaoRefs.current[destaque]?.scrollIntoView({ block: 'nearest' });
+    opcaoRefs.current[destaque]?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   }, [aberto, destaque]);
 
   useEffect(() => {
