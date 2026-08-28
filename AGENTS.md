@@ -132,8 +132,7 @@ racha/
 │       ├── GestaoJogadores.tsx# Gerenciamento de atletas e mensalistas
 │       └── Administrador.tsx  # Painel financeiro de dívidas e cobranças
 ├── supabase/
-│   ├── aplicar_tudo.sql       # Script mestre unificado para criação do banco do zero
-│   ├── migrations/            # Migrations incrementais sequenciais (001_... a 071_...)
+│   ├── migrations/            # Migrations incrementais sequenciais (001_... em diante - única fonte da verdade)
 │   └── functions/             # Edge Functions Deno (send-voting-reminders, etc.)
 ├── GUIA/                      # Manuais passo a passo para devs e LLMs
 │   ├── README.md              # Índice dos guias disponíveis
@@ -301,8 +300,8 @@ Todas as tabelas do projeto utilizam identificadores numéricos sequenciais (`bi
 
 ### 7.2 Migrations Sequenciais de 3 Dígitos
 
-- As migrations residem em `supabase/migrations/` e devem seguir estritamente o padrão `XXX_nome_descritivo.sql` (ex: `071_nova_funcionalidade.sql`). Nunca utilize timestamps longos do CLI.
-- Mantenha `supabase/aplicar_tudo.sql` sincronizado com os esquemas estáveis.
+- As migrations residem em `supabase/migrations/` e devem seguir estritamente o padrão `XXX_nome_descritivo.sql` (ex: `102_nova_funcionalidade.sql`). Nunca utilize timestamps longos do CLI.
+- A pasta `supabase/migrations/` é a **única fonte canônica da verdade** do banco de dados. Alterações são aplicadas exclusivamente via `npx supabase db push`.
 
 ### 7.3 Padrões Obrigatórios para Funções e RPCs PostgreSQL
 

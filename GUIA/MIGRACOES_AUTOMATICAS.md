@@ -9,8 +9,7 @@
 
 - **Project Reference (ID do Projeto)**: `jtavmrlllyctkuxefhpc`
 - **Project URL**: `https://jtavmrlllyctkuxefhpc.supabase.co`
-- **Diretório de Migrações**: `supabase/migrations/`
-- **Script Mestre Consolidado**: `supabase/aplicar_tudo.sql`
+- **Diretório de Migrações (Única Fonte da Verdade)**: `supabase/migrations/`
 
 ---
 
