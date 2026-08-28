@@ -89,7 +89,7 @@ export function Login() {
     setCarregando(true);
 
     const { data, error } = await supabase.rpc('fazer_login', {
-      p_username: username,
+      p_username: username.trim(),
       p_senha: senha,
     });
 
