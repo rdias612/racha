@@ -203,10 +203,12 @@ Embora cada item individual tenha escopo reduzido, a execução conjunta eleva s
 ## 🧪 3. Plano de Verificação e Testes
 
 ### 3.1. Testes Automatizados e Linters
+
 - `npm run lint`: 0 erros no ESLint.
 - `npm run build`: Compilação de produção sem erros de tipos no TypeScript.
 
 ### 3.2. Roteiro de Testes Manuais
+
 1. **Modal de Goleiro**: Abrir modal, digitar dados, fechar sem salvar e reabrir $\to$ confirmar que os campos reiniciam limpos.
 2. **Gesto de Swipe**: Navegar entre as abas via swipe touch e verificar se não ocorrem re-renders anômalos.
 3. **Exportação Excel**: Clicar em exportar lançamentos no painel admin $\to$ verificar que `src/lib/exportacao.ts` gera o arquivo `.xls` perfeitamente formatado.

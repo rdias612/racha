@@ -12,11 +12,13 @@
 Seis arquivos do projeto acumulam mais de 700 linhas cada (alguns com mais de 850 linhas e até 20 hooks `useState`), misturando lógica de coordenação de tela, formulários complexos, listas agrupadas com ações transacionais, subcomponentes inline e modais inteiros declarados no mesmo arquivo.
 
 ### 🚫 Problemas Identificados:
+
 1. **Dificuldade de Manutenção e Auditoria**: Arquivos massivos dificultam a leitura de fluxo e violam o princípio da responsabilidade única.
 2. **Re-renderizações Excessivas**: Alterações em campos locais de formulários (ex: inputs de lançamento financeiro ou filtros de busca) forçam a re-avaliação do componente pai inteiro e suas listas filhas.
 3. **Acoplamento de Domínio e UI**: Subcomponentes de alta complexidade (como confirmações de presença e formulários automáticos) vivem acoplados dentro das rotas em vez de módulos reutilizáveis e testáveis.
 
 ### 🎯 Objetivos da Refatoração:
+
 1. **Reduzir o tamanho de todas as rotas gigantes para menos de 300-350 linhas**, transformando as rotas em orquestradores limpos de estado, cache e navegação.
 2. **Modularizar os blocos em componentes especializados** em `src/components/`, com interfaces de props tipadas estritamente e contratos unidirecionais claros.
 3. **Preservar integralmente o comportamento funcional existente**, sem quebrar rotas, sincronização de dados ou contratos de banco.
@@ -118,6 +120,7 @@ graph TD
      ```
 
 #### [MODIFY] `src/routes/PartidaDetalhe.tsx`:
+
 - Fica restrito ao carregamento concorrente dos dados (`Promise.all`), controle dos diálogos (`ConfirmDialog` para descarte de votos e abertura de partida), e orquestração dos componentes extraídos.
 
 ---
@@ -175,6 +178,7 @@ graph TD
      ```
 
 #### [MODIFY] `src/routes/Administrador.tsx`:
+
 - Centraliza os hooks de carregamento (`useCallback`), o estado dos dados financeiros (`grupos`, `despesas`, `jogadores`), o `ConfirmDialog` unificado para quitações e o `PullToRefresh`.
 
 ---
@@ -220,6 +224,7 @@ graph TD
      ```
 
 #### [MODIFY] `src/routes/Notificacoes.tsx`:
+
 - Fica responsável pela persistência das configurações na RPC `salvar_configuracoes_notificacoes`, controle dos modais (`ModalSelecionarAgendamento`, `ModalSelecionarOpcao`, `ConfirmDialog`) e feedback via `Snackbar`.
 
 ---
@@ -264,6 +269,7 @@ graph TD
      ```
 
 #### [MODIFY] `src/routes/GestaoJogadores.tsx`:
+
 - Fica responsável pelo fetch de atletas, gerência do dicionário de rascunhos `Record<number, AlteracaoRascunho>`, filtros de abas e busca textual via `CampoBusca`, submissão do lote à RPC `salvar_caracteristicas_jogadores` e diálogo de reset de senha.
 
 ---
@@ -301,6 +307,7 @@ graph TD
      ```
 
 #### [MODIFY] `src/routes/PartidaEditar.tsx`:
+
 - Fica focado na sincronização dos participantes da partida, cálculo derivado do placar via `calcularPlacarDeParticipantes`, mutação atômica em `salvarEdicaoCompletaPartida` e diálogos de confirmação.
 
 ---
@@ -323,6 +330,7 @@ graph TD
      ```
 
 #### [MODIFY] `src/components/EventosAutomaticosFinanceiro.tsx`:
+
 - Fica restrito à listagem de eventos cadastrados, badges de status, botões de ação (editar/excluir) e acionamento do diálogo de confirmação.
 
 ---
@@ -330,10 +338,12 @@ graph TD
 ## 🧪 4. Plano de Verificação e Testes
 
 ### 4.1. Verificação Estática e Compilação
+
 - Executar `npm run lint` e garantir **0 erros e 0 advertências** no ESLint Flat Config.
 - Executar `npm run build` e certificar compilação sem erros no TypeScript estrito (`tsc --noEmit`).
 
 ### 4.2. Testes de Regressão Funcional
+
 1. **Partida Detalhe**:
    - Testar visualização de partida `draft` (confirmar presença, desconfirmar, adicionar avulso).
    - Testar visualização de partida `live` (atalho para súmula ao vivo).

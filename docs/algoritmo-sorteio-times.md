@@ -43,27 +43,14 @@ Para cada jogador: `nota = (j.media_nota ?? mediasNotas?.[id] ?? 6.0)` arredonda
 
 **Por quê**: o jitter dá variedade entre sorteios idênticos (não é 100% determinístico). O sorteio único prévio é obrigatório: ruído **dentro** do comparador do `sort` viola o contrato da ordenação (pares podem inverter entre comparações → ordem não especificada).
 
-### 3.3 Separação e embaralhamento
+### 3.3 Embaralhamento da Linha
 
-- `goleiros` = quem tem `posicao === 'goleiro'`
-- `linha` = o restante, **embaralhado** (Fisher–Yates) para quebrar viés de ordem de chegada
-
-> ⚠️ Ponto importante: no fluxo atual (pós-migração 093), os goleiros da partida são escalados **fora** dessa tela, em seletores dedicados. A lista passada ao gerador normalmente contém **só os 14 de linha**, então a fase de goleiros (§4) raramente roda — mas continua lá como reserva de segurança caso um goleiro apareça na lista.
+- Os 14 jogadores de linha são **embaralhados** (Fisher–Yates) para quebrar viés de ordem de chegada.
+- Os 2 goleiros da partida são escalados exclusivamente via seletores dedicados na interface (`goleiroA` e `goleiroB`), nunca passando pelo algoritmo de divisão de linha.
 
 ---
 
-## 4. Fase 1 — Distribuição de goleiros alternada
-
-Se houver goleiros na lista:
-
-1. Ordena por `notaEfetiva` decrescente (melhor primeiro).
-2. Para cada goleiro, em ordem: vai para o time com **menor soma de notas** (e que tenha vaga). Empate `somaA <= somaB` favorece o time A.
-
-Efeito: os dois melhores goleiros ficam em times opostos.
-
----
-
-## 5. Fase 2 — Pares por posição primária (espinha dorsal do método)
+## 4. Fase 1 — Pares por posição primária (espinha dorsal do método)
 
 1. Agrupa os 14 de linha por `posicao` (zagueiro com zagueiro, meia com meia…).
 2. Dentro de cada grupo, ordena por `notaEfetiva` decrescente.
