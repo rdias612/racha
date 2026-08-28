@@ -1,11 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import {
   listarJogadoresAtivos,
   obterPartidasRecentesJogadores,
   type JogadorLista,
 } from '../lib/jogadores';
 import { useAdmin } from '../hooks/useAdmin';
+import { useJogadorLogado } from '../hooks/useJogadorLogado';
+import { invalidarCache } from '../hooks/useCache';
+import { CHAVE_JOGOS, chaveResumo } from '../lib/chavesCache';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { obterProximaQuintaFeira } from '../lib/formatacao';
 import { BotaoVoltar } from '../components/BotaoVoltar';
@@ -14,8 +18,6 @@ import { CampoBusca } from '../components/CampoBusca';
 import { formatarMensagemErro } from '../lib/erros';
 
 const LIMITE_LINHA = 14;
-const LIMITE_GOLEIROS = 2;
-const TOTAL_PARTICIPANTES = LIMITE_LINHA + LIMITE_GOLEIROS; // 16
 const STORAGE_KEY = 'racha_nova_partida';
 const HORA_PADRAO = '19:00';
 
@@ -26,11 +28,13 @@ interface EstadoPersistido {
 
 export function PartidaNova() {
   const isAdmin = useAdmin();
+  const adminLogado = useJogadorLogado();
   const navigate = useNavigate();
 
   const [jogadores, setJogadores] = useState<JogadorLista[]>([]);
   const [partidasRecentes, setPartidasRecentes] = useState<Record<number, number>>({});
   const [carregando, setCarregando] = useState(true);
+  const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [selecionados, setSelecionados] = useState<number[]>([]);
   const [dataJogo, setDataJogo] = useState(() => obterProximaQuintaFeira());
@@ -89,13 +93,8 @@ export function PartidaNova() {
     }
   }, [selecionados, dataJogo, hidratado]);
 
-  // Derivação dos 3 grupos (filtrados pela busca).
+  // Derivação dos grupos de linha (filtrados pela busca).
   const termo = busca.trim().toLowerCase();
-  const goleiros = useMemo(
-    () =>
-      jogadores.filter((j) => j.posicao === 'goleiro' && j.username.toLowerCase().includes(termo)),
-    [jogadores, termo]
-  );
   const mensalistas = useMemo(
     () =>
       jogadores.filter(
@@ -121,34 +120,18 @@ export function PartidaNova() {
   );
 
   // Contadores derivados.
-  const linhaSel = selecionados.filter((id) => {
-    const j = jogadores.find((x) => x.id === id);
-    return j && j.posicao !== 'goleiro';
-  }).length;
-  const goleiroSel = selecionados.length - linhaSel;
-  const podeRevisar = linhaSel === LIMITE_LINHA && goleiroSel === LIMITE_GOLEIROS && !!dataJogo;
+  const linhaSel = selecionados.length;
+  const podeCriar = linhaSel === LIMITE_LINHA && Boolean(dataJogo) && !salvando;
 
   if (!isAdmin) return <Navigate to="/" replace />;
   if (carregando) return <Carregando>Carregando jogadores</Carregando>;
-  if (erro)
-    return (
-      <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">Erro: {erro}</MensagemEstado>
-    );
 
   function toggleSelecionado(id: number) {
     setSelecionados((prev) => {
       if (prev.includes(id)) {
         return prev.filter((x) => x !== id);
       }
-      const jogador = jogadores.find((j) => j.id === id);
-      const ehGoleiro = jogador?.posicao === 'goleiro';
-      const linhaAtual = prev.filter((pid) => {
-        const j = jogadores.find((x) => x.id === pid);
-        return j && j.posicao !== 'goleiro';
-      }).length;
-      const goleiroAtual = prev.length - linhaAtual;
-      if (ehGoleiro && goleiroAtual >= LIMITE_GOLEIROS) return prev;
-      if (!ehGoleiro && linhaAtual >= LIMITE_LINHA) return prev;
+      if (prev.length >= LIMITE_LINHA) return prev;
       return [...prev, id];
     });
   }
@@ -156,6 +139,50 @@ export function PartidaNova() {
   function limparGrupo(ids: number[]) {
     const conjunto = new Set(ids);
     setSelecionados((prev) => prev.filter((id) => !conjunto.has(id)));
+  }
+
+  async function handleCriarEEscalar() {
+    if (!adminLogado || !podeCriar) return;
+    setSalvando(true);
+    setErro(null);
+
+    try {
+      const dataIso = new Date(`${dataJogo}T${HORA_PADRAO}`).toISOString();
+      const payloadParticipantes = selecionados.map((id) => {
+        const j = jogadores.find((x) => x.id === id);
+        return {
+          jogador_id: id,
+          posicao: j?.posicao ?? 'random',
+          time: null,
+          gols: 0,
+          assistencias: 0,
+          gols_contra: 0,
+        };
+      });
+
+      const { data: novaPartidaId, error } = await supabase.rpc('criar_partida', {
+        p_data_jogo: dataIso,
+        p_criado_por: adminLogado.id,
+        p_participantes: payloadParticipantes,
+      });
+
+      if (error) throw error;
+      if (!novaPartidaId) throw new Error('Falha ao criar partida (rollback).');
+
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        // Storage indisponível — ignora silenciosamente.
+      }
+
+      invalidarCache(CHAVE_JOGOS);
+      invalidarCache(chaveResumo(new Date().getFullYear()));
+
+      navigate(`/partida/${novaPartidaId}/times`, { replace: true });
+    } catch (err) {
+      setErro(formatarMensagemErro(err, 'Não foi possível criar a partida.'));
+      setSalvando(false);
+    }
   }
 
   return (
@@ -166,13 +193,15 @@ export function PartidaNova() {
           <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
             Nova Partida da Súmula
           </h2>
-          <span className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
-            Etapa 1 de 2
+          <span className="text-[10px] font-mono uppercase tracking-widest text-destaque-texto">
+            14 Titulares
           </span>
         </div>
       </div>
 
-      {/* Data */}
+      {erro && <MensagemEstado>{erro}</MensagemEstado>}
+
+      {/* Data e Cota */}
       <div className="rounded-[4px] border border-borda bg-superficie p-3.5 shadow-carimbo space-y-3">
         <label className="block">
           <span className="block text-xs font-display font-bold uppercase tracking-wider text-giz-fraco mb-1">
@@ -186,38 +215,26 @@ export function PartidaNova() {
           />
         </label>
 
-        {/* Cards de cota com visual de selo postal */}
-        <div className="grid grid-cols-2 gap-2.5 pt-1">
-          <div
-            className={`rounded-[3px] border p-2.5 flex items-center justify-between transition ${
-              linhaSel >= LIMITE_LINHA
-                ? 'border-ok/60 bg-ok/10 text-ok'
-                : 'border-borda bg-superficie-2 text-giz-fraco'
-            }`}
-          >
-            <span className="text-xs font-display font-bold uppercase tracking-wider">
-              Jogadores Linha
+        {/* Card de cota de linha */}
+        <div
+          className={`rounded-[3px] border p-2.5 flex items-center justify-between transition ${
+            linhaSel >= LIMITE_LINHA
+              ? 'border-ok/60 bg-ok/10 text-ok'
+              : 'border-borda bg-superficie-2 text-giz-fraco'
+          }`}
+        >
+          <div>
+            <span className="text-xs font-display font-bold uppercase tracking-wider block">
+              Jogadores de Linha Titulares
             </span>
-            <span className="font-mono text-xs font-bold tabular-nums">
-              {linhaSel >= LIMITE_LINHA ? '✓ ' : ''}
-              {linhaSel}/{LIMITE_LINHA}
-            </span>
-          </div>
-          <div
-            className={`rounded-[3px] border p-2.5 flex items-center justify-between transition ${
-              goleiroSel >= LIMITE_GOLEIROS
-                ? 'border-ok/60 bg-ok/10 text-ok'
-                : 'border-borda bg-superficie-2 text-giz-fraco'
-            }`}
-          >
-            <span className="text-xs font-display font-bold uppercase tracking-wider">
-              Goleiros
-            </span>
-            <span className="font-mono text-xs font-bold tabular-nums">
-              {goleiroSel >= LIMITE_GOLEIROS ? '✓ ' : ''}
-              {goleiroSel}/{LIMITE_GOLEIROS}
+            <span className="text-[10px] font-mono text-giz-fraco">
+              Os 2 goleiros são escalados na etapa de times
             </span>
           </div>
+          <span className="font-mono text-sm font-bold tabular-nums">
+            {linhaSel >= LIMITE_LINHA ? '✓ ' : ''}
+            {linhaSel}/{LIMITE_LINHA}
+          </span>
         </div>
       </div>
 
@@ -246,41 +263,23 @@ export function PartidaNova() {
         onLimpar={limparGrupo}
         cotaLinhaCheia={linhaSel >= LIMITE_LINHA}
       />
-      <GrupoJogadores
-        titulo="Goleiros"
-        jogadores={goleiros}
-        selecionados={selecionados}
-        onToggle={toggleSelecionado}
-        onLimpar={limparGrupo}
-        cotaLinhaCheia={goleiroSel >= LIMITE_GOLEIROS}
-        mostrarCota
-      />
-
-      {jogadores.length < TOTAL_PARTICIPANTES && (
-        <p className="text-xs font-mono text-destaque-texto">
-          Aviso: há apenas {jogadores.length} jogadores ativos. Uma partida precisa de{' '}
-          {TOTAL_PARTICIPANTES}.
-        </p>
-      )}
 
       {/* Barra Fixa Inferior */}
       <BarraAcaoInferior
         legenda={
-          !podeRevisar
-            ? `Selecione ${LIMITE_LINHA} jogadores de linha e ${LIMITE_GOLEIROS} goleiros para avançar.`
+          !podeCriar && !salvando
+            ? `Selecione exatamente ${LIMITE_LINHA} jogadores de linha para avançar.`
             : undefined
         }
       >
         <button
-          onClick={() =>
-            navigate('/partida/nova/confirma', {
-              state: { selecionados, jogadores, dataJogo, horaJogo: HORA_PADRAO },
-            })
-          }
-          disabled={!podeRevisar}
+          onClick={handleCriarEEscalar}
+          disabled={!podeCriar}
           className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-40"
         >
-          Revisar escalação ({selecionados.length}/{TOTAL_PARTICIPANTES})
+          {salvando
+            ? 'Criando partida…'
+            : `Avançar para Escalação (${selecionados.length}/${LIMITE_LINHA})`}
         </button>
       </BarraAcaoInferior>
     </div>
@@ -294,7 +293,6 @@ interface GrupoJogadoresProps {
   onToggle: (id: number) => void;
   onLimpar: (ids: number[]) => void;
   cotaLinhaCheia: boolean;
-  mostrarCota?: boolean;
 }
 
 function GrupoJogadores({
@@ -304,7 +302,6 @@ function GrupoJogadores({
   onToggle,
   onLimpar,
   cotaLinhaCheia,
-  mostrarCota = false,
 }: GrupoJogadoresProps) {
   const idsDoGrupo = jogadores.map((j) => j.id);
   const selecionadosNoGrupo = selecionados.filter((id) => idsDoGrupo.includes(id)).length;
@@ -318,9 +315,7 @@ function GrupoJogadores({
             {titulo}
           </span>
           <span className="text-[11px] font-mono text-giz-fraco tabular-nums">
-            {mostrarCota
-              ? `${selecionadosNoGrupo}/${LIMITE_GOLEIROS}`
-              : `${selecionadosNoGrupo} selecionado${selecionadosNoGrupo === 1 ? '' : 's'}`}
+            {selecionadosNoGrupo} selecionado{selecionadosNoGrupo === 1 ? '' : 's'}
           </span>
         </div>
         <button
@@ -361,7 +356,7 @@ function GrupoJogadores({
                     aria-label={
                       selecionado ? `Remover ${j.username} da escalação` : `Escalar ${j.username}`
                     }
-                    title={bloqueado ? 'Cota cheia' : undefined}
+                    title={bloqueado ? 'Cota de 14 de linha atingida' : undefined}
                     className={`min-h-[44px] min-w-[7rem] px-3 rounded-[3px] border font-display font-bold uppercase tracking-wider text-xs transition active:translate-y-px ${
                       selecionado
                         ? 'bg-destaque text-destaque-tinta border-destaque shadow-xs'

@@ -3063,13 +3063,17 @@ AS $$
   sequencia_vitorias AS (
     SELECT sva.jogador_id, sva.username, sva.tamanho
     FROM sequencias_vitorias_atuais sva
-    ORDER BY sva.tamanho DESC, sva.username ASC
+    JOIN stats_elegiveis s ON s.jogador_id = sva.jogador_id
+    WHERE sva.tamanho > 0
+    ORDER BY sva.tamanho DESC, s.partidas DESC, sva.username ASC
     LIMIT 1
   ),
   seca_vitorias AS (
     SELECT sva.jogador_id, sva.username, sva.tamanho
     FROM secas_vitorias_atuais sva
-    ORDER BY sva.tamanho DESC, sva.username ASC
+    JOIN stats_elegiveis s ON s.jogador_id = sva.jogador_id
+    WHERE sva.tamanho > 0
+    ORDER BY sva.tamanho DESC, s.partidas DESC, sva.username ASC
     LIMIT 1
   )
   SELECT

@@ -20,8 +20,6 @@ const carregarEstatisticas = () => import('../routes/Estatisticas');
 const carregarEstatisticasRacha = () => import('../routes/EstatisticasRacha');
 const carregarComparador = () => import('../routes/Comparador');
 const carregarPartidaNova = () => import('../routes/PartidaNova');
-const carregarPartidaConfirma = () => import('../routes/PartidaConfirma');
-const carregarPartidaNovaTimes = () => import('../routes/PartidaNovaTimes');
 const carregarPartidaDetalhe = () => import('../routes/PartidaDetalhe');
 const carregarPartidaTimes = () => import('../routes/PartidaTimes');
 const carregarPartidaAoVivo = () => import('../routes/PartidaAoVivo');
@@ -48,12 +46,6 @@ export const EstatisticasRacha = lazy(() =>
 export const Comparador = lazy(() => carregarComparador().then((m) => ({ default: m.Comparador })));
 export const PartidaNova = lazy(() =>
   carregarPartidaNova().then((m) => ({ default: m.PartidaNova }))
-);
-export const PartidaConfirma = lazy(() =>
-  carregarPartidaConfirma().then((m) => ({ default: m.PartidaConfirma }))
-);
-export const PartidaNovaTimes = lazy(() =>
-  carregarPartidaNovaTimes().then((m) => ({ default: m.PartidaNovaTimes }))
 );
 export const PartidaDetalhe = lazy(() =>
   carregarPartidaDetalhe().then((m) => ({ default: m.PartidaDetalhe }))
@@ -89,15 +81,12 @@ export const Notificacoes = lazy(() =>
 /**
  * Tabela de prefetch: padrão ancorado no início do pathname (semântica de
  * prefixo) → carregador do chunk. A ordem importa: padrões mais específicos
- * vêm primeiro (ex.: `/partida/nova/times` antes de `/partida/nova`;
- * sufixos de `/partida/:id` antes do detalhe puro).
+ * vêm primeiro (ex.: sufixos de `/partida/:id` antes do detalhe puro).
  */
 const TABELA_PRE_CARREGAMENTO: Array<{
   padrao: RegExp;
   carregar: () => Promise<unknown>;
 }> = [
-  { padrao: /^\/partida\/nova\/confirma/, carregar: carregarPartidaConfirma },
-  { padrao: /^\/partida\/nova\/times/, carregar: carregarPartidaNovaTimes },
   { padrao: /^\/partida\/nova/, carregar: carregarPartidaNova },
   { padrao: /^\/partida\/\d+\/times/, carregar: carregarPartidaTimes },
   { padrao: /^\/partida\/\d+\/ao-vivo/, carregar: carregarPartidaAoVivo },

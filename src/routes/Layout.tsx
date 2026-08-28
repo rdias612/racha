@@ -100,8 +100,7 @@ export function Layout() {
 
   const rankingAtivo = pathname.startsWith('/ranking');
   const estatisticasAtivo = pathname.startsWith('/estatisticas');
-  const isFluxoFocado =
-    /^\/partida\/(nova(\/times|\/confirma)?|\d+\/(votar|editar|ao-vivo|times))/.test(pathname);
+  const isFluxoFocado = /^\/partida\/(nova|\d+\/(votar|editar|ao-vivo|times))/.test(pathname);
   // Fallback do boundary do Outlet: skeleton da rota DESTINO (o pathname já
   // aponta para a nova rota no instante em que o chunk lazy suspende).
   const SkeletonRota = obterSkeletonRota(pathname);

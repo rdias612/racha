@@ -13,8 +13,6 @@ import {
   EstatisticasRacha,
   Comparador,
   PartidaNova,
-  PartidaConfirma,
-  PartidaNovaTimes,
   PartidaDetalhe,
   PartidaTimes,
   PartidaAoVivo,
@@ -52,8 +50,6 @@ export function App() {
           <Route path="/estatisticas/racha" element={<EstatisticasRacha />} />
           <Route path="/estatisticas/comparar" element={<Comparador />} />
           <Route path="/partida/nova" element={<PartidaNova />} />
-          <Route path="/partida/nova/confirma" element={<PartidaConfirma />} />
-          <Route path="/partida/nova/times" element={<PartidaNovaTimes />} />
           <Route path="/partida/:id" element={<PartidaDetalhe />} />
           <Route path="/partida/:id/times" element={<PartidaTimes />} />
           <Route path="/partida/:id/ao-vivo" element={<PartidaAoVivo />} />

@@ -59,8 +59,8 @@ export function gerarEscalacaoAutomatica(
     };
   });
 
-  const goleiros = jogadoresComNota.filter((j) => j.posicao === 'goleiro');
-  const linha = embaralhar(jogadoresComNota.filter((j) => j.posicao !== 'goleiro'));
+  // Lista de jogadores de linha embaralhada (goleiros são gerenciados em seletores dedicados na UI)
+  const linha = embaralhar(jogadoresComNota);
 
   const timeA: JogadorComRating[] = [];
   const timeB: JogadorComRating[] = [];
@@ -69,22 +69,7 @@ export function gerarEscalacaoAutomatica(
     return time.reduce((acc, j) => acc + j.nota, 0);
   }
 
-  // 1. Distribuir Goleiros alternadamente (atribuindo o melhor goleiro ao time com menor saldo)
-  goleiros.sort((a, b) => b.notaEfetiva - a.notaEfetiva);
-  for (const g of goleiros) {
-    if (
-      timeA.length < limitePorTime &&
-      (timeB.length >= limitePorTime || somaNotas(timeA) <= somaNotas(timeB))
-    ) {
-      timeA.push(g);
-    } else if (timeB.length < limitePorTime) {
-      timeB.push(g);
-    } else {
-      timeA.push(g);
-    }
-  }
-
-  // 2. Agrupar jogadores de linha por posição primária (posicao)
+  // 1. Agrupar jogadores de linha por posição primária (posicao)
   const gruposPosicao: Record<string, JogadorComRating[]> = {};
   for (const j of linha) {
     const pos = j.posicao;
