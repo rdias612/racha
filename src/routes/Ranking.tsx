@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { POSICOES, type PosicaoId } from '../lib/times';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
 import { useCache } from '../hooks/useCache';
+import { chaveRanking } from '../lib/chavesCache';
 import { useSwipeTabs } from '../hooks/useSwipeTabs';
 import { MensagemEstado } from '../components/Estado';
 import { SkeletonRanking } from '../components/Skeletons';
@@ -129,7 +130,7 @@ export function Ranking() {
   }, [posicaoFiltro]);
 
   const { dados, carregando, erro, recarregar } = useCache<LinhaRanking[]>(
-    `ranking:${posicaoFiltro}`,
+    chaveRanking(posicaoFiltro),
     buscar
   );
 

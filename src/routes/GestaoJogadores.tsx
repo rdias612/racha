@@ -463,7 +463,7 @@ export function GestaoJogadores() {
       ) : (
         <div className="space-y-3">
           {jogadoresFiltrados.map((j) => {
-            const jOriginal = jogadores.find((orig) => orig.id === j.id)!;
+            const jOriginal = jogadores.find((orig) => orig.id === j.id) ?? j;
             const superadmin = isSuperAdminId(j.id);
             const modificado = Boolean(rascunhos[j.id]);
             const bloqMensalista = !j.is_mensalista && limiteAtingido;

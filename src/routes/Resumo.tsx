@@ -15,6 +15,7 @@ import {
 } from '../lib/partidas';
 import { formatarDataCompleta, formatarDataMobile } from '../lib/formatacao';
 import { useCache } from '../hooks/useCache';
+import { chaveResumo } from '../lib/chavesCache';
 
 interface ResumoAno {
   ano: number;
@@ -60,7 +61,7 @@ export function Resumo() {
   const ano = new Date().getFullYear();
 
   // Boletim completo (RPC resumo_ano + próxima partida draft + ocupação de vagas)
-  // cacheado em 'resumo': revisitas renderizam na hora e revalidam em background.
+  // cacheado por ano: revisitas renderizam na hora e revalidam em background.
   const buscar = useCallback(async (): Promise<DadosResumo> => {
     const [respResumo, respProx] = await Promise.all([
       supabase.rpc('resumo_ano', { p_ano: ano }),
@@ -82,7 +83,7 @@ export function Resumo() {
     return { resumo: respResumo.data?.[0] ?? null, proxima };
   }, [ano]);
 
-  const { dados, carregando, erro, recarregar } = useCache<DadosResumo>('resumo', buscar);
+  const { dados, carregando, erro, recarregar } = useCache<DadosResumo>(chaveResumo(ano), buscar);
 
   const resumo = dados?.resumo ?? null;
   const proxima = dados?.proxima ?? null;

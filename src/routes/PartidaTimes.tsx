@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
 import { useEscalacaoTimes } from '../hooks/useEscalacaoTimes';
 import { invalidarCache } from '../hooks/useCache';
+import { CHAVE_JOGOS, chaveResumo } from '../lib/chavesCache';
 import {
   carregarPartida,
   carregarParticipantes,
@@ -45,6 +46,16 @@ export function PartidaTimes() {
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+
+  const timerNavegacaoRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerNavegacaoRef.current) {
+        clearTimeout(timerNavegacaoRef.current);
+      }
+    };
+  }, []);
 
   // Só os confirmados que atuam na linha (posicao da participação <> 'goleiro')
   // entram na escalação dos 14. Híbridos (goleiro de perfil que joga na linha)
@@ -198,10 +209,16 @@ export function PartidaTimes() {
 
       if (errRpc) throw errRpc;
 
-      invalidarCache('jogos');
-      invalidarCache('resumo');
+      invalidarCache(CHAVE_JOGOS);
+      invalidarCache(chaveResumo(new Date().getFullYear()));
       setFeedback('Times e goleiros salvos com sucesso.');
-      setTimeout(() => navigate(`/partida/${partidaId}`, { replace: true }), 600);
+      if (timerNavegacaoRef.current) {
+        clearTimeout(timerNavegacaoRef.current);
+      }
+      timerNavegacaoRef.current = setTimeout(
+        () => navigate(`/partida/${partidaId}`, { replace: true }),
+        600
+      );
     } catch (e) {
       setErro(formatarMensagemErro(e, 'Erro ao salvar times.'));
     } finally {

@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { UserPlus, Trash2, ArrowLeftRight } from 'lucide-react';
 import { useAdmin } from '../hooks/useAdmin';
 import { invalidarCache } from '../hooks/useCache';
+import { CHAVE_JOGOS, chaveResumo } from '../lib/chavesCache';
 import { listarJogadoresAtivos, type JogadorLista } from '../lib/jogadores';
 import { TIMES, POSICOES, type TimeId } from '../lib/times';
 import {
@@ -47,6 +48,16 @@ export function PartidaEditar() {
   const [buscaJogador, setBuscaJogador] = useState('');
   const [filtroModal, setFiltroModal] = useState<FiltroModal>('todos');
   const [jogadorParaRemover, setJogadorParaRemover] = useState<ParticipanteEdicao | null>(null);
+
+  const timerNavegacaoRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerNavegacaoRef.current) {
+        clearTimeout(timerNavegacaoRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!partidaId) return;
@@ -211,15 +222,18 @@ export function PartidaEditar() {
     try {
       await salvarEdicaoCompletaPartida(partidaId, participantes, primeiraVez);
 
-      invalidarCache('jogos');
-      invalidarCache('resumo');
+      invalidarCache(CHAVE_JOGOS);
+      invalidarCache(chaveResumo(new Date().getFullYear()));
 
       setFeedback(
         primeiraVez
           ? 'Resultado e escalação publicados com sucesso!'
           : 'Partida, escalação e placar salvos com sucesso.'
       );
-      setTimeout(() => {
+      if (timerNavegacaoRef.current) {
+        clearTimeout(timerNavegacaoRef.current);
+      }
+      timerNavegacaoRef.current = setTimeout(() => {
         navigate(`/partida/${partidaId}`);
       }, 700);
     } catch (e) {

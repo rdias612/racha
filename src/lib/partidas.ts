@@ -90,7 +90,7 @@ interface ParticipanteJoinRow {
   partida_id: number;
   jogador_id: number;
   time: TimeId | null;
-  posicao: PosicaoId | null;
+  posicao: PosicaoId;
   gols: number;
   assistencias: number;
   gols_contra: number;
@@ -101,7 +101,7 @@ interface ParticipanteJoinRow {
   } | null;
 }
 
-export async function carregarParticipantes(partidaId: number) {
+export async function carregarParticipantes(partidaId: number): Promise<Participante[]> {
   const { data, error } = await supabase
     .from('partidas_participantes')
     .select(
@@ -121,8 +121,8 @@ export async function carregarParticipantes(partidaId: number) {
     gols_contra: p.gols_contra,
     status_confirmacao: p.status_confirmacao,
     confirmado_em: p.confirmado_em,
-    username: p.jogadores?.username,
-  })) as Participante[];
+    username: p.jogadores?.username ?? undefined,
+  }));
 }
 
 export async function carregarNotas(partidaId: number) {
@@ -375,17 +375,7 @@ export async function removerParticipanteDraft(partidaId: number, jogadorId: num
   return true;
 }
 
-export interface ParticipanteEdicao {
-  partida_id: number;
-  jogador_id: number;
-  time: TimeId | null;
-  posicao: PosicaoId;
-  gols: number;
-  assistencias: number;
-  gols_contra: number;
-  status_confirmacao: StatusConfirmacao;
-  username?: string;
-}
+export type ParticipanteEdicao = Omit<Participante, 'confirmado_em'>;
 
 // Salva adições, remoções, trocas de time e estatísticas de participantes de forma transacional.
 export async function salvarEdicaoCompletaPartida(

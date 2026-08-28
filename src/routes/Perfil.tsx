@@ -81,6 +81,8 @@ export function Perfil() {
     setErroUsername(null);
     setOkUsername(null);
 
+    if (!jogador) return;
+
     const erroValidacao = validarFormatoUsername(usernameNovo);
     if (erroValidacao) {
       setErroUsername(erroValidacao);
@@ -90,7 +92,7 @@ export function Perfil() {
 
     const limpo = usernameNovo.trim();
     // Mudança apenas de maiúsculas/minúsculas é permitida.
-    if (limpo === jogador!.username) {
+    if (limpo === jogador.username) {
       setErroUsername('O novo usuário é igual ao atual.');
       vibrateError();
       return;
@@ -98,8 +100,8 @@ export function Perfil() {
 
     setSalvandoUsername(true);
     try {
-      await atualizarUsernameJogador(jogador!.id, usernameNovo);
-      setJogador({ ...jogador!, username: limpo });
+      await atualizarUsernameJogador(jogador.id, usernameNovo);
+      setJogador({ ...jogador, username: limpo });
       vibrateSuccess();
       setOkUsername('Usuário alterado com sucesso. Use @' + limpo + ' no próximo login.');
       setUsernameNovo('');
@@ -148,6 +150,8 @@ export function Perfil() {
     setErroSenha(null);
     setOkSenha(null);
 
+    if (!jogador) return;
+
     if (senhaNova.length < 3) {
       setErroSenha('A nova senha deve ter ao menos 3 caracteres.');
       return;
@@ -160,7 +164,7 @@ export function Perfil() {
     setTrocando(true);
     try {
       const { error } = await supabase.rpc('trocar_senha', {
-        p_jogador_id: jogador!.id,
+        p_jogador_id: jogador.id,
         p_senha_atual: senhaAtual,
         p_senha_nova: senhaNova,
       });

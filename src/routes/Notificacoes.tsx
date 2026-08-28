@@ -50,6 +50,73 @@ const OPCOES_REFORCO = [
   { value: '24', label: '24 horas antes', sublabel: 'Terça às 16h' },
 ];
 
+const VARIAVEIS_CONVITE = ['{dia_jogo}', '{hora_jogo}', '{prazo}'] as const;
+
+interface BucketVotacaoItem {
+  readonly key: string;
+  readonly label: string;
+  readonly field: 'votacao_bucket_6h' | 'votacao_bucket_3h' | 'votacao_bucket_1h' | 'votacao_bucket_30m';
+}
+
+const BUCKETS_VOTACAO: readonly BucketVotacaoItem[] = [
+  { key: '6h', label: '6 Horas', field: 'votacao_bucket_6h' },
+  { key: '3h', label: '3 Horas', field: 'votacao_bucket_3h' },
+  { key: '1h', label: '1 Hora', field: 'votacao_bucket_1h' },
+  { key: '30m', label: '30 Min', field: 'votacao_bucket_30m' },
+];
+
+interface TemplateVotacaoItem {
+  readonly key: string;
+  readonly label: string;
+  readonly titField:
+    | 'votacao_template_6h_titulo'
+    | 'votacao_template_3h_titulo'
+    | 'votacao_template_1h_titulo'
+    | 'votacao_template_30m_titulo';
+  readonly msgField:
+    | 'votacao_template_6h_msg'
+    | 'votacao_template_3h_msg'
+    | 'votacao_template_1h_msg'
+    | 'votacao_template_30m_msg';
+  readonly placeholderTit: string;
+  readonly placeholderMsg: string;
+}
+
+const TEMPLATES_VOTACAO: readonly TemplateVotacaoItem[] = [
+  {
+    key: '6h',
+    label: 'Bucket 6 Horas',
+    titField: 'votacao_template_6h_titulo',
+    msgField: 'votacao_template_6h_msg',
+    placeholderTit: 'Faltam 6 horas para fechar a votação!',
+    placeholderMsg: 'Avalie a partida de ontem e deixe suas notas para o ranking.',
+  },
+  {
+    key: '3h',
+    label: 'Bucket 3 Horas',
+    titField: 'votacao_template_3h_titulo',
+    msgField: 'votacao_template_3h_msg',
+    placeholderTit: 'Vote, ou então não reclama depois que a divisão tá ruim!',
+    placeholderMsg: 'Faltam apenas 3 horas para fechar a súmula da partida de ontem.',
+  },
+  {
+    key: '1h',
+    label: 'Bucket 1 Hora',
+    titField: 'votacao_template_1h_titulo',
+    msgField: 'votacao_template_1h_msg',
+    placeholderTit: 'Os analfabetos da bola já votaram, e você?',
+    placeholderMsg: 'Acesse a partida de ontem antes que o tempo de votação esgote.',
+  },
+  {
+    key: '30m',
+    label: 'Bucket 30 Minutos',
+    titField: 'votacao_template_30m_titulo',
+    msgField: 'votacao_template_30m_msg',
+    placeholderTit: 'Ainda não votou, vai deixar Tchuca avacalhar as notas!?',
+    placeholderMsg: 'Últimos 30 minutos para registrar seu voto na partida de ontem!',
+  },
+];
+
 function nomeDiaSemana(dia: number): string {
   return DIAS_DISPARO.find((d) => d.value === String(dia))?.label ?? `Dia ${dia}`;
 }
@@ -285,15 +352,14 @@ export function Notificacoes() {
 
             {/* Badges de Variáveis */}
             <div className="flex flex-wrap gap-1.5">
-              <span className="rounded-[2px] border border-destaque/30 bg-destaque/10 px-1.5 py-0.5 text-[10px] font-mono text-destaque-texto">
-                {'{dia_jogo}'}
-              </span>
-              <span className="rounded-[2px] border border-destaque/30 bg-destaque/10 px-1.5 py-0.5 text-[10px] font-mono text-destaque-texto">
-                {'{hora_jogo}'}
-              </span>
-              <span className="rounded-[2px] border border-destaque/30 bg-destaque/10 px-1.5 py-0.5 text-[10px] font-mono text-destaque-texto">
-                {'{prazo}'}
-              </span>
+              {VARIAVEIS_CONVITE.map((variavel) => (
+                <span
+                  key={variavel}
+                  className="rounded-[2px] border border-destaque/30 bg-destaque/10 px-1.5 py-0.5 text-[10px] font-mono text-destaque-texto"
+                >
+                  {variavel}
+                </span>
+              ))}
             </div>
 
             <label className="block">
@@ -441,55 +507,33 @@ export function Notificacoes() {
               </span>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {[
-                  {
-                    key: '6h',
-                    label: '6 Horas',
-                    checked: config.votacao_bucket_6h,
-                    field: 'votacao_bucket_6h',
-                  },
-                  {
-                    key: '3h',
-                    label: '3 Horas',
-                    checked: config.votacao_bucket_3h,
-                    field: 'votacao_bucket_3h',
-                  },
-                  {
-                    key: '1h',
-                    label: '1 Hora',
-                    checked: config.votacao_bucket_1h,
-                    field: 'votacao_bucket_1h',
-                  },
-                  {
-                    key: '30m',
-                    label: '30 Min',
-                    checked: config.votacao_bucket_30m,
-                    field: 'votacao_bucket_30m',
-                  },
-                ].map((bucket) => (
-                  <label
-                    key={bucket.key}
-                    className={`min-h-[44px] flex items-center justify-between p-2.5 rounded-[4px] border cursor-pointer transition ${
-                      bucket.checked
-                        ? 'border-destaque/50 bg-destaque/10 text-giz'
-                        : 'border-borda bg-superficie-2 text-giz-fraco opacity-60'
-                    }`}
-                  >
-                    <span className="font-display font-bold uppercase tracking-wider text-xs">
-                      {bucket.label}
-                    </span>
-                    <input
-                      type="checkbox"
-                      checked={bucket.checked}
-                      onChange={(e) =>
-                        setConfig((prev) =>
-                          prev ? { ...prev, [bucket.field]: e.target.checked } : prev
-                        )
-                      }
-                      className="size-4 accent-destaque rounded-[2px]"
-                    />
-                  </label>
-                ))}
+                {BUCKETS_VOTACAO.map((bucket) => {
+                  const checked = config[bucket.field];
+                  return (
+                    <label
+                      key={bucket.key}
+                      className={`min-h-[44px] flex items-center justify-between p-2.5 rounded-[4px] border cursor-pointer transition ${
+                        checked
+                          ? 'border-destaque/50 bg-destaque/10 text-giz'
+                          : 'border-borda bg-superficie-2 text-giz-fraco opacity-60'
+                      }`}
+                    >
+                      <span className="font-display font-bold uppercase tracking-wider text-xs">
+                        {bucket.label}
+                      </span>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(e) =>
+                          setConfig((prev) =>
+                            prev ? { ...prev, [bucket.field]: e.target.checked } : prev
+                          )
+                        }
+                        className="size-4 accent-destaque rounded-[2px]"
+                      />
+                    </label>
+                  );
+                })}
               </div>
 
               {/* Acordeão de Textos de Votação */}
@@ -498,43 +542,7 @@ export function Notificacoes() {
                   Personalizar Mensagens por Intervalo:
                 </span>
 
-                {[
-                  {
-                    key: '6h',
-                    label: 'Bucket 6 Horas',
-                    titField: 'votacao_template_6h_titulo',
-                    msgField: 'votacao_template_6h_msg',
-                    placeholderTit: 'Faltam 6 horas para fechar a votação!',
-                    placeholderMsg: 'Avalie a partida de ontem e deixe suas notas para o ranking.',
-                  },
-                  {
-                    key: '3h',
-                    label: 'Bucket 3 Horas',
-                    titField: 'votacao_template_3h_titulo',
-                    msgField: 'votacao_template_3h_msg',
-                    placeholderTit: 'Vote, ou então não reclama depois que a divisão tá ruim!',
-                    placeholderMsg:
-                      'Faltam apenas 3 horas para fechar a súmula da partida de ontem.',
-                  },
-                  {
-                    key: '1h',
-                    label: 'Bucket 1 Hora',
-                    titField: 'votacao_template_1h_titulo',
-                    msgField: 'votacao_template_1h_msg',
-                    placeholderTit: 'Os analfabetos da bola já votaram, e você?',
-                    placeholderMsg:
-                      'Acesse a partida de ontem antes que o tempo de votação esgote.',
-                  },
-                  {
-                    key: '30m',
-                    label: 'Bucket 30 Minutos',
-                    titField: 'votacao_template_30m_titulo',
-                    msgField: 'votacao_template_30m_msg',
-                    placeholderTit: 'Ainda não votou, vai deixar Tchuca avacalhar as notas!?',
-                    placeholderMsg:
-                      'Últimos 30 minutos para registrar seu voto na partida de ontem!',
-                  },
-                ].map((b) => {
+                {TEMPLATES_VOTACAO.map((b) => {
                   const aberto = bucketAberto === b.key;
                   return (
                     <div
@@ -563,9 +571,7 @@ export function Notificacoes() {
                             <input
                               type="text"
                               maxLength={120}
-                              value={
-                                (config[b.titField as keyof NotificacoesConfig] as string) ?? ''
-                              }
+                              value={config[b.titField] ?? ''}
                               onChange={(e) =>
                                 setConfig((prev) =>
                                   prev ? { ...prev, [b.titField]: e.target.value } : prev
@@ -583,9 +589,7 @@ export function Notificacoes() {
                             <textarea
                               rows={2}
                               maxLength={500}
-                              value={
-                                (config[b.msgField as keyof NotificacoesConfig] as string) ?? ''
-                              }
+                              value={config[b.msgField] ?? ''}
                               onChange={(e) =>
                                 setConfig((prev) =>
                                   prev ? { ...prev, [b.msgField]: e.target.value } : prev

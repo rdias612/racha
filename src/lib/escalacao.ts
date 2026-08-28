@@ -48,7 +48,7 @@ export function gerarEscalacaoAutomatica(
 
   // Atribuição de notas (padrão 6.0 se não tiver avaliação) com jitter fixo
   const jogadoresComNota: JogadorComRating[] = jogadores.map((j) => {
-    const notaCalculada = j.media_nota ?? mediasNotas?.[j.id] ?? NOTA_PADRAO;
+    const notaCalculada = mediasNotas?.[j.id] ?? NOTA_PADRAO;
     const nota = Number(notaCalculada.toFixed(2));
     return {
       ...j,

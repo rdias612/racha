@@ -14,15 +14,25 @@ interface EstadoPartida {
   horaJogo?: string;
 }
 
+function isEstadoPartida(val: unknown): val is EstadoPartida {
+  if (!val || typeof val !== 'object') return false;
+  const obj = val as Record<string, unknown>;
+  return (
+    Array.isArray(obj['selecionados']) &&
+    Array.isArray(obj['jogadores']) &&
+    typeof obj['dataJogo'] === 'string'
+  );
+}
+
 export function PartidaConfirma() {
   const isAdmin = useAdmin();
   const navigate = useNavigate();
   const location = useLocation();
-  const estado = location.state as EstadoPartida | null;
+  const estado = isEstadoPartida(location.state) ? location.state : null;
 
   // Derivação dos jogadores selecionados agrupados por categoria.
   const grupos = useMemo(() => {
-    if (!estado || !Array.isArray(estado.selecionados) || !Array.isArray(estado.jogadores)) {
+    if (!estado) {
       return { mensalistas: [], avulsos: [], goleiros: [] };
     }
     const selecionadosDetalhados = estado.jogadores.filter((j) =>
@@ -40,7 +50,7 @@ export function PartidaConfirma() {
 
   // Guard de state ausente (acesso direto/refresh): volta para a Etapa 1,
   // que rehidrata do localStorage e devolve o usuário pra cá com state.
-  if (!estado || !Array.isArray(estado.selecionados) || !Array.isArray(estado.jogadores)) {
+  if (!estado) {
     return <Navigate to="/partida/nova" replace />;
   }
 

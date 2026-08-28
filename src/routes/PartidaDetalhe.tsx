@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
 import { invalidarCache } from '../hooks/useCache';
+import { CHAVE_JOGOS, chaveResumo } from '../lib/chavesCache';
 import { POSICOES, type TimeId } from '../lib/times';
 import {
   isRandomUsername,
@@ -187,8 +188,8 @@ export function PartidaDetalhe() {
         );
         return;
       }
-      invalidarCache('jogos');
-      invalidarCache('resumo');
+      invalidarCache(CHAVE_JOGOS);
+      invalidarCache(chaveResumo(new Date().getFullYear()));
       navigate(`/partida/${partida.id}/ao-vivo`, { replace: true });
     } catch (e) {
       setErro(formatarMensagemErro(e, 'Não foi possível iniciar a partida.'));

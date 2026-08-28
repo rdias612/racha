@@ -282,15 +282,15 @@ Componente idêntico em `Perfil.tsx:393-404` e `Estatisticas.tsx:410-421`; inter
 
 > Corrigido em 2026-08-25: definidos `SELECT_DIVIDA` e o mapeador canônico `mapearLinhaDivida` em `src/lib/dividas.ts`, unificando a projeção de 13 colunas com join em `jogadores` e a normalização de `natureza` para `'receita'`/`'despesa'` nas funções `listarDividasEmAberto` e `listarLancamentosPorPeriodo`.
 
-### P2-14. Chaves de cache como strings mágicas + `'resumo'` sem ano
+### P2-14. ✅ Chaves de cache como strings mágicas + `'resumo'` sem ano
 
-`Jogos.tsx:108/122`, `Resumo.tsx:85` (não inclui o `ano` do `buscar` — na virada do ano numa sessão aberta serve dado do ano anterior), `Ranking.tsx:117-119`, `Comparador.tsx:163-165` inline.
-**Refatoração**: `lib/chavesCache.ts` com constantes/factories (`chaveRanking(filtro)`) usadas no `useCache` e no `invalidarCache`.
+> Corrigido em 2026-08-27: criado `src/lib/chavesCache.ts` como fonte única das chaves do cache SWR (`CHAVE_JOGOS`, `chaveResumo(ano)`, `chaveRanking(filtro)`, `chaveComparador(idA, idB)`), com o ano entrando na chave do resumo (corrige o bug da virada de ano). Todas as leituras (`useCache`) e invalidações (`invalidarCache`) em `Jogos.tsx`, `Resumo.tsx`, `Ranking.tsx`, `Comparador.tsx`, `PartidaDetalhe.tsx`, `PartidaAoVivo.tsx`, `PartidaNovaTimes.tsx`, `PartidaTimes.tsx` e `PartidaEditar.tsx` passaram a importar daqui — zero literais de chave inline em rotas e componentes.
+> **Onde**: `src/lib/chavesCache.ts` e as rotas listadas.
 
-### P2-15. `LIMITE_POR_TIME` vive num componente (inversão de camadas)
+### P2-15. ✅ `LIMITE_POR_TIME` vive num componente (inversão de camadas)
 
-`components/EscalacaoTimesEditor.tsx:8` (importado por `hooks/useEscalacaoTimes.ts:2` e `routes/PartidaTimes.tsx:23`) vs `CAPACIDADE_PARTIDA = 14` em `lib/partidas.ts:271`. O acoplamento 14 = 7×2 é implícito.
-**Refatoração**: mover para `lib/times.ts` e derivar `CAPACIDADE_PARTIDA = LIMITE_POR_TIME * 2`.
+> Corrigido em 2026-08-27: `LIMITE_POR_TIME = 7` movido para `src/lib/times.ts` (módulo folha, sem imports — impossibilita ciclo) e `CAPACIDADE_PARTIDA` agora é derivada em `src/lib/partidas.ts` como `LIMITE_POR_TIME * 2`, tornando o acoplamento 14 = 7×2 explícito. `EscalacaoTimesEditor.tsx`, `useEscalacaoTimes.ts` e `PartidaTimes.tsx` importam da lib; o export do componente foi removido sem re-export de compatibilidade.
+> **Onde**: `src/lib/times.ts`, `src/lib/partidas.ts`, `src/components/EscalacaoTimesEditor.tsx`, `src/hooks/useEscalacaoTimes.ts`, `src/routes/PartidaTimes.tsx`.
 
 ### P2-16. ✅ Regra do placar (gol contra soma para o adversário) reimplementada no cliente
 
@@ -359,10 +359,10 @@ Componente idêntico em `Perfil.tsx:393-404` e `Estatisticas.tsx:410-421`; inter
 > Corrigido em 2026-08-25: refatorada a view `partida_placar` para realizar a agregação de gols próprios e gols contra em passo único (`agg` CTE), eliminando a dupla varredura de `partidas_participantes`. Criados índices de cobertura de alta performance: `idx_partidas_participantes_placar` em `(partida_id, time) INCLUDE (gols, gols_contra)` e `idx_partidas_data_jogo` em `partidas (data_jogo DESC)`.
 > **Onde**: `supabase/migrations/090_otimizacao_placar_e_rpcs_notificacoes.sql`, `supabase/aplicar_tudo.sql`.
 
-### P2-29. Comentário diz "capacidade 16" mas o código aplica 14
+### P2-29. ✅ Comentário diz "capacidade 16" mas o código aplica 14
 
-`aplicar_tudo.sql:1726-1731` (comentário do bloco 057) vs `v_ocupadas >= 14` (`:1813, 1890, 4246, 4297, 4788, 4837`). A regra 14/7+1 está hardcoded em 8 funções.
-**Refatoração**: corrigir o comentário e extrair função `capacidade_partida()` (ou constante única) usada pelas contagens.
+> Corrigido em 2026-08-27: extraída a função pura `capacidade_partida()` (retorna 14, `IMMUTABLE`, fonte única da capacidade: 14 jogadores de linha titulares + 2 goleiros = 16 participantes), usada nas contagens de vagas das RPCs `confirmar_presenca` e `adicionar_participante` (únicas funções canônicas com a checagem após a regeneração do mestre — as 6 ocorrências da auditoria eram definições duplicadas do mestre antigo). O comentário esclarecido "capacidade 14 de linha (+ 2 goleiros = 16 participantes)" acompanha a definição da função na migration 100 e no `aplicar_tudo.sql`; o header histórico da 057 permaneceu intacto por ser registro fiel da época (a capacidade era 16, reduzida para 14 pela migration 080). Refatoração de comportamento zero: mesmos números, mesma lógica.
+> **Onde**: `supabase/migrations/100_funcao_capacidade_partida.sql`, `supabase/aplicar_tudo.sql`.
 
 ## Infra/Tooling (P2)
 
@@ -417,27 +417,25 @@ Componente idêntico em `Perfil.tsx:393-404` e `Estatisticas.tsx:410-421`; inter
 > Corrigido em 2026-08-25: removidos os parâmetros residuais `_closesAt` e `_agora` de `vagasOcupadas` e `podeConfirmar`, bem como `_participantesOriginais` e `_statusPartida` de `salvarEdicaoCompletaPartida` em `src/lib/partidas.ts`. Atualizados os call sites em `src/routes/Resumo.tsx`, `src/routes/PartidaDetalhe.tsx` e `src/routes/PartidaEditar.tsx` (removido também o estado órfão `participantesOriginais`).
 > **Onde**: `src/lib/partidas.ts`, `src/routes/Resumo.tsx`, `src/routes/PartidaDetalhe.tsx`, `src/routes/PartidaEditar.tsx`.
 
-### P3-3. Tipagem fina
+### P3-3. ✅ Tipagem fina
 
-- `partidas.ts:44-56` vs `:96-109` — `Participante.posicao` não-nulo vs row anulável; `as Participante[]` silencia NULL do banco
-- `partidas.ts:373-383` — `ParticipanteEdicao` é cópia quase literal → `Omit<Participante, 'confirmado_em'>`
-- `SessaoContext.tsx:14-24` vs `lib/jogadores.ts:24-35` — `JogadorLogado` duplicado → `Omit<JogadorLista, ...>`
-- `jogadores.ts:34-35` — `media_nota`/`partidas_ultimos_2_meses` nunca populados pelas queries (campos vestigiais)
-- Asserções perigosas: `Administrador.tsx:791` (`d.jogadores!.chave_pix!` + `clipboard.writeText` sem `.catch`), `Perfil.tsx:86,94,95,157` (`jogador!` em closures), `GestaoJogadores.tsx:475`, `PartidaEditar.tsx:224`, `Notificacoes.tsx:596,616` (dupla asserção), `PartidaVotar.tsx:147`, `PartidaConfirma.tsx:20`/`PartidaNovaTimes.tsx:26` (`location.state as` sem validação honesta — tipar `unknown`)
+> Corrigido em 2026-08-27: alinhado o tipo `Participante.posicao` com o schema real e removido o cast cego em `carregarParticipantes`; refatorado `ParticipanteEdicao` para `Omit<Participante, 'confirmado_em'>`; removidos os campos vestigiais `media_nota` e `partidas_ultimos_2_meses` de `JogadorLista` e derivado `JogadorLogado` em `SessaoContext.tsx` a partir de `JogadorLista`; removidas as asserções perigosas (`!`) em `Administrador.tsx` (com tratamento de erro `.catch` no `clipboard.writeText`), `Perfil.tsx` (guardas antecipadas de `jogador`), `GestaoJogadores.tsx` (fallback seguro em `jOriginal`), e validados os estados de navegação (`location.state`) com type guard seguro `isEstadoPartida` em `PartidaConfirma.tsx` e `PartidaNovaTimes.tsx`.
+> **Onde**: `src/lib/partidas.ts`, `src/lib/jogadores.ts`, `src/context/SessaoContext.tsx`, `src/lib/escalacao.ts`, `src/routes/Administrador.tsx`, `src/routes/Perfil.tsx`, `src/routes/GestaoJogadores.tsx`, `src/routes/PartidaConfirma.tsx`, `src/routes/PartidaNovaTimes.tsx`.
 
-### P3-4. setTimeout de navegação/feedback sem cleanup
+### P3-4. ✅ setTimeout de navegação/feedback sem cleanup
 
-`PartidaEditar.tsx:233-235`, `PartidaNovaTimes.tsx:111`, `PartidaTimes.tsx:190`, `PartidaVotar.tsx:236`, `GestaoGoleiros.tsx:170`, `Login.tsx:41-43` — `navigate`/`setState` disparam mesmo após unmount.
-**Refatoração**: guardar o id do timer e limpar no cleanup.
+> Corrigido em 2026-08-27: adicionado gerenciamento defensivo de timers via `useRef` e `clearTimeout` nos cleanups de desmontagem (`useEffect`) e antes de novos agendamentos em todas as rotas que realizam redirecionamento ou feedback temporizado (`PartidaEditar.tsx`, `PartidaNovaTimes.tsx`, `PartidaTimes.tsx`, `PartidaVotar.tsx`, `GestaoGoleiros.tsx`, `Login.tsx` e `NovoJogador.tsx`). Eliminados riscos de vazamento de memória e atualizações de estado após desmontagem. Adicionados type guards seguros para `location.state` (`isEstadoPartida`) em `PartidaNovaTimes.tsx` e `PartidaConfirma.tsx`, além da limpeza de asserções de tipo.
+> **Onde**: `src/routes/PartidaEditar.tsx`, `src/routes/PartidaNovaTimes.tsx`, `src/routes/PartidaTimes.tsx`, `src/routes/PartidaVotar.tsx`, `src/routes/GestaoGoleiros.tsx`, `src/routes/Login.tsx`, `src/routes/PartidaConfirma.tsx`, `src/routes/NovoJogador.tsx`.
 
 ### P3-5. ✅ Estado espelho via useEffect
 
 > Corrigido em 2026-08-25: removido o `useEffect` que "clampava" `minimoPartidas` para baixo sempre que `maximoPartidas` mudava (snap-back do slider ao recarregar dados); o clamp agora roda no `onChange` do range, limitando o valor a `maximoPartidas`. Mantido apenas o `useEffect` legítimo de reset de filtros/ordenação ao trocar a métrica.
 > **Onde**: `src/routes/Ranking.tsx`.
 
-### P3-6. Constantes grandes recriadas por render
+### P3-6. ✅ Constantes grandes recriadas por render
 
-`Notificacoes.tsx:473-497, 530-565` — arrays de buckets e templates inline no JSX → constantes de módulo (como `DIAS_DISPARO` já é).
+> Corrigido em 2026-08-27: extraídas as constantes de módulo `VARIAVEIS_CONVITE`, `BUCKETS_VOTACAO` e `TEMPLATES_VOTACAO` no topo de `src/routes/Notificacoes.tsx`, eliminando a recriação de arrays e objetos literais estáticos a cada ciclo de render. Tipadas estritamente as chaves de campos (`titField`, `msgField`, `field`) com base em `NotificacoesConfig`, eliminando asserções e casts duplos inseguros no binding dos formulários.
+> **Onde**: `src/routes/Notificacoes.tsx`.
 
 ### P3-7. `useEscalacaoTimes` não sincroniza com props + varredura O(n²)
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { obterMediasNotasJogadores, type JogadorLista } from '../lib/jogadores';
@@ -6,6 +6,7 @@ import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
 import { useEscalacaoTimes } from '../hooks/useEscalacaoTimes';
 import { invalidarCache } from '../hooks/useCache';
+import { CHAVE_JOGOS, chaveResumo } from '../lib/chavesCache';
 import { formatarDataCompleta } from '../lib/formatacao';
 import { EscalacaoTimesEditor } from '../components/EscalacaoTimesEditor';
 import { voltar } from '../lib/navegacao';
@@ -18,6 +19,16 @@ interface EstadoPartida {
   horaJogo?: string;
 }
 
+function isEstadoPartida(val: unknown): val is EstadoPartida {
+  if (!val || typeof val !== 'object') return false;
+  const obj = val as Record<string, unknown>;
+  return (
+    Array.isArray(obj['selecionados']) &&
+    Array.isArray(obj['jogadores']) &&
+    typeof obj['dataJogo'] === 'string'
+  );
+}
+
 const STORAGE_KEY = 'racha_nova_partida';
 
 export function PartidaNovaTimes() {
@@ -25,11 +36,20 @@ export function PartidaNovaTimes() {
   const adminLogado = useJogadorLogado();
   const navigate = useNavigate();
   const location = useLocation();
-  const estado = location.state as EstadoPartida | null;
+  const estado = isEstadoPartida(location.state) ? location.state : null;
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [mediasNotas, setMediasNotas] = useState<Record<number, number>>({});
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     let ativo = true;
@@ -47,10 +67,7 @@ export function PartidaNovaTimes() {
 
   // Apenas os confirmados recebidos via state.
   const jogadoresConfirmados = useMemo(
-    () =>
-      estado && Array.isArray(estado.jogadores) && Array.isArray(estado.selecionados)
-        ? estado.jogadores.filter((j) => estado.selecionados.includes(j.id))
-        : [],
+    () => (estado ? estado.jogadores.filter((j) => estado.selecionados.includes(j.id)) : []),
     [estado]
   );
 
@@ -63,7 +80,7 @@ export function PartidaNovaTimes() {
   if (!isAdmin) return <Navigate to="/" replace />;
 
   // Guard de state ausente (acesso direto/refresh): volta para a Etapa 1.
-  if (!estado || !Array.isArray(estado.selecionados) || !Array.isArray(estado.jogadores)) {
+  if (!estado) {
     return <Navigate to="/partida/nova" replace />;
   }
 
@@ -115,10 +132,13 @@ export function PartidaNovaTimes() {
       // Storage indisponível — ignora silenciosamente.
     }
 
-    invalidarCache('jogos');
-    invalidarCache('resumo');
+    invalidarCache(CHAVE_JOGOS);
+    invalidarCache(chaveResumo(new Date().getFullYear()));
     setFeedback(`Partida #${data} criada.`);
-    setTimeout(() => navigate(`/partida/${data}`, { replace: true }), 800);
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    timerRef.current = setTimeout(() => navigate(`/partida/${data}`, { replace: true }), 800);
   }
 
   const dataHoraIso = dataJogo && horaJogo ? `${dataJogo}T${horaJogo}` : dataJogo;

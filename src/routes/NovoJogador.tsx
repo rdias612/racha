@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Navigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAdmin } from '../hooks/useAdmin';
@@ -22,12 +22,25 @@ export function NovoJogador() {
   const [ok, setOk] = useState<string | null>(null);
   const [copiado, setCopiado] = useState(false);
 
+  const timerCopiadoRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerCopiadoRef.current) {
+        clearTimeout(timerCopiadoRef.current);
+      }
+    };
+  }, []);
+
   if (!isAdmin) return <Navigate to="/" replace />;
 
   function copiarSenhaPadrao() {
     navigator.clipboard.writeText('123');
     setCopiado(true);
-    setTimeout(() => setCopiado(false), 2000);
+    if (timerCopiadoRef.current) {
+      clearTimeout(timerCopiadoRef.current);
+    }
+    timerCopiadoRef.current = setTimeout(() => setCopiado(false), 2000);
   }
 
   async function criar(e: FormEvent) {

@@ -20,6 +20,15 @@ export function Login() {
   const [carregando, setCarregando] = useState(false);
   const [aberto, setAberto] = useState(false);
   const refInput = useRef<HTMLInputElement>(null);
+  const timerBlurRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerBlurRef.current) {
+        clearTimeout(timerBlurRef.current);
+      }
+    };
+  }, []);
 
   const usernamesFiltrados = usernames.filter(
     (nome) => !username || nome.toLowerCase().includes(username.toLowerCase())
@@ -52,7 +61,10 @@ export function Login() {
 
   // Espera o clique em um item acontecer antes de fechar pelo blur do input.
   function fecharComAtraso() {
-    setTimeout(() => setAberto(false), 120);
+    if (timerBlurRef.current) {
+      clearTimeout(timerBlurRef.current);
+    }
+    timerBlurRef.current = setTimeout(() => setAberto(false), 120);
   }
 
   function navegarTeclado(e: React.KeyboardEvent<HTMLInputElement>) {

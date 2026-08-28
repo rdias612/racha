@@ -29,6 +29,7 @@ export function PartidaNova() {
   const navigate = useNavigate();
 
   const [jogadores, setJogadores] = useState<JogadorLista[]>([]);
+  const [partidasRecentes, setPartidasRecentes] = useState<Record<number, number>>({});
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [selecionados, setSelecionados] = useState<number[]>([]);
@@ -62,11 +63,8 @@ export function PartidaNova() {
     Promise.all([listarJogadoresAtivos(), obterPartidasRecentesJogadores(2)])
       .then(([jogadoresCarregados, recentesCarregadas]) => {
         if (!ativo) return;
-        const comRecentes = jogadoresCarregados.map((j) => ({
-          ...j,
-          partidas_ultimos_2_meses: recentesCarregadas[j.id] ?? 0,
-        }));
-        setJogadores(comRecentes);
+        setJogadores(jogadoresCarregados);
+        setPartidasRecentes(recentesCarregadas);
       })
       .catch((e) => {
         if (ativo) setErro(formatarMensagemErro(e, 'Não foi possível carregar os jogadores.'));
@@ -114,12 +112,12 @@ export function PartidaNova() {
             !j.is_mensalista && j.posicao !== 'goleiro' && j.username.toLowerCase().includes(termo)
         )
         .sort((a, b) => {
-          const qtdA = a.partidas_ultimos_2_meses ?? 0;
-          const qtdB = b.partidas_ultimos_2_meses ?? 0;
+          const qtdA = partidasRecentes[a.id] ?? 0;
+          const qtdB = partidasRecentes[b.id] ?? 0;
           if (qtdB !== qtdA) return qtdB - qtdA;
           return a.username.localeCompare(b.username);
         }),
-    [jogadores, termo]
+    [jogadores, termo, partidasRecentes]
   );
 
   // Contadores derivados.

@@ -15,6 +15,7 @@ import {
 import type { PosicaoId } from '../lib/times';
 import { useSessao } from '../context/SessaoContext';
 import { useCache } from '../hooks/useCache';
+import { chaveComparador } from '../lib/chavesCache';
 import { useSwipeTabs } from '../hooks/useSwipeTabs';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { SkeletonComparador } from '../components/Skeletons';
@@ -139,7 +140,7 @@ export function Comparador() {
   // A chave carrega os filtros (o par de ids): trocar o adversário ou inverter
   // os lados busca de novo; voltar a um par já visto sai grátis do cache.
   const { dados, carregando, erro, recarregar } = useCache<ComparativoTela>(
-    `comparar:${idA ?? '-'}:${idB ?? '-'}`,
+    chaveComparador(idA, idB),
     buscar
   );
 

@@ -36,8 +36,6 @@ export interface JogadorLista {
   posicao_b: PosicaoId | null;
   chave_pix?: string | null;
   telefone?: string | null;
-  media_nota?: number;
-  partidas_ultimos_2_meses?: number;
 }
 
 export const COLUNAS_JOGADOR_LISTA =
@@ -98,8 +96,6 @@ export function mapearJogadorLista(j: {
   posicao_b?: string | null;
   chave_pix?: string | null;
   telefone?: string | null;
-  media_nota?: number;
-  partidas_ultimos_2_meses?: number;
 }): JogadorLista {
   return aplicarSuperAdmin({
     ...j,

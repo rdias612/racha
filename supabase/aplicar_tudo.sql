@@ -293,6 +293,18 @@ $$;
 
 GRANT EXECUTE ON FUNCTION posicao_linha_hibrido(bigint) TO anon, authenticated;
 
+-- 3.4 Capacidade da Partida (Item P2-29)
+-- Fonte única da capacidade: 14 jogadores de linha titulares
+-- (+ 2 goleiros escalados na divisão de times = 16 participantes totais).
+-- Auxiliar interno puro, chamado apenas por RPCs SECURITY DEFINER:
+-- não é RPC pública e não recebe GRANT EXECUTE para anon/authenticated.
+CREATE OR REPLACE FUNCTION capacidade_partida()
+RETURNS integer
+LANGUAGE sql
+IMMUTABLE
+SET search_path = public
+AS $$ SELECT 14; $$;
+
 -- 4. VIEWS CANÔNICAS
 -- ----------------------------------------------------------------------------
 
@@ -1065,7 +1077,7 @@ BEGIN
         AND pp.jogador_id <> p_jogador_id
         AND pp.status_confirmacao = 'confirmado';
 
-    IF v_ocupadas >= 14 THEN
+    IF v_ocupadas >= capacidade_partida() THEN
       RETURN false;
     END IF;
   END IF;
@@ -1125,7 +1137,7 @@ BEGIN
     WHERE pp.partida_id = p_partida_id
       AND pp.status_confirmacao = 'confirmado';
 
-  IF v_ocupadas >= 14 THEN
+  IF v_ocupadas >= capacidade_partida() THEN
     RETURN false;
   END IF;
 

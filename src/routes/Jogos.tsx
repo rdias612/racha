@@ -4,6 +4,7 @@ import { Trash2, Plus } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAdmin } from '../hooks/useAdmin';
 import { useCache, invalidarCache } from '../hooks/useCache';
+import { CHAVE_JOGOS, chaveResumo } from '../lib/chavesCache';
 import { useSessao } from '../context/SessaoContext';
 import { MensagemEstado } from '../components/Estado';
 import { SkeletonJogos } from '../components/Skeletons';
@@ -76,7 +77,7 @@ export function Jogos() {
   const [excluindo, setExcluindo] = useState(false);
   const { snackbarProps, mostrarSnackbar } = useSnackbar();
 
-  // Mural completo (partidas + placares) cacheado em 'jogos': revisitas
+  // Mural completo (partidas + placares) cacheado: revisitas
   // renderizam na hora e revalidam em background. Uma unica query na view
   // `partidas_com_placar` (migration 071) elimina o waterfall de duas idas ao
   // banco; se a view ainda nao existir no banco, cai para o caminho antigo.
@@ -116,7 +117,7 @@ export function Jogos() {
     return buscarJogosDuasQueries();
   }, []);
 
-  const { dados, carregando, erro, recarregar } = useCache<DadosJogos>('jogos', buscar);
+  const { dados, carregando, erro, recarregar } = useCache<DadosJogos>(CHAVE_JOGOS, buscar);
 
   // Exclusões locais sobrepõem o cache até a próxima busca na rede.
   const partidas = (dados?.partidas ?? []).filter((p) => !idsExcluidos.has(p.id));
@@ -130,8 +131,8 @@ export function Jogos() {
       const ok = await excluirPartida(alvo.id, jogador.id);
       if (ok) {
         setIdsExcluidos((anteriores) => new Set(anteriores).add(alvo.id));
-        invalidarCache('jogos');
-        invalidarCache('resumo');
+        invalidarCache(CHAVE_JOGOS);
+        invalidarCache(chaveResumo(new Date().getFullYear()));
         mostrarSnackbar('sucesso', 'Partida excluída da súmula');
       } else {
         mostrarSnackbar('erro', 'Não foi possível excluir a partida.');

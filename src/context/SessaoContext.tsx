@@ -7,21 +7,14 @@ import {
   createContext,
   type ReactNode,
 } from 'react';
-import type { PosicaoId } from '../lib/times';
 import { supabase } from '../lib/supabase';
-import { aplicarSuperAdmin, COLUNAS_JOGADOR_LISTA } from '../lib/jogadores';
+import {
+  aplicarSuperAdmin,
+  COLUNAS_JOGADOR_LISTA,
+  type JogadorLista,
+} from '../lib/jogadores';
 
-export interface JogadorLogado {
-  id: number;
-  username: string;
-  posicao: PosicaoId;
-  is_admin: boolean;
-  is_ativo: boolean;
-  is_mensalista: boolean;
-  posicao_b: PosicaoId | null;
-  chave_pix?: string | null;
-  telefone?: string | null;
-}
+export type JogadorLogado = JogadorLista;
 
 interface SessaoContextValue {
   jogador: JogadorLogado | null;

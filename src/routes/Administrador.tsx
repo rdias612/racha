@@ -763,8 +763,16 @@ export function Administrador() {
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              navigator.clipboard.writeText(d.jogadores!.chave_pix!);
-                              mostrarSnackbar('sucesso', 'Chave PIX copiada!');
+                              const chave = d.jogadores?.chave_pix;
+                              if (!chave) return;
+                              navigator.clipboard
+                                .writeText(chave)
+                                .then(() => {
+                                  mostrarSnackbar('sucesso', 'Chave PIX copiada!');
+                                })
+                                .catch(() => {
+                                  mostrarSnackbar('erro', 'Não foi possível copiar a chave PIX.');
+                                });
                             }}
                             className="inline-flex items-center gap-1 text-xs font-mono text-destaque-texto hover:underline min-h-[44px] px-2 py-1 active:translate-y-px transition focus-visible:outline-2 focus-visible:outline-destaque-texto"
                           >

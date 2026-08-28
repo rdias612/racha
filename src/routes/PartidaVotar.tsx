@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useSessao } from '../context/SessaoContext';
@@ -6,6 +6,7 @@ import { SeletorNota } from '../components/SeletorNota';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import {
+  carregarPartida,
   carregarParticipantes,
   carregarMeusVotos,
   votacaoAberta,
@@ -36,6 +37,16 @@ export function PartidaVotar() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [votosEnviados, setVotosEnviados] = useState(false);
   const [confirmandoSaida, setConfirmandoSaida] = useState(false);
+
+  const timerNavegacaoRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerNavegacaoRef.current) {
+        clearTimeout(timerNavegacaoRef.current);
+      }
+    };
+  }, []);
 
   const editando = votosOriginais.size > 0;
 
@@ -78,13 +89,9 @@ export function PartidaVotar() {
       setErro(null);
 
       try {
-        const { data: p, error: errP } = await supabase
-          .from('partidas')
-          .select('*')
-          .eq('id', partidaId)
-          .single();
+        const p = await carregarPartida(partidaId);
 
-        if (errP || !p) {
+        if (!p) {
           if (ativo) {
             setErro('Partida não encontrada.');
             setCarregando(false);
@@ -172,7 +179,7 @@ export function PartidaVotar() {
           }
         }
 
-        setPartida(p as Partida);
+        setPartida(p);
         setAlvos(outros);
         setNotas(mapaNotas);
         setNotasIniciais(mapaNotas);
@@ -261,7 +268,13 @@ export function PartidaVotar() {
 
     setVotosEnviados(true);
     setFeedback(editando ? 'Votos atualizados com sucesso!' : 'Votos registrados na urna!');
-    setTimeout(() => navigate(`/partida/${partida.id}`, { replace: true }), 800);
+    if (timerNavegacaoRef.current) {
+      clearTimeout(timerNavegacaoRef.current);
+    }
+    timerNavegacaoRef.current = setTimeout(
+      () => navigate(`/partida/${partida.id}`, { replace: true }),
+      800
+    );
   }
 
   const tempoRestante = partida.voting_closes_at

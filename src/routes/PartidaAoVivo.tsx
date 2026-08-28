@@ -9,6 +9,7 @@ import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
 import { useSnackbar } from '../hooks/useSnackbar';
 import { invalidarCache } from '../hooks/useCache';
+import { CHAVE_JOGOS, chaveResumo } from '../lib/chavesCache';
 import { formatarDataMobile, formatarDataCompleta } from '../lib/formatacao';
 import { BotaoVoltar } from '../components/BotaoVoltar';
 import { BarraAcaoInferior } from '../components/BarraAcaoInferior';
@@ -131,8 +132,8 @@ export function PartidaAoVivo() {
         );
         return;
       }
-      invalidarCache('jogos');
-      invalidarCache('resumo');
+      invalidarCache(CHAVE_JOGOS);
+      invalidarCache(chaveResumo(new Date().getFullYear()));
       await recarregar();
     } catch (e: unknown) {
       setErro(formatarMensagemErro(e, 'Não foi possível iniciar a partida.'));
@@ -218,8 +219,8 @@ export function PartidaAoVivo() {
         setConfirmandoFim(false);
         return;
       }
-      invalidarCache('jogos');
-      invalidarCache('resumo');
+      invalidarCache(CHAVE_JOGOS);
+      invalidarCache(chaveResumo(new Date().getFullYear()));
       navigate(`/partida/${partida.id}`, { replace: true });
     } catch (e: unknown) {
       setErro(formatarMensagemErro(e, 'Não foi possível finalizar a partida.'));

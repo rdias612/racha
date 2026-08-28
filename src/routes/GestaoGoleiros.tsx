@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
@@ -45,6 +45,16 @@ export function GestaoGoleiros() {
   const [salvandoEdicao, setSalvandoEdicao] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [copiadoId, setCopiadoId] = useState<number | null>(null);
+
+  const timerCopiadoRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerCopiadoRef.current) {
+        clearTimeout(timerCopiadoRef.current);
+      }
+    };
+  }, []);
 
   // Estado para ConfirmDialog de alternância de status ativo/inativo
   const [dialogoConfirmacao, setDialogoConfirmacao] = useState<{
@@ -152,7 +162,10 @@ export function GestaoGoleiros() {
     try {
       await navigator.clipboard.writeText(pix);
       setCopiadoId(id);
-      setTimeout(() => setCopiadoId(null), 2500);
+      if (timerCopiadoRef.current) {
+        clearTimeout(timerCopiadoRef.current);
+      }
+      timerCopiadoRef.current = setTimeout(() => setCopiadoId(null), 2500);
       vibrateLight();
       mostrarSnackbar('sucesso', 'Chave PIX copiada!');
     } catch {
