@@ -1,6 +1,14 @@
 import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
-import { supabase } from '../lib/supabase';
-import { carregarStatsJogador, isRandomUsername, type StatsJogador } from '../lib/jogadores';
+import {
+  carregarParceriasDestaque,
+  carregarParceriasJogador,
+  carregarStatsJogador,
+  listarJogadoresAtivosSemRandom,
+  type MetricaDestaque,
+  type Parceria,
+  type ParceriaDestaque,
+  type StatsJogador,
+} from '../lib/jogadores';
 import { useSessao } from '../context/SessaoContext';
 import { useSwipeTabs } from '../hooks/useSwipeTabs';
 import { MensagemEstado } from '../components/Estado';
@@ -12,32 +20,6 @@ import { StatBox } from '../components/StatBox';
 import { formatarMensagemErro } from '../lib/erros';
 
 const DEFAULT_MIN_PARTIDAS = 5;
-
-// Parcerias (RPC nova)
-interface Parceria {
-  tipo: 'companheiro' | 'adversario';
-  outro_jogador_id: number;
-  username: string;
-  partidas: number;
-  vitorias: number;
-  empates: number;
-  derrotas: number;
-  pontos: number;
-  percentual: number | null;
-}
-
-// Destaques (RPC 042) - 3 metricas de companheiro de time:
-//   - mais_gols: Soma de gols do PROPRIO usuario nas partidas compartilhadas.
-//   - melhor_nota / pior_nota: AVG(partida_notas.avg_rating) do proprio usuario.
-type MetricaDestaque = 'mais_gols' | 'melhor_nota' | 'pior_nota';
-
-interface ParceriaDestaque {
-  metrica: MetricaDestaque;
-  outro_jogador_id: number;
-  username: string;
-  partidas: number;
-  valor: number | null;
-}
 
 // Item do dropdown de jogadores
 interface JogadorOpcao {
@@ -69,21 +51,19 @@ export function Estatisticas() {
 
   const jogadorId = jogador?.id;
 
-  // Carrega lista de jogadores ativos uma vez, filtrando os "random".
+  // Carrega o elenco real ativo (randoms já filtrados na lib) uma vez.
   useEffect(() => {
     if (!jogadorId) return;
     let ativo = true;
-    supabase
-      .from('jogadores')
-      .select('id, username')
-      .eq('is_ativo', true)
-      .order('username')
-      .then(({ data, error }) => {
-        if (!ativo || error || !data) return;
-        const filtrados = data.filter((j) => !isRandomUsername(j.username));
-        setJogadores(filtrados);
+    listarJogadoresAtivosSemRandom()
+      .then((lista) => {
+        if (!ativo) return;
+        setJogadores(lista);
         // default: o proprio jogador logado
         setJogadorSelecionadoId((curr) => (curr === null ? jogadorId : curr));
+      })
+      .catch(() => {
+        // Lista indisponível: seletor fica vazio (mesma tolerância do Comparador).
       });
     return () => {
       ativo = false;
@@ -102,23 +82,17 @@ export function Estatisticas() {
     setErro(null);
 
     try {
-      // Busca stats basicas, parcerias e destaques em paralelo
-      const [dadosStats, resParcerias, resDestaques] = await Promise.all([
+      // Busca stats basicas, parcerias e destaques em paralelo (libs lançam cru)
+      const [dadosStats, parcerias, destaques] = await Promise.all([
         carregarStatsJogador(jogadorSelecionadoId),
-        supabase.rpc('parcerias_jogador', {
-          p_jogador_id: jogadorSelecionadoId,
-        }),
-        supabase.rpc('parcerias_destaque_jogador', {
-          p_jogador_id: jogadorSelecionadoId,
-        }),
+        carregarParceriasJogador(jogadorSelecionadoId),
+        carregarParceriasDestaque(jogadorSelecionadoId),
       ]);
 
       if (geracao !== geracaoRef.current) return;
-      if (resParcerias.error) throw resParcerias.error;
-      if (resDestaques.error) throw resDestaques.error;
 
       setStats(dadosStats);
-      setParcerias((resParcerias.data ?? []) as unknown as Parceria[]);
+      setParcerias(parcerias);
 
       // Mapeia array de destaques para lookup facil por metrica
       const mapaDestaques: Record<MetricaDestaque, ParceriaDestaque | undefined> = {
@@ -126,10 +100,8 @@ export function Estatisticas() {
         melhor_nota: undefined,
         pior_nota: undefined,
       };
-      for (const d of (resDestaques.data ?? []) as ParceriaDestaque[]) {
-        if (d.metrica in mapaDestaques) {
-          mapaDestaques[d.metrica] = d;
-        }
+      for (const d of destaques) {
+        mapaDestaques[d.metrica] = d;
       }
       setDestaques(mapaDestaques);
     } catch (e) {

@@ -6,43 +6,17 @@ import { BotaoInstalar } from '../components/BotaoInstalar';
 import { CardNotificacoes } from '../components/CardNotificacoes';
 import { PullToRefresh } from '../components/PullToRefresh';
 
-import { supabase } from '../lib/supabase';
 import {
   carregarParticipantes,
+  carregarResumoAno,
   vagasOcupadas,
   CAPACIDADE_PARTIDA,
   obterPartidaDraftAtual,
+  type ResumoAno,
 } from '../lib/partidas';
 import { formatarDataCompleta, formatarDataMobile } from '../lib/formatacao';
 import { useCache } from '../hooks/useCache';
 import { chaveResumo } from '../lib/chavesCache';
-
-interface ResumoAno {
-  ano: number;
-  total_partidas: number;
-  artilheiro_jogador_id: number | null;
-  artilheiro_username: string | null;
-  artilheiro_gols: number | null;
-  artilheiro_partidas: number | null;
-  maestro_jogador_id: number | null;
-  maestro_username: string | null;
-  maestro_assistencias: number | null;
-  maestro_partidas: number | null;
-  participante_jogador_id: number | null;
-  participante_username: string | null;
-  participante_partidas: number | null;
-  eficiente_jogador_id: number | null;
-  eficiente_username: string | null;
-  eficiente_vitorias: number | null;
-  eficiente_partidas: number | null;
-  eficiente_percentual: number | null;
-  sequencia_vitorias_jogador_id: number | null;
-  sequencia_vitorias_username: string | null;
-  sequencia_vitorias: number | null;
-  seca_vitorias_jogador_id: number | null;
-  seca_vitorias_username: string | null;
-  seca_vitorias: number | null;
-}
 
 interface DadosResumo {
   resumo: ResumoAno | null;
@@ -63,24 +37,22 @@ export function Resumo() {
   // Boletim completo (RPC resumo_ano + próxima partida draft + ocupação de vagas)
   // cacheado por ano: revisitas renderizam na hora e revalidam em background.
   const buscar = useCallback(async (): Promise<DadosResumo> => {
-    const [respResumo, respProx] = await Promise.all([
-      supabase.rpc('resumo_ano', { p_ano: ano }),
+    const [resumo, draftAtual] = await Promise.all([
+      carregarResumoAno(ano),
       obterPartidaDraftAtual(),
     ]);
 
-    if (respResumo.error) throw respResumo.error;
-
     let proxima: DadosResumo['proxima'] = null;
-    if (respProx) {
-      const parts = await carregarParticipantes(respProx.id);
+    if (draftAtual) {
+      const parts = await carregarParticipantes(draftAtual.id);
       proxima = {
-        id: respProx.id,
-        data_jogo: respProx.data_jogo,
+        id: draftAtual.id,
+        data_jogo: draftAtual.data_jogo,
         ocupadas: vagasOcupadas(parts),
       };
     }
 
-    return { resumo: respResumo.data?.[0] ?? null, proxima };
+    return { resumo, proxima };
   }, [ano]);
 
   const { dados, carregando, erro, recarregar } = useCache<DadosResumo>(chaveResumo(ano), buscar);

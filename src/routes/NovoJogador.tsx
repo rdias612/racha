@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Navigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
 import { useAdmin } from '../hooks/useAdmin';
 import { POSICOES, POSICOES_B, type PosicaoId } from '../lib/times';
 import { MensagemEstado } from '../components/Estado';
 import { User, Shield, Star, Copy, Check, UserPlus } from 'lucide-react';
 import { BotaoVoltar } from '../components/BotaoVoltar';
-import { formatarMensagemErro } from '../lib/erros';
-import { isentoMensalidade } from '../lib/jogadores';
+import { formatarMensagemErro, type ErroComCodigo } from '../lib/erros';
+import { criarJogador, isentoMensalidade } from '../lib/jogadores';
 
 export function NovoJogador() {
   const isAdmin = useAdmin();
@@ -55,34 +54,35 @@ export function NovoJogador() {
     }
 
     setCriando(true);
-    const { data, error } = await supabase.rpc('criar_jogador', {
-      p_username: usernameLimpo,
-      p_posicao: posicao,
-      p_is_admin: isAdminNovo,
-      p_posicao_b: posicao === 'goleiro' ? undefined : (posicaoB ?? undefined),
-      p_is_mensalista: isMensalista,
-    });
-    setCriando(false);
+    try {
+      const novoId = await criarJogador({
+        username: usernameLimpo,
+        posicao,
+        posicaoB,
+        isMensalista,
+        isAdmin: isAdminNovo,
+      });
 
-    if (error) {
-      if (error.code === '23505') {
+      if (novoId === null) {
+        setErro('Não foi possível criar o jogador.');
+        return;
+      }
+
+      setOk(`Jogador "@${usernameLimpo}" criado com sucesso! Senha padrão: 123`);
+      setUsername('');
+      setPosicao('meia');
+      setPosicaoB('meia');
+      setIsMensalista(false);
+      setIsAdminNovo(false);
+    } catch (err) {
+      if ((err as ErroComCodigo)?.code === '23505') {
         setErro(`Já existe um jogador cadastrado com o usuário "${usernameLimpo}".`);
       } else {
-        setErro(formatarMensagemErro(error, 'Erro ao criar jogador.'));
+        setErro(formatarMensagemErro(err, 'Erro ao criar jogador.'));
       }
-      return;
+    } finally {
+      setCriando(false);
     }
-    if (data === null) {
-      setErro('Não foi possível criar o jogador.');
-      return;
-    }
-
-    setOk(`Jogador "@${usernameLimpo}" criado com sucesso! Senha padrão: 123`);
-    setUsername('');
-    setPosicao('meia');
-    setPosicaoB('meia');
-    setIsMensalista(false);
-    setIsAdminNovo(false);
   }
 
   return (

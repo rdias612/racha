@@ -16,13 +16,13 @@ Os gaps abaixo são o que **não existe** hoje em nenhuma camada: extrato financ
 
 ## Tabela-resumo
 
-| #   | Funcionalidade                                  | Impacto esperado | Esforço | Área principal        |
-| --- | ----------------------------------------------- | ---------------- | ------- | --------------------- |
-| 1   | Extrato "Minhas Dívidas" para o jogador         | Alto             | P       | Frontend              |
-| 2   | Temporadas no Ranking + Sala de Troféus         | Alto             | M       | Banco + Ranking       |
-| 3   | Notificação de resultado e Craque pós-jogo      | Alto             | M       | Push                  |
-| 4   | Evolução de notas e histórico por partida       | Médio            | P/M     | Banco + Perfil        |
-| 5   | Bolão de palpites (placar + craque)             | Alto             | M/G     | Banco + nova tela     |
+| #   | Funcionalidade                             | Impacto esperado | Esforço | Área principal    |
+| --- | ------------------------------------------ | ---------------- | ------- | ----------------- |
+| 1   | Extrato "Minhas Dívidas" para o jogador    | Alto             | P       | Frontend          |
+| 2   | Temporadas no Ranking + Sala de Troféus    | Alto             | M       | Banco + Ranking   |
+| 3   | Notificação de resultado e Craque pós-jogo | Alto             | M       | Push              |
+| 4   | Evolução de notas e histórico por partida  | Médio            | P/M     | Banco + Perfil    |
+| 5   | Bolão de palpites (placar + craque)        | Alto             | M/G     | Banco + nova tela |
 
 ---
 

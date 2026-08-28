@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
 import { useSessao } from '../context/SessaoContext';
 import { MensagemEstado } from '../components/Estado';
-import { listarUsernames } from '../lib/jogadores';
+import { fazerLoginRpc, listarUsernames } from '../lib/jogadores';
 import { type PosicaoId } from '../lib/times';
 import { Logo } from '../components/Logo';
 import { formatarMensagemErro } from '../lib/erros';
@@ -88,30 +87,26 @@ export function Login() {
     setErro(null);
     setCarregando(true);
 
-    const { data, error } = await supabase.rpc('fazer_login', {
-      p_username: username.trim(),
-      p_senha: senha,
-    });
+    try {
+      const linhas = await fazerLoginRpc(username.trim(), senha);
 
-    setCarregando(false);
+      if (linhas.length === 0) {
+        setErro('Não bateu. Confere o usuário e a senha e tenta de novo.');
+        return;
+      }
 
-    if (error) {
-      setErro(formatarMensagemErro(error, 'Não foi possível entrar. Tente novamente.'));
-      return;
+      const ret = linhas[0];
+      setJogador({
+        ...ret,
+        posicao: ret.posicao as PosicaoId,
+        posicao_b: (ret.posicao_b as PosicaoId | null) ?? null,
+      });
+      navigate('/', { replace: true });
+    } catch (err) {
+      setErro(formatarMensagemErro(err, 'Não foi possível entrar. Tente novamente.'));
+    } finally {
+      setCarregando(false);
     }
-
-    if (!data || data.length === 0) {
-      setErro('Não bateu. Confere o usuário e a senha e tenta de novo.');
-      return;
-    }
-
-    const ret = data[0];
-    setJogador({
-      ...ret,
-      posicao: ret.posicao as PosicaoId,
-      posicao_b: (ret.posicao_b as PosicaoId | null) ?? null,
-    });
-    navigate('/', { replace: true });
   }
 
   return (

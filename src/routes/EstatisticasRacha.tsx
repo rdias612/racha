@@ -7,11 +7,7 @@ import { DuplaCard } from '../components/DuplaCard';
 import { SecaoRacha } from '../components/SecaoRacha';
 import { Avatar } from '../components/Avatar';
 import { PullToRefresh } from '../components/PullToRefresh';
-import {
-  carregarParesRacha,
-  type ColunaOrdenacaoDuplas,
-  type ParRacha,
-} from '../lib/partidas';
+import { carregarParesRacha, type ColunaOrdenacaoDuplas, type ParRacha } from '../lib/partidas';
 import { useSwipeTabs } from '../hooks/useSwipeTabs';
 import { formatarMensagemErro } from '../lib/erros';
 

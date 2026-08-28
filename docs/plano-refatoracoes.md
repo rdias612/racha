@@ -48,18 +48,7 @@ O gate é `IF p_admin_id IS NOT NULL AND NOT EXISTS (...)` — chamando a RPC **
 A 083 criou `abrir_partida(bigint, bigint)` com gate, mas não fez `DROP FUNCTION` da assinatura antiga — `CREATE OR REPLACE` com assinatura diferente não substitui o overload. O atacante chama a assinatura antiga e abre a partida sem validar admin.
 **Refatoração**: `DROP FUNCTION abrir_partida(bigint);` na migration `088_drop_abrir_partida_overload_antigo.sql`.
 
-### P0-4. Bug de SQL no mestre: `aplicar_tudo.sql` falha ao aplicar
-
-**Onde**: `supabase/aplicar_tudo.sql:3159` — `FROM todos` dentro do `pares_racha` recriado no bloco 076; a migration original correta usa `FROM agregado a` (`076_remover_coluna_nome_jogadores.sql:630`)
-A função é `LANGUAGE sql`: o PostgreSQL valida o corpo no `CREATE`, então o script mestre **quebra com `missing FROM-clause entry for table "todos"`** antes de terminar. O mestre foi editado à mão e divergiu.
-**Refatoração**: corrigir para `FROM agregado a` e passar a gerar o mestre por concatenação automática das migrations (ou `supabase db dump`), nunca edição manual.
-
-### P0-5. `aplicar_tudo.sql` não é auto-suficiente (referencia objetos que não cria)
-
-**Onde**: verificado por grep — `partida_eventos` usada em `aplicar_tudo.sql:1952, 4036, 4350, 4662` (tabela criada só na migration `047`); `sincronizar_contadores_partida` chamada em `:1675, 3970`; colunas `telefone`/`chave_pix` usadas em `:4518-4537` (criadas só na `082`); `resetar_senha` (065) e `excluir_partida` (066) ausentes do mestre embora o app as use; grants de schema da `016` também ausentes.
-**Refatoração**: incluir os blocos 016/047/065/066/082 no mestre, ou extinguir o mestre e documentar `supabase db push` + `supabase db reset` como fluxo único.
-
-### P0-6. Escrita direta em `dividas` e `push_subscriptions` para anon + senhas em texto puro
+### P0-4. Escrita direta em `dividas` e `push_subscriptions` para anon + senhas em texto puro
 
 **Onde**: `036_create_push_notifications.sql:25` e `051_create_dividas.sql:26-27` (grants totais a anon); senhas: `021_plaintext_passwords.sql` + `022_seed_jogadores.sql` (todos os admins com `'123'`)
 Sem RLS, anon pode `DELETE /rest/v1/push_subscriptions` (derrubar notificações de todos), quitar dívidas de quem quiser, criar dívidas para vítimas. As RPCs `quitar_divida`/`quitar_dividas_jogador` também não têm gate de admin. As senhas em texto puro são risco aceito historicamente, mas os caminhos de UPDATE do P0-1 os transformam em takeover completo (o `pgcrypto` da migration 002 está habilitado e não é usado).
@@ -67,25 +56,25 @@ Sem RLS, anon pode `DELETE /rest/v1/push_subscriptions` (derrubar notificações
 
 ## Frontend (Bugs reais)
 
-### P0-7. ✅ Query com coluna inexistente (`match_id`) engole erro — votos anteriores nunca carregam
+### P0-6. ✅ Query com coluna inexistente (`match_id`) engole erro — votos anteriores nunca carregam
 
 **Onde**: `src/routes/PartidaVotar.tsx:118`
 A tabela `votes` tem a coluna `partida_id` (migration 006); `.eq('match_id', partidaId)` retorna erro PGRST204 **sempre**, mas a desestruturação `const { data: meusVotos }` sem checar `error` engole a falha — a tela sempre cai no rascunho do localStorage e a função "editar voto" está quebrada em produção.
 **Refatoração**: corrigir para `partida_id` e mover a leitura para `lib/partidas.ts` (`carregarMeusVotos(partidaId, voterId)`) — `votes` já é consultado à mão em 4 lugares (`BannerLembrete.tsx:42`, `PartidaDetalhe.tsx:76`, `PartidaVotar.tsx:116`, fallback em `lib/jogadores.ts:180`).
 
-### P0-8. ✅ `Math.random()` dentro do comparator de `sort` viola o contrato
+### P0-7. ✅ `Math.random()` dentro do comparator de `sort` viola o contrato
 
 **Onde**: `src/lib/escalacao.ts:91-93`
 `(a, b) => b.nota - a.nota + (Math.random() * 0.2 - 0.1)` gera ruído **por comparação**: o mesmo par pode ser ordenado `a<b` e `b<a`, produzindo ordem não especificada. O `embaralhar()` das linhas 53-54 é trabalho morto (o `sort` total por nota na linha 64 descarta a ordem).
 **Refatoração**: aplicar jitter fixo uma vez por jogador antes de ordenar (`notaEfetiva = nota + (rng() * 0.2 - 0.1)` como campo derivado) e remover o `embaralhar` antes de sorts totais.
 
-### P0-9. ✅ `SessaoContext` sem flag de cleanup — race condition real
+### P0-8. ✅ `SessaoContext` sem flag de cleanup — race condition real
 
 **Onde**: `src/context/SessaoContext.tsx:54-86`
 `sincronizarJogador` é assíncrona dentro de `useEffect` sem `let ativo = true`. Se `jogador` mudar com o fetch em voo, duas syncs intercalam e a resposta mais antiga pode resolver por último, sobrescrevendo estado novo com dado obsoleto. Agravado pelos non-null assertions `jogador!.id` (linhas 64, 74-78).
 **Refatoração**: flag `ativo` + capturar `const id = jogador.id` antes do await (elimina os `!`).
 
-### P0-10. ✅ useEffects assíncronos sem flag `ativo` (viola AGENTS 5.2)
+### P0-9. ✅ useEffects assíncronos sem flag `ativo` (viola AGENTS 5.2)
 
 **Onde** (telas fora de `useCache`):
 
@@ -99,19 +88,19 @@ A tabela `votes` tem a coluna `partida_id` (migration 006); `.eq('match_id', par
 
 **Refatoração**: aplicar o padrão canônico do AGENTS 5.2 (referência correta: `PartidaDetalhe.tsx:134-140`). No `BannerLembrete`, separar "fetch" de "agendamento" (deps `[jogadorId]` apenas, valor atual via ref) e pausar quando `document.hidden`.
 
-### P0-11. ✅ Múltiplos round-trips sem transação em lote de jogadores
+### P0-10. ✅ Múltiplos round-trips sem transação em lote de jogadores
 
 **Onde**: `src/routes/GestaoJogadores.tsx:243-253`
 `salvarTodasAlteracoes` faz `for (...) await atualizarCaracteristicasJogador(...)` — falha no meio deixa metade dos jogadores alterada, mas a tela já cometeu `setJogadores(jogadoresDraft)` antes (`:256`). Viola a atomicidade do AGENTS 7.4.
 **Refatoração**: RPC em lote `salvar_caracteristicas_jogadores(p_jsonb)`; só atualizar estado local após sucesso.
 
-### P0-12. ✅ Snackbar de sucesso otimista antes da confirmação do servidor
+### P0-11. ✅ Snackbar de sucesso otimista antes da confirmação do servidor
 
 **Onde**: `src/routes/Administrador.tsx:232-243` e `:264-271`
 `handleQuitar`/`handleQuitarTodas` exibiam "Lançamento marcado como quitado" **antes** do `await quitarDivida(...)`; em falha o usuário recebia toast de sucesso seguido de erro.
 **Refatoração**: mover o toast de sucesso para depois do `await` (o rollback otimista da UI pode permanecer).
 
-### P0-13. ✅ Navegação por teclado quebrada nos dois listbox customizados
+### P0-12. ✅ Navegação por teclado quebrada nos dois listbox customizados
 
 **Onde**: `src/components/SelectSumula.tsx:175` e `src/components/SeletorNota.tsx:164`
 O handler de teclado estava preso ao `<ul tabIndex={-1}>`, mas o foco nunca saía do botão gatilho — ArrowUp/Down não faziam nada e Enter **fechava** o popup. Usuário de teclado abria mas não conseguia escolher.
@@ -152,9 +141,12 @@ A proteção por geração existe no cache de módulo, mas (a) o `useEffect` gra
 - `src/routes/PartidaEditar.tsx` (737) → extrair modal inline de ~120 linhas (`:509-631`).
 - `src/components/EventosAutomaticosFinanceiro.tsx` (474) → `<FormEventoAutomatico>` separado.
 
-### P1-5. Queries e RPCs direto nas telas (fora de `lib/`)
+### P1-5. ✅ Queries e RPCs direto nas telas (fora de `lib/`)
 
-**Onde**: `NovoJogador.tsx:44`, `PartidaNovaTimes.tsx:86`, `PartidaTimes.tsx:179`, `PartidaVotar.tsx:65-69/115-119/209`, `Perfil.tsx:60-64/155`, `Login.tsx:66`, `Resumo.tsx:60-67`, `Estatisticas.tsx:83-94/104-116`, `Comparador.tsx:141-147`
+> Corrigido em 2026-08-28: extraídos os wrappers canônicos para as libs, deixando as telas do escopo sem nenhum acesso direto ao Supabase. Em `src/lib/jogadores.ts`: `criarJogador` (RPC `criar_jogador`, com a regra goleiro-sem-posição-secundária centralizada), `fazerLoginRpc` (RPC `fazer_login`, retornando `SessaoLogin[]` com as colunas seguras), `trocarSenha` (RPC `trocar_senha`, lançando erro cru para a borda mapear "Senha atual incorreta"), `listarJogadoresAtivosSemRandom` (seletor de estatísticas, randoms filtrados na lib — AGENTS 8.6) e `carregarParceriasJogador`/`carregarParceriasDestaque` (RPCs `parcerias_jogador`/`parcerias_destaque_jogador`, com os tipos `Parceria`, `ParceriaDestaque` e `MetricaDestaque` movidos da rota para a lib). Em `src/lib/partidas.ts`: `registrarVotos` (RPC `registrar_votos`), `salvarTimesEGoleirosPartida` (RPC `salvar_times_e_goleiros_partida`) e `carregarResumoAno` (RPC `resumo_ano`, com o tipo `ResumoAno` movido da rota). Migradas as rotas `NovoJogador.tsx`, `Login.tsx`, `Perfil.tsx`, `PartidaVotar.tsx`, `PartidaTimes.tsx`, `Resumo.tsx` e `Estatisticas.tsx`. Os demais pontos listados já estavam resolvidos: `carregarStatsJogador` (P2-4), `obterPartidaDraftAtual` (P1-6), `carregarMeusVotos` (P0-6) e `Comparador.tsx` (100% na lib via P2-4); `PartidaNovaTimes.tsx` foi deletado na unificação da tela `/partida/:id/times`.
+> **Onde**: `src/lib/jogadores.ts`, `src/lib/partidas.ts`, `src/routes/NovoJogador.tsx`, `src/routes/Login.tsx`, `src/routes/Perfil.tsx`, `src/routes/PartidaVotar.tsx`, `src/routes/PartidaTimes.tsx`, `src/routes/Resumo.tsx`, `src/routes/Estatisticas.tsx`.
+
+**Onde (original)**: `NovoJogador.tsx:44`, `PartidaNovaTimes.tsx:86`, `PartidaTimes.tsx:179`, `PartidaVotar.tsx:65-69/115-119/209`, `Perfil.tsx:60-64/155`, `Login.tsx:66`, `Resumo.tsx:60-67`, `Estatisticas.tsx:83-94/104-116`, `Comparador.tsx:141-147`
 O domínio vive em `lib/partidas.ts`/`lib/jogadores.ts`; esses acessos diretos quebram o padrão e dificultam teste/reuso.
 **Refatoração**: wrappers nas libs (`criarJogador`, `trocarSenha`, `fazerLoginRpc`, `carregarStatsJogador`, `obterPartidaDraftAtual`).
 
@@ -440,6 +432,7 @@ Componente idêntico em `Perfil.tsx:393-404` e `Estatisticas.tsx:410-421`; inter
 ### P3-8. ✅ Diversos pequenos
 
 > Corrigido em 2026-08-28: implementados todos os 13 itens refinados em `docs/plano-p3-8-diversos-pequenos.md`:
+>
 > 1. `ModalNovoGoleiro.tsx` — reset defensivo de estado (`nome`, `telefone`, `chavePix`, `erro`) via `useEffect` no fechamento/abertura.
 > 2. `useSwipeTabs.ts` — memoização dos handlers touch via `useMemo`.
 > 3. `DuplaCard.tsx` — `ColunaOrdenacaoDuplas` centralizado em `src/lib/partidas.ts`, eliminando import de rota em componente.
@@ -453,7 +446,7 @@ Componente idêntico em `Perfil.tsx:393-404` e `Estatisticas.tsx:410-421`; inter
 > 11. `sw.js` — tag com fallback garantido para notificações com `renotify: true`.
 > 12. `index.html` — links canônicos de favicon SVG e PNG 192px no `<head>`.
 > 13. `ErrorBoundary.tsx` — render enquadrado no Design System "Súmula de Quinta" (`bg-superficie`, `shadow-carimbo-preto`, badge `perigo`).
-> **Onde**: `src/components/`, `src/hooks/`, `src/lib/`, `src/routes/`, `public/sw.js`, `index.html`.
+>     **Onde**: `src/components/`, `src/hooks/`, `src/lib/`, `src/routes/`, `public/sw.js`, `index.html`.
 
 ## Banco e Infra (P3)
 

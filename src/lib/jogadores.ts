@@ -132,6 +132,23 @@ export async function listarJogadoresAtivos(): Promise<JogadorLista[]> {
 }
 
 /**
+ * Lista os atletas reais ativos (exclui placeholders "random" — AGENTS 8.6) com o
+ * mínimo de colunas, para seletores de estatísticas e rankings.
+ */
+export async function listarJogadoresAtivosSemRandom(): Promise<
+  Array<{ id: number; username: string }>
+> {
+  const { data, error } = await supabase
+    .from('jogadores')
+    .select('id, username')
+    .eq('is_ativo', true)
+    .order('username');
+
+  if (error) throw error;
+  return (data ?? []).filter((j) => !isRandomUsername(j.username));
+}
+
+/**
  * Lista todos os jogadores cadastrados no sistema (ativos e inativos).
  *
  * NOTA DE DESIGN: Esta listagem FILTRA intencionalmente jogadores "random" (placeholders),
@@ -174,6 +191,51 @@ export async function atualizarUsernameJogador(id: number, novoUsername: string)
 
   if (error) throw error;
   if (data !== true) throw new Error('Não foi possível atualizar o usuário.');
+}
+
+// ---------------------------------------------------------------------------
+// Autenticação e conta
+// ---------------------------------------------------------------------------
+
+/**
+ * Linha retornada pela RPC `fazer_login`: apenas colunas seguras do atleta
+ * (a `senha_hash` nunca sai do banco).
+ */
+export interface SessaoLogin {
+  id: number;
+  username: string;
+  posicao: string;
+  posicao_b: string;
+  is_admin: boolean;
+  is_ativo: boolean;
+  is_mensalista: boolean;
+}
+
+// Valida credenciais via RPC SECURITY DEFINER `fazer_login` — fonte única de login.
+export async function fazerLoginRpc(username: string, senha: string): Promise<SessaoLogin[]> {
+  const { data, error } = await supabase.rpc('fazer_login', {
+    p_username: username,
+    p_senha: senha,
+  });
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+// Troca a senha do atleta via RPC `trocar_senha`, que valida a senha atual no banco.
+// Lança o erro cru: a borda decide a mensagem (ex.: "incorreta" = senha atual errada).
+export async function trocarSenha(
+  jogadorId: number,
+  senhaAtual: string,
+  senhaNova: string
+): Promise<void> {
+  const { error } = await supabase.rpc('trocar_senha', {
+    p_jogador_id: jogadorId,
+    p_senha_atual: senhaAtual,
+    p_senha_nova: senhaNova,
+  });
+
+  if (error) throw error;
 }
 
 // Redefine a senha do jogador para o padrão "123" (RPC resetar_senha).
@@ -371,6 +433,29 @@ export async function compararJogadores(
   return { linhas, partidas };
 }
 
+// Cadastra um novo atleta via RPC `criar_jogador` (senha padrão "123" no banco) e
+// retorna o id criado. Goleiro não recebe posição secundária — regra de negócio
+// centralizada aqui. Lança o erro cru da RPC; a borda decide a mensagem
+// (ex.: `23505` = username já cadastrado).
+export async function criarJogador(dados: {
+  username: string;
+  posicao: PosicaoId;
+  posicaoB?: PosicaoId | null;
+  isMensalista: boolean;
+  isAdmin: boolean;
+}): Promise<number | null> {
+  const { data, error } = await supabase.rpc('criar_jogador', {
+    p_username: dados.username,
+    p_posicao: dados.posicao,
+    p_is_admin: dados.isAdmin,
+    p_posicao_b: dados.posicao === 'goleiro' ? undefined : (dados.posicaoB ?? undefined),
+    p_is_mensalista: dados.isMensalista,
+  });
+
+  if (error) throw error;
+  return data;
+}
+
 export async function criarGoleiroRapido(
   dados: {
     nome: string;
@@ -489,6 +574,77 @@ export async function carregarStatsJogador(
   };
 }
 
+// ---------------------------------------------------------------------------
+// Parcerias da temporada (companheiros e adversários)
+// ---------------------------------------------------------------------------
+
+// Métricas de destaque de companheirismo (RPC parcerias_destaque_jogador):
+// mais_gols = gols próprios nas partidas compartilhadas; melhor/pior_nota =
+// média de nota do próprio atleta nessas mesmas partidas.
+export type MetricaDestaque = 'mais_gols' | 'melhor_nota' | 'pior_nota';
+
+export interface Parceria {
+  tipo: 'companheiro' | 'adversario';
+  outro_jogador_id: number;
+  username: string;
+  partidas: number;
+  vitorias: number;
+  empates: number;
+  derrotas: number;
+  pontos: number;
+  percentual: number | null;
+}
+
+export interface ParceriaDestaque {
+  metrica: MetricaDestaque;
+  outro_jogador_id: number;
+  username: string;
+  partidas: number;
+  valor: number | null;
+}
+
+const METRICAS_DESTAQUE: MetricaDestaque[] = ['mais_gols', 'melhor_nota', 'pior_nota'];
+
+// Retrospecto do atleta junto com e contra cada outro atleta (RPC parcerias_jogador).
+// Função pura de leitura: apenas consulta e lança erro (AGENTS.md 5.5).
+export async function carregarParceriasJogador(jogadorId: number): Promise<Parceria[]> {
+  const { data, error } = await supabase.rpc('parcerias_jogador', {
+    p_jogador_id: jogadorId,
+  });
+
+  if (error) throw error;
+  return (data ?? []).map((p) => ({
+    tipo: p.tipo as Parceria['tipo'],
+    outro_jogador_id: p.outro_jogador_id,
+    username: p.username,
+    partidas: p.partidas,
+    vitorias: p.vitorias,
+    empates: p.empates,
+    derrotas: p.derrotas,
+    pontos: p.pontos,
+    percentual: p.percentual ?? null,
+  }));
+}
+
+// Linhas de destaque por métrica (RPC parcerias_destaque_jogador); métricas
+// desconhecidas vindas do banco são descartadas.
+export async function carregarParceriasDestaque(jogadorId: number): Promise<ParceriaDestaque[]> {
+  const { data, error } = await supabase.rpc('parcerias_destaque_jogador', {
+    p_jogador_id: jogadorId,
+  });
+
+  if (error) throw error;
+  return (data ?? [])
+    .filter((d) => METRICAS_DESTAQUE.includes(d.metrica as MetricaDestaque))
+    .map((d) => ({
+      metrica: d.metrica as MetricaDestaque,
+      outro_jogador_id: d.outro_jogador_id,
+      username: d.username,
+      partidas: d.partidas,
+      valor: d.valor ?? null,
+    }));
+}
+
 /**
  * Comparador reutilizável para ordenar jogadores elegíveis/avulsos por presença recente
  * (mais partidas primeiro), com desempate por username em ordem alfabética.
@@ -503,4 +659,3 @@ export function compararPorPresencaRecente(
     return a.username.localeCompare(b.username);
   };
 }
-

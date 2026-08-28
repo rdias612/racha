@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
 import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
 import { useEscalacaoTimes } from '../hooks/useEscalacaoTimes';
@@ -9,6 +8,7 @@ import { CHAVE_JOGOS, chaveResumo } from '../lib/chavesCache';
 import {
   carregarPartida,
   carregarParticipantes,
+  salvarTimesEGoleirosPartida,
   type Partida,
   type Participante,
 } from '../lib/partidas';
@@ -199,15 +199,13 @@ export function PartidaTimes() {
           time: times[j.id],
         }));
 
-      const { error: errRpc } = await supabase.rpc('salvar_times_e_goleiros_partida', {
-        p_partida_id: partidaId,
-        p_times_linha: payloadLinha,
-        p_goleiro_a_id: goleiroA,
-        p_goleiro_b_id: goleiroB,
-        p_admin_id: jogadorLogado?.id ?? null,
-      });
-
-      if (errRpc) throw errRpc;
+      await salvarTimesEGoleirosPartida(
+        partidaId,
+        payloadLinha,
+        goleiroA,
+        goleiroB,
+        jogadorLogado?.id ?? null
+      );
 
       invalidarCache(CHAVE_JOGOS);
       invalidarCache(chaveResumo(new Date().getFullYear()));

@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, Navigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
 import { useSessao } from '../context/SessaoContext';
 import { SeletorNota } from '../components/SeletorNota';
 import { Carregando, MensagemEstado } from '../components/Estado';
@@ -9,6 +8,7 @@ import {
   carregarPartida,
   carregarParticipantes,
   carregarMeusVotos,
+  registrarVotos,
   votacaoAberta,
   type Partida,
   type Participante,
@@ -241,40 +241,36 @@ export function PartidaVotar() {
       rating: notas[a.jogador_id],
     }));
 
-    const { data, error } = await supabase.rpc('registrar_votos', {
-      p_partida_id: partida.id,
-      p_voter_id: jogador.id,
-      p_votos: payload,
-    });
+    try {
+      const aceito = await registrarVotos(partida.id, jogador.id, payload);
 
-    setSalvando(false);
-
-    if (error) {
-      setErro(formatarMensagemErro(error, 'Erro ao registrar votos.'));
-      return;
-    }
-    if (data === false) {
-      setErro('Não foi possível registrar (a votação pode ter fechado ou há voto inválido).');
-      return;
-    }
-
-    if (draftKey) {
-      try {
-        localStorage.removeItem(draftKey);
-      } catch {
-        // Ignora
+      if (!aceito) {
+        setErro('Não foi possível registrar (a votação pode ter fechado ou há voto inválido).');
+        return;
       }
-    }
 
-    setVotosEnviados(true);
-    setFeedback(editando ? 'Votos atualizados com sucesso!' : 'Votos registrados na urna!');
-    if (timerNavegacaoRef.current) {
-      clearTimeout(timerNavegacaoRef.current);
+      if (draftKey) {
+        try {
+          localStorage.removeItem(draftKey);
+        } catch {
+          // Ignora
+        }
+      }
+
+      setVotosEnviados(true);
+      setFeedback(editando ? 'Votos atualizados com sucesso!' : 'Votos registrados na urna!');
+      if (timerNavegacaoRef.current) {
+        clearTimeout(timerNavegacaoRef.current);
+      }
+      timerNavegacaoRef.current = setTimeout(
+        () => navigate(`/partida/${partida.id}`, { replace: true }),
+        800
+      );
+    } catch (err) {
+      setErro(formatarMensagemErro(err, 'Erro ao registrar votos.'));
+    } finally {
+      setSalvando(false);
     }
-    timerNavegacaoRef.current = setTimeout(
-      () => navigate(`/partida/${partida.id}`, { replace: true }),
-      800
-    );
   }
 
   const tempoRestante = partida.voting_closes_at

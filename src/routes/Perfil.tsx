@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
 import { useSessao } from '../context/SessaoContext';
 import { POSICOES } from '../lib/times';
 import {
@@ -8,6 +7,7 @@ import {
   atualizarDadosPixTelefone,
   carregarStatsJogador,
   isSuperAdminId,
+  trocarSenha,
   validarFormatoUsername,
   type StatsJogador,
 } from '../lib/jogadores';
@@ -145,7 +145,7 @@ export function Perfil() {
     }
   }
 
-  async function trocarSenha(e: React.FormEvent) {
+  async function alterarSenha(e: React.FormEvent) {
     e.preventDefault();
     setErroSenha(null);
     setOkSenha(null);
@@ -163,18 +163,7 @@ export function Perfil() {
 
     setTrocando(true);
     try {
-      const { error } = await supabase.rpc('trocar_senha', {
-        p_jogador_id: jogador.id,
-        p_senha_atual: senhaAtual,
-        p_senha_nova: senhaNova,
-      });
-
-      if (error) {
-        if (error.message && error.message.includes('incorreta')) {
-          throw new Error('Senha atual incorreta.');
-        }
-        throw error;
-      }
+      await trocarSenha(jogador.id, senhaAtual, senhaNova);
 
       setSenhaAtual('');
       setSenhaNova('');
@@ -182,8 +171,13 @@ export function Perfil() {
       setOkSenha('Senha alterada com sucesso!');
       vibrateSuccess();
     } catch (error) {
+      // A RPC distingue senha atual errada pelo texto da mensagem.
+      if (error instanceof Error && error.message.includes('incorreta')) {
+        setErroSenha('Senha atual incorreta.');
+      } else {
+        setErroSenha(formatarMensagemErro(error, 'Não foi possível alterar a senha.'));
+      }
       vibrateError();
-      setErroSenha(formatarMensagemErro(error, 'Não foi possível alterar a senha.'));
     } finally {
       setTrocando(false);
     }
@@ -334,7 +328,7 @@ export function Perfil() {
         <h3 className="text-xs font-display font-bold uppercase tracking-wider text-giz">
           Alterar Senha de Acesso
         </h3>
-        <form onSubmit={trocarSenha} className="space-y-3">
+        <form onSubmit={alterarSenha} className="space-y-3">
           <input
             type="password"
             placeholder="Senha atual"

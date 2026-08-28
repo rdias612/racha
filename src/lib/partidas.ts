@@ -157,10 +157,11 @@ export async function carregarParesRacha(minPartidas: number = 5) {
   return (data ?? []) as ParRacha[];
 }
 
-export interface VotoEnviado {
+// Type alias (não interface) para o formato ser atribuível ao parâmetro jsonb das RPCs.
+export type VotoEnviado = {
   target_id: number;
   rating: number;
-}
+};
 
 // Lê os votos já enviados pelo votante numa partida (para pré-popular a cédula
 // em modo edição). A tabela `votes` referencia a partida por `partida_id`.
@@ -172,6 +173,23 @@ export async function carregarMeusVotos(partidaId: number, voterId: number) {
     .eq('voter_id', voterId);
   if (error) throw error;
   return (data ?? []) as VotoEnviado[];
+}
+
+// Deposita a cédula completa do votante na urna (RPC registrar_votos, que valida
+// prazo, elegibilidade e self-vote no servidor). Retorna false quando o servidor
+// recusa (votação fechada ou voto inválido).
+export async function registrarVotos(
+  partidaId: number,
+  voterId: number,
+  votos: VotoEnviado[]
+): Promise<boolean> {
+  const { data, error } = await supabase.rpc('registrar_votos', {
+    p_partida_id: partidaId,
+    p_voter_id: voterId,
+    p_votos: votos,
+  });
+  if (error) throw error;
+  return data as boolean;
 }
 
 // Apaga TODOS os votos do jogador logado numa partida (descartar p/ refazer).
@@ -410,6 +428,27 @@ export async function salvarEdicaoCompletaPartida(
   return true;
 }
 
+// Salva de forma transacional a escalação dos 14 de linha e os goleiros dos
+// times Preto (a) e Branco (b) de uma partida em draft. A RPC tem gate de admin
+// no banco (migration 083): adminId null faz o servidor negar a operação.
+export async function salvarTimesEGoleirosPartida(
+  partidaId: number,
+  timesLinha: Array<{ jogador_id: number; time: TimeId }>,
+  goleiroAId: number,
+  goleiroBId: number,
+  adminId: number | null
+): Promise<void> {
+  const { error } = await supabase.rpc('salvar_times_e_goleiros_partida', {
+    p_partida_id: partidaId,
+    p_times_linha: timesLinha,
+    p_goleiro_a_id: goleiroAId,
+    p_goleiro_b_id: goleiroBId,
+    p_admin_id: adminId ?? undefined,
+  });
+
+  if (error) throw error;
+}
+
 // --- Partida Draft Atual ---
 
 // Critério único canônico: a partida em status 'draft' com a data de jogo mais próxima
@@ -432,6 +471,46 @@ export async function obterPartidaDraftAtual(): Promise<PartidaDraftAtual | null
   if (error) throw error;
 
   return data as PartidaDraftAtual | null;
+}
+
+// ---------------------------------------------------------------------------
+// Boletim Oficial da Temporada
+// ---------------------------------------------------------------------------
+
+// Destaques oficiais do ano, agregados no PostgreSQL (RPC resumo_ano). Campos
+// de atleta são anuláveis porque a temporada pode ainda não ter partidas.
+export interface ResumoAno {
+  ano: number;
+  total_partidas: number;
+  artilheiro_jogador_id: number | null;
+  artilheiro_username: string | null;
+  artilheiro_gols: number | null;
+  artilheiro_partidas: number | null;
+  maestro_jogador_id: number | null;
+  maestro_username: string | null;
+  maestro_assistencias: number | null;
+  maestro_partidas: number | null;
+  participante_jogador_id: number | null;
+  participante_username: string | null;
+  participante_partidas: number | null;
+  eficiente_jogador_id: number | null;
+  eficiente_username: string | null;
+  eficiente_vitorias: number | null;
+  eficiente_partidas: number | null;
+  eficiente_percentual: number | null;
+  sequencia_vitorias_jogador_id: number | null;
+  sequencia_vitorias_username: string | null;
+  sequencia_vitorias: number | null;
+  seca_vitorias_jogador_id: number | null;
+  seca_vitorias_username: string | null;
+  seca_vitorias: number | null;
+}
+
+// Boletim de destaques da temporada; null = ano sem partidas registradas.
+export async function carregarResumoAno(ano: number): Promise<ResumoAno | null> {
+  const { data, error } = await supabase.rpc('resumo_ano', { p_ano: ano });
+  if (error) throw error;
+  return data?.[0] ?? null;
 }
 
 // --- Votação e Urna ---

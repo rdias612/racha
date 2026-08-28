@@ -29,9 +29,10 @@
 ## 1. Objetivo do Usuário
 
 O objetivo principal consiste em:
+
 - **Reduzir o tamanho e a complexidade do arquivo `AGENTS.md`** (atualmente com ~40 KB e 533 linhas);
 - **Otimizar o consumo de contexto das LLMs e Agentes de IA**, permitindo que o modelo carregue e processe **apenas as informações estritamente necessárias** para a tarefa em execução (ex: não carregar regras de migrations SQL quando a tarefa for um ajuste de layout React/CSS, e vice-versa);
-- **Evitar o truncamento de regras e perda de atenção (*lost-in-the-middle*)**, garantindo que as diretrizes canônicas críticas sejam 100% lidas e respeitadas sem desperdício de tokens.
+- **Evitar o truncamento de regras e perda de atenção (_lost-in-the-middle_)**, garantindo que as diretrizes canônicas críticas sejam 100% lidas e respeitadas sem desperdício de tokens.
 
 ---
 
@@ -40,9 +41,11 @@ O objetivo principal consiste em:
 A proposta inicial é aplicar a especificação **OKF (Open Knowledge Format)**, criada pelo Google Cloud (disponibilizada no repositório `GoogleCloudPlatform/knowledge-catalog`).
 
 ### O que é o OKF?
+
 O **OKF** é uma especificação aberta, vendor-neutral e baseada em arquivos para organizar conhecimento corporativo e técnico em formato altamente legível por humanos e navegável por agentes autônomos de IA.
 
 ### Características fundamentais do OKF:
+
 1. **Conceito de Knowledge Bundles**: Em vez de um documento monolítico, o conhecimento é decomposto em pequenos arquivos Markdown atômicos e especializados.
 2. **YAML Frontmatter Estruturado**: Cada arquivo possui metadados formais no topo para indexação rápida:
    ```yaml
@@ -54,8 +57,8 @@ O **OKF** é uma especificação aberta, vendor-neutral e baseada em arquivos pa
    related: [./regras-goleiros.md, ./banco-supabase.md]
    ---
    ```
-3. **Navegabilidade por Grafo (Links Markdown)**: Os documentos são interconectados por links relativos (`[Nome](file:///path/to/file.md)`), permitindo que o agente faça *graph traversal* (leia um nó e navegue para o próximo nó relacionado conforme a necessidade).
-4. **Resolução do Problema de *Context-Assembly***: O agente não recebe uma "bíblia" inteira de uma vez; ele consulta um catálogo/índice leve e puxa sob demanda apenas os nós relevantes.
+3. **Navegabilidade por Grafo (Links Markdown)**: Os documentos são interconectados por links relativos (`[Nome](file:///path/to/file.md)`), permitindo que o agente faça _graph traversal_ (leia um nó e navegue para o próximo nó relacionado conforme a necessidade).
+4. **Resolução do Problema de _Context-Assembly_**: O agente não recebe uma "bíblia" inteira de uma vez; ele consulta um catálogo/índice leve e puxa sob demanda apenas os nós relevantes.
 
 ---
 
@@ -71,6 +74,7 @@ Ao analisar a injeção do `AGENTS.md` no ambiente de desenvolvimento, constatou
 > **Resultado real**: O sistema estava truncando os últimos **15.585 bytes** do `AGENTS.md`. Ou seja, a LLM **não estava lendo** as seções de regras de votação, módulo financeiro, diárias de goleiro, superadmins, jogadores randômicos, segurança em RPCs, a matriz "Faça Assim vs Não Faça Assim" e o checklist de qualidade!
 
 Além disso:
+
 - **Sobrecarga de Tokens**: Cada interação simples consome ~10.000 tokens apenas com o cabeçalho de regras antes mesmo de o usuário digitar sua dúvida.
 - **Poluição Cognitiva da LLM**: Regras extensas de backend e de banco diluem a atenção do modelo em tarefas puras de interface (UI).
 
@@ -89,7 +93,7 @@ Além disso:
 ### 3.3 Contras e Desafios Práticos do OKF
 
 1. ⚠️ **Round-Trip Extra de Leitura**: Se o agente não carregar o arquivo na largada, ele precisará fazer uma chamada de ferramenta (`view_file`) para ler o bundle específico antes de responder ou codificar.
-2. ⚠️ **Risco de Descumprimento de "Regras de Sobrevivência"**: Se regras críticas (como *Regra Zero UUID* ou *Strict Rules of Hooks*) ficarem isoladas em arquivos que o agente não julgou necessário abrir, ele pode cometer erros básicos antes de perceber.
+2. ⚠️ **Risco de Descumprimento de "Regras de Sobrevivência"**: Se regras críticas (como _Regra Zero UUID_ ou _Strict Rules of Hooks_) ficarem isoladas em arquivos que o agente não julgou necessário abrir, ele pode cometer erros básicos antes de perceber.
 3. ⚠️ **Manutenção de Múltiplos Arquivos**: Exige disciplina do desenvolvedor para manter o índice e os links relativos atualizados ao refatorar a base.
 
 ---
@@ -102,6 +106,7 @@ Além disso:
 > **Conclusão Técnica**:  
 > A adoção **pura e cega** do OKF (onde o `AGENTS.md` deixaria de existir e tudo viraria dezenas de arquivos avulsos) traria o risco de o agente ignorar diretrizes globais de segurança.  
 > O modelo ideal é uma **Arquitetura Híbrida (Hub-and-Spoke baseada em OKF)**:
+>
 > 1. Um **`AGENTS.md` Router/Hub minimalista** (~80 a 120 linhas), contendo apenas a Stack, as 5 Golden Rules invioláveis de sobrevivência e um catálogo semântico de links OKF.
 > 2. Uma pasta estruturada de **Knowledge Bundles OKF** (`docs/knowledge/` ou `.knowledge/`), onde cada especialidade (Backend, Frontend, Regras de Futebol, Financeiro, UX Mobile) vive como um arquivo Markdown padronizado com YAML Frontmatter.
 
@@ -109,7 +114,7 @@ Além disso:
 
 ## 4. Outras Alternativas para Alcançar o Objetivo
 
-### Alternativa 1: Arquitetura Hub-and-Spoke Híbrida (Lean AGENTS.md + OKF Bundles) — ⭐ *Recomendada*
+### Alternativa 1: Arquitetura Hub-and-Spoke Híbrida (Lean AGENTS.md + OKF Bundles) — ⭐ _Recomendada_
 
 - **Como funciona**:
   - O arquivo `AGENTS.md` na raiz atua como o **Kernel/Router**. Ele lista brevemente a stack, as regras absolutas (Zero UUID, No Tailwind Genérico, Hooks no topo) e apresenta um **Mapa de Conhecimento OKF**.
@@ -150,14 +155,14 @@ Além disso:
 
 ## 5. Matriz Comparativa das Abordagens
 
-| Critério | AGENTS.md Atual (Monolito) | OKF Puro (Google) | Hub-and-Spoke Híbrido (OKF + Lean Hub) | Skills Nativas (`.agents/skills`) |
-| :--- | :---: | :---: | :---: | :---: |
-| **Tamanho no Prompt Inicial** | 🔴 Crítico (~40 KB - Truncando) | 🟢 Mínimo (~0 KB) | 🟢 Ótimo (~2 a 4 KB) | 🟢 Ótimo (apenas catálogo) |
-| **Garantia de Regras Críticas** | 🟡 Parcial (fim do doc é cortado) | 🟡 Depende da LLM buscar | 🟢 Total (Regras Kernel no Hub) | 🟢 Boa (ativadas por prompt) |
-| **Modularidade / Organização** | 🔴 Péssima (tudo junto) | 🟢 Excelente | 🟢 Excelente | 🟢 Excelente |
-| **Portabilidade (Git / Qualquer IDE)** | 🟢 Alta | 🟢 Total | 🟢 Total | 🟡 Média (específica de agentes) |
-| **Overhead de Busca da LLM** | 🟢 Zero (já está tudo no prompt) | 🟡 Requer 1 leitura prévia | 🟢 Rápida via índice no Hub | 🟢 Automática pelo ambiente |
-| **Prevenção de Truncamento** | ❌ Não previne | ✅ Previne 100% | ✅ Previne 100% | ✅ Previne 100% |
+| Critério                               |    AGENTS.md Atual (Monolito)     |     OKF Puro (Google)      | Hub-and-Spoke Híbrido (OKF + Lean Hub) | Skills Nativas (`.agents/skills`) |
+| :------------------------------------- | :-------------------------------: | :------------------------: | :------------------------------------: | :-------------------------------: |
+| **Tamanho no Prompt Inicial**          |  🔴 Crítico (~40 KB - Truncando)  |     🟢 Mínimo (~0 KB)      |          🟢 Ótimo (~2 a 4 KB)          |    🟢 Ótimo (apenas catálogo)     |
+| **Garantia de Regras Críticas**        | 🟡 Parcial (fim do doc é cortado) |  🟡 Depende da LLM buscar  |    🟢 Total (Regras Kernel no Hub)     |   🟢 Boa (ativadas por prompt)    |
+| **Modularidade / Organização**         |      🔴 Péssima (tudo junto)      |        🟢 Excelente        |              🟢 Excelente              |           🟢 Excelente            |
+| **Portabilidade (Git / Qualquer IDE)** |              🟢 Alta              |          🟢 Total          |                🟢 Total                | 🟡 Média (específica de agentes)  |
+| **Overhead de Busca da LLM**           | 🟢 Zero (já está tudo no prompt)  | 🟡 Requer 1 leitura prévia |      🟢 Rápida via índice no Hub       |    🟢 Automática pelo ambiente    |
+| **Prevenção de Truncamento**           |          ❌ Não previne           |      ✅ Previne 100%       |            ✅ Previne 100%             |          ✅ Previne 100%          |
 
 ---
 
