@@ -431,7 +431,7 @@ Componente idêntico em `Perfil.tsx:393-404` e `Estatisticas.tsx:410-421`; inter
 
 ### P3-8. ✅ Diversos pequenos
 
-> Corrigido em 2026-08-28: implementados todos os 13 itens refinados em `docs/plano-p3-8-diversos-pequenos.md`:
+> Corrigido em 2026-08-28: implementados todos os 13 itens (plano detalhado `docs/plano-p3-8-diversos-pequenos.md` removido após verificação):
 >
 > 1. `ModalNovoGoleiro.tsx` — reset defensivo de estado (`nome`, `telefone`, `chavePix`, `erro`) via `useEffect` no fechamento/abertura.
 > 2. `useSwipeTabs.ts` — memoização dos handlers touch via `useMemo`.

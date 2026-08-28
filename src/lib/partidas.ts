@@ -175,6 +175,24 @@ export async function carregarMeusVotos(partidaId: number, voterId: number) {
   return (data ?? []) as VotoEnviado[];
 }
 
+// IDs das partidas informadas em que o votante já depositou a cédula. Seleciona
+// apenas `partida_id` — nunca as notas (AGENTS 7.5). Serve ao banner de lembrete
+// (várias partidas) e à súmula (existência em uma partida). Com lista vazia não
+// toca na rede. Erro cru é propagado; a borda decide como tratar.
+export async function carregarPartidasVotadas(
+  voterId: number,
+  partidaIds: number[]
+): Promise<Set<number>> {
+  if (partidaIds.length === 0) return new Set();
+  const { data, error } = await supabase
+    .from('votes')
+    .select('partida_id')
+    .eq('voter_id', voterId)
+    .in('partida_id', partidaIds);
+  if (error) throw error;
+  return new Set((data ?? []).map((v) => v.partida_id));
+}
+
 // Deposita a cédula completa do votante na urna (RPC registrar_votos, que valida
 // prazo, elegibilidade e self-vote no servidor). Retorna false quando o servidor
 // recusa (votação fechada ou voto inválido).

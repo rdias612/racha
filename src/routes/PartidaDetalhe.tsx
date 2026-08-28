@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState, useMemo } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
 import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
 import { invalidarCache } from '../hooks/useCache';
@@ -19,6 +18,7 @@ import {
   carregarPlacar,
   carregarParticipantes,
   carregarNotas,
+  carregarPartidasVotadas,
   descartarVotos,
   confirmarPresenca,
   adminDefinirConfirmacao,
@@ -78,12 +78,8 @@ export function PartidaDetalhe() {
         const contarVotos = jogadorLogado
           ? (async () => {
               try {
-                const { count } = await supabase
-                  .from('votes')
-                  .select('*', { count: 'exact', head: true })
-                  .eq('partida_id', numeroId)
-                  .eq('voter_id', jogadorLogado.id);
-                return count ?? 0;
+                const votadas = await carregarPartidasVotadas(jogadorLogado.id, [numeroId]);
+                return votadas.has(numeroId) ? 1 : 0;
               } catch {
                 return 0;
               }

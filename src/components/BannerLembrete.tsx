@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
-import { votacaoAberta } from '../lib/partidas';
+import { carregarPartidasVotadas, votacaoAberta } from '../lib/partidas';
 
 interface PartidaAberta {
   id: number;
@@ -48,17 +48,11 @@ export function BannerLembrete() {
       }
 
       // Filtra as que o usuário ainda não votou (LEFT JOIN virtual)
-      const { data: votados, error: erroVotados } = await supabase
-        .from('votes')
-        .select('partida_id')
-        .eq('voter_id', jogadorId)
-        .in(
-          'partida_id',
-          data.map((p) => p.id)
-        );
-      if (erroVotados || geracao !== geracaoRef.current) return;
-
-      const idsVotados = new Set((votados ?? []).map((v) => v.partida_id));
+      const idsVotados = await carregarPartidasVotadas(
+        jogadorId,
+        data.map((p) => p.id)
+      );
+      if (geracao !== geracaoRef.current) return;
       setPendentes(
         data.filter(
           (p): p is { id: number; voting_closes_at: string; status: string } =>
