@@ -366,37 +366,32 @@ Componente idêntico em `Perfil.tsx:393-404` e `Estatisticas.tsx:410-421`; inter
 
 ## Infra/Tooling (P2)
 
-### P2-30. Scripts npm sem `typecheck`/`test` e sem CI
-
-`package.json:6-14` — `lint` acopla `tsc -b` ao ESLint (loop lento); zero arquivos de teste em `src`; sem `.github/`.
-**Refatoração**: `"typecheck": "tsc -b"`, `"lint": "eslint src"`, `"test": "vitest"` (smoke tests das libs puras: `escalacao.ts`, `times.ts`, `formatacao.ts`) + workflow mínimo de CI.
-
-### P2-31. ESLint: react-hooks sem preset recommended; regras que poderiam ser `error`
+### P2-30. ESLint: react-hooks sem preset recommended; regras que poderiam ser `error`
 
 `eslint.config.js:15-29` — plugin registrado manualmente com 2 regras; `no-explicit-any`/`no-unused-vars` em `warn` (grep: zero `any` explícito em `src` — subir para `error` não quebra nada hoje); `public/sw.js` nunca lintado.
 **Refatoração**: `reactHooks.configs['recommended-latest']`, promover as duas regras, bloco de lint para `sw.js` com `globals.serviceworker`.
 
-### P2-32. ✅ Strict mode do TypeScript incompleto + `vercel.json` sem headers de cache do SW
+### P2-31. ✅ Strict mode do TypeScript incompleto + `vercel.json` sem headers de cache do SW
 
 > Corrigido em 2026-08-25: adicionadas as flags estritas `"noImplicitOverride": true`, `"noImplicitReturns": true` e `"noPropertyAccessFromIndexSignature": true` aos arquivos `tsconfig.app.json` e `tsconfig.node.json`. Corrigidos os erros apontados pelo compilador em `ErrorBoundary.tsx` (modificadores `override`), `Snackbar.tsx` (consistência de retorno em `useEffect`) e `pwa.ts` (acesso por index signature). Configurados em `vercel.json` os headers HTTP `Cache-Control: no-cache, no-store, must-revalidate` e `Service-Worker-Allowed: /` para `/sw.js`, `/index.html`, `/offline.html` e `/manifest.webmanifest`, além de `Cache-Control: public, max-age=31536000, immutable` para os assets versionados em `/assets/(.*)`.
 > **Onde**: `tsconfig.app.json`, `tsconfig.node.json`, `vercel.json`, `src/components/ErrorBoundary.tsx`, `src/components/Snackbar.tsx`, `src/lib/pwa.ts`.
 
-### P2-33. ✅ Registro do service worker dividido entre arquivos + comentário mentiroso
+### P2-32. ✅ Registro do service worker dividido entre arquivos + comentário mentiroso
 
 > Corrigido em 2026-08-25: criada função privada `registrarServiceWorker()` em `src/lib/pwa.ts`, com guard `if (!('serviceWorker' in navigator)) return`. A flag `let iniciado = false` foi adicionada ao escopo de módulo e verificada no início de `initPWA()`, garantindo que listeners e registro ocorram exatamente uma vez mesmo em reloads HMR. O bloco inline de registro removido de `main.tsx`. Comentário de `initPWA` atualizado para descrever corretamente o que a função faz.
 > **Onde**: `src/lib/pwa.ts`, `src/main.tsx`.
 
-### P2-34. ✅ Inputs fora do padrão anti-zoom/foco do design-system
+### P2-33. ✅ Inputs fora do padrão anti-zoom/foco do design-system
 
 > Corrigido em 2026-08-25: substituído `text-sm` por `text-base` e `focus:outline-none focus:border-destaque` por `focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2` em todos os inputs e selects fora do padrão do design system. Abrangência: 3 password inputs em `Perfil.tsx`, 1 input de username + 2 selects de posição em `NovoJogador.tsx`, 1 input de data em `PartidaNova.tsx`. Varredura final confirmou zero ocorrências de `focus:outline-none` remanescentes em `src/`.
 > **Onde**: `src/routes/Perfil.tsx`, `src/routes/NovoJogador.tsx`, `src/routes/PartidaNova.tsx`.
 
-### P2-35. ✅ Regras mensalista/admin/goleiro duplicadas entre telas
+### P2-34. ✅ Regras mensalista/admin/goleiro duplicadas entre telas
 
 > Corrigido em 2026-08-25: extraídos predicados canônicos `isentoMensalidade(j)` e `podeSerAdmin(j)` para `src/lib/jogadores.ts`. `isentoMensalidade` encapsula a regra "goleiro é isento de mensalidade" e `podeSerAdmin` a regra "admin exige mensalista não-goleiro". Ambas as telas `NovoJogador.tsx` e `GestaoJogadores.tsx` substituíram as verificações inline `posicao === 'goleiro'` e `!is_mensalista` pelos predicados importados.
 > **Onde**: `src/lib/jogadores.ts`, `src/routes/NovoJogador.tsx`, `src/routes/GestaoJogadores.tsx`.
 
-### P2-36. ✅ Template de cobrança WhatsApp + detecção de migration embutidos na UI
+### P2-35. ✅ Template de cobrança WhatsApp + detecção de migration embutidos na UI
 
 > Corrigido em 2026-08-25: extraída função `montarLembreteWhatsApp(g, formatarReais, formatarDataLista)` para `src/lib/dividas.ts`, removendo a montagem inline da mensagem de `Administrador.tsx`. Extraído também o predicado `isMigrationAusenteNatureza(msg)` para `src/lib/dividas.ts`, encapsulando o regex de detecção de schema ausente (`/natureza|column|schema|PGRST/i`) e eliminando conhecimento de infra da UI. `Administrador.tsx` agora apenas chama as funções de lib.
 > **Onde**: `src/lib/dividas.ts`, `src/routes/Administrador.tsx`.
