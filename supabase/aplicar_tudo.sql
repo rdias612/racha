@@ -1564,9 +1564,9 @@ BEGIN
   END IF;
 
   INSERT INTO partida_eventos (
-    partida_id, tipo, jogador_id, assistencia_jogador_id, time
+    partida_id, tipo, jogador_id, assistencia_jogador_id
   )
-  VALUES (p_partida_id, p_tipo, p_jogador_id, v_assist, v_time)
+  VALUES (p_partida_id, p_tipo, p_jogador_id, v_assist)
   RETURNING id INTO v_evento_id;
 
   IF p_tipo = 'gol' THEN
@@ -1673,8 +1673,7 @@ BEGIN
   UPDATE partida_eventos
   SET tipo                   = p_tipo,
       jogador_id             = p_jogador_id,
-      assistencia_jogador_id = v_assist,
-      time                   = v_time
+      assistencia_jogador_id = v_assist
   WHERE id = p_evento_id;
 
   RETURN true;
@@ -1795,23 +1794,23 @@ BEGIN
     RETURN false;
   END IF;
 
-  PERFORM 1
-    FROM partidas_participantes
-    WHERE partida_id = p_partida_id
-      AND jogador_id = p_voter_id
-      AND posicao <> 'goleiro';
-  IF NOT FOUND THEN
+  -- Votante: participante de linha da partida; goleiros não votam (AGENTS 8.4)
+  -- e convidados (`random%`) não votam (AGENTS 8.6).
+  IF NOT EXISTS (
+    SELECT 1
+    FROM partidas_participantes pp
+    JOIN jogadores j ON j.id = pp.jogador_id
+    WHERE pp.partida_id = p_partida_id
+      AND pp.jogador_id = p_voter_id
+      AND pp.posicao <> 'goleiro'
+      AND j.username NOT ILIKE 'random%'
+  ) THEN
     RETURN false;
   END IF;
 
-  PERFORM 1
-    FROM jogadores
-    WHERE id = p_voter_id
-      AND username NOT ILIKE 'random%';
-  IF NOT FOUND THEN
-    RETURN false;
-  END IF;
-
+  -- Validação prévia COMPLETA, antes de gravar qualquer linha:
+  -- notas 1..10, sem self-vote e alvo participante da partida
+  -- (goleiros e convidados podem receber nota, como na cédula do app).
   FOR elem IN SELECT * FROM jsonb_array_elements(p_votos)
   LOOP
     v_target_id := (elem->>'target_id')::bigint;
@@ -1825,29 +1824,34 @@ BEGIN
       RETURN false;
     END IF;
 
-    PERFORM 1
+    IF NOT EXISTS (
+      SELECT 1
       FROM partidas_participantes
       WHERE partida_id = p_partida_id
-        AND jogador_id = v_target_id;
-    IF NOT FOUND THEN
+        AND jogador_id = v_target_id
+    ) THEN
       RETURN false;
     END IF;
-
-    PERFORM 1
-      FROM jogadores
-      WHERE id = v_target_id
-        AND username NOT ILIKE 'random%';
-    IF NOT FOUND THEN
-      RETURN false;
-    END IF;
-
-    INSERT INTO votes (partida_id, voter_id, target_id, rating)
-    VALUES (p_partida_id, p_voter_id, v_target_id, v_rating)
-    ON CONFLICT (partida_id, voter_id, target_id)
-    DO UPDATE SET rating = EXCLUDED.rating;
   END LOOP;
 
-  RETURN true;
+  -- UPSERT em bloco protegido: qualquer falha inesperada reverte o bloco
+  -- inteiro (subtransação) e a função retorna false — nunca grava parcial.
+  BEGIN
+    FOR elem IN SELECT * FROM jsonb_array_elements(p_votos)
+    LOOP
+      v_target_id := (elem->>'target_id')::bigint;
+      v_rating    := (elem->>'rating')::smallint;
+
+      INSERT INTO votes (partida_id, voter_id, target_id, rating)
+      VALUES (p_partida_id, p_voter_id, v_target_id, v_rating)
+      ON CONFLICT (partida_id, voter_id, target_id)
+      DO UPDATE SET rating = EXCLUDED.rating;
+    END LOOP;
+
+    RETURN true;
+  EXCEPTION WHEN OTHERS THEN
+    RETURN false;
+  END;
 END;
 $$;
 

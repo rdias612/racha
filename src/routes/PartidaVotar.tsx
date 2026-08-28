@@ -93,11 +93,11 @@ export function PartidaVotar() {
 
         const agora = new Date().toISOString();
         const aberta =
-          p.status === 'published' && (!p.voting_closes_at || p.voting_closes_at > agora);
+          p.status === 'published' && !!p.voting_closes_at && p.voting_closes_at > agora;
 
         if (!aberta) {
           if (ativo) {
-            setErro('A votação desta partida não está aberta.');
+            setErro('A votação desta partida não está aberta ou o prazo de 24h já expirou.');
             setCarregando(false);
           }
           return;
@@ -125,7 +125,19 @@ export function PartidaVotar() {
           return;
         }
 
-        const outros = participantes.filter((x) => x.jogador_id !== jogador.id && x.time !== null);
+        const outros = participantes.filter(
+          (x) =>
+            x.jogador_id !== jogador.id &&
+            x.time !== null &&
+            !isRandomUsername(x.username) &&
+            x.posicao !== 'random'
+        );
+
+        if (outros.length === 0) {
+          setErro('Não há outros atletas elegíveis para avaliação nesta partida.');
+          setCarregando(false);
+          return;
+        }
 
         const meusVotos = await carregarMeusVotos(partidaId, jogador.id);
 

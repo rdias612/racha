@@ -2,10 +2,13 @@ import { supabase } from './supabase';
 import type { PosicaoId } from './times';
 
 // Detecta jogadores "random" (placeholders): username com prefixo 'random'
-// e sufixo opcional de dígitos (casa 'random', 'random1'...'random6', 'random99').
-// Case-insensitive para equivaler ao .toLowerCase().startsWith("random").
+// (casa 'random', 'random1'...'random6', 'random_1', etc.).
+// Case-insensitive para equivaler ao SQL ILIKE 'random%'.
 export function isRandomUsername(username?: string | null): boolean {
-  return !!username && /^random\d*$/i.test(username.trim());
+  return (
+    !!username &&
+    (/^random\d*$/i.test(username.trim()) || username.trim().toLowerCase().startsWith('random'))
+  );
 }
 
 export function validarFormatoUsername(username: string): string | null {

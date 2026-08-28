@@ -96,4 +96,3 @@ export async function dispararConfirmacaoManual(adminId: number, partidaId: numb
 
   if (error) throw error;
 }
-

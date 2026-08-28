@@ -4,8 +4,10 @@ import { CampoPartida } from '../components/CampoPartida';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { DialogoEvento } from '../components/DialogoEvento';
 import { Carregando, MensagemEstado } from '../components/Estado';
+import { Snackbar } from '../components/Snackbar';
 import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
+import { useSnackbar } from '../hooks/useSnackbar';
 import { invalidarCache } from '../hooks/useCache';
 import { formatarDataMobile, formatarDataCompleta } from '../lib/formatacao';
 import { BotaoVoltar } from '../components/BotaoVoltar';
@@ -40,6 +42,7 @@ export function PartidaAoVivo() {
   const navigate = useNavigate();
   const isAdmin = useAdmin();
   const jogadorLogado = useJogadorLogado();
+  const { snackbarProps, mostrarErro } = useSnackbar();
 
   const [partida, setPartida] = useState<Partida | null>(null);
   const [participantes, setParticipantes] = useState<Participante[]>([]);
@@ -153,13 +156,21 @@ export function PartidaAoVivo() {
       if (eventoEmEdicao) {
         const ok = await editarEvento(eventoEmEdicao.id, tipo, alvo.jogador_id, assistenciaId);
         if (!ok) {
-          setErro('Não foi possível editar o evento. A partida ainda está ao vivo?');
+          mostrarErro(
+            'Não foi possível editar o evento. A partida ainda está ao vivo e o jogador escalado?'
+          );
+          setAlvo(null);
+          setEventoEmEdicao(null);
           return;
         }
       } else {
         const idEvento = await registrarEvento(partida.id, tipo, alvo.jogador_id, assistenciaId);
         if (idEvento == null) {
-          setErro('Não foi possível registrar o evento. A partida ainda está ao vivo?');
+          mostrarErro(
+            'Evento não registrado. A partida ainda está ao vivo? A assistência precisa ser de um companheiro do mesmo time.'
+          );
+          setAlvo(null);
+          setEventoEmEdicao(null);
           return;
         }
       }
@@ -167,7 +178,9 @@ export function PartidaAoVivo() {
       setEventoEmEdicao(null);
       await recarregar();
     } catch (e: unknown) {
-      setErro(formatarMensagemErro(e, 'Não foi possível registrar o evento.'));
+      mostrarErro(formatarMensagemErro(e, 'Não foi possível registrar o evento.'));
+      setAlvo(null);
+      setEventoEmEdicao(null);
     } finally {
       setSalvando(false);
     }
@@ -180,13 +193,15 @@ export function PartidaAoVivo() {
     try {
       const ok = await removerEvento(eventoParaRemover.id);
       if (!ok) {
-        setErro('Não foi possível desfazer o evento.');
+        mostrarErro('Não foi possível desfazer o evento.');
+        setEventoParaRemover(null);
         return;
       }
       setEventoParaRemover(null);
       await recarregar();
     } catch (e: unknown) {
-      setErro(formatarMensagemErro(e, 'Não foi possível remover o evento.'));
+      mostrarErro(formatarMensagemErro(e, 'Não foi possível remover o evento.'));
+      setEventoParaRemover(null);
     } finally {
       setSalvando(false);
     }
@@ -388,6 +403,8 @@ export function PartidaAoVivo() {
         onTrocarJogador={setAlvo}
         onConfirmar={confirmarEvento}
       />
+
+      <Snackbar {...snackbarProps} />
 
       <ConfirmDialog
         open={eventoParaRemover != null}
