@@ -197,8 +197,12 @@ export async function ativarPush(jogadorId: number) {
   const dados = dadosSubscription(subscription);
   const { error } = await supabase
     .from('push_subscriptions')
-    .upsert({ jogador_id: jogadorId, ...dados }, { onConflict: 'endpoint' });
+    .upsert(
+      { jogador_id: jogadorId, ...dados, updated_at: new Date().toISOString() },
+      { onConflict: 'endpoint' }
+    );
   if (error) throw new Error('Não foi possível salvar a ativação das notificações.');
+  gravarFlagDesativado(false);
 }
 
 export async function desativarPush(jogadorId: number) {
@@ -210,5 +214,101 @@ export async function desativarPush(jogadorId: number) {
     .eq('jogador_id', jogadorId)
     .eq('endpoint', subscription.endpoint);
   if (error) throw new Error('Não foi possível desativar as notificações.');
+  gravarFlagDesativado(true);
   await subscription.unsubscribe();
+}
+
+// --- Auto-cura da inscrição push (P1 da análise de notificações) ---
+
+// Marca local de opt-out: sem ela, o re-check silencioso do boot re-inscreveria
+// quem desativou as notificações de propósito (a permissão do navegador segue
+// 'granted' mesmo após o unsubscribe explícito).
+const CHAVE_PUSH_DESATIVADO = 'racha_push_desativado';
+
+function lerFlagDesativado() {
+  try {
+    return localStorage.getItem(CHAVE_PUSH_DESATIVADO) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function gravarFlagDesativado(desativado: boolean) {
+  try {
+    if (desativado) localStorage.setItem(CHAVE_PUSH_DESATIVADO, '1');
+    else localStorage.removeItem(CHAVE_PUSH_DESATIVADO);
+  } catch {
+    /* storage indisponível: segue sem a marca */
+  }
+}
+
+// Dedupe em nível de módulo: StrictMode remonta o provider e abas duplicadas
+// não devem disputar o mesmo pushManager.subscribe.
+let sincronizacaoEmVoo: Promise<void> | null = null;
+
+/**
+ * Re-check silencioso de inscrição push (executa no boot/login). Se a permissão
+ * já está concedida mas a inscrição morreu no aparelho (rotação de token FCM,
+ * revogação em PWAs dormentes no iOS, evicção de storage), re-inscreve e
+ * regrava a linha; se existe, revalida o upsert idempotente para garantir que
+ * o banco conhece o endpoint. Falhas são silenciosas de propósito: nunca deve
+ * disparar prompt de permissão nem atrapalhar o uso do app.
+ */
+export function sincronizarPush(jogadorId: number): Promise<void> {
+  if (!sincronizacaoEmVoo) {
+    sincronizacaoEmVoo = garantirInscricaoPush(jogadorId).finally(() => {
+      sincronizacaoEmVoo = null;
+    });
+  }
+  return sincronizacaoEmVoo;
+}
+
+async function garantirInscricaoPush(jogadorId: number) {
+  try {
+    if (lerFlagDesativado() || !pushDisponivel()) return;
+    if (Notification.permission !== 'granted') return;
+
+    const registration = await navigator.serviceWorker.ready;
+    let subscription = await registration.pushManager.getSubscription();
+
+    // Chave VAPID trocada no projeto: a inscrição antiga fica inválida mesmo
+    // existindo — descarta e re-inscreve com a chave atual.
+    if (subscription && !comMesmaChaveVapid(subscription)) {
+      await subscription.unsubscribe();
+      subscription = null;
+    }
+
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: chaveVapid(),
+      });
+    }
+
+    // Re-check pós-await: o usuário pode ter desativado enquanto sincronizávamos.
+    if (lerFlagDesativado()) return;
+
+    const dados = dadosSubscription(subscription);
+    const { error } = await supabase
+      .from('push_subscriptions')
+      .upsert(
+        { jogador_id: jogadorId, ...dados, updated_at: new Date().toISOString() },
+        { onConflict: 'endpoint' }
+      );
+    if (error) throw error;
+  } catch {
+    /* auto-cura silenciosa: falha aqui não vira erro visível */
+  }
+}
+
+function comMesmaChaveVapid(subscription: PushSubscription) {
+  const chaveAtual = subscription.options.applicationServerKey;
+  if (!chaveAtual) return true;
+  try {
+    const esperada = chaveVapid();
+    const atual = new Uint8Array(chaveAtual);
+    return atual.length === esperada.length && atual.every((byte, i) => byte === esperada[i]);
+  } catch {
+    return false;
+  }
 }

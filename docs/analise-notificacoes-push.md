@@ -2,6 +2,11 @@
 
 > **Data**: 28/08/2026 · **Base**: `main` @ `1e1408e` · **Escopo**: diagnóstico somente leitura — nenhum fix foi aplicado.
 > **Sintoma relatado**: "muitas vezes não estou recebendo as notificações" no uso do app como PWA.
+>
+> **Status da execução**: **P4 implementado** (28/08/2026, commit `39ebcd0`; deploy das functions em
+> 29/08/2026) · **P1 implementado** (28/08/2026, ver nota na seção) · **P5 resolvido em produção**
+> (29/08/2026, migrations 104/105 — a cron de push estava 100% falhar desde a 099, ver nota na
+> seção). Demais itens (P2, P3, P6) permanecem em aberto.
 
 ---
 
@@ -61,6 +66,14 @@ expirados existe nas três functions, e o `sw.js` tem headers de cache corretos 
 ## 3. Problemas encontrados
 
 ### P1 — Subscrição morta não se recupera sozinha (causa mais provável do sintoma)
+
+> **✅ IMPLEMENTADO (28/08/2026)** — re-check silencioso no boot/login (`sincronizarPush()` em
+> `src/lib/pwa.ts`, disparado pelo `SessaoContext`, com flag local de opt-out para respeitar quem
+> desativou de propósito) + handler `pushsubscriptionchange` no `sw.js` + RPC
+> `sincronizar_push_subscription` (migration 103). O `sw.js` recebe URL/anon key/VAPID via
+> placeholders substituídos no build (`vite.config.ts`; sem `VITE_VAPID_PUBLIC_KEY` o handler fica
+> em no-op). Migration 103 aplicada em produção (29/08/2026); pendente de commit e deploy da build
+> na Vercel (o `pushsubscriptionchange` só ativa lá, onde a chave VAPID existe).
 
 **O que acontece.** O navegador/FCM invalida subscrições periodicamente: o Android rotaciona tokens
 FCM (semanas a meses), o iOS pode revogar permissão/subscrição de PWAs que ficam muito tempo sem ser
@@ -144,6 +157,9 @@ reduzir para um bucket "abertura+1h" — mas o push imediato é o que correspond
 
 ### P4 — Envios sem TTL nem Urgency
 
+> **✅ RESOLVIDO (28/08/2026)** — TTL por bucket + `urgency: 'high'` implementados nas três Edge
+> Functions (`send-voting-reminders`, `send-confirmation-requests`, `send-test-push`), commit `39ebcd0`.
+
 **O que acontece.** Todas as chamadas `webpush.sendNotification(subscription, payload)` vão sem
 opções (ex.: [send-voting-reminders/index.ts:137](../supabase/functions/send-voting-reminders/index.ts),
 [send-confirmation-requests/index.ts:174](../supabase/functions/send-confirmation-requests/index.ts)).
@@ -155,8 +171,8 @@ fraca) é pior do que não entregar — e é mais um caso que o jogador relata c
 
 ```ts
 await webpush.sendNotification(pushSubscription, payload, {
-  TTL: ttlSegundos,        // ex.: 30m → 1800; 1h → 3600; confirmação → algumas horas
-  urgency: 'high',         // wake-up mais agressivo no Android/FCM
+  TTL: ttlSegundos, // ex.: 30m → 1800; 1h → 3600; confirmação → algumas horas
+  urgency: 'high', // wake-up mais agressivo no Android/FCM
 });
 ```
 
@@ -165,6 +181,20 @@ Para o push de confirmação de segunda, TTL de ~12-24h é razoável (chega quan
 ainda dentro do prazo de quarta).
 
 ### P5 — Timeout de 8s no `disparar_e_registrar_cron_http` gera falso-negativo no log
+
+> **✅ RESOLVIDO (29/08/2026)** — o problema real era **pior** que o previsto nesta análise: a cron
+> `enviar-push-reminders-1min` falhava **100% das execuções desde a 099** (nenhum push de votação,
+> reforço ou convocação semanal era entregue). Causa: no hosted Supabase a tabela interna
+> `net._http_response` não é acessível, a coleta caía sempre no fallback síncrono
+> `net.http_collect_response(async := false)` (pg_sleep interno que ignora o orçamento), o
+> statement_timeout cancelava o job e o rollback descartava até o push já enfileirado. Fix nas
+> migrations **104** (jobs de 1 min e semanal em fire-and-forget `net.http_post` puro, com batimento
+> em `cron_execucoes`; `salvar_configuracoes_notificacoes` recriada com o mesmo corpo; disparos
+> manuais com coleta de 2s) e **105** (coleta no modo assíncrono `async := true`, que respeita o
+> orçamento). Também corrigido na 104: `obter_execucoes_cron` quebrada desde a 099 com 42702
+> (`id` do RETURNS TABLE ambíguo — mesma classe do fix 097). Validado em produção: batimentos
+> `sucesso=true` minuto a minuto, push de teste recebido no aparelho (entrega confirmada pelo
+> admin; o log pode registrar "Timeout após 2000 ms" em cold start — falso-negativo conhecido).
 
 **O que acontece.** A função central da 099 usa `p_timeout_ms` default 8000
 ([099 §2](../supabase/migrations/099_cron_http_response_logging.sql)) tanto no `net.http_post` quanto
@@ -217,15 +247,15 @@ aparelho com problema.
 
 ## 4. Plano priorizado
 
-| # | Ação | Endereça | Esforço | Risco |
-|---|------|----------|---------|-------|
-| 1 | Re-check silencioso de subscrição no boot/login (`SessaoContext` ou `CardNotificacoes`) | P1 | P | Baixo |
-| 2 | Handler `pushsubscriptionchange` no `sw.js` + RPC de sincronização | P1 | M | Baixo |
-| 3 | Varredura de retry do push semanal no job de 1 min (ledger-based) | P2 | M | Baixo (idempotente) |
-| 4 | Push imediato "votação aberta" no fluxo de publicação + template na config | P3 | M | Baixo |
-| 5 | TTL + urgency por bucket nas Edge Functions | P4 | P | Baixo |
-| 6 | Painel admin de entregas por jogador (RPC + seção na tela Notificações) | P6 | M | Baixo |
-| 7 | Ajustar timeout/estratégia de log do job de 1 min | P5 | P | Baixo |
+| #   | Ação                                                                                       | Endereça | Esforço | Risco               |
+| --- | ------------------------------------------------------------------------------------------ | -------- | ------- | ------------------- |
+| 1   | ✅ Re-check silencioso de subscrição no boot/login (`SessaoContext` ou `CardNotificacoes`) | P1       | P       | Baixo               |
+| 2   | ✅ Handler `pushsubscriptionchange` no `sw.js` + RPC de sincronização                      | P1       | M       | Baixo               |
+| 3   | Varredura de retry do push semanal no job de 1 min (ledger-based)                          | P2       | M       | Baixo (idempotente) |
+| 4   | Push imediato "votação aberta" no fluxo de publicação + template na config                 | P3       | M       | Baixo               |
+| 5   | ✅ TTL + urgency por bucket nas Edge Functions                                             | P4       | P       | Baixo               |
+| 6   | Painel admin de entregas por jogador (RPC + seção na tela Notificações)                    | P6       | M       | Baixo               |
+| 7   | ✅ Ajustar timeout/estratégia de log do job de 1 min                                       | P5       | P       | Baixo               |
 
 (P = pequeno, M = médio. Os itens 1 e 3 são os de maior impacto no sintoma relatado; o 7 é higiene.)
 

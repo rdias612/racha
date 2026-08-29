@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 import { supabase } from '../lib/supabase';
+import { sincronizarPush } from '../lib/pwa';
 import { aplicarSuperAdmin, COLUNAS_JOGADOR_LISTA, type JogadorLista } from '../lib/jogadores';
 
 export type JogadorLogado = JogadorLista;
@@ -85,6 +86,14 @@ export function SessaoProvider({ children }: { children: ReactNode }) {
       ativo = false;
     };
   }, [jogador]);
+
+  // Auto-cura do Web Push no boot/login (P1): se a permissão já está concedida,
+  // revalida/renova a inscrição deste aparelho. Não usa flag `ativo` porque é
+  // silencioso e não escreve estado de React — falhas são engolidas no pwa.ts.
+  const jogadorId = jogador?.id;
+  useEffect(() => {
+    if (jogadorId) sincronizarPush(jogadorId);
+  }, [jogadorId]);
 
   // Referências estáveis: evitam que todo consumidor do contexto re-renderize
   // quando o Provider re-renderiza sem mudança de sessão.

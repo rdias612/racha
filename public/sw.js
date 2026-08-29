@@ -8,6 +8,30 @@ const CACHE_STATIC = 'racha-static-v3';
 const CACHE_API = 'racha-api-v2';
 const OFFLINE_URL = '/offline.html';
 
+// Configuração do Web Push, injetada no build pelo plugin do vite.config.ts
+// (arquivos de public/ não passam pelo pipeline de import.meta.env). Variável
+// ausente mantém o placeholder: o push fica no-op (ex.: dev sem VAPID).
+const CONFIG_PUSH = {
+  supabaseUrl: '__SUPABASE_URL__',
+  supabaseAnonKey: '__SUPABASE_ANON_KEY__',
+  vapidPublicKey: '__VAPID_PUBLIC_KEY__',
+};
+
+const pushConfigurado = [
+  CONFIG_PUSH.supabaseUrl,
+  CONFIG_PUSH.supabaseAnonKey,
+  CONFIG_PUSH.vapidPublicKey,
+].every((valor) => valor && !valor.startsWith('__'));
+
+function chaveVapidBytes() {
+  const padding = '='.repeat((4 - (CONFIG_PUSH.vapidPublicKey.length % 4)) % 4);
+  const base64 = (CONFIG_PUSH.vapidPublicKey + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const binaria = atob(base64);
+  const bytes = new Uint8Array(binaria.length);
+  for (let i = 0; i < binaria.length; i++) bytes[i] = binaria.charCodeAt(i);
+  return bytes;
+}
+
 const ASSETS_PRECACHE = [
   OFFLINE_URL,
   '/manifest.webmanifest',
@@ -79,6 +103,61 @@ self.addEventListener('notificationclick', (event) => {
     })
   );
 });
+
+// O navegador invalida inscrições com o app fechado (rotação de token FCM no
+// Android, revogação em PWAs dormentes no iOS, evicção de storage). Re-inscreve
+// e sincroniza o novo endpoint via RPC que casa pela linha do endpoint antigo —
+// o SW não sabe o jogador_id; se a linha já foi limpa por 404/410, o boot do
+// app recupera pelo re-check silencioso de sincronizarPush().
+self.addEventListener('pushsubscriptionchange', (event) => {
+  if (!pushConfigurado) return;
+  event.waitUntil(reinscreverPushSubscription(event.oldSubscription, event.newSubscription));
+});
+
+async function reinscreverPushSubscription(oldSubscription, newSubscription) {
+  try {
+    let subscription = newSubscription || null;
+    if (!subscription) {
+      const existente = await self.registration.pushManager.getSubscription();
+      // Só serve se for uma inscrição nova; igual ao endpoint antigo = morta.
+      if (existente && oldSubscription && existente.endpoint !== oldSubscription.endpoint) {
+        subscription = existente;
+      }
+    }
+    if (!subscription) {
+      subscription = await self.registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: chaveVapidBytes(),
+      });
+    }
+
+    const keys = subscription.toJSON().keys || {};
+    if (!keys.p256dh || !keys.auth) return;
+
+    const resposta = await fetch(
+      `${CONFIG_PUSH.supabaseUrl}/rest/v1/rpc/sincronizar_push_subscription`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: CONFIG_PUSH.supabaseAnonKey,
+          Authorization: `Bearer ${CONFIG_PUSH.supabaseAnonKey}`,
+        },
+        body: JSON.stringify({
+          p_endpoint_antigo: oldSubscription ? oldSubscription.endpoint : null,
+          p_endpoint_novo: subscription.endpoint,
+          p_p256dh: keys.p256dh,
+          p_auth: keys.auth,
+        }),
+      }
+    );
+    if (!resposta.ok) {
+      console.warn('[SW] Sincronização da inscrição push falhou:', resposta.status);
+    }
+  } catch (err) {
+    console.warn('[SW] Falha ao renovar a inscrição push:', err);
+  }
+}
 
 self.addEventListener('fetch', (event) => {
   const { request } = event;
