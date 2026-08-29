@@ -999,6 +999,26 @@ export type Database = {
           media_nota: number;
         }[];
       };
+      obter_painel_entregas_push: {
+        Args: { p_admin_id: number; p_limite?: number };
+        Returns: {
+          jogador_id: number;
+          username: string;
+          is_mensalista: boolean;
+          posicao: string;
+          qtd_aparelhos: number;
+          primeira_inscricao_em: string | null;
+          ultima_inscricao_em: string | null;
+          aparelhos: Json;
+          total_entregas: number;
+          ultima_entrega_em: string | null;
+          ultima_entrega_key: string | null;
+          ultima_entrega_partida: number | null;
+          total_erros: number;
+          ultimo_erro: string | null;
+          ultimo_erro_em: string | null;
+        }[];
+      };
       obter_partidas_recentes_jogadores: {
         Args: { p_meses?: number };
         Returns: {

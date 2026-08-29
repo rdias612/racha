@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import type { PosicaoId } from './times';
 export { obterPartidaDraftAtual, type PartidaDraftAtual } from './partidas';
 
 export interface NotificacoesConfig {
@@ -95,4 +96,38 @@ export async function dispararConfirmacaoManual(adminId: number, partidaId: numb
   });
 
   if (error) throw error;
+}
+
+export interface AparelhoPush {
+  endpoint: string; // últimos 16 caracteres (a RPC trunca)
+  criado_em: string;
+  atualizado_em: string;
+}
+
+export interface PainelEntregaJogador {
+  jogador_id: number;
+  username: string;
+  is_mensalista: boolean;
+  // Valores do banco são exatamente as chaves de POSICOES (src/lib/times.ts):
+  // o Avatar exige PosicaoId — não declarar como string.
+  posicao: PosicaoId;
+  qtd_aparelhos: number;
+  primeira_inscricao_em: string | null;
+  ultima_inscricao_em: string | null;
+  aparelhos: AparelhoPush[];
+  total_entregas: number;
+  ultima_entrega_em: string | null;
+  ultima_entrega_key: string | null;
+  ultima_entrega_partida: number | null;
+  total_erros: number;
+  ultimo_erro: string | null;
+  ultimo_erro_em: string | null;
+}
+
+export async function obterPainelEntregasPush(adminId: number): Promise<PainelEntregaJogador[]> {
+  const { data, error } = await supabase.rpc('obter_painel_entregas_push', {
+    p_admin_id: adminId,
+  });
+  if (error) throw error;
+  return (data ?? []) as unknown as PainelEntregaJogador[];
 }

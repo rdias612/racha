@@ -13,6 +13,7 @@ import {
   SecaoNotificacaoConfirmacao,
 } from '../components/SecaoNotificacaoConfirmacao';
 import { SecaoNotificacaoTestes } from '../components/SecaoNotificacaoTestes';
+import { SecaoNotificacaoSaude } from '../components/SecaoNotificacaoSaude';
 import { SecaoNotificacaoVotacao } from '../components/SecaoNotificacaoVotacao';
 import { Snackbar } from '../components/Snackbar';
 import { useSnackbar } from '../hooks/useSnackbar';
@@ -25,8 +26,10 @@ import {
   dispararPushTeste,
   dispararConfirmacaoManual,
   obterPartidaDraftAtual,
+  obterPainelEntregasPush,
   type NotificacoesConfig,
   type PartidaDraftAtual,
+  type PainelEntregaJogador,
 } from '../lib/notificacoes';
 import { formatarMensagemErro } from '../lib/erros';
 
@@ -43,6 +46,11 @@ export function Notificacoes() {
   const [disparandoTeste, setDisparandoTeste] = useState(false);
   const [disparandoReenvio, setDisparandoReenvio] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+
+  // Quadro de saúde das entregas push (seção 4, somente-leitura)
+  const [painel, setPainel] = useState<PainelEntregaJogador[]>([]);
+  const [carregandoPainel, setCarregandoPainel] = useState(true);
+  const [erroPainel, setErroPainel] = useState<string | null>(null);
 
   // Modais e Toasts
   const [confirmReenvioAberto, setConfirmReenvioAberto] = useState(false);
@@ -91,6 +99,36 @@ export function Notificacoes() {
       ativo = false;
     };
   }, [carregar]);
+
+  // Efeito próprio: falha ou ausência da RPC do painel não derruba o
+  // formulário de configuração (deploy do front pode preceder o db push).
+  const carregarPainel = useCallback(
+    async (isAtivo?: () => boolean) => {
+      if (!jogador || !isAdmin) return;
+      setCarregandoPainel(true);
+      setErroPainel(null);
+
+      try {
+        const dados = await obterPainelEntregasPush(jogador.id);
+        if (isAtivo && !isAtivo()) return;
+        setPainel(dados);
+      } catch (err) {
+        if (isAtivo && !isAtivo()) return;
+        setErroPainel(formatarMensagemErro(err, 'Erro ao carregar o quadro de entregas.'));
+      } finally {
+        if (!isAtivo || isAtivo()) setCarregandoPainel(false);
+      }
+    },
+    [jogador, isAdmin]
+  );
+
+  useEffect(() => {
+    let ativo = true;
+    carregarPainel(() => ativo);
+    return () => {
+      ativo = false;
+    };
+  }, [carregarPainel]);
 
   // Hook guard: após todos os hooks
   if (!isAdmin) return <Navigate to="/" replace />;
@@ -217,6 +255,14 @@ export function Notificacoes() {
           {salvando ? 'Salvando Alterações…' : 'Salvar Alterações'}
         </button>
       </form>
+
+      {/* 4. Saúde das Entregas por Atleta (somente-leitura, fora do form) */}
+      <SecaoNotificacaoSaude
+        dados={painel}
+        carregando={carregandoPainel}
+        erro={erroPainel}
+        onAtualizar={() => carregarPainel()}
+      />
 
       {/* Confirmação de Reenvio */}
       {confirmReenvioAberto && partidaDraft && (
