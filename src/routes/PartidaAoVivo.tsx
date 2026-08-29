@@ -14,6 +14,7 @@ import { formatarDataMobile, formatarDataCompleta } from '../lib/formatacao';
 import { BotaoVoltar } from '../components/BotaoVoltar';
 import { BarraAcaoInferior } from '../components/BarraAcaoInferior';
 import { formatarMensagemErro } from '../lib/erros';
+import { dispararPushVotacaoAberta } from '../lib/notificacoes';
 import {
   abrirPartida,
   carregarEventos,
@@ -221,6 +222,11 @@ export function PartidaAoVivo() {
       }
       invalidarCache(CHAVE_JOGOS);
       invalidarCache(chaveResumo(new Date().getFullYear()));
+      if (jogadorLogado) {
+        // Push é best-effort: falha não suja o feedback da publicação e fica
+        // registrada em cron_execucoes; os buckets 6h/3h/1h/30m são a rede.
+        void dispararPushVotacaoAberta(jogadorLogado.id, partida.id).catch(() => {});
+      }
       navigate(`/partida/${partida.id}`, { replace: true });
     } catch (e: unknown) {
       setErro(formatarMensagemErro(e, 'Não foi possível finalizar a partida.'));

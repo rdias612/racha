@@ -30,7 +30,10 @@ const allReminders = [
 
 const reminderWindowMs = 10 * 60 * 1000;
 
-type ReminderKey = (typeof allReminders)[number]['key'];
+type BucketKey = (typeof allReminders)[number]['key'];
+// 'votacao-aberta' é o push imediato disparado no ato da publicação (P3);
+// as demais chaves são os buckets varridos pelo cron de 1 minuto.
+type ReminderKey = BucketKey | 'votacao-aberta';
 
 type SubscriptionData = {
   endpoint: string;
@@ -120,9 +123,12 @@ async function claim(candidate: Candidate) {
 
 async function send(
   candidate: Candidate,
-  templates: Record<ReminderKey, { title: string; body: string }>
+  templates: Partial<Record<ReminderKey, { title: string; body: string }>>
 ) {
   const template = templates[candidate.reminder_key];
+  if (!template) {
+    throw new Error(`Template ausente para o lembrete "${candidate.reminder_key}".`);
+  }
   const payload = JSON.stringify({
     title: template.title,
     body: template.body,
@@ -180,7 +186,77 @@ Deno.serve(async (request) => {
     return json({ ok: true, skipped: true, motivo: 'votacao_ativo=false' }, 200);
   }
 
-  // 2. Filtra buckets ativos
+  // 2. Corpo do request: o cron manda `{}` e segue para os buckets; o disparo
+  //    de abertura (P3) manda `{ partida_id, abertura: true }` no ato da
+  //    publicação da partida.
+  let bodyData: { partida_id?: unknown; abertura?: unknown } = {};
+  try {
+    bodyData = (await request.json()) as typeof bodyData;
+  } catch {
+    // Corpo ausente ou inválido: tratado como cron (buckets).
+  }
+
+  const partidaAbertura =
+    typeof bodyData.partida_id === 'number'
+      ? bodyData.partida_id
+      : typeof bodyData.partida_id === 'string' &&
+          bodyData.partida_id.trim() !== '' &&
+          Number.isFinite(Number(bodyData.partida_id))
+        ? Number(bodyData.partida_id)
+        : null;
+
+  if (bodyData.abertura === true && partidaAbertura !== null) {
+    if (config?.votacao_abertura_ativo === false) {
+      return json({ ok: true, skipped: true, motivo: 'votacao_abertura_ativo=false' }, 200);
+    }
+
+    try {
+      const { data, error } = await supabase.rpc('listar_pendentes_votacao_abertura', {
+        p_partida_id: partidaAbertura,
+      });
+      if (error) throw error;
+
+      const template = {
+        title:
+          config?.votacao_template_abertura_titulo?.trim() ||
+          'A urna está aberta: vote na súmula de hoje!',
+        body:
+          config?.votacao_template_abertura_msg?.trim() ||
+          'Apito final na partida de hoje. Dê suas notas, eleja o Craque e ajude o ranking — a urna fecha em 24 horas.',
+      };
+
+      let claimed = 0;
+      for (const item of data ?? []) {
+        const candidate: Candidate = {
+          partida_id: item.partida_id,
+          jogador_id: item.jogador_id,
+          voting_closes_at: item.voting_closes_at,
+          reminder_key: 'votacao-aberta',
+          label: 'abertura',
+          // A informação "votação aberta" vale até a urna fechar (24h após a
+          // publicação); depois do prazo a mensagem é ruído.
+          ttl: 24 * 60 * 60,
+          subscriptions: Array.isArray(item.subscriptions) ? item.subscriptions : [],
+        };
+        if (candidate.subscriptions.length === 0) continue;
+        if (await claim(candidate)) {
+          claimed++;
+          await send(candidate, { 'votacao-aberta': template });
+        }
+      }
+      return json({
+        modo: 'votacao_abertura',
+        partida_id: partidaAbertura,
+        targets: (data ?? []).length,
+        claimed,
+      });
+    } catch (error) {
+      console.error(error);
+      return json({ error: errorMessage(error) }, 500);
+    }
+  }
+
+  // 3. Filtra buckets ativos (modo cron)
   const activeReminders = allReminders.filter((r) => {
     if (r.key === '6h') return config?.votacao_bucket_6h ?? true;
     if (r.key === '3h') return config?.votacao_bucket_3h ?? true;
@@ -193,8 +269,8 @@ Deno.serve(async (request) => {
     return json({ ok: true, skipped: true, motivo: 'nenhum bucket ativo' }, 200);
   }
 
-  // 3. Monta templates por bucket
-  const templates: Record<ReminderKey, { title: string; body: string }> = {
+  // 4. Monta templates por bucket
+  const templates: Record<BucketKey, { title: string; body: string }> = {
     '6h': {
       title: config?.votacao_template_6h_titulo?.trim() || 'Faltam 6 horas para fechar a votação!',
       body:

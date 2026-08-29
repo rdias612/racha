@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { UserPlus } from 'lucide-react';
 import { useAdmin } from '../hooks/useAdmin';
+import { useJogadorLogado } from '../hooks/useJogadorLogado';
 import { invalidarCache } from '../hooks/useCache';
 import { CHAVE_JOGOS, chaveResumo } from '../lib/chavesCache';
 import { listarJogadoresAtivos, type JogadorLista } from '../lib/jogadores';
@@ -24,9 +25,11 @@ import { BarraAcaoInferior } from '../components/BarraAcaoInferior';
 import { PainelPlacar } from '../components/PainelPlacar';
 import { CabecalhoTime } from '../components/CabecalhoTime';
 import { formatarMensagemErro } from '../lib/erros';
+import { dispararPushVotacaoAberta } from '../lib/notificacoes';
 
 export function PartidaEditar() {
   const isAdmin = useAdmin();
+  const jogadorLogado = useJogadorLogado();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const partidaId = Number(id);
@@ -200,6 +203,12 @@ export function PartidaEditar() {
 
       invalidarCache(CHAVE_JOGOS);
       invalidarCache(chaveResumo(new Date().getFullYear()));
+
+      // Push de abertura da votação é best-effort: falha fica em cron_execucoes
+      // e não suja o feedback da publicação (buckets 6h/3h/1h/30m são a rede).
+      if (primeiraVez && jogadorLogado) {
+        void dispararPushVotacaoAberta(jogadorLogado.id, partidaId).catch(() => {});
+      }
 
       setFeedback(
         primeiraVez

@@ -14,6 +14,7 @@ export interface NotificacoesConfig {
   reforco_titulo: string | null;
   reforco_mensagem: string | null;
   votacao_ativo: boolean;
+  votacao_abertura_ativo: boolean;
   votacao_bucket_6h: boolean;
   votacao_bucket_3h: boolean;
   votacao_bucket_1h: boolean;
@@ -26,6 +27,8 @@ export interface NotificacoesConfig {
   votacao_template_1h_msg: string | null;
   votacao_template_30m_titulo: string | null;
   votacao_template_30m_msg: string | null;
+  votacao_template_abertura_titulo: string | null;
+  votacao_template_abertura_msg: string | null;
   updated_at?: string;
   updated_by?: number | null;
 }
@@ -51,6 +54,7 @@ export async function obterConfiguracoesNotificacoes(adminId: number): Promise<N
       reforco_titulo: null,
       reforco_mensagem: null,
       votacao_ativo: true,
+      votacao_abertura_ativo: true,
       votacao_bucket_6h: true,
       votacao_bucket_3h: true,
       votacao_bucket_1h: true,
@@ -63,6 +67,8 @@ export async function obterConfiguracoesNotificacoes(adminId: number): Promise<N
       votacao_template_1h_msg: null,
       votacao_template_30m_titulo: null,
       votacao_template_30m_msg: null,
+      votacao_template_abertura_titulo: null,
+      votacao_template_abertura_msg: null,
     };
   }
 
@@ -91,6 +97,15 @@ export async function dispararPushTeste(adminId: number): Promise<void> {
 
 export async function dispararConfirmacaoManual(adminId: number, partidaId: number): Promise<void> {
   const { error } = await supabase.rpc('disparar_confirmacao_manual', {
+    p_admin_id: adminId,
+    p_partida_id: partidaId,
+  });
+
+  if (error) throw error;
+}
+
+export async function dispararPushVotacaoAberta(adminId: number, partidaId: number): Promise<void> {
+  const { error } = await supabase.rpc('disparar_push_votacao_aberta', {
     p_admin_id: adminId,
     p_partida_id: partidaId,
   });

@@ -7,10 +7,15 @@ interface BucketVotacaoItem {
   readonly key: string;
   readonly label: string;
   readonly field:
-    'votacao_bucket_6h' | 'votacao_bucket_3h' | 'votacao_bucket_1h' | 'votacao_bucket_30m';
+    | 'votacao_abertura_ativo'
+    | 'votacao_bucket_6h'
+    | 'votacao_bucket_3h'
+    | 'votacao_bucket_1h'
+    | 'votacao_bucket_30m';
 }
 
 const BUCKETS_VOTACAO: readonly BucketVotacaoItem[] = [
+  { key: 'abertura', label: 'Abertura', field: 'votacao_abertura_ativo' },
   { key: '6h', label: '6 Horas', field: 'votacao_bucket_6h' },
   { key: '3h', label: '3 Horas', field: 'votacao_bucket_3h' },
   { key: '1h', label: '1 Hora', field: 'votacao_bucket_1h' },
@@ -21,11 +26,13 @@ interface TemplateVotacaoItem {
   readonly key: string;
   readonly label: string;
   readonly titField:
+    | 'votacao_template_abertura_titulo'
     | 'votacao_template_6h_titulo'
     | 'votacao_template_3h_titulo'
     | 'votacao_template_1h_titulo'
     | 'votacao_template_30m_titulo';
   readonly msgField:
+    | 'votacao_template_abertura_msg'
     | 'votacao_template_6h_msg'
     | 'votacao_template_3h_msg'
     | 'votacao_template_1h_msg'
@@ -35,6 +42,15 @@ interface TemplateVotacaoItem {
 }
 
 const TEMPLATES_VOTACAO: readonly TemplateVotacaoItem[] = [
+  {
+    key: 'abertura',
+    label: 'Abertura da Votação',
+    titField: 'votacao_template_abertura_titulo',
+    msgField: 'votacao_template_abertura_msg',
+    placeholderTit: 'A urna está aberta: vote na súmula de hoje!',
+    placeholderMsg:
+      'Apito final na partida de hoje. Dê suas notas, eleja o Craque e ajude o ranking — a urna fecha em 24 horas.',
+  },
   {
     key: '6h',
     label: 'Bucket 6 Horas',
@@ -104,7 +120,7 @@ export function SecaoNotificacaoVotacao({ config, onAlterar }: SecaoNotificacaoV
       {config.votacao_ativo && (
         <div className="space-y-3 pt-1">
           <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco">
-            Horários dos Avisos (antes do fechamento):
+            Avisos Ativos (abertura e antes do fechamento):
           </span>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">

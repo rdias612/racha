@@ -245,6 +245,7 @@ export type Database = {
           reforco_titulo: string | null;
           updated_at: string;
           updated_by: number | null;
+          votacao_abertura_ativo: boolean;
           votacao_ativo: boolean;
           votacao_bucket_1h: boolean;
           votacao_bucket_30m: boolean;
@@ -258,6 +259,8 @@ export type Database = {
           votacao_template_3h_titulo: string | null;
           votacao_template_6h_msg: string | null;
           votacao_template_6h_titulo: string | null;
+          votacao_template_abertura_msg: string | null;
+          votacao_template_abertura_titulo: string | null;
         };
         Insert: {
           confirmacao_ativo?: boolean;
@@ -272,6 +275,7 @@ export type Database = {
           reforco_titulo?: string | null;
           updated_at?: string;
           updated_by?: number | null;
+          votacao_abertura_ativo?: boolean;
           votacao_ativo?: boolean;
           votacao_bucket_1h?: boolean;
           votacao_bucket_30m?: boolean;
@@ -285,6 +289,8 @@ export type Database = {
           votacao_template_3h_titulo?: string | null;
           votacao_template_6h_msg?: string | null;
           votacao_template_6h_titulo?: string | null;
+          votacao_template_abertura_msg?: string | null;
+          votacao_template_abertura_titulo?: string | null;
         };
         Update: {
           confirmacao_ativo?: boolean;
@@ -299,6 +305,7 @@ export type Database = {
           reforco_titulo?: string | null;
           updated_at?: string;
           updated_by?: number | null;
+          votacao_abertura_ativo?: boolean;
           votacao_ativo?: boolean;
           votacao_bucket_1h?: boolean;
           votacao_bucket_30m?: boolean;
@@ -312,6 +319,8 @@ export type Database = {
           votacao_template_3h_titulo?: string | null;
           votacao_template_6h_msg?: string | null;
           votacao_template_6h_titulo?: string | null;
+          votacao_template_abertura_msg?: string | null;
+          votacao_template_abertura_titulo?: string | null;
         };
         Relationships: [
           {
@@ -953,6 +962,10 @@ export type Database = {
         Returns: boolean;
       };
       disparar_push_teste: { Args: { p_admin_id: number }; Returns: boolean };
+      disparar_push_votacao_aberta: {
+        Args: { p_admin_id: number; p_partida_id: number };
+        Returns: boolean;
+      };
       editar_evento: {
         Args: {
           p_assistencia_jogador_id?: number;
@@ -988,6 +1001,15 @@ export type Database = {
         Returns: undefined;
       };
       gerar_lancamentos_mensais: { Args: never; Returns: undefined };
+      listar_pendentes_votacao_abertura: {
+        Args: { p_partida_id: number };
+        Returns: {
+          partida_id: number;
+          jogador_id: number;
+          voting_closes_at: string;
+          subscriptions: Json;
+        }[];
+      };
       obter_configuracoes_notificacoes: {
         Args: { p_admin_id: number };
         Returns: Json;
