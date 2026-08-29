@@ -76,7 +76,12 @@ Deno.serve(async (request) => {
         keys: { p256dh: subscription.p256dh, auth: subscription.auth },
       };
       try {
-        await webpush.sendNotification(pushSubscription, payload);
+        // Teste é diagnóstico do agora: TTL curto para não ficar retido e
+        // chegar minutos depois como se tudo estivesse bem.
+        await webpush.sendNotification(pushSubscription, payload, {
+          TTL: 5 * 60,
+          urgency: 'high',
+        });
         resultados.push({ endpoint: subscription.endpoint.slice(-12), ok: true });
       } catch (error) {
         ultimoErro = error instanceof Error ? error.message : String(error);

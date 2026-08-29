@@ -44,6 +44,7 @@ type Candidate = {
   voting_closes_at: string;
   reminder_key: ReminderKey;
   label: string;
+  ttl: number;
   subscriptions: SubscriptionData[];
 };
 
@@ -94,6 +95,9 @@ async function findCandidates(activeReminders: typeof allReminders): Promise<Can
       voting_closes_at: item.voting_closes_at,
       reminder_key: reminder.key,
       label: reminder.label,
+      // TTL do envio = offset do bucket: quando ele dispara, resta exatamente
+      // esse tempo até fechar a votação. Depois do prazo a mensagem é ruído.
+      ttl: Math.round(reminder.offsetMs / 1000),
       subscriptions,
     });
   }
@@ -134,7 +138,10 @@ async function send(
       keys: { p256dh: subscription.p256dh, auth: subscription.auth },
     };
     try {
-      await webpush.sendNotification(pushSubscription, payload);
+      await webpush.sendNotification(pushSubscription, payload, {
+        TTL: candidate.ttl,
+        urgency: 'high',
+      });
     } catch (err) {
       lastError = err instanceof Error ? err.message : String(err);
       const statusCode = (err as { statusCode?: number }).statusCode;

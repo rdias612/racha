@@ -33,6 +33,11 @@ const supabase = createClient(supabaseUrl, serviceRoleKey, {
   auth: { persistSession: false },
 });
 
+// Sem TTL o push service retém a mensagem por até 4 semanas — um lembrete de
+// confirmação pode chegar depois do prazo encerrado (quarta 16h). O disparo
+// semanal é segunda 10h: 24h ainda entrega a tempo de confirmar.
+const TTL_CONFIRMACAO_SEGUNDOS = 24 * 60 * 60;
+
 type SubscriptionData = {
   endpoint: string;
   p256dh: string;
@@ -154,6 +159,7 @@ async function sendNotification(
   t: Target,
   titulo: string,
   mensagem: string,
+  ttlSegundos: number,
   reminderKey?: 'confirmacao' | 'reforco'
 ) {
   const payload = JSON.stringify({
@@ -171,7 +177,10 @@ async function sendNotification(
       keys: { p256dh: subscription.p256dh, auth: subscription.auth },
     };
     try {
-      await webpush.sendNotification(pushSubscription, payload);
+      await webpush.sendNotification(pushSubscription, payload, {
+        TTL: ttlSegundos,
+        urgency: 'high',
+      });
     } catch (err) {
       lastError = err instanceof Error ? err.message : String(err);
       const statusCode = (err as { statusCode?: number }).statusCode;
@@ -257,7 +266,7 @@ Deno.serve(async (request) => {
       const mensagem = interpolar(msgTemplate, vars);
 
       for (const target of targets) {
-        await sendNotification(target, titulo, mensagem);
+        await sendNotification(target, titulo, mensagem, TTL_CONFIRMACAO_SEGUNDOS);
       }
       return json({
         modo: 'reenvio_manual',
@@ -308,7 +317,7 @@ Deno.serve(async (request) => {
       for (const target of targets) {
         if (await claim(target, 'confirmacao')) {
           claimed++;
-          await sendNotification(target, titulo, mensagem, 'confirmacao');
+          await sendNotification(target, titulo, mensagem, TTL_CONFIRMACAO_SEGUNDOS, 'confirmacao');
         }
       }
       return json({
@@ -333,6 +342,9 @@ Deno.serve(async (request) => {
     const prazoMs = new Date(targets[0].confirmacao_closes_at).getTime();
     const horasAntes = config?.reforco_horas_antes_prazo ?? 4;
     const janelaInicioMs = prazoMs - horasAntes * 3600 * 1000;
+    // Reforço dispara dentro de [prazo - horasAntes, prazo): TTL do tamanho da
+    // janela entrega, no limite, exatamente na hora do prazo.
+    const ttlReforcoSegundos = horasAntes * 3600;
 
     // Está dentro da janela [prazo - horas, prazo)?
     if (agora < janelaInicioMs || agora >= prazoMs) {
@@ -356,7 +368,7 @@ Deno.serve(async (request) => {
     for (const target of targets) {
       if (await claim(target, 'reforco')) {
         claimed++;
-        await sendNotification(target, titulo, mensagem, 'reforco');
+        await sendNotification(target, titulo, mensagem, ttlReforcoSegundos, 'reforco');
       }
     }
 
