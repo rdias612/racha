@@ -67,7 +67,7 @@ export function SecaoNotificacaoSaude({
       <div className="flex items-start justify-between gap-2">
         <div>
           <h3 className="font-display font-bold text-sm uppercase tracking-wider text-giz">
-            4. Saúde das Entregas por Atleta
+            Saúde das Entregas por Atleta
           </h3>
           <p className="text-xs text-giz-fraco mt-0.5">
             Última entrega real por jogador e aparelhos inscritos. Sem entrega recente = candidato a

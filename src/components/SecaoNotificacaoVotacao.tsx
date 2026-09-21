@@ -103,7 +103,7 @@ export function SecaoNotificacaoVotacao({ config, onAlterar }: SecaoNotificacaoV
       <div className="flex items-start justify-between gap-2">
         <div>
           <h3 className="font-display font-bold text-sm uppercase tracking-wider text-giz">
-            2. Lembretes de Votação Pós-Jogo
+            Lembretes de Votação Pós-Jogo
           </h3>
           <p className="text-xs text-giz-fraco mt-0.5">
             Avisos para registrar votos e notas da súmula antes de fechar a votação (24h).

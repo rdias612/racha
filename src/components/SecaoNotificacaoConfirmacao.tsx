@@ -45,7 +45,7 @@ export function SecaoNotificacaoConfirmacao({
       <div className="flex items-start justify-between gap-2">
         <div>
           <h3 className="font-display font-bold text-sm uppercase tracking-wider text-giz">
-            1. Confirmação de Presença Semanal
+            Confirmação de Presença Semanal
           </h3>
           <p className="text-xs text-giz-fraco mt-0.5">
             Convite automático enviado aos mensalistas antes do jogo.

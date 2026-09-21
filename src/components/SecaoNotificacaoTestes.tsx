@@ -24,7 +24,7 @@ export function SecaoNotificacaoTestes({
     <div className="rounded-[4px] border border-borda bg-superficie p-3.5 shadow-carimbo space-y-4">
       <div>
         <h3 className="font-display font-bold text-sm uppercase tracking-wider text-giz">
-          3. Testes & Disparos Manuais
+          Testes & Disparos Manuais
         </h3>
         <p className="text-xs text-giz-fraco mt-0.5">
           Valide o recebimento no seu aparelho ou reenvie convites a qualquer momento.

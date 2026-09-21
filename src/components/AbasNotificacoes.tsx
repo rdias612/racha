@@ -2,10 +2,10 @@ import { NavLink } from 'react-router-dom';
 import { preCarregarRota } from '../lib/rotas';
 
 const ABAS = [
-  { to: '/notificacoes/confirmacao', label: '1. Confirmação' },
-  { to: '/notificacoes/votacao', label: '2. Votação' },
-  { to: '/notificacoes/testes', label: '3. Testes' },
-  { to: '/notificacoes/saude', label: '4. Saúde' },
+  { to: '/notificacoes/confirmacao', label: 'Confirmação' },
+  { to: '/notificacoes/votacao', label: 'Votação' },
+  { to: '/notificacoes/testes', label: 'Testes' },
+  { to: '/notificacoes/saude', label: 'Saúde' },
 ] as const;
 
 export interface AbasNotificacoesProps {
