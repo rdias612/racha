@@ -35,40 +35,6 @@ interface DadosJogos {
   placares: Record<number, Placar>;
 }
 
-// Caminho legado (fallback para bancos sem a view da migration 071): busca
-// `partidas` e, em seguida, `partida_placar.in(ids)` — o waterfall original.
-async function buscarJogosDuasQueries(): Promise<DadosJogos> {
-  const { data: ps, error } = await supabase
-    .from('partidas')
-    .select('id, data_jogo, status')
-    .order('data_jogo', { ascending: false });
-  if (error) throw error;
-
-  const partidas: Partida[] = (ps ?? []).map((p) => ({
-    id: p.id,
-    data_jogo: p.data_jogo,
-    status: p.status as StatusPartida,
-  }));
-  const placares: Record<number, Placar> = {};
-  if (partidas.length > 0) {
-    const ids = partidas.map((p) => p.id);
-    const { data: pls } = await supabase
-      .from('partida_placar')
-      .select('partida_id, gols_time_a, gols_time_b')
-      .in('partida_id', ids);
-    for (const pl of pls ?? []) {
-      if (pl.partida_id != null) {
-        placares[pl.partida_id] = {
-          partida_id: pl.partida_id,
-          gols_time_a: pl.gols_time_a ?? 0,
-          gols_time_b: pl.gols_time_b ?? 0,
-        };
-      }
-    }
-  }
-  return { partidas, placares };
-}
-
 export function Jogos() {
   const isAdmin = useAdmin();
   const { jogador } = useSessao();
@@ -79,42 +45,28 @@ export function Jogos() {
 
   // Mural completo (partidas + placares) cacheado: revisitas
   // renderizam na hora e revalidam em background. Uma unica query na view
-  // `partidas_com_placar` (migration 071) elimina o waterfall de duas idas ao
-  // banco; se a view ainda nao existir no banco, cai para o caminho antigo.
+  // `partidas_com_placar` (migration 071) concentra partidas e placares em uma
+  // unica consulta; a view e pre-requisito deste mural.
   const buscar = useCallback(async (): Promise<DadosJogos> => {
     const { data, error } = await supabase
       .from('partidas_com_placar')
       .select('id, data_jogo, status, gols_time_a, gols_time_b')
       .order('data_jogo', { ascending: false });
+    if (error) throw error;
 
-    if (!error && data) {
-      const partidas: Partida[] = [];
-      const placares: Record<number, Placar> = {};
-      for (const { id, data_jogo, status, gols_time_a, gols_time_b } of data) {
-        if (id != null && data_jogo != null && status != null) {
-          partidas.push({ id, data_jogo, status: status as StatusPartida });
-          placares[id] = {
-            partida_id: id,
-            gols_time_a: gols_time_a ?? 0,
-            gols_time_b: gols_time_b ?? 0,
-          };
-        }
+    const partidas: Partida[] = [];
+    const placares: Record<number, Placar> = {};
+    for (const { id, data_jogo, status, gols_time_a, gols_time_b } of data ?? []) {
+      if (id != null && data_jogo != null && status != null) {
+        partidas.push({ id, data_jogo, status: status as StatusPartida });
+        placares[id] = {
+          partida_id: id,
+          gols_time_a: gols_time_a ?? 0,
+          gols_time_b: gols_time_b ?? 0,
+        };
       }
-      return { partidas, placares };
     }
-
-    // View ausente no banco (migration 071 ainda nao aplicada): o PostgREST
-    // devolve PGRST205 (relation fora do schema cache) ou o Postgres 42P01
-    // (undefined_table). Volta as duas queries originais; qualquer outro erro
-    // propaga normalmente.
-    const viewAusente =
-      error != null &&
-      (error.code === 'PGRST205' ||
-        error.code === '42P01' ||
-        /does not exist|schema cache/i.test(error.message));
-    if (!viewAusente) throw error;
-
-    return buscarJogosDuasQueries();
+    return { partidas, placares };
   }, []);
 
   const { dados, carregando, erro, recarregar } = useCache<DadosJogos>(CHAVE_JOGOS, buscar);
