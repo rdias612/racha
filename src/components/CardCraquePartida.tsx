@@ -1,4 +1,3 @@
-import { Avatar } from './Avatar';
 import type { NotaPartida } from '../lib/partidas';
 
 export interface CardCraquePartidaProps {
@@ -16,7 +15,7 @@ export function CardCraquePartida({ craque }: CardCraquePartidaProps) {
       </div>
 
       <div className="flex items-center justify-center gap-4 my-1">
-        <div className="text-right">
+        <div className="text-center">
           <span className="block font-mono text-3xl sm:text-4xl font-black text-destaque-texto tabular-nums leading-none">
             {Number(craque.avg_rating).toFixed(1)}
           </span>
@@ -24,13 +23,10 @@ export function CardCraquePartida({ craque }: CardCraquePartidaProps) {
             {craque.vote_count} votos
           </span>
         </div>
-        <div className="ring-2 ring-destaque ring-offset-2 ring-offset-superficie rounded-[3px]">
-          <Avatar username={craque.username} size="lg" />
-        </div>
       </div>
 
       <p className="font-display font-bold text-lg uppercase tracking-wide text-giz">
-        @{craque.username}
+        {craque.username}
       </p>
     </div>
   );

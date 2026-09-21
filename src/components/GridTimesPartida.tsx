@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { Avatar } from './Avatar';
 import { CabecalhoTime } from './CabecalhoTime';
 import type { TimeId } from '../lib/times';
 import type { Participante } from '../lib/partidas';
@@ -37,9 +36,8 @@ export function GridTimesPartida({ participantes }: GridTimesPartidaProps) {
                   className="flex items-center justify-between px-2.5 py-2 text-xs hover:bg-superficie-2 transition"
                 >
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <Avatar username={p.username ?? ''} posicao={p.posicao} size="xs" />
                     <span className="truncate font-medium text-giz">
-                      {p.username ? `@${p.username}` : `#${p.jogador_id}`}
+                      {p.username || `#${p.jogador_id}`}
                     </span>
                   </div>
                   <div className="shrink-0 flex items-center gap-1 font-mono text-[11px]">

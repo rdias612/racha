@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 import { UserPlus, Check, X } from 'lucide-react';
-import { Avatar } from './Avatar';
 import { CampoBusca } from './CampoBusca';
 import { BadgeTime } from './BadgeTime';
 import { ModalBase } from './ModalBase';
@@ -126,7 +125,6 @@ export function ModalSelecionarGoleiro({
               }`}
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <Avatar nome={g.username} posicao="goleiro" size="sm" />
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
                     <span

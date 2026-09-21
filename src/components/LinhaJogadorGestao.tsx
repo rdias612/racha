@@ -1,5 +1,4 @@
 import { Check, Crown, KeyRound, Shield, Sparkles, UserCheck2 } from 'lucide-react';
-import { Avatar } from './Avatar';
 import { isSuperAdminId, MAX_MENSALISTAS, type JogadorLista } from '../lib/jogadores';
 import { POSICOES } from '../lib/times';
 
@@ -41,11 +40,10 @@ export function LinhaJogadorGestao({
       {/* Linha Superior: Dados do Jogador */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <Avatar username={j.username} posicao={j.posicao} size="md" />
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="font-display font-bold text-sm uppercase tracking-wide text-giz truncate">
-                @{j.username}
+                {j.username}
               </span>
 
               {modificado && (

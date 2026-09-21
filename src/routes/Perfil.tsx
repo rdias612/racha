@@ -13,7 +13,6 @@ import {
 } from '../lib/jogadores';
 import { vibrateError, vibrateSuccess } from '../lib/haptics';
 import { Carregando, MensagemEstado } from '../components/Estado';
-import { Avatar } from '../components/Avatar';
 import { StatBox } from '../components/StatBox';
 import { SkeletonPerfil } from '../components/Skeletons';
 import { CreditCard, Phone } from 'lucide-react';
@@ -103,7 +102,7 @@ export function Perfil() {
       await atualizarUsernameJogador(jogador.id, usernameNovo);
       setJogador({ ...jogador, username: limpo });
       vibrateSuccess();
-      setOkUsername('Usuário alterado com sucesso. Use @' + limpo + ' no próximo login.');
+      setOkUsername('Usuário alterado com sucesso. Use ' + limpo + ' no próximo login.');
       setUsernameNovo('');
     } catch (error) {
       vibrateError();
@@ -196,24 +195,21 @@ export function Perfil() {
     <div className="px-3 py-4 pb-28 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
       {/* Cartão de Identidade do Jogador */}
       <section className="rounded-[4px] border border-borda bg-superficie p-3.5 shadow-carimbo">
-        <div className="flex items-center gap-3">
-          <Avatar username={jogador.username} posicao={jogador.posicao} size="lg" />
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <h2 className="truncate font-display text-xl font-bold uppercase tracking-wider text-giz">
-                @{jogador.username}
-              </h2>
-              {isSuperAdminId(jogador.id) && (
-                <span className="shrink-0 rounded-[2px] bg-destaque px-1.5 py-0.5 font-display text-[9px] font-black uppercase tracking-wider text-destaque-tinta shadow-xs">
-                  Admin
-                </span>
-              )}
-            </div>
-            <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs font-mono text-giz-fraco">
-              <span>{POSICOES[jogador.posicao]}</span>
-              {jogador.posicao_b && <span>· 2ª {POSICOES[jogador.posicao_b]}</span>}
-              <span>· {jogador.is_mensalista ? 'Mensalista' : 'Avulso'}</span>
-            </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <h2 className="truncate font-display text-xl font-bold uppercase tracking-wider text-giz">
+              {jogador.username}
+            </h2>
+            {isSuperAdminId(jogador.id) && (
+              <span className="shrink-0 rounded-[2px] bg-destaque px-1.5 py-0.5 font-display text-[9px] font-black uppercase tracking-wider text-destaque-tinta shadow-xs">
+                Admin
+              </span>
+            )}
+          </div>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs font-mono text-giz-fraco">
+            <span>{POSICOES[jogador.posicao]}</span>
+            {jogador.posicao_b && <span>· 2ª {POSICOES[jogador.posicao_b]}</span>}
+            <span>· {jogador.is_mensalista ? 'Mensalista' : 'Avulso'}</span>
           </div>
         </div>
       </section>
@@ -240,7 +236,7 @@ export function Perfil() {
       <section className="rounded-[4px] border border-borda bg-superficie p-3.5 shadow-carimbo space-y-3">
         <div>
           <h3 className="text-xs font-display font-bold uppercase tracking-wider text-giz">
-            Nome de Usuário (@)
+            Nome de Usuário
           </h3>
           <p className="text-[11px] font-sans text-giz-fraco mt-0.5">
             Seu identificador no racha, súmulas e rankings.

@@ -5,7 +5,6 @@ import { MensagemEstado } from '../components/Estado';
 import { SkeletonEstatisticas } from '../components/Skeletons';
 import { DuplaCard } from '../components/DuplaCard';
 import { SecaoRacha } from '../components/SecaoRacha';
-import { Avatar } from '../components/Avatar';
 import { PullToRefresh } from '../components/PullToRefresh';
 import { carregarParesRacha, type ColunaOrdenacaoDuplas, type ParRacha } from '../lib/partidas';
 import { useSwipeTabs } from '../hooks/useSwipeTabs';
@@ -295,12 +294,8 @@ function TabelaDuplas({
               </td>
               <td className="px-3 py-2.5 font-bold text-giz whitespace-nowrap">
                 <div className="flex items-center gap-2">
-                  <div className="flex -space-x-1.5 shrink-0">
-                    <Avatar username={par.jogador_a_username} size="xs" />
-                    <Avatar username={par.jogador_b_username} size="xs" />
-                  </div>
                   <span>
-                    @{par.jogador_a_username} + @{par.jogador_b_username}
+                    {par.jogador_a_username} + {par.jogador_b_username}
                   </span>
                 </div>
               </td>

@@ -38,7 +38,7 @@ export function ListaDespesasAbertas({
           {despesas.map((d) => {
             const rotulo =
               d.jogadores?.username != null
-                ? `@${d.jogadores.username}`
+                ? d.jogadores.username
                 : d.jogador_id != null
                   ? `#${d.jogador_id}`
                   : 'Caixa do racha';

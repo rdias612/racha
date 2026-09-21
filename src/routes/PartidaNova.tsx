@@ -237,7 +237,7 @@ export function PartidaNova() {
       <CampoBusca
         valor={busca}
         aoMudar={setBusca}
-        placeholder="Buscar atleta por @username..."
+        placeholder="Buscar atleta por username..."
         variante="superficie"
       />
 

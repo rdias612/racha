@@ -369,7 +369,7 @@ export function PartidaEditar() {
         open={jogadorParaRemover != null}
         onClose={() => setJogadorParaRemover(null)}
         onConfirm={() => jogadorParaRemover && removerJogador(jogadorParaRemover.jogador_id)}
-        titulo={`Remover ${jogadorParaRemover?.username ? `@${jogadorParaRemover.username}` : 'jogador'}?`}
+        titulo={`Remover ${jogadorParaRemover?.username || 'jogador'}?`}
         mensagem="Este jogador possui gols, assistências ou gols contra registrados. Se removê-lo da partida, essas estatísticas serão apagadas."
         textoConfirmar="Remover jogador"
         tomConfirmar="perigo"

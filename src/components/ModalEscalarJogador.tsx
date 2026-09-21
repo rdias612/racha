@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import { UserPlus } from 'lucide-react';
-import { Avatar } from './Avatar';
 import { CampoBusca } from './CampoBusca';
 import { ModalBase } from './ModalBase';
 import { POSICOES, TIMES, type TimeId } from '../lib/times';
@@ -67,7 +66,7 @@ export function ModalEscalarJogador({
         <CampoBusca
           valor={buscaJogador}
           aoMudar={setBuscaJogador}
-          placeholder="Buscar por @username..."
+          placeholder="Buscar por username..."
           autoFocus
         />
 
@@ -108,9 +107,8 @@ export function ModalEscalarJogador({
             className="w-full min-h-[48px] p-2.5 rounded-[3px] flex items-center justify-between gap-3 text-left hover:bg-superficie-2 active:translate-y-px transition cursor-pointer"
           >
             <div className="flex items-center gap-2.5 min-w-0">
-              <Avatar username={j.username} size="sm" />
               <div className="min-w-0">
-                <p className="text-sm font-bold text-giz truncate">@{j.username}</p>
+                <p className="text-sm font-bold text-giz truncate">{j.username}</p>
                 <p className="text-[10px] font-mono text-giz-fraco">
                   {j.is_mensalista ? 'Mensalista' : 'Avulso'}
                 </p>

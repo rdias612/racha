@@ -35,7 +35,7 @@ import {
 function nomeDoJogador(participantes: Participante[], jogadorId: number | null): string {
   if (jogadorId == null) return '';
   const username = participantes.find((p) => p.jogador_id === jogadorId)?.username;
-  return username ? `@${username}` : `#${jogadorId}`;
+  return username || `#${jogadorId}`;
 }
 
 export function PartidaAoVivo() {

@@ -135,7 +135,7 @@ export function FormLancamentoFinanceiro({
               },
               ...jogadores.map((j) => ({
                 value: String(j.id),
-                label: `@${j.username}${
+                label: `${j.username}${
                   j.posicao === 'goleiro'
                     ? ' (goleiro — isento)'
                     : j.is_mensalista

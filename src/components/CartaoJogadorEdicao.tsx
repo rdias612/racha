@@ -1,5 +1,4 @@
 import { ArrowLeftRight, Trash2 } from 'lucide-react';
-import { Avatar } from './Avatar';
 import { StepperBox } from './StepperBox';
 import { POSICOES } from '../lib/times';
 import type { ParticipanteEdicao } from '../lib/partidas';
@@ -36,11 +35,10 @@ export function CartaoJogadorEdicao({
       <div className="flex items-center justify-between gap-2">
         {/* Identificação do Jogador */}
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
-          <Avatar username={p.username ?? ''} size="sm" />
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
               <span className="font-bold text-sm text-giz truncate">
-                {p.username ? `@${p.username}` : `#${p.jogador_id}`}
+                {p.username || `#${p.jogador_id}`}
               </span>
               {temEstatisticas && (
                 <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-destaque-texto bg-destaque/10 border border-destaque/30 px-1.5 py-0.2 rounded-[2px] shrink-0">

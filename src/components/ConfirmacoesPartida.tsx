@@ -19,7 +19,6 @@ import {
   type Participante,
   type StatusConfirmacao,
 } from '../lib/partidas';
-import { Avatar } from './Avatar';
 import { Badge } from './Badge';
 import { formatarFechamento } from '../lib/formatacao';
 import { vibrateLight, vibrateSuccess } from '../lib/haptics';
@@ -294,7 +293,6 @@ export function ConfirmacoesPartida({
               className="flex items-center justify-between gap-2 px-3 py-2 hover:bg-superficie-2 transition"
             >
               <div className="flex items-center gap-2 min-w-0">
-                <Avatar username={p.username ?? ''} size="xs" />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-bold text-giz">
                     {p.username || `#${p.jogador_id}`}
@@ -358,7 +356,6 @@ export function ConfirmacoesPartida({
                   className="w-full min-h-[44px] flex items-center justify-between gap-2 px-3 py-2 text-sm text-giz hover:bg-superficie-2 active:translate-y-px transition cursor-pointer"
                 >
                   <span className="flex items-center gap-2 min-w-0">
-                    <Avatar username={j.username} size="xs" />
                     <span className="truncate font-medium">{j.username}</span>
                   </span>
                   <span className="text-[10px] font-display uppercase tracking-wider text-giz-fraco">

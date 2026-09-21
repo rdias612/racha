@@ -9,7 +9,6 @@ import { useSwipeTabs } from '../hooks/useSwipeTabs';
 import { MensagemEstado } from '../components/Estado';
 import { SkeletonRanking } from '../components/Skeletons';
 import { PullToRefresh } from '../components/PullToRefresh';
-import { Avatar } from '../components/Avatar';
 
 type Metrica = 'pontos' | 'gols' | 'assistencias' | 'gols-contra';
 type CampoMetrica = 'pontos' | 'gols' | 'assistencias' | 'gols_contra';
@@ -417,10 +416,7 @@ function TabelaRanking({
                     }`}
                   >
                     {coluna.key === 'username' ? (
-                      <div className="flex items-center gap-2">
-                        <Avatar username={l.username} posicao={l.posicao} size="xs" />
-                        <span className="font-bold">@{l.username}</span>
-                      </div>
+                      <span className="font-bold text-giz">{l.username}</span>
                     ) : coluna.key === 'media_gols' ? (
                       numero2casas.format(Number(valorOrdenacao(l, coluna.key)))
                     ) : coluna.key === 'percentual_vitorias' ? (

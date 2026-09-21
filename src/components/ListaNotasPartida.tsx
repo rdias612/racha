@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { Avatar } from './Avatar';
 import type { NotaPartida } from '../lib/partidas';
 
 export interface ListaNotasPartidaProps {
@@ -25,9 +24,8 @@ export function ListaNotasPartida({ notas }: ListaNotasPartidaProps) {
             className="flex items-center justify-between px-3 py-2 text-sm hover:bg-superficie-2 transition"
           >
             <div className="flex items-center gap-2 text-giz">
-              <Avatar username={n.username} size="xs" />
               <span className="font-medium">
-                {n.is_craque ? '⭐ ' : ''}@{n.username}
+                {n.is_craque ? '⭐ ' : ''}{n.username}
               </span>
             </div>
             <span className="font-mono text-sm font-bold text-destaque-texto tabular-nums">

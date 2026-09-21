@@ -115,7 +115,6 @@ export function SkeletonRanking() {
           <div key={i} className="p-3 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="size-4 bg-superficie-2 rounded-[2px]" />
-              <div className="size-6 bg-superficie-2 rounded-[3px]" />
               <div className="h-3.5 w-24 bg-superficie-2 rounded-[2px]" />
             </div>
             <div className="h-4 w-12 bg-superficie-2 rounded-[2px]" />
@@ -193,11 +192,11 @@ export function SkeletonComparador() {
         ))}
       </div>
 
-      {/* Card do Duelo (avatar A + swap + avatar B) */}
+      {/* Card do Duelo (nome A + swap + nome B) */}
       <div className="h-24 rounded-[4px] border border-borda bg-superficie p-3 shadow-carimbo flex items-center justify-between">
-        <div className="size-12 rounded-[3px] bg-superficie-2 border border-borda" />
+        <div className="h-5 w-24 rounded-[2px] bg-superficie-2 border border-borda" />
         <div className="size-11 rounded-[4px] bg-superficie-2 border border-borda" />
-        <div className="size-12 rounded-[3px] bg-superficie-2 border border-borda" />
+        <div className="h-5 w-24 rounded-[2px] bg-superficie-2 border border-borda" />
       </div>
 
       {/* Seletores A/B */}
@@ -262,13 +261,10 @@ export function SkeletonPerfil() {
     >
       <span className="sr-only">Carregando perfil do jogador...</span>
 
-      {/* Header com avatar */}
-      <div className="flex items-center gap-4 p-4 rounded-[4px] border border-borda bg-superficie shadow-carimbo">
-        <div className="size-14 rounded-[4px] bg-superficie-2 border border-borda" />
-        <div className="space-y-2 flex-1">
-          <div className="h-5 w-36 bg-superficie-2 rounded-[2px]" />
-          <div className="h-3 w-24 bg-superficie-2 rounded-[2px]" />
-        </div>
+      {/* Header do perfil */}
+      <div className="p-4 rounded-[4px] border border-borda bg-superficie shadow-carimbo space-y-2">
+        <div className="h-6 w-40 bg-superficie-2 rounded-[2px]" />
+        <div className="h-3 w-28 bg-superficie-2 rounded-[2px]" />
       </div>
 
       {/* Stat Boxes */}

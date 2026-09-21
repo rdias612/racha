@@ -49,7 +49,7 @@ export function ListaReceitasAbertas({
       navigator.clipboard
         .writeText(texto)
         .then(() => {
-          onNotificar('sucesso', `Lembrete para @${g.username} copiado com sucesso!`);
+          onNotificar('sucesso', `Lembrete para ${g.username} copiado com sucesso!`);
         })
         .catch(() => {
           onNotificar('erro', 'Não foi possível copiar a mensagem.');
@@ -102,7 +102,7 @@ export function ListaReceitasAbertas({
                   />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
-                      <span className="truncate text-sm font-bold text-giz">@{g.username}</span>
+                      <span className="truncate text-sm font-bold text-giz">{g.username}</span>
                       {g.is_mensalista && (
                         <span className="shrink-0 rounded-[2px] border border-destaque/40 bg-destaque/15 px-1.5 py-0.5 text-[9px] font-display uppercase tracking-wider font-bold text-destaque-texto">
                           mensalista
@@ -121,7 +121,7 @@ export function ListaReceitasAbertas({
                       type="button"
                       onClick={(e) => copiarLembreteWhatsApp(e, g)}
                       title="Copiar lembrete WhatsApp"
-                      aria-label={`Copiar cobrança de @${g.username} para WhatsApp`}
+                      aria-label={`Copiar cobrança de ${g.username} para WhatsApp`}
                       className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-[3px] border border-borda bg-superficie-2 p-2 text-giz-fraco hover:text-destaque-texto hover:border-destaque/50 transition"
                     >
                       <MessageSquare className="size-4" />

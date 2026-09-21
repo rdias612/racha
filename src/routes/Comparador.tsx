@@ -20,7 +20,6 @@ import { useSwipeTabs } from '../hooks/useSwipeTabs';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { SkeletonComparador } from '../components/Skeletons';
 import { PullToRefresh } from '../components/PullToRefresh';
-import { Avatar } from '../components/Avatar';
 import { formatarDataLista } from '../lib/formatacao';
 import { vibrateLight } from '../lib/haptics';
 import { preCarregarRota } from '../lib/rotas';
@@ -80,7 +79,7 @@ function primeiroNomeVencedor(
   if (vencedor === null) return null;
   const username = (vencedor === 'a' ? usernameLadoA : usernameLadoB).trim();
   if (!username || username === '—') return null;
-  return `@${username}`;
+  return username;
 }
 
 export function Comparador() {
@@ -241,7 +240,7 @@ export function Comparador() {
         {/* Card do Duelo */}
         <div className="rounded-[4px] border border-borda bg-superficie p-3 shadow-carimbo">
           <div className="flex items-center gap-2">
-            <LadoDuelo username={usernameA} posicao={infoA?.posicao} />
+            <LadoDuelo username={usernameA} />
             <div className="flex shrink-0 flex-col items-center gap-1.5">
               <span
                 aria-hidden="true"
@@ -259,7 +258,7 @@ export function Comparador() {
                 <ArrowLeftRight className="size-4" aria-hidden="true" />
               </button>
             </div>
-            <LadoDuelo username={usernameB} posicao={infoB?.posicao} />
+            <LadoDuelo username={usernameB} />
           </div>
         </div>
 
@@ -281,7 +280,7 @@ export function Comparador() {
               <option value="">Escolha o atleta…</option>
               {jogadores.map((j) => (
                 <option key={j.id} value={j.id} disabled={j.id === idB}>
-                  @{j.username}
+                  {j.username}
                   {j.id === jogador?.id ? ' (eu)' : ''}
                 </option>
               ))}
@@ -303,7 +302,7 @@ export function Comparador() {
               <option value="">Escolha o adversário…</option>
               {jogadores.map((j) => (
                 <option key={j.id} value={j.id} disabled={j.id === idA}>
-                  @{j.username}
+                  {j.username}
                   {j.id === jogador?.id ? ' (eu)' : ''}
                 </option>
               ))}
@@ -460,13 +459,12 @@ export function Comparador() {
   );
 }
 
-/** Um lado do card do duelo: avatar com plaqueta de posição + nome display. */
-function LadoDuelo({ username, posicao }: { username: string; posicao?: PosicaoId }) {
+/** Um lado do card do duelo: nome display. */
+function LadoDuelo({ username }: { username: string }) {
   return (
-    <div className="flex min-w-0 flex-1 flex-col items-center gap-1.5">
-      <Avatar username={username} posicao={posicao} size="lg" />
-      <span className="w-full truncate text-center font-display text-sm font-bold uppercase tracking-wider text-giz">
-        {username === '—' ? '—' : `@${username}`}
+    <div className="flex min-w-0 flex-1 flex-col items-center justify-center py-2">
+      <span className="w-full truncate text-center font-display text-base font-bold uppercase tracking-wider text-giz">
+        {username}
       </span>
     </div>
   );
@@ -532,10 +530,9 @@ function LinhaAtletaContexto({
 }) {
   return (
     <div className="flex items-center gap-2.5">
-      <Avatar username={username} size="sm" />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-bold text-giz">
-          {username === '—' ? '—' : `@${username}`}
+          {username}
         </p>
         {comRetrospecto && (
           <p className="font-mono text-[11px] tabular-nums text-giz-fraco">

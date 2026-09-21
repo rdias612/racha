@@ -14,14 +14,15 @@
   - Rotas: `Ranking.tsx`, `Estatisticas.tsx`, `EstatisticasRacha.tsx`, `Comparador.tsx`, `Perfil.tsx`.
   - Componentes: `CardCraquePartida.tsx`, `CartaoJogadorEdicao.tsx`, `ConfirmacoesPartida.tsx`, `DuplaCard.tsx`, `GridTimesPartida.tsx`, `LinhaJogadorGestao.tsx`, `ListaNotasPartida.tsx`, `ModalEscalarJogador.tsx`, `ModalSelecionarGoleiro.tsx`, `SecaoNotificacaoSaude.tsx`.
   - Comentário de tipagem em `src/lib/notificacoes.ts`.
-- O prefixo `@` é interpolado manualmente no JSX e em strings de template em 20+ arquivos (ex.: `@{l.username}`, `@{craque.username}`, `@${resumo.artilheiro_username}`, `placeholder="Buscar por @username..."`, etc.).
-- Os skeletons estruturais em `src/components/Skeletons.tsx` reproduzem as caixas do avatar no ranking (`size-6`), no comparador (`size-12`) e no perfil (`size-14`). Devem ser ajustados para espelhar fielmente a nova geometria.
-- A regra de domínio do projeto (`AGENTS.md`) proíbe a criação de novos testes automáticos neste momento — validação estritamente via `npm run lint`, `npm run format`, `npm run build` e inspeção manual.
+- O prefixo `@` é interpolado manualmente no JSX e em strings de template em 30 ocorrências de atletas/jogadores (ex.: `@{l.username}`, `@{craque.username}`, `@${resumo.artilheiro_username}`, `placeholder="Buscar por @username..."`, etc.).
+- Os skeletons estruturais em `src/components/Skeletons.tsx` reproduzem as caixas do avatar no ranking (`size-6`), no comparador (`size-12`) e no perfil (`size-14`). Devem ser ajustados para espelhar fielmente a nova geometria com CLS = 0.
+- A regra de domínio do projeto (`AGENTS.md`) proíbe a criação de novos testes automáticos neste momento — validação estritamente via `npx tsc -p tsconfig.app.json`, `npm run format`, `npm run build` e inspeção manual.
+- Documentação canônica (`DESIGN.md`) lista `Avatar.tsx` em sua árvore de componentes e cita avatares na regra de cantos duros (`rounded-[3px]`), necessitando sincronização.
 
 ## Global Constraints
 
 - **Tokens semânticos obrigatórios:** Não introduzir cores hardcodadas ou estilos arbitrários; manter o design system "Súmula de Quinta" (`text-giz`, `text-giz-fraco`, `bg-superficie`, `font-display`, etc.).
-- **Zero code slop:** Apagar `Avatar.tsx` e qualquer utility/estilo que fique órfão (ex: wrappers de avatar duplo `-space-x-1.5`, anéis decorativos ao redor do avatar no card do craque).
+- **Zero code slop:** Apagar `Avatar.tsx` e qualquer utility/estilo que fique órfão (ex: wrappers de avatar duplo `-space-x-1.5`, anéis decorativos ao redor do avatar no card do craque, props obsoletas como `posicao` em `LadoDuelo`).
 - **CLS = 0:** Ajustar skeletons para que nenhum elemento salte no primeiro carregamento.
 - **Acessibilidade preservada:** Atualizar `aria-label`, títulos e mensagens acessíveis retirando o `@`.
 - **Sem testes automáticos:** Não criar novos arquivos de testes (regra explícita de `AGENTS.md`).
@@ -39,7 +40,7 @@
 - Consumes: `l.username` diretamente.
 - Produces: Linha da tabela de classificação contendo apenas a posição numérica (ou 🏆) e o username em texto puro, sem o bloco `Avatar` e sem o caractere `@`.
 
-- [ ] **Step 1: Remover import do `Avatar` e limpar célula de atleta em `Ranking.tsx`**
+- [x] **Step 1: Remover import do `Avatar` e limpar célula de atleta em `Ranking.tsx`**
 
 Na linha 12 de `src/routes/Ranking.tsx`, remover o import:
 ```tsx
@@ -62,7 +63,7 @@ Por:
 ) : ...
 ```
 
-- [ ] **Step 2: Ajustar `SkeletonRanking` em `src/components/Skeletons.tsx`**
+- [x] **Step 2: Ajustar `SkeletonRanking` em `src/components/Skeletons.tsx`**
 
 Nas linhas 116-120 de `src/components/Skeletons.tsx`:
 ```tsx
@@ -80,7 +81,7 @@ Remover o bloco `<div className="size-6 bg-superficie-2 rounded-[3px]" />` (avat
 </div>
 ```
 
-- [ ] **Step 3: Verificação de `Ranking.tsx`**
+- [x] **Step 3: Verificação de `Ranking.tsx`**
 Run: `git grep -n "Avatar\|@" src/routes/Ranking.tsx`
 Expected: zero ocorrências.
 
@@ -98,7 +99,7 @@ Expected: zero ocorrências.
 - Consumes: dados das RPCs de estatísticas e resumo.
 - Produces: Cards e tabelas exibindo apenas os usernames dos atletas sem avatares e sem `@`.
 
-- [ ] **Step 1: Limpar `src/routes/Estatisticas.tsx`**
+- [x] **Step 1: Limpar `src/routes/Estatisticas.tsx`**
 
 1. Remover `import { Avatar } from '../components/Avatar';` (linha 17).
 2. Linha 166 (cabeçalho): alterar de `Estatísticas{usernameSelecionado ? \` · @\${usernameSelecionado}\` : ''}` para `Estatísticas{usernameSelecionado ? \` · \${usernameSelecionado}\` : ''}`.
@@ -106,7 +107,7 @@ Expected: zero ocorrências.
 4. Linhas 340-348 (card `DestaqueIndividual`): remover `<Avatar username={destaque.username} size="sm" />` e alterar `@{destaque.username}` para `{destaque.username}`.
 5. Linhas 381-389 (card `ParceriaCard`): remover `<Avatar username={parceria.username} size="sm" />` e alterar `@{parceria.username}` para `{parceria.username}`.
 
-- [ ] **Step 2: Limpar `src/routes/EstatisticasRacha.tsx`**
+- [x] **Step 2: Limpar `src/routes/EstatisticasRacha.tsx`**
 
 1. Remover `import { Avatar } from '../components/Avatar';` (linha 8).
 2. Linhas 297-305 (tabela de parcerias da temporada):
@@ -131,7 +132,7 @@ Por:
 </div>
 ```
 
-- [ ] **Step 3: Limpar `src/components/DuplaCard.tsx`**
+- [x] **Step 3: Limpar `src/components/DuplaCard.tsx`**
 
 1. Remover `import { Avatar } from './Avatar';` (linha 2).
 2. Linhas 42-50:
@@ -156,7 +157,7 @@ Por:
 </div>
 ```
 
-- [ ] **Step 4: Limpar `src/routes/Resumo.tsx`**
+- [x] **Step 4: Limpar `src/routes/Resumo.tsx`**
 
 Nas linhas 77, 84, 91, 98, 105-107 e 114 (cards de destaques da temporada):
 Remover o `@` que precede os usernames nos campos `nome`:
@@ -167,7 +168,7 @@ Remover o `@` que precede os usernames nos campos `nome`:
 - `nome: resumo.sequencia_vitorias_username ?? null,`
 - `nome: resumo.seca_vitorias_username ?? null,`
 
-- [ ] **Step 5: Verificação do módulo de estatísticas**
+- [x] **Step 5: Verificação do módulo de estatísticas**
 Run: `git grep -n "Avatar" src/routes/Estatisticas.tsx src/routes/EstatisticasRacha.tsx src/components/DuplaCard.tsx`
 Expected: zero ocorrências.
 
@@ -181,30 +182,24 @@ Expected: zero ocorrências.
 
 **Interfaces:**
 - Consumes: lista de atletas e dados comparativos da RPC.
-- Produces: Card de duelo e confrontos direto com exibição textual centrada do username, sem avatares e sem `@`.
+- Produces: Card de duelo e confrontos diretos com exibição textual centrada do username, sem avatares, sem prop órfã `posicao` e sem `@`.
 
-- [ ] **Step 1: Limpar `src/routes/Comparador.tsx`**
+- [x] **Step 1: Limpar `src/routes/Comparador.tsx`**
 
 1. Remover `import { Avatar } from '../components/Avatar';` (linha 23).
 2. Linha 83 (`primeiroNomeVencedor`): alterar de `return \`@\${username}\`;` para `return username;`.
-3. Linhas 284 e 306 (opções dos selects Atleta A e Atleta B): alterar de `@{j.username}` para `{j.username}`.
-4. Linhas 464-473 (`LadoDuelo`):
-Substituir:
+3. Linhas 244 e 262 (chamadas do `LadoDuelo` no Card do Duelo):
+Remover a prop órfã `posicao`:
 ```tsx
-function LadoDuelo({ username, posicao }: { username: string; posicao?: PosicaoId }) {
-  return (
-    <div className="flex min-w-0 flex-1 flex-col items-center gap-1.5">
-      <Avatar username={username} posicao={posicao} size="lg" />
-      <span className="w-full truncate text-center font-display text-sm font-bold uppercase tracking-wider text-giz">
-        {username === '—' ? '—' : `@${username}`}
-      </span>
-    </div>
-  );
-}
+<LadoDuelo username={usernameA} />
+...
+<LadoDuelo username={usernameB} />
 ```
-Por:
+4. Linhas 284 e 306 (opções dos selects Atleta A e Atleta B): alterar de `@{j.username}` para `{j.username}`.
+5. Linhas 464-473 (`LadoDuelo`):
+Eliminar a prop `posicao` e o componente `Avatar`:
 ```tsx
-function LadoDuelo({ username }: { username: string; posicao?: PosicaoId }) {
+function LadoDuelo({ username }: { username: string }) {
   return (
     <div className="flex min-w-0 flex-1 flex-col items-center justify-center py-2">
       <span className="w-full truncate text-center font-display text-base font-bold uppercase tracking-wider text-giz">
@@ -214,11 +209,12 @@ function LadoDuelo({ username }: { username: string; posicao?: PosicaoId }) {
   );
 }
 ```
-5. Linhas 533-540 (`LinhaAtletaConfronto`):
+6. Linhas 533-540 (`LinhaAtletaConfronto`):
 Remover `<Avatar username={username} size="sm" />` e alterar `{username === '—' ? '—' : \`@\${username}\`}` para `{username}`.
 
-- [ ] **Step 2: Ajustar `SkeletonComparador` em `src/components/Skeletons.tsx`**
+- [x] **Step 2: Ajustar `SkeletonComparador` em `src/components/Skeletons.tsx` mantendo CLS = 0**
 
+No card real (`Comparador.tsx`), o centro contém o caractere `×` + botão de inverter `min-h-[44px]`, totalizando ~92px com o padding `p-3`. Por isso, a altura do contêiner `h-24` (96px) e o botão central `size-11` (44px) devem ser mantidos para garantir **CLS = 0**.
 Nas linhas 196-201 de `src/components/Skeletons.tsx`:
 ```tsx
 {/* Card do Duelo (avatar A + swap + avatar B) */}
@@ -228,17 +224,17 @@ Nas linhas 196-201 de `src/components/Skeletons.tsx`:
   <div className="size-12 rounded-[3px] bg-superficie-2 border border-borda" />
 </div>
 ```
-Substituir os blocos `size-12` por linhas de texto proporcionais ao novo card de duelo textual:
+Substituir os dois blocos de avatar `size-12` por placeholders horizontais de username (`h-5 w-24`):
 ```tsx
 {/* Card do Duelo (nome A + swap + nome B) */}
-<div className="h-16 rounded-[4px] border border-borda bg-superficie p-3 shadow-carimbo flex items-center justify-between">
+<div className="h-24 rounded-[4px] border border-borda bg-superficie p-3 shadow-carimbo flex items-center justify-between">
   <div className="h-5 w-24 rounded-[2px] bg-superficie-2 border border-borda" />
-  <div className="size-9 rounded-[4px] bg-superficie-2 border border-borda" />
+  <div className="size-11 rounded-[4px] bg-superficie-2 border border-borda" />
   <div className="h-5 w-24 rounded-[2px] bg-superficie-2 border border-borda" />
 </div>
 ```
 
-- [ ] **Step 3: Verificação de `Comparador.tsx`**
+- [x] **Step 3: Verificação de `Comparador.tsx`**
 Run: `git grep -n "Avatar" src/routes/Comparador.tsx`
 Expected: zero ocorrências.
 
@@ -254,7 +250,7 @@ Expected: zero ocorrências.
 - Consumes: dados do jogador da sessão autenticada.
 - Produces: Cabeçalho de perfil limpo com apenas o username e informações de mensalista/posição, sem o avatar grande.
 
-- [ ] **Step 1: Limpar `src/routes/Perfil.tsx`**
+- [x] **Step 1: Limpar `src/routes/Perfil.tsx`**
 
 1. Remover `import { Avatar } from '../components/Avatar';` (linha 16).
 2. Linha 106 (mensagem de sucesso de troca de username):
@@ -271,7 +267,7 @@ Remover `<Avatar username={jogador.username} posicao={jogador.posicao} size="lg"
 Na linha 204, alterar `@{jogador.username}` para `{jogador.username}`.
 4. Linha 243 (label de edição): alterar de `Nome de Usuário (@)` para `Nome de Usuário`.
 
-- [ ] **Step 2: Ajustar `SkeletonPerfil` em `src/components/Skeletons.tsx`**
+- [x] **Step 2: Ajustar `SkeletonPerfil` em `src/components/Skeletons.tsx`**
 
 Nas linhas 265-272 de `src/components/Skeletons.tsx`:
 ```tsx
@@ -293,7 +289,7 @@ Remover o bloco `<div className="size-14 rounded-[4px] bg-superficie-2 border bo
 </div>
 ```
 
-- [ ] **Step 3: Verificação de `Perfil.tsx`**
+- [x] **Step 3: Verificação de `Perfil.tsx`**
 Run: `git grep -n "Avatar" src/routes/Perfil.tsx`
 Expected: zero ocorrências.
 
@@ -315,41 +311,42 @@ Expected: zero ocorrências.
 - Modify: `src/routes/PartidaVotar.tsx`
 - Modify: `src/hooks/useEscalacaoTimes.ts`
 
-- [ ] **Step 1: `CardCraquePartida.tsx`**
+- [x] **Step 1: `CardCraquePartida.tsx`**
 1. Remover `import { Avatar } from './Avatar';`.
 2. Remover o contêiner do avatar (linhas 27-29: `<div className="ring-2 ring-destaque ring-offset-2 ring-offset-superficie rounded-[3px]"><Avatar ... /></div>`).
-3. Linha 33: alterar `@{craque.username}` para `{craque.username}`.
+3. Linha 19: alterar `className="text-right"` para `className="text-center"` (centralizar a nota e votos após a remoção do avatar lateral).
+4. Linha 33: alterar `@{craque.username}` para `{craque.username}`.
 
-- [ ] **Step 2: `CartaoJogadorEdicao.tsx`**
+- [x] **Step 2: `CartaoJogadorEdicao.tsx`**
 1. Remover `import { Avatar } from './Avatar';`.
 2. Remover `<Avatar username={p.username ?? ''} size="sm" />` (linha 39).
 3. Linha 43: alterar `{p.username ? \`@\${p.username}\` : \`#\${p.jogador_id}\`}` para `{p.username || \`#\${p.jogador_id}\`}`.
 
-- [ ] **Step 3: `ConfirmacoesPartida.tsx`**
+- [x] **Step 3: `ConfirmacoesPartida.tsx`**
 1. Remover `import { Avatar } from './Avatar';`.
 2. Remover `<Avatar username={p.username ?? ''} size="xs" />` (linha 297).
 3. Remover `<Avatar username={j.username} size="xs" />` (linha 361).
 
-- [ ] **Step 4: `GridTimesPartida.tsx`**
+- [x] **Step 4: `GridTimesPartida.tsx`**
 1. Remover `import { Avatar } from './Avatar';`.
 2. Linhas 40-43: remover `<Avatar username={p.username ?? ''} posicao={p.posicao} size="xs" />` e alterar `{p.username ? \`@\${p.username}\` : \`#\${p.jogador_id}\`}` para `{p.username || \`#\${p.jogador_id}\`}`.
 
-- [ ] **Step 5: `ListaNotasPartida.tsx`**
+- [x] **Step 5: `ListaNotasPartida.tsx`**
 1. Remover `import { Avatar } from './Avatar';`.
 2. Remover `<Avatar username={n.username} size="xs" />` (linha 28).
 3. Linha 30: alterar `{n.is_craque ? '⭐ ' : ''}@{n.username}` para `{n.is_craque ? '⭐ ' : ''}{n.username}`.
 
-- [ ] **Step 6: `ModalEscalarJogador.tsx`**
+- [x] **Step 6: `ModalEscalarJogador.tsx`**
 1. Remover `import { Avatar } from './Avatar';`.
 2. Linha 70: alterar `placeholder="Buscar por @username..."` para `placeholder="Buscar por username..."`.
 3. Linha 111: remover `<Avatar username={j.username} size="sm" />`.
 4. Linha 113: alterar `@{j.username}` para `{j.username}`.
 
-- [ ] **Step 7: `ModalSelecionarGoleiro.tsx`**
+- [x] **Step 7: `ModalSelecionarGoleiro.tsx`**
 1. Remover `import { Avatar } from './Avatar';`.
 2. Linha 129: remover `<Avatar nome={g.username} posicao="goleiro" size="sm" />`.
 
-- [ ] **Step 8: `PartidaAoVivo.tsx`, `PartidaEditar.tsx`, `PartidaNova.tsx`, `PartidaVotar.tsx` e `useEscalacaoTimes.ts`**
+- [x] **Step 8: `PartidaAoVivo.tsx`, `PartidaEditar.tsx`, `PartidaNova.tsx`, `PartidaVotar.tsx` e `useEscalacaoTimes.ts`**
 1. `PartidaAoVivo.tsx:38`: alterar `return username ? \`@\${username}\` : \`#\${jogadorId}\`;` para `return username || \`#\${jogadorId}\`;`.
 2. `PartidaEditar.tsx:372`: alterar `titulo={\`Remover \${jogadorParaRemover?.username ? \`@\${jogadorParaRemover.username}\` : 'jogador'}?\`}` para `titulo={\`Remover \${jogadorParaRemover?.username || 'jogador'}?\`}`.
 3. `PartidaNova.tsx:240`: alterar `placeholder="Buscar atleta por @username..."` para `placeholder="Buscar atleta por username..."`.
@@ -418,19 +415,24 @@ Expected: zero ocorrências.
 
 ---
 
-### Task 7: Exclusão do Componente Órfão `Avatar.tsx`
+### Task 7: Exclusão do Componente Órfão `Avatar.tsx` e Atualização de `DESIGN.md`
 
 **Files:**
 - Delete: `src/components/Avatar.tsx`
+- Modify: `DESIGN.md`
 
 **Interfaces:**
 - Consumes: nada.
-- Produces: exclusão limpa do arquivo sem sobrar código morto no bundle final.
+- Produces: exclusão limpa do arquivo sem código morto no bundle final e alinhamento do doc canônico de arquitetura.
 
 - [ ] **Step 1: Excluir o arquivo `src/components/Avatar.tsx`**
 Comando: `git rm src/components/Avatar.tsx`
 
-- [ ] **Step 2: Conferir ausência de referências órfãs a `Avatar` em `src/`**
+- [ ] **Step 2: Atualizar a documentação canônica em `DESIGN.md`**
+1. Linha 81: remover a linha `│   │   ├── Avatar.tsx         # Avatar quadrado terroso com plaqueta de posição`.
+2. Linha 167: remover a menção a `(avatares)` na definição de cantos duros (`rounded-[3px]`).
+
+- [ ] **Step 3: Conferir ausência de referências órfãs a `Avatar` em `src/`**
 Run: `git grep -n "Avatar" src/`
 Expected: zero ocorrências.
 
@@ -442,24 +444,20 @@ Expected: zero ocorrências.
 Run: `npx tsc -p tsconfig.app.json`
 Expected: zero erros de compilação.
 
-- [ ] **Step 2: Linting do projeto**
-Run: `npx eslint src`
-Expected: zero advertências ou erros.
-
-- [ ] **Step 3: Formatação com Prettier**
+- [ ] **Step 2: Formatação com Prettier**
 Run: `npm run format`
 Expected: arquivos formatados de acordo com o padrão do repositório.
 
-- [ ] **Step 4: Build de produção**
+- [ ] **Step 3: Build de produção**
 Run: `npm run build`
 Expected: pasta `dist/` gerada com sucesso sem avisos de módulos não encontrados.
 
-- [ ] **Step 5: Inspeção manual dos fluxos da aplicação (`npm run dev`)**
+- [ ] **Step 4: Inspeção manual dos fluxos da aplicação (`npm run dev`)**
 1. **Tabela de Ranking (`/ranking/pontos`)**: conferir que a coluna "Atleta" exibe apenas o username (ex: `Danilo`, `Dico`, `Fil`), sem o `@` e sem o quadrado de iniciais/posição.
 2. **Hard Refresh no Ranking**: verificar que o skeleton da tabela carrega sem salto visual (CLS = 0).
 3. **Estatísticas e Comparador (`/estatisticas`)**: verificar cards de destaques, dropdowns de atletas e card do duelo sem avatar e sem `@`.
 4. **Perfil (`/perfil`)**: verificar cabeçalho limpo com nome do usuário e dados de plano/posição.
-5. **Súmula Ao Vivo e Votação (`/jogos/:id/ao-vivo`, `/jogos/:id/votar`)**: verificar que a cédula e o card do Craque exibem apenas o username.
+5. **Súmula Ao Vivo e Votação (`/jogos/:id/ao-vivo`, `/jogos/:id/votar`)**: verificar que a cédula e o card do Craque exibem apenas o username de forma centralizada.
 6. **Gestão e Financeiro (`/administrador`, `/jogadores`)**: verificar listas, selects de lançamentos, formulários e lembretes de cobrança no WhatsApp sem `@`.
 
 ---
@@ -479,6 +477,6 @@ Remove @ e avatar de inicial dos jogadores
 
 Remove o prefixo @ e o componente de Avatar em toda a interface do
 aplicativo, exibindo unicamente o username dos atletas. Os skeletons
-foram adaptados para garantir CLS zero e o arquivo Avatar.tsx foi
-excluído por se tornar obsoleto.
+foram adaptados para garantir CLS zero, o arquivo Avatar.tsx foi
+excluído por se tornar obsoleto e o DESIGN.md foi sincronizado.
 ```

@@ -14,7 +14,6 @@ import { useSwipeTabs } from '../hooks/useSwipeTabs';
 import { MensagemEstado } from '../components/Estado';
 import { SkeletonEstatisticas } from '../components/Skeletons';
 import { PullToRefresh } from '../components/PullToRefresh';
-import { Avatar } from '../components/Avatar';
 import { AbasEstatisticas } from '../components/AbasEstatisticas';
 import { StatBox } from '../components/StatBox';
 import { formatarMensagemErro } from '../lib/erros';
@@ -163,7 +162,7 @@ export function Estatisticas() {
         {/* Cabeçalho da Súmula */}
         <div className="sumula-header pb-2 flex items-baseline justify-between">
           <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
-            Estatísticas{usernameSelecionado ? ` · @${usernameSelecionado}` : ''}
+            Estatísticas{usernameSelecionado ? ` · ${usernameSelecionado}` : ''}
           </h2>
           <span className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
             Oficial CBO
@@ -189,7 +188,7 @@ export function Estatisticas() {
           >
             {jogadores.map((j) => (
               <option key={j.id} value={j.id}>
-                @{j.username}
+                {j.username}
                 {j.id === jogador?.id ? ' (eu)' : ''}
               </option>
             ))}
@@ -338,9 +337,8 @@ function ParceriaDestaqueCard({
         </p>
       ) : (
         <div className="flex items-center gap-2.5">
-          <Avatar username={destaque.username} size="sm" />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold text-giz">@{destaque.username}</p>
+            <p className="truncate text-sm font-bold text-giz">{destaque.username}</p>
             <p className="text-[11px] font-mono text-giz-fraco">
               {destaque.partidas} {destaque.partidas === 1 ? 'partida junta' : 'partidas juntas'}
             </p>
@@ -379,9 +377,8 @@ function ParceriaCard({ titulo, parceria, minimoPartidas }: ParceriaCardProps) {
       ) : (
         <div className="space-y-2">
           <div className="flex items-center gap-2.5">
-            <Avatar username={parceria.username} size="sm" />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-bold text-giz">@{parceria.username}</p>
+              <p className="truncate text-sm font-bold text-giz">{parceria.username}</p>
               <p className="text-[11px] font-mono text-giz-fraco">
                 {parceria.partidas} {parceria.partidas === 1 ? 'partida' : 'partidas'}
               </p>

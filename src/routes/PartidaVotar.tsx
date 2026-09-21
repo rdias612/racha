@@ -342,7 +342,7 @@ export function PartidaVotar() {
                     >
                       <div className="min-w-0">
                         <span className="block truncate text-sm font-bold text-giz">
-                          @{a.username}
+                          {a.username}
                         </span>
                         <span className="text-[10px] font-display uppercase tracking-wider text-giz-fraco">
                           {POSICOES[a.posicao]}

@@ -93,7 +93,7 @@ export function FormEventoAutomatico({
   const opcoesJogador = useMemo(
     () => [
       { value: '', label: 'Selecione…' },
-      ...jogadores.map((j) => ({ value: String(j.id), label: `@${j.username}` })),
+      ...jogadores.map((j) => ({ value: String(j.id), label: j.username })),
     ],
     [jogadores]
   );
