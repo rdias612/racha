@@ -12,7 +12,6 @@ import {
   type LinhaConfronto,
   type StatsJogador,
 } from '../lib/jogadores';
-import type { PosicaoId } from '../lib/times';
 import { useSessao } from '../context/SessaoContext';
 import { useCache } from '../hooks/useCache';
 import { chaveComparador } from '../lib/chavesCache';
@@ -531,9 +530,7 @@ function LinhaAtletaContexto({
   return (
     <div className="flex items-center gap-2.5">
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-bold text-giz">
-          {username}
-        </p>
+        <p className="truncate text-sm font-bold text-giz">{username}</p>
         {comRetrospecto && (
           <p className="font-mono text-[11px] tabular-nums text-giz-fraco">
             {linha.vitorias}V {linha.empates}E {linha.derrotas}D

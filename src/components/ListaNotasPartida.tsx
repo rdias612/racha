@@ -25,7 +25,8 @@ export function ListaNotasPartida({ notas }: ListaNotasPartidaProps) {
           >
             <div className="flex items-center gap-2 text-giz">
               <span className="font-medium">
-                {n.is_craque ? '⭐ ' : ''}{n.username}
+                {n.is_craque ? '⭐ ' : ''}
+                {n.username}
               </span>
             </div>
             <span className="font-mono text-sm font-bold text-destaque-texto tabular-nums">
