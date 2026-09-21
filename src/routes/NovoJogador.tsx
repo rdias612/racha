@@ -6,7 +6,7 @@ import { MensagemEstado } from '../components/Estado';
 import { User, Shield, Star, Copy, Check, UserPlus } from 'lucide-react';
 import { BotaoVoltar } from '../components/BotaoVoltar';
 import { formatarMensagemErro, type ErroComCodigo } from '../lib/erros';
-import { criarJogador, isentoMensalidade } from '../lib/jogadores';
+import { criarJogador, isentoMensalidade, validarFormatoUsername } from '../lib/jogadores';
 
 export function NovoJogador() {
   const isAdmin = useAdmin();
@@ -47,9 +47,15 @@ export function NovoJogador() {
     setErro(null);
     setOk(null);
 
-    const usernameLimpo = username.trim().toLowerCase();
+    const usernameLimpo = username.trim();
     if (!usernameLimpo) {
       setErro('Preencha o nome de usuário para cadastrar.');
+      return;
+    }
+
+    const erroFormato = validarFormatoUsername(usernameLimpo);
+    if (erroFormato) {
+      setErro(erroFormato);
       return;
     }
 
@@ -123,7 +129,7 @@ export function NovoJogador() {
               <input
                 type="text"
                 value={username}
-                onChange={(e) => setUsername(e.target.value.toLowerCase().trim())}
+                onChange={(e) => setUsername(e.target.value.trim())}
                 autoCapitalize="none"
                 autoCorrect="off"
                 autoComplete="username"

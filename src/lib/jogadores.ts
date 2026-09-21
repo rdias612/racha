@@ -17,7 +17,7 @@ export function validarFormatoUsername(username: string): string | null {
   const limpo = username.trim();
   if (limpo.length < 2) return 'O usuário deve ter ao menos 2 caracteres.';
   if (limpo.length > 30) return 'O usuário deve ter no máximo 30 caracteres.';
-  if (!/^[a-zA-ZÀ-ÖØ-öø-ÿ_]+$/.test(limpo)) {
+  if (!/^[a-zA-ZÀ-ÖØ-öø-ÿ0-9_]+$/.test(limpo)) {
     return 'Use apenas letras, números e sublinhado (_).';
   }
   if (isRandomUsername(limpo)) {
@@ -435,8 +435,10 @@ export async function compararJogadores(
 
 // Cadastra um novo atleta via RPC `criar_jogador` (senha padrão "123" no banco) e
 // retorna o id criado. Goleiro não recebe posição secundária — regra de negócio
-// centralizada aqui. Lança o erro cru da RPC; a borda decide a mensagem
-// (ex.: `23505` = username já cadastrado).
+// centralizada aqui. Pré-valida o username com a mesma regra canônica do Perfil
+// antes de chamar a rede (a validação server-side permanece na RPC/índice).
+// Lança o erro cru da RPC; a borda decide a mensagem (ex.: `23505` = username
+// já cadastrado).
 export async function criarJogador(dados: {
   username: string;
   posicao: PosicaoId;
@@ -444,8 +446,14 @@ export async function criarJogador(dados: {
   isMensalista: boolean;
   isAdmin: boolean;
 }): Promise<number | null> {
+  const usernameLimpo = dados.username.trim();
+  const erroUsername = validarFormatoUsername(usernameLimpo);
+  if (erroUsername) {
+    throw new Error(erroUsername);
+  }
+
   const { data, error } = await supabase.rpc('criar_jogador', {
-    p_username: dados.username,
+    p_username: usernameLimpo,
     p_posicao: dados.posicao,
     p_is_admin: dados.isAdmin,
     p_posicao_b: dados.posicao === 'goleiro' ? undefined : (dados.posicaoB ?? undefined),

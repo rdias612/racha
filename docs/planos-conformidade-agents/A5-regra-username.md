@@ -20,7 +20,7 @@
 - Aceitar de 2 a 30 caracteres.
 - Aceitar `^[a-zA-ZÀ-ÖØ-öø-ÿ0-9_]+$`.
 - Rejeitar qualquer username cujo prefixo, em comparação case-insensitive, seja `random`.
-- Garantir unicidade por `lower(username)` no banco, inclusive sob concorrência.
+- Preservar a caixa informada no valor armazenado e garantir unicidade case-insensitive no banco, inclusive sob concorrência. `lower(trim(username))` deve ser usado apenas como chave de comparação do índice/constraint, sem converter o username salvo.
 - Identificar superadmins por ID; não reservar nomes de superadmin.
 - `fazer_login` continua tolerante a caixa por sua comparação case-insensitive existente.
 
@@ -68,7 +68,7 @@ HAVING count(*) > 1 OR count(*) FILTER (WHERE username <> trim(username)) > 0;
 
 **Novo arquivo:** próxima migration livre em `supabase/migrations/`.
 
-1. Após a pré-validação, criar índice único em `lower(trim(username))` ou em `lower(username)` conforme a normalização definitiva adotada; a escolha deve coincidir com o valor salvo pelas RPCs.
+1. Após a pré-validação, criar índice único em `lower(trim(username))`. Essa expressão deve ser usada somente para comparar usernames sem diferenciar maiúsculas de minúsculas; as RPCs devem salvar o valor após `trim`, preservando a caixa informada pelo usuário.
 2. Atualizar `criar_jogador` com trim, limites, regex, prefixo reservado e mensagem consistente antes do `INSERT`.
 3. Preservar a proteção de administrador existente fora deste item e não confiar no caller para autenticação.
 4. Atualizar `alterar_username` para manter a mesma regra e deixar o índice impedir corrida de unicidade.
@@ -79,7 +79,7 @@ HAVING count(*) > 1 OR count(*) FILTER (WHERE username <> trim(username)) > 0;
 
 1. Confirmar que `Perfil.tsx` envia o valor sem lowercase e que `atualizarUsernameJogador` não o transforma novamente.
 2. Mapear erros de formato, prefixo reservado, duplicidade (`23505`/exceção da RPC) e username igual ao atual para mensagens compreensíveis.
-3. Permitir alteração apenas de caixa quando essa é a regra canônica, sem alterar `SUPERADMIN_IDS`.
+3. Permitir alteração apenas de caixa quando a nova chave case-insensitive continuar pertencendo ao próprio registro; rejeitar a alteração quando outro jogador já possuir username equivalente, sem alterar `SUPERADMIN_IDS`.
 4. Confirmar que login case-insensitive continua encontrando o username armazenado.
 
 ### A5.6 - Validar rollout remoto e comportamento
@@ -98,7 +98,7 @@ HAVING count(*) > 1 OR count(*) FILTER (WHERE username <> trim(username)) > 0;
 | `random`, `random1`, `RANDOM_x`   | Rejeitado                         |
 | espaço, hífen ou ponto            | Rejeitado                         |
 | `john` versus `JOHN`              | Segunda operação rejeitada        |
-| alteração `john` → `John`         | Aceita se não houver outro `john` |
+| alteração `john` → `John`         | Aceita no próprio registro; rejeitada se outro jogador já tiver `john`/equivalente |
 | superadmin por ID alterando caixa | Mantém privilégio                 |
 
 4. Executar `npm run lint` e `npm run build`.
@@ -109,7 +109,7 @@ HAVING count(*) > 1 OR count(*) FILTER (WHERE username <> trim(username)) > 0;
 - Criação e alteração usam a mesma regra canônica no frontend e no banco.
 - Números são aceitos; `random%`, caracteres inválidos, limites e duplicidade case-insensitive são rejeitados.
 - Unicidade é garantida por índice/constraint no banco, não apenas por `SELECT` dentro da RPC.
-- `NovoJogador` e `Perfil` têm normalização consistente e mensagens equivalentes.
+- `NovoJogador` e `Perfil` aplicam apenas `trim`, preservam a caixa informada e exibem mensagens equivalentes.
 - Superadmins continuam identificados por ID.
 - Migration nova aplicada e verificada remotamente.
 - `npm run lint` e `npm run build` passam.
