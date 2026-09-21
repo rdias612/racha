@@ -1,6 +1,4 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeftRight, Trophy } from 'lucide-react';
 import { AbasEstatisticas } from '../components/AbasEstatisticas';
 import {
   carregarStatsJogador,
@@ -9,7 +7,7 @@ import {
   obterMediasNotasJogadores,
   type ComparativoConfronto,
   type JogadorLista,
-  type LinhaConfronto,
+  type PartidaConfronto,
   type StatsJogador,
 } from '../lib/jogadores';
 import { useSessao } from '../context/SessaoContext';
@@ -19,9 +17,13 @@ import { useSwipeTabs } from '../hooks/useSwipeTabs';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { SkeletonComparador } from '../components/Skeletons';
 import { PullToRefresh } from '../components/PullToRefresh';
-import { formatarDataLista } from '../lib/formatacao';
 import { vibrateLight } from '../lib/haptics';
-import { preCarregarRota } from '../lib/rotas';
+import { DueloCard } from '../components/DueloCard';
+import { SeletorAtletasComparador } from '../components/SeletorAtletasComparador';
+import { SecaoMetricasComparador, type MetricaComparativa } from '../components/SecaoMetricasComparador';
+import { SecaoJuntosComparador } from '../components/SecaoJuntosComparador';
+import { SecaoAdversosComparador } from '../components/SecaoAdversosComparador';
+import { HistoricoComparador } from '../components/HistoricoComparador';
 
 // Tudo o que a tela precisa em uma ida só: confronto direto (RPCs 072) +
 // números gerais da temporada + mapa de médias aparadas (RPC 070).
@@ -40,45 +42,9 @@ const COMPARATIVO_VAZIO: ComparativoTela = {
   medias: {},
 };
 
-// Badge compacta neutra (relação do confronto e empate) — mesmo padrão das
-// badges de Estatisticas.tsx/Perfil.tsx.
-const classeBadgeNeutra =
-  'rounded-[2px] border border-borda bg-superficie-2 px-1.5 py-0.5 font-display text-[10px] font-bold uppercase tracking-wider text-giz-fraco';
-
 function aproveitamento(stats: StatsJogador | null): number | null {
   if (!stats || stats.partidas <= 0) return null;
   return (stats.vitorias / stats.partidas) * 100;
-}
-
-interface MetricaComparativa {
-  rotulo: string;
-  valorA: number | null;
-  valorB: number | null;
-  /** True quando o menor valor é o melhor (ex.: gols contra). */
-  menorMelhor?: boolean;
-  /** Formatador opcional (percentual, média com decimal, em-dash). */
-  exibir?: (valor: number | null) => string;
-}
-
-function exibirValorMetrica(metrica: MetricaComparativa, valor: number | null): string {
-  if (metrica.exibir) return metrica.exibir(valor);
-  return String(valor ?? 0);
-}
-
-/**
- * Username do atleta que levou a melhor no duelo, ou null quando não há
- * vencedor (juntos/empate) ou quando o username do lado não foi resolvido (fallback
- * '—'): sem dono identificado, o troféu não renderiza — só o placar âmbar.
- */
-function primeiroNomeVencedor(
-  vencedor: 'a' | 'b' | null,
-  usernameLadoA: string,
-  usernameLadoB: string
-): string | null {
-  if (vencedor === null) return null;
-  const username = (vencedor === 'a' ? usernameLadoA : usernameLadoB).trim();
-  if (!username || username === '—') return null;
-  return username;
 }
 
 export function Comparador() {
@@ -217,6 +183,15 @@ export function Comparador() {
     },
   ];
 
+  // Em times opostos, marca qual atleta levou a melhor no duelo (vencedor é o
+  // time 'a'/'b' da partida; time_a é o lado de A). Retorna 'a' | 'b' | null.
+  function resolverVencedor(p: PartidaConfronto): 'a' | 'b' | null {
+    if (p.relacao === 'adversos' && p.vencedor !== 'empate') {
+      return p.vencedor === p.time_a ? 'a' : 'b';
+    }
+    return null;
+  }
+
   return (
     <PullToRefresh onRefresh={recarregar}>
       <div
@@ -237,77 +212,22 @@ export function Comparador() {
         <AbasEstatisticas />
 
         {/* Card do Duelo */}
-        <div className="rounded-[4px] border border-borda bg-superficie p-3 shadow-carimbo">
-          <div className="flex items-center gap-2">
-            <LadoDuelo username={usernameA} />
-            <div className="flex shrink-0 flex-col items-center gap-1.5">
-              <span
-                aria-hidden="true"
-                className="font-mono text-lg font-black leading-none text-giz-fraco"
-              >
-                ×
-              </span>
-              <button
-                type="button"
-                onClick={trocarLados}
-                disabled={idB === null}
-                aria-label="Inverter lados do confronto"
-                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[4px] border border-borda bg-superficie-2 p-2 text-giz shadow-carimbo transition hover:bg-superficie hover:text-destaque-texto active:translate-y-px focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <ArrowLeftRight className="size-4" aria-hidden="true" />
-              </button>
-            </div>
-            <LadoDuelo username={usernameB} />
-          </div>
-        </div>
+        <DueloCard
+          usernameA={usernameA}
+          usernameB={usernameB}
+          idBSelecionado={idB !== null}
+          onTrocarLados={trocarLados}
+        />
 
         {/* Seletores A/B */}
-        <div className="grid grid-cols-1 gap-2 rounded-[4px] border border-borda bg-superficie p-3 shadow-carimbo sm:grid-cols-2">
-          <div className="space-y-1">
-            <label
-              htmlFor="select-atleta-a"
-              className="block text-xs font-display font-bold uppercase tracking-wider text-giz-fraco"
-            >
-              Atleta A
-            </label>
-            <select
-              id="select-atleta-a"
-              value={idA ?? ''}
-              onChange={(e) => setIdA(e.target.value === '' ? null : Number(e.target.value))}
-              className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2"
-            >
-              <option value="">Escolha o atleta…</option>
-              {jogadores.map((j) => (
-                <option key={j.id} value={j.id} disabled={j.id === idB}>
-                  {j.username}
-                  {j.id === jogador?.id ? ' (eu)' : ''}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-1">
-            <label
-              htmlFor="select-atleta-b"
-              className="block text-xs font-display font-bold uppercase tracking-wider text-giz-fraco"
-            >
-              Atleta B
-            </label>
-            <select
-              id="select-atleta-b"
-              value={idB ?? ''}
-              onChange={(e) => setIdB(e.target.value === '' ? null : Number(e.target.value))}
-              className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2"
-            >
-              <option value="">Escolha o adversário…</option>
-              {jogadores.map((j) => (
-                <option key={j.id} value={j.id} disabled={j.id === idA}>
-                  {j.username}
-                  {j.id === jogador?.id ? ' (eu)' : ''}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
+        <SeletorAtletasComparador
+          jogadores={jogadores}
+          idA={idA}
+          idB={idB}
+          idLogado={jogador?.id ?? null}
+          aoMudarA={setIdA}
+          aoMudarB={setIdB}
+        />
 
         {semConfronto ? (
           idB === null ? (
@@ -324,225 +244,34 @@ export function Comparador() {
         ) : (
           <>
             {/* Números na Temporada — lista contínua comparativa */}
-            <section className="space-y-2">
-              <h3 className="text-xs font-display font-bold uppercase tracking-wider text-giz-fraco">
-                Números na Temporada
-              </h3>
-              <div className="divide-y divide-borda/40 border-y border-borda">
-                {metricas.map((metrica) => (
-                  <LinhaComparativa key={metrica.rotulo} metrica={metrica} />
-                ))}
-              </div>
-            </section>
+            <SecaoMetricasComparador metricas={metricas} />
 
             {/* Juntos */}
-            <section className="space-y-2">
-              <h3 className="text-xs font-display font-bold uppercase tracking-wider text-giz-fraco">
-                Quando Vestem o Mesmo Manto
-              </h3>
-              {juntosA && juntosA.partidas > 0 ? (
-                <div className="space-y-2.5 rounded-[4px] border border-borda bg-superficie p-3 shadow-carimbo">
-                  <div className="flex items-center justify-between gap-2 border-b border-borda pb-2">
-                    <span className="font-mono text-[11px] text-giz-fraco">
-                      {juntosA.partidas}{' '}
-                      {juntosA.partidas === 1 ? 'partida no mesmo time' : 'partidas no mesmo time'}
-                    </span>
-                    <span className="font-mono text-xs font-bold tabular-nums text-giz">
-                      {juntosA.vitorias}V {juntosA.empates}E {juntosA.derrotas}D
-                    </span>
-                  </div>
-                  <LinhaAtletaContexto username={usernameA} linha={juntosA} />
-                  {juntosB && <LinhaAtletaContexto username={usernameB} linha={juntosB} />}
-                </div>
-              ) : (
-                <MensagemEstado tipo="info">Ainda não dividiram o mesmo time.</MensagemEstado>
-              )}
-            </section>
+            <SecaoJuntosComparador
+              usernameA={usernameA}
+              usernameB={usernameB}
+              linhaA={juntosA}
+              linhaB={juntosB}
+            />
 
             {/* Adversos */}
-            <section className="space-y-2">
-              <h3 className="text-xs font-display font-bold uppercase tracking-wider text-giz-fraco">
-                Quando se Enfrentam
-              </h3>
-              {adversosA && adversosA.partidas > 0 ? (
-                <div className="space-y-2.5 rounded-[4px] border border-borda bg-superficie p-3 shadow-carimbo">
-                  <div className="border-b border-borda pb-2">
-                    <span className="font-mono text-[11px] text-giz-fraco">
-                      {adversosA.partidas}{' '}
-                      {adversosA.partidas === 1
-                        ? 'duelo em campos opostos'
-                        : 'duelos em campos opostos'}
-                    </span>
-                  </div>
-                  <LinhaAtletaContexto username={usernameA} linha={adversosA} comRetrospecto />
-                  {adversosB && (
-                    <LinhaAtletaContexto username={usernameB} linha={adversosB} comRetrospecto />
-                  )}
-                </div>
-              ) : (
-                <MensagemEstado tipo="info">
-                  Ainda não se enfrentaram em campos opostos.
-                </MensagemEstado>
-              )}
-            </section>
+            <SecaoAdversosComparador
+              usernameA={usernameA}
+              usernameB={usernameB}
+              linhaA={adversosA}
+              linhaB={adversosB}
+            />
 
             {/* Últimos Confrontos */}
-            <section className="space-y-2">
-              <h3 className="text-xs font-display font-bold uppercase tracking-wider text-giz-fraco">
-                Últimos Confrontos
-              </h3>
-              {historico.length === 0 ? (
-                <MensagemEstado tipo="info">
-                  Estes atletas ainda não se cruzaram em súmula nenhuma.
-                </MensagemEstado>
-              ) : (
-                <div className="divide-y divide-borda/40 border-y border-borda">
-                  {historico.map((p) => {
-                    // gols_time_a/b são os gols dos times 'a'/'b' da partida;
-                    // time_a é o time do ATLETA A — inverte quando A jogou no branco.
-                    const golsA = p.time_a === 'a' ? p.gols_time_a : p.gols_time_b;
-                    const golsB = p.time_a === 'a' ? p.gols_time_b : p.gols_time_a;
-                    const destino = `/partida/${p.partida_id}`;
-                    // Em times opostos, marca qual atleta levou a melhor no duelo
-                    // (vencedor é o time 'a'/'b' da partida; time_a é o lado de A).
-                    let vencedor: 'a' | 'b' | null = null;
-                    if (p.relacao === 'adversos' && p.vencedor !== 'empate') {
-                      vencedor = p.vencedor === p.time_a ? 'a' : 'b';
-                    }
-                    const empate = p.relacao === 'adversos' && p.vencedor === 'empate';
-                    const nomeVencedor = primeiroNomeVencedor(vencedor, usernameA, usernameB);
-                    return (
-                      <Link
-                        key={p.partida_id}
-                        to={destino}
-                        onTouchStart={() => preCarregarRota(destino)}
-                        onMouseEnter={() => preCarregarRota(destino)}
-                        onFocus={() => preCarregarRota(destino)}
-                        className="flex min-h-[44px] items-center justify-between gap-2 px-1 py-2 transition hover:bg-superficie-2/50 focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2"
-                      >
-                        <span className="font-mono text-xs text-giz-fraco">
-                          {formatarDataLista(p.data_jogo)}
-                        </span>
-                        <span className="font-mono text-sm font-bold tabular-nums text-giz">
-                          <span className={vencedor === 'a' ? 'text-destaque-texto' : undefined}>
-                            {golsA}
-                          </span>
-                          {' × '}
-                          <span className={vencedor === 'b' ? 'text-destaque-texto' : undefined}>
-                            {golsB}
-                          </span>
-                        </span>
-                        <span className="flex shrink-0 items-center gap-1">
-                          <span className={classeBadgeNeutra}>
-                            {p.relacao === 'juntos' ? 'Juntos' : 'Rival'}
-                          </span>
-                          {nomeVencedor && (
-                            <span className="inline-flex max-w-28 items-center gap-1 rounded-[2px] bg-destaque px-1.5 py-0.5 font-display text-[10px] font-bold uppercase tracking-wider text-destaque-tinta">
-                              <Trophy className="size-3 shrink-0" aria-hidden="true" />
-                              <span className="truncate">{nomeVencedor}</span>
-                              <span className="sr-only">venceu o duelo</span>
-                            </span>
-                          )}
-                          {empate && <span className={classeBadgeNeutra}>Empate</span>}
-                        </span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
-            </section>
+            <HistoricoComparador
+              historico={historico}
+              usernameA={usernameA}
+              usernameB={usernameB}
+              resolverVencedor={resolverVencedor}
+            />
           </>
         )}
       </div>
     </PullToRefresh>
-  );
-}
-
-/** Um lado do card do duelo: nome display. */
-function LadoDuelo({ username }: { username: string }) {
-  return (
-    <div className="flex min-w-0 flex-1 flex-col items-center justify-center py-2">
-      <span className="w-full truncate text-center font-display text-base font-bold uppercase tracking-wider text-giz">
-        {username}
-      </span>
-    </div>
-  );
-}
-
-/** Linha da lista contínua comparativa: valor A | rótulo | valor B + barra. */
-function LinhaComparativa({ metrica }: { metrica: MetricaComparativa }) {
-  const { rotulo, valorA, valorB, menorMelhor = false } = metrica;
-
-  let dominante: 'a' | 'b' | null = null;
-  if (valorA !== null && valorB !== null && valorA !== valorB) {
-    dominante = menorMelhor ? (valorA < valorB ? 'a' : 'b') : valorA > valorB ? 'a' : 'b';
-  }
-
-  const barraA = valorA ?? 0;
-  const barraB = valorB ?? 0;
-  const total = barraA + barraB;
-  const percentualA = total > 0 ? (barraA / total) * 100 : 50;
-
-  return (
-    <div className="px-1 py-2.5 transition hover:bg-superficie-2/50">
-      <div className="flex items-baseline justify-between gap-3">
-        <span
-          className={`w-12 shrink-0 text-right font-mono text-sm font-bold tabular-nums ${
-            dominante === 'a' ? 'text-destaque-texto' : 'text-giz'
-          }`}
-        >
-          {exibirValorMetrica(metrica, valorA)}
-        </span>
-        <span className="flex-1 text-center font-display text-[10px] font-bold uppercase tracking-wider text-giz-fraco">
-          {rotulo}
-        </span>
-        <span
-          className={`w-12 shrink-0 text-left font-mono text-sm font-bold tabular-nums ${
-            dominante === 'b' ? 'text-destaque-texto' : 'text-giz'
-          }`}
-        >
-          {exibirValorMetrica(metrica, valorB)}
-        </span>
-      </div>
-      {/* Barra de domínio: preto = lado A, branco = lado B (contraste visual
-          dos lados do comparativo, não a camisa de nenhum time). */}
-      <div
-        aria-hidden="true"
-        className="mt-2 flex h-1.5 overflow-hidden rounded-[2px] border border-borda"
-      >
-        <div className="bg-preto-time" style={{ width: `${percentualA}%` }} />
-        <div className="bg-branco-time" style={{ width: `${100 - percentualA}%` }} />
-      </div>
-    </div>
-  );
-}
-
-/** Produção de um atleta num contexto (juntos/adversos) do confronto. */
-function LinhaAtletaContexto({
-  username,
-  linha,
-  comRetrospecto = false,
-}: {
-  username: string;
-  linha: LinhaConfronto;
-  comRetrospecto?: boolean;
-}) {
-  return (
-    <div className="flex items-center gap-2.5">
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-bold text-giz">{username}</p>
-        {comRetrospecto && (
-          <p className="font-mono text-[11px] tabular-nums text-giz-fraco">
-            {linha.vitorias}V {linha.empates}E {linha.derrotas}D
-          </p>
-        )}
-      </div>
-      <p className="shrink-0 font-mono text-[11px] tabular-nums text-giz-fraco">
-        <span className="font-bold text-giz">{linha.gols}</span>G{' '}
-        <span className="font-bold text-giz">{linha.assistencias}</span>A{' '}
-        <span aria-hidden="true">·</span>{' '}
-        {linha.media_nota != null ? linha.media_nota.toFixed(1) : '—'}
-      </p>
-    </div>
   );
 }
