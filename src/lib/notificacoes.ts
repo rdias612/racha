@@ -124,7 +124,7 @@ export interface PainelEntregaJogador {
   username: string;
   is_mensalista: boolean;
   // Valores do banco são exatamente as chaves de POSICOES (src/lib/times.ts):
-  // o Avatar exige PosicaoId — não declarar como string.
+  // exige PosicaoId — não declarar como string.
   posicao: PosicaoId;
   qtd_aparelhos: number;
   primeira_inscricao_em: string | null;

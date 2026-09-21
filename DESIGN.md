@@ -78,7 +78,6 @@ racha/
 │   ├── App.tsx                # Declaração central de rotas (componentes lazy importados de lib/rotas.ts)
 │   ├── index.css              # Tokens CSS, temas dark/light, fontes e utilitários Tailwind v4
 │   ├── components/            # Componentes visuais reutilizáveis
-│   │   ├── Avatar.tsx         # Avatar quadrado terroso com plaqueta de posição
 │   │   ├── CampoPartida.tsx   # Prancheta tática proporcional com mini-placares
 │   │   ├── ConfirmDialog.tsx  # Modal de confirmação acessível (substitui window.confirm)
 │   │   ├── DialogoEvento.tsx  # Modal de registro de gols/assistências ao vivo
@@ -164,7 +163,7 @@ Antes de criar, estilizar ou refatorar qualquer componente, tela ou fluxo visual
    - **`font-sans` (`Archivo`)**: Corpo de texto, formulários, alertas, modais e descrições.
    - **`font-mono` (`Chivo Mono`)**: Placares, notas, percentuais, valores em R$, contadores e posições (com `tabular-nums`).
 4. **Geometria, Cantos e Sombras-Carimbo**:
-   - Cantos duros: `rounded-[2px]` (badges compactas), `rounded-[3px]` (avatares), `rounded-[4px]` (botões, inputs, cards e modais) e no máximo `rounded-[6px]` (diálogos tela cheia).
+   - Cantos duros: `rounded-[2px]` (badges compactas), `rounded-[3px]`, `rounded-[4px]` (botões, inputs, cards e modais) e no máximo `rounded-[6px]` (diálogos tela cheia).
    - Sombras secas sem blur: `shadow-carimbo`, `shadow-carimbo-destaque`, `shadow-carimbo-preto`.
 5. **Formulários e Foco Acessível**: Inputs e selects em `bg-superficie-2`, `rounded-[4px]`, `text-base` (previne zoom indesejado no iOS) e foco acessível visível (`focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2`).
 6. **Tom de Voz e Glossário Canônico**: Seguir os 3 níveis de comunicação definidos no `design-system.md` (1. Oficial/Administrativo, 2. Funcional/Amigável, 3. Resenha/Pós-Jogo) e os termos oficiais (_Boletim Oficial_, _Artilheiro Oficial_, _Maestro do Racha_, _Craque da Rodada_, _Quadro de Presença_).

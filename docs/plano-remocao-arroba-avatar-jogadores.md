@@ -373,26 +373,26 @@ Expected: zero ocorrências.
 - Modify: `src/lib/notificacoes.ts`
 - Modify: `src/components/CampoBusca.tsx`
 
-- [ ] **Step 1: `LinhaJogadorGestao.tsx`**
+- [x] **Step 1: `LinhaJogadorGestao.tsx`**
 1. Remover `import { Avatar } from './Avatar';`.
 2. Linha 44: remover `<Avatar username={j.username} posicao={j.posicao} size="md" />`.
 3. Linha 48: alterar `@{j.username}` para `{j.username}`.
 
-- [ ] **Step 2: `ListaReceitasAbertas.tsx` e `ListaDespesasAbertas.tsx`**
+- [x] **Step 2: `ListaReceitasAbertas.tsx` e `ListaDespesasAbertas.tsx`**
 1. `ListaReceitasAbertas.tsx:52`: remover `@` do aviso de lembrete WhatsApp (`Lembrete para \${g.username}...`).
 2. `ListaReceitasAbertas.tsx:105`: alterar `@{g.username}` para `{g.username}`.
 3. `ListaReceitasAbertas.tsx:124`: remover `@` do `aria-label` (`Copiar cobrança de \${g.username} para WhatsApp`).
 4. `ListaDespesasAbertas.tsx:41`: alterar `@\${d.jogadores.username}` para `d.jogadores.username`.
 
-- [ ] **Step 3: `FormEventoAutomatico.tsx` e `FormLancamentoFinanceiro.tsx`**
+- [x] **Step 3: `FormEventoAutomatico.tsx` e `FormLancamentoFinanceiro.tsx`**
 1. `FormEventoAutomatico.tsx:96`: alterar `label: \`@\${j.username}\`` para `label: j.username`.
 2. `FormLancamentoFinanceiro.tsx:138`: alterar `label: \`@\${j.username}\${...}\`` para `label: \`\${j.username}\${...}\``.
 
-- [ ] **Step 4: `SecaoNotificacaoSaude.tsx`**
+- [x] **Step 4: `SecaoNotificacaoSaude.tsx`**
 1. Remover `import { Avatar } from './Avatar';`.
 2. Linha 120: remover `<Avatar username={r.username} posicao={r.posicao} size="sm" />`.
 
-- [ ] **Step 5: `GestaoJogadores.tsx` e `NovoJogador.tsx`**
+- [x] **Step 5: `GestaoJogadores.tsx` e `NovoJogador.tsx`**
 1. `GestaoJogadores.tsx:165`: remover `@` da notificação (`"@${jOriginal.username}"` -> `"${jOriginal.username}"`).
 2. `GestaoJogadores.tsx:200`: remover `@` da notificação (`"@${jOriginal.username}"` -> `"${jOriginal.username}"`).
 3. `GestaoJogadores.tsx:241`: remover `@` do snackbar (`Senha de \${alvoReset.username} resetada...`).
@@ -401,13 +401,13 @@ Expected: zero ocorrências.
 6. `NovoJogador.tsx:71`: remover `@` da mensagem de sucesso (`Jogador "${usernameLimpo}" criado com sucesso!`).
 7. `NovoJogador.tsx:121`: alterar label `Nome de Usuário (@username) *` para `Nome de Usuário *`.
 
-- [ ] **Step 6: `GestaoGoleiros.tsx` e `Administrador.tsx`**
+- [x] **Step 6: `GestaoGoleiros.tsx` e `Administrador.tsx`**
 1. `GestaoGoleiros.tsx:154`: remover `@` do snackbar (`Goleiro \${goleiro.username}...`).
 2. `GestaoGoleiros.tsx:257`: alterar `@{g.username}` para `{g.username}`.
 3. `GestaoGoleiros.tsx:291, 306, 413, 450, 451`: remover `@` de todos os `aria-label`s e diálogos de confirmação.
 4. `Administrador.tsx:135, 175, 184`: remover `@` das mensagens de confirmação de quitação e do snackbar de sucesso.
 
-- [ ] **Step 7: `dividas.ts`, `exportacao.ts`, `notificacoes.ts` e `CampoBusca.tsx`**
+- [x] **Step 7: `dividas.ts`, `exportacao.ts`, `notificacoes.ts` e `CampoBusca.tsx`**
 1. `src/lib/dividas.ts:168`: template do WhatsApp: alterar `Fala @\${g.username}!` para `Fala \${g.username}!`.
 2. `src/lib/exportacao.ts:34`: alterar `@\${l.jogadores.username}` para `l.jogadores.username`.
 3. `src/lib/notificacoes.ts:127`: atualizar comentário que fazia referência ao Avatar.
@@ -425,14 +425,14 @@ Expected: zero ocorrências.
 - Consumes: nada.
 - Produces: exclusão limpa do arquivo sem código morto no bundle final e alinhamento do doc canônico de arquitetura.
 
-- [ ] **Step 1: Excluir o arquivo `src/components/Avatar.tsx`**
+- [x] **Step 1: Excluir o arquivo `src/components/Avatar.tsx`**
 Comando: `git rm src/components/Avatar.tsx`
 
-- [ ] **Step 2: Atualizar a documentação canônica em `DESIGN.md`**
+- [x] **Step 2: Atualizar a documentação canônica em `DESIGN.md`**
 1. Linha 81: remover a linha `│   │   ├── Avatar.tsx         # Avatar quadrado terroso com plaqueta de posição`.
 2. Linha 167: remover a menção a `(avatares)` na definição de cantos duros (`rounded-[3px]`).
 
-- [ ] **Step 3: Conferir ausência de referências órfãs a `Avatar` em `src/`**
+- [x] **Step 3: Conferir ausência de referências órfãs a `Avatar` em `src/`**
 Run: `git grep -n "Avatar" src/`
 Expected: zero ocorrências.
 

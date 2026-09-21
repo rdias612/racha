@@ -68,7 +68,7 @@ export function NovoJogador() {
         return;
       }
 
-      setOk(`Jogador "@${usernameLimpo}" criado com sucesso! Senha padrão: 123`);
+      setOk(`Jogador "${usernameLimpo}" criado com sucesso! Senha padrão: 123`);
       setUsername('');
       setPosicao('meia');
       setPosicaoB('meia');
@@ -118,7 +118,7 @@ export function NovoJogador() {
           <div>
             <label className="block">
               <span className="block text-xs font-display font-bold uppercase tracking-wider text-giz-fraco mb-1">
-                Nome de Usuário (@username) *
+                Nome de Usuário *
               </span>
               <input
                 type="text"

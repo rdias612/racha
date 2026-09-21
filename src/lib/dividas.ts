@@ -165,7 +165,7 @@ export function montarLembreteWhatsApp(
     )
     .join('\n');
 
-  return `⚽ *Súmula Financeira — Racha Gragoatá*\n\nFala @${g.username}! Segue o resumo das pendências em aberto:\n\n${linhas}\n\n*Total em aberto: ${formatarReais(g.total_devido)}*\n\nValeu pela força e nos vemos quinta! 👊`;
+  return `⚽ *Súmula Financeira — Racha Gragoatá*\n\nFala ${g.username}! Segue o resumo das pendências em aberto:\n\n${linhas}\n\n*Total em aberto: ${formatarReais(g.total_devido)}*\n\nValeu pela força e nos vemos quinta! 👊`;
 }
 
 /**

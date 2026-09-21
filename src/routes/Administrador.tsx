@@ -132,7 +132,7 @@ export function Administrador() {
     setConfirmacao({
       open: true,
       titulo: 'Quitar lançamento?',
-      mensagem: `Marcar o lançamento de @${username} como quitado na súmula financeira?`,
+      mensagem: `Marcar o lançamento de ${username} como quitado na súmula financeira?`,
       onConfirm: async () => {
         setConfirmacao(null);
         const gruposAnteriores = grupos;
@@ -172,7 +172,7 @@ export function Administrador() {
     setConfirmacao({
       open: true,
       titulo: 'Quitar todas as receitas?',
-      mensagem: `Quitar TODAS as pendências em aberto de @${username}?`,
+      mensagem: `Quitar TODAS as pendências em aberto de ${username}?`,
       onConfirm: async () => {
         setConfirmacao(null);
         const gruposAnteriores = grupos;
@@ -181,7 +181,7 @@ export function Administrador() {
 
         try {
           await quitarDividasJogador(jogadorId);
-          mostrarSnackbar('sucesso', `Receitas de @${username} quitadas.`);
+          mostrarSnackbar('sucesso', `Receitas de ${username} quitadas.`);
           await carregar();
         } catch (err) {
           setGrupos(gruposAnteriores);

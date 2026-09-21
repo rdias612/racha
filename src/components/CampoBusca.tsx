@@ -22,7 +22,7 @@ export interface CampoBuscaProps {
   disabled?: boolean;
   /** Variante visual de fundo ('superficie-2' é o padrão; 'superficie' para fundos destacados) */
   variante?: 'superficie' | 'superficie-2';
-  /** Família tipográfica ('sans' para texto corrido, 'mono' para @usernames/códigos) */
+  /** Família tipográfica ('sans' para texto corrido, 'mono' para usernames/códigos) */
   fonte?: 'sans' | 'mono';
   /** Callback opcional disparado quando a busca é limpa via botão */
   aoLimpar?: () => void;

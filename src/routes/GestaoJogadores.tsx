@@ -162,7 +162,7 @@ export function GestaoJogadores() {
     if (!novoMensalista && estadoAtual.is_admin && !isSuperAdminId(jOriginal.id)) {
       novoAdmin = false;
       setMensagemSucesso(
-        `O status de administrador de "@${jOriginal.username}" foi desativado (apenas mensalistas podem ser admins).`
+        `O status de administrador de "${jOriginal.username}" foi desativado (apenas mensalistas podem ser admins).`
       );
     }
 
@@ -197,7 +197,7 @@ export function GestaoJogadores() {
     // Regra: Apenas mensalistas podem ser admin
     if (!podeSerAdmin(estadoAtual)) {
       setMensagemErro(
-        `Apenas jogadores mensalistas podem ser administradores. Torne "@${jOriginal.username}" mensalista primeiro.`
+        `Apenas jogadores mensalistas podem ser administradores. Torne "${jOriginal.username}" mensalista primeiro.`
       );
       return;
     }
@@ -238,7 +238,7 @@ export function GestaoJogadores() {
     setResetandoId(alvoReset.id);
     try {
       await resetarSenhaJogador(alvoReset.id);
-      mostrarSnackbar('sucesso', `Senha de @${alvoReset.username} resetada para "123".`);
+      mostrarSnackbar('sucesso', `Senha de ${alvoReset.username} resetada para "123".`);
       setAlvoReset(null);
     } catch (err) {
       mostrarSnackbar('erro', formatarMensagemErro(err, 'Erro ao resetar senha.'));
@@ -313,7 +313,7 @@ export function GestaoJogadores() {
         <CampoBusca
           valor={busca}
           aoMudar={setBusca}
-          placeholder="Buscar por @usuário..."
+          placeholder="Buscar por usuário..."
           variante="superficie"
           fonte="mono"
         />
@@ -410,7 +410,7 @@ export function GestaoJogadores() {
         titulo="Resetar senha"
         mensagem={
           alvoReset
-            ? `Redefinir a senha de @${alvoReset.username} para o padrão "123"? Ele deve trocá-la depois no Perfil.`
+            ? `Redefinir a senha de ${alvoReset.username} para o padrão "123"? Ele deve trocá-la depois no Perfil.`
             : undefined
         }
         textoConfirmar={resetandoId !== null ? 'Resetando...' : 'Resetar'}

@@ -151,7 +151,7 @@ export function GestaoGoleiros() {
       setGoleiros(lista);
       mostrarSnackbar(
         'sucesso',
-        `Goleiro @${goleiro.username} ${novoStatus ? 'ativado' : 'desativado'}.`
+        `Goleiro ${goleiro.username} ${novoStatus ? 'ativado' : 'desativado'}.`
       );
     } catch (err) {
       mostrarSnackbar('erro', formatarMensagemErro(err, 'Erro ao alterar status do atleta.'));
@@ -254,7 +254,7 @@ export function GestaoGoleiros() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-display font-bold text-base uppercase tracking-wider text-giz truncate">
-                          @{g.username}
+                          {g.username}
                         </h3>
                         <span
                           className={`inline-block px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-wider rounded-[2px] border ${
@@ -288,7 +288,7 @@ export function GestaoGoleiros() {
                           type="button"
                           onClick={() => iniciarEdicao(g)}
                           title="Editar dados"
-                          aria-label={`Editar dados de @${g.username}`}
+                          aria-label={`Editar dados de ${g.username}`}
                           className="min-h-[44px] min-w-[44px] p-2.5 rounded-[4px] border border-borda bg-superficie-2 text-giz-fraco hover:text-giz hover:border-destaque active:translate-y-px transition flex items-center justify-center focus-visible:outline-2 focus-visible:outline-destaque-texto"
                         >
                           <Edit2 className="size-4" />
@@ -303,7 +303,7 @@ export function GestaoGoleiros() {
                             });
                           }}
                           title={g.is_ativo ? 'Desativar goleiro' : 'Ativar goleiro'}
-                          aria-label={`${g.is_ativo ? 'Desativar' : 'Ativar'} @${g.username}`}
+                          aria-label={`${g.is_ativo ? 'Desativar' : 'Ativar'} ${g.username}`}
                           className={`min-h-[44px] min-w-[44px] p-2.5 rounded-[4px] border active:translate-y-px transition flex items-center justify-center focus-visible:outline-2 focus-visible:outline-destaque-texto ${
                             g.is_ativo
                               ? 'border-borda bg-superficie-2 text-giz-fraco hover:text-perigo hover:border-perigo'
@@ -410,7 +410,7 @@ export function GestaoGoleiros() {
                           type="button"
                           onClick={() => copiarPix(g.id, g.chave_pix!)}
                           title="Copiar Chave PIX"
-                          aria-label={`Copiar Chave PIX de @${g.username}`}
+                          aria-label={`Copiar Chave PIX de ${g.username}`}
                           className="shrink-0 min-h-[44px] px-2.5 rounded-[3px] border border-borda bg-superficie-2 text-giz-fraco hover:text-giz hover:border-destaque active:translate-y-px transition flex items-center gap-1.5 text-xs font-mono focus-visible:outline-2 focus-visible:outline-destaque-texto"
                         >
                           {foiCopiado ? (
@@ -447,8 +447,8 @@ export function GestaoGoleiros() {
         open={Boolean(dialogoConfirmacao)}
         titulo={
           dialogoConfirmacao?.novoStatus
-            ? `Ativar @${dialogoConfirmacao?.goleiro.username}?`
-            : `Desativar @${dialogoConfirmacao?.goleiro.username}?`
+            ? `Ativar ${dialogoConfirmacao?.goleiro.username}?`
+            : `Desativar ${dialogoConfirmacao?.goleiro.username}?`
         }
         mensagem={
           dialogoConfirmacao?.novoStatus

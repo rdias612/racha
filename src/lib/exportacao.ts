@@ -31,7 +31,7 @@ export function baixarExcelLancamentos(
     const natureza = l.natureza === 'despesa' ? 'Despesa' : 'Receita';
     const jogador =
       l.jogadores?.username != null
-        ? `@${l.jogadores.username}`
+        ? l.jogadores.username
         : l.jogador_id != null
           ? `#${l.jogador_id}`
           : 'Caixa do racha';
