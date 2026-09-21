@@ -361,7 +361,14 @@ export function SkeletonNotificacoes() {
         <div className="h-3 w-20 bg-superficie-2 border border-borda rounded-[2px]" />
       </div>
 
-      {/* Card 1: Confirmação de Presença */}
+      {/* Abas */}
+      <div className="flex gap-1 overflow-x-auto rounded-[4px] border border-borda bg-superficie p-1">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="flex-1 min-w-max h-11 rounded-[3px] bg-superficie-2 border border-borda" />
+        ))}
+      </div>
+
+      {/* Card de formulário */}
       <div className="rounded-[4px] border border-borda bg-superficie p-3.5 space-y-3 shadow-carimbo">
         <div className="flex items-center justify-between">
           <div className="h-4 w-44 bg-superficie-2 border border-borda rounded-[2px]" />
@@ -374,30 +381,70 @@ export function SkeletonNotificacoes() {
         <div className="h-16 bg-superficie-2 border border-borda rounded-[4px]" />
       </div>
 
-      {/* Card 2: Lembretes de Votação */}
-      <div className="rounded-[4px] border border-borda bg-superficie p-3.5 space-y-3 shadow-carimbo">
-        <div className="flex items-center justify-between">
-          <div className="h-4 w-40 bg-superficie-2 border border-borda rounded-[2px]" />
-          <div className="h-6 w-12 bg-superficie-2 border border-borda rounded-[3px]" />
+      {/* Botão Salvar */}
+      <div className="h-11 w-full bg-superficie-2 border border-borda rounded-[4px]" />
+    </div>
+  );
+}
+
+export function SkeletonNotificacoesSaude() {
+  return (
+    <div
+      role="status"
+      aria-busy="true"
+      aria-label="Carregando saúde das notificações..."
+      className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-4 animate-pulse text-giz"
+    >
+      <span className="sr-only">Carregando painel de saúde das entregas push...</span>
+
+      {/* Voltar */}
+      <div className="h-3 w-16 bg-superficie-2 border border-borda rounded-[2px]" />
+
+      {/* Header */}
+      <div className="flex items-center justify-between sumula-header pb-2">
+        <div className="flex items-center gap-2">
+          <div className="size-5 rounded-[2px] bg-superficie-2 border border-borda" />
+          <div className="h-6 w-48 bg-superficie-2 border border-borda rounded-[3px]" />
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-10 bg-superficie-2 border border-borda rounded-[4px]" />
+        <div className="h-3 w-20 bg-superficie-2 border border-borda rounded-[2px]" />
+      </div>
+
+      {/* Abas */}
+      <div className="flex gap-1 overflow-x-auto rounded-[4px] border border-borda bg-superficie p-1">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="flex-1 min-w-max h-11 rounded-[3px] bg-superficie-2 border border-borda" />
+        ))}
+      </div>
+
+      {/* Card Quadro de Saúde / Ledger de Entregas */}
+      <div className="rounded-[4px] border border-borda bg-superficie p-3.5 space-y-4 shadow-carimbo">
+        {/* Topo do quadro: título + contagem + botão atualizar */}
+        <div className="flex items-start justify-between gap-2">
+          <div className="space-y-1.5">
+            <div className="h-4 w-44 bg-superficie-2 border border-borda rounded-[2px]" />
+            <div className="h-3 w-64 bg-superficie-2 border border-borda rounded-[2px]" />
+            <div className="h-3 w-36 bg-superficie-2 border border-borda rounded-[2px]" />
+          </div>
+          <div className="size-11 rounded-[4px] bg-superficie-2 border border-borda shrink-0" />
+        </div>
+
+        {/* Banner informativo */}
+        <div className="h-12 bg-superficie-2 border border-borda rounded-[4px]" />
+
+        {/* Linhas de atletas */}
+        <div className="divide-y divide-borda/40 border-y border-borda">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="min-h-[44px] py-2.5 px-1 flex items-center justify-between gap-3">
+              <div className="h-3.5 w-28 bg-superficie-2 border border-borda rounded-[2px]" />
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-16 bg-superficie-2 border border-borda rounded-[2px]" />
+                <div className="h-5 w-14 bg-superficie-2 border border-borda rounded-[3px]" />
+                <div className="size-4 bg-superficie-2 border border-borda rounded-[2px]" />
+              </div>
+            </div>
           ))}
         </div>
       </div>
-
-      {/* Card 3: Ações e Testes */}
-      <div className="rounded-[4px] border border-borda bg-superficie p-3.5 space-y-3 shadow-carimbo">
-        <div className="h-4 w-32 bg-superficie-2 border border-borda rounded-[2px]" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="h-20 bg-superficie-2 border border-borda rounded-[4px]" />
-          <div className="h-20 bg-superficie-2 border border-borda rounded-[4px]" />
-        </div>
-      </div>
-
-      {/* Botão Salvar */}
-      <div className="h-11 w-full bg-superficie-2 border border-borda rounded-[4px]" />
     </div>
   );
 }

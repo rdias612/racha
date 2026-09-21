@@ -29,7 +29,10 @@ const carregarNovoJogador = () => import('../routes/NovoJogador');
 const carregarGestaoJogadores = () => import('../routes/GestaoJogadores');
 const carregarGestaoGoleiros = () => import('../routes/GestaoGoleiros');
 const carregarAdministrador = () => import('../routes/Administrador');
-const carregarNotificacoes = () => import('../routes/Notificacoes');
+const carregarNotificacoesConfirmacao = () => import('../routes/NotificacoesConfirmacao');
+const carregarNotificacoesVotacao = () => import('../routes/NotificacoesVotacao');
+const carregarNotificacoesTestes = () => import('../routes/NotificacoesTestes');
+const carregarNotificacoesSaude = () => import('../routes/NotificacoesSaude');
 
 // Componentes lazy consumidos pela declaração de rotas em App.tsx.
 export const Login = lazy(() => carregarLogin().then((m) => ({ default: m.Login })));
@@ -74,8 +77,17 @@ export const GestaoGoleiros = lazy(() =>
 export const Administrador = lazy(() =>
   carregarAdministrador().then((m) => ({ default: m.Administrador }))
 );
-export const Notificacoes = lazy(() =>
-  carregarNotificacoes().then((m) => ({ default: m.Notificacoes }))
+export const NotificacoesConfirmacao = lazy(() =>
+  carregarNotificacoesConfirmacao().then((m) => ({ default: m.NotificacoesConfirmacao }))
+);
+export const NotificacoesVotacao = lazy(() =>
+  carregarNotificacoesVotacao().then((m) => ({ default: m.NotificacoesVotacao }))
+);
+export const NotificacoesTestes = lazy(() =>
+  carregarNotificacoesTestes().then((m) => ({ default: m.NotificacoesTestes }))
+);
+export const NotificacoesSaude = lazy(() =>
+  carregarNotificacoesSaude().then((m) => ({ default: m.NotificacoesSaude }))
 );
 
 /**
@@ -103,7 +115,10 @@ const TABELA_PRE_CARREGAMENTO: Array<{
   { padrao: /^\/gestao-goleiros/, carregar: carregarGestaoGoleiros },
   { padrao: /^\/jogador\/novo/, carregar: carregarNovoJogador },
   { padrao: /^\/administrador/, carregar: carregarAdministrador },
-  { padrao: /^\/notificacoes/, carregar: carregarNotificacoes },
+  { padrao: /^\/notificacoes\/confirmacao/, carregar: carregarNotificacoesConfirmacao },
+  { padrao: /^\/notificacoes\/votacao/, carregar: carregarNotificacoesVotacao },
+  { padrao: /^\/notificacoes\/testes/, carregar: carregarNotificacoesTestes },
+  { padrao: /^\/notificacoes\/saude/, carregar: carregarNotificacoesSaude },
   { padrao: /^\/login/, carregar: carregarLogin },
   { padrao: /^\/$/, carregar: carregarResumo },
 ];

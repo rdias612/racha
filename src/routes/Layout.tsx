@@ -28,6 +28,7 @@ import {
   SkeletonGestao,
   SkeletonJogos,
   SkeletonNotificacoes,
+  SkeletonNotificacoesSaude,
   SkeletonPerfil,
   SkeletonRanking,
   SkeletonResumo,
@@ -50,6 +51,7 @@ const SKELETONS_POR_ROTA: Array<{ padrao: RegExp; Skeleton: ComponentType }> = [
   { padrao: /^\/partida\/\d+\/?$/, Skeleton: SkeletonDetalhe },
   { padrao: /^\/gestao-jogadores/, Skeleton: SkeletonGestao },
   { padrao: /^\/gestao-goleiros/, Skeleton: SkeletonGestao },
+  { padrao: /^\/notificacoes\/saude/, Skeleton: SkeletonNotificacoesSaude },
   { padrao: /^\/notificacoes/, Skeleton: SkeletonNotificacoes },
 ];
 
@@ -72,6 +74,7 @@ const preCarregarAbaJogos = preCarregarAoInteragir('/jogos');
 const preCarregarAbaRanking = preCarregarAoInteragir('/ranking/pontos');
 const preCarregarAbaEstatisticas = preCarregarAoInteragir('/estatisticas/jogador');
 const preCarregarAbaPerfil = preCarregarAoInteragir('/perfil');
+const preCarregarMenuNotificacoes = preCarregarAoInteragir('/notificacoes/confirmacao');
 
 export function Layout() {
   const { jogador } = useSessao();
@@ -214,8 +217,9 @@ export function Layout() {
                       </Link>
 
                       <Link
-                        to="/notificacoes"
+                        to="/notificacoes/confirmacao"
                         onClick={() => setMenuAberto(false)}
+                        {...preCarregarMenuNotificacoes}
                         className="flex min-h-[44px] items-center gap-2.5 rounded-[3px] px-3 py-2 text-xs font-medium text-giz hover:bg-superficie-2 hover:text-destaque-texto transition-fast"
                       >
                         <Bell className="size-4 text-destaque-texto shrink-0" />

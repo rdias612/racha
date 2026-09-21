@@ -22,7 +22,10 @@ import {
   GestaoJogadores,
   GestaoGoleiros,
   Administrador,
-  Notificacoes,
+  NotificacoesConfirmacao,
+  NotificacoesVotacao,
+  NotificacoesTestes,
+  NotificacoesSaude,
 } from './lib/rotas';
 
 export function App() {
@@ -59,7 +62,11 @@ export function App() {
           <Route path="/gestao-jogadores" element={<GestaoJogadores />} />
           <Route path="/gestao-goleiros" element={<GestaoGoleiros />} />
           <Route path="/administrador" element={<Administrador />} />
-          <Route path="/notificacoes" element={<Notificacoes />} />
+          <Route path="/notificacoes" element={<Navigate to="/notificacoes/confirmacao" replace />} />
+          <Route path="/notificacoes/confirmacao" element={<NotificacoesConfirmacao />} />
+          <Route path="/notificacoes/votacao" element={<NotificacoesVotacao />} />
+          <Route path="/notificacoes/testes" element={<NotificacoesTestes />} />
+          <Route path="/notificacoes/saude" element={<NotificacoesSaude />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
