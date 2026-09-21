@@ -355,7 +355,7 @@ function TabelaRanking({
       data-no-swipe
       className="overflow-x-auto rounded-[4px] border border-borda bg-superficie shadow-carimbo"
     >
-      <table className="w-full min-w-120 text-sm">
+      <table className="w-full min-w-full text-sm">
         <thead className="bg-superficie-2 border-b border-borda text-giz-fraco">
           <tr>
             <th className="px-2 py-2 text-left font-display font-bold uppercase tracking-wider text-xs w-8">
@@ -372,7 +372,7 @@ function TabelaRanking({
                     direcao === 'asc' ? 'ascending' : direcao === 'desc' ? 'descending' : 'none'
                   }
                   className={`p-0 font-display font-bold uppercase tracking-wider text-xs ${
-                    ehAtleta ? 'w-px whitespace-nowrap text-left sm:min-w-44' : 'text-right'
+                    ehAtleta ? 'w-px whitespace-nowrap text-left' : 'text-right'
                   }`}
                 >
                   <button
@@ -411,7 +411,7 @@ function TabelaRanking({
                     key={coluna.key}
                     className={`px-2 py-2 ${
                       coluna.key === 'username'
-                        ? 'whitespace-nowrap text-giz font-medium text-xs'
+                        ? 'w-px whitespace-nowrap text-giz font-medium text-xs'
                         : 'text-right font-mono text-xs text-giz tabular-nums font-semibold'
                     }`}
                   >
