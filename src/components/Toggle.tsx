@@ -54,18 +54,32 @@ export function Toggle({
     >
       <input
         type="checkbox"
+        role="switch"
         id={id}
         name={name}
         checked={checked}
         disabled={disabled}
         onChange={handleChange}
         aria-label={typeof label === 'string' ? label : ariaLabel}
+        aria-checked={checked}
         className="sr-only peer"
       />
       <div
-        className={`w-11 h-6 bg-superficie-2 border border-borda rounded-[4px] peer-focus-visible:outline-2 peer-focus-visible:outline-destaque-texto peer-focus-visible:outline-offset-2 peer-checked:bg-destaque peer-checked:border-destaque transition-colors peer peer-checked:after:translate-x-5 peer-checked:after:bg-destaque-tinta peer-checked:after:border-transparent after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-giz-fraco after:border-borda after:border after:rounded-[2px] after:h-5 after:w-5 after:transition-all ${switchClassName}`}
+        className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border p-0.5 transition-colors duration-200 ease-in-out peer-focus-visible:outline-2 peer-focus-visible:outline-destaque-texto peer-focus-visible:outline-offset-2 ${
+          checked
+            ? 'border-destaque bg-destaque'
+            : 'border-borda bg-superficie-2'
+        } ${switchClassName}`}
         aria-hidden="true"
-      />
+      >
+        <span
+          className={`pointer-events-none inline-block size-4.5 rounded-full shadow-xs transition-transform duration-200 ease-in-out ${
+            checked
+              ? 'translate-x-5 bg-destaque-tinta'
+              : 'translate-x-0 bg-giz-fraco'
+          }`}
+        />
+      </div>
     </label>
   );
 
