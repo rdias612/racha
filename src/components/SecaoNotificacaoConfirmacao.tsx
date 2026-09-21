@@ -17,6 +17,13 @@ export const OPCOES_REFORCO = [
   { value: '24', label: '24 horas antes', sublabel: 'Terça às 16h' },
 ];
 
+export const TEXTO_PADRAO_CONFIRMACAO_TITULO = 'Confirme sua presença';
+export const TEXTO_PADRAO_CONFIRMACAO_MENSAGEM =
+  'Tem racha {dia_jogo} {hora_jogo}! Reserve sua vaga até {prazo}.';
+export const TEXTO_PADRAO_REFORCO_TITULO = 'Últimas horas para confirmar presença';
+export const TEXTO_PADRAO_REFORCO_MENSAGEM =
+  'O prazo para confirmação encerra em {prazo}. Garanta sua vaga no racha!';
+
 const VARIAVEIS_CONVITE = ['{dia_jogo}', '{hora_jogo}', '{prazo}'] as const;
 
 function nomeDiaSemana(dia: number): string {
@@ -125,9 +132,9 @@ export function SecaoNotificacaoConfirmacao({
           <input
             type="text"
             maxLength={120}
-            value={config.confirmacao_titulo ?? ''}
+            value={config.confirmacao_titulo ?? TEXTO_PADRAO_CONFIRMACAO_TITULO}
             onChange={(e) => onAlterar({ confirmacao_titulo: e.target.value })}
-            placeholder="Confirme sua presença"
+            placeholder={TEXTO_PADRAO_CONFIRMACAO_TITULO}
             className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto"
           />
         </label>
@@ -139,9 +146,9 @@ export function SecaoNotificacaoConfirmacao({
           <textarea
             rows={2}
             maxLength={500}
-            value={config.confirmacao_mensagem ?? ''}
+            value={config.confirmacao_mensagem ?? TEXTO_PADRAO_CONFIRMACAO_MENSAGEM}
             onChange={(e) => onAlterar({ confirmacao_mensagem: e.target.value })}
-            placeholder="Tem racha {dia_jogo} {hora_jogo}! Reserve sua vaga até {prazo}."
+            placeholder={TEXTO_PADRAO_CONFIRMACAO_MENSAGEM}
             className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto"
           />
         </label>
@@ -192,9 +199,9 @@ export function SecaoNotificacaoConfirmacao({
               <input
                 type="text"
                 maxLength={120}
-                value={config.reforco_titulo ?? ''}
+                value={config.reforco_titulo ?? TEXTO_PADRAO_REFORCO_TITULO}
                 onChange={(e) => onAlterar({ reforco_titulo: e.target.value })}
-                placeholder="Últimas horas para confirmar presença"
+                placeholder={TEXTO_PADRAO_REFORCO_TITULO}
                 className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto"
               />
             </label>
@@ -206,9 +213,9 @@ export function SecaoNotificacaoConfirmacao({
               <textarea
                 rows={2}
                 maxLength={500}
-                value={config.reforco_mensagem ?? ''}
+                value={config.reforco_mensagem ?? TEXTO_PADRAO_REFORCO_MENSAGEM}
                 onChange={(e) => onAlterar({ reforco_mensagem: e.target.value })}
-                placeholder="O prazo para confirmação encerra em {prazo}. Garanta sua vaga no racha!"
+                placeholder={TEXTO_PADRAO_REFORCO_MENSAGEM}
                 className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto"
               />
             </label>

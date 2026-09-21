@@ -15,6 +15,10 @@ import {
   DIAS_DISPARO,
   OPCOES_REFORCO,
   SecaoNotificacaoConfirmacao,
+  TEXTO_PADRAO_CONFIRMACAO_TITULO,
+  TEXTO_PADRAO_CONFIRMACAO_MENSAGEM,
+  TEXTO_PADRAO_REFORCO_TITULO,
+  TEXTO_PADRAO_REFORCO_MENSAGEM,
 } from '../components/SecaoNotificacaoConfirmacao';
 import {
   obterConfiguracoesNotificacoes,
@@ -62,7 +66,21 @@ export function NotificacoesConfirmacao() {
       try {
         const dadosConfig = await obterConfiguracoesNotificacoes(jogador.id);
         if (isAtivo && !isAtivo()) return;
-        setConfig(dadosConfig);
+        setConfig({
+          ...dadosConfig,
+          confirmacao_titulo: dadosConfig.confirmacao_titulo?.trim()
+            ? dadosConfig.confirmacao_titulo
+            : TEXTO_PADRAO_CONFIRMACAO_TITULO,
+          confirmacao_mensagem: dadosConfig.confirmacao_mensagem?.trim()
+            ? dadosConfig.confirmacao_mensagem
+            : TEXTO_PADRAO_CONFIRMACAO_MENSAGEM,
+          reforco_titulo: dadosConfig.reforco_titulo?.trim()
+            ? dadosConfig.reforco_titulo
+            : TEXTO_PADRAO_REFORCO_TITULO,
+          reforco_mensagem: dadosConfig.reforco_mensagem?.trim()
+            ? dadosConfig.reforco_mensagem
+            : TEXTO_PADRAO_REFORCO_MENSAGEM,
+        });
       } catch (err) {
         if (isAtivo && !isAtivo()) return;
         setErro(formatarMensagemErro(err, 'Erro ao carregar configurações.'));
