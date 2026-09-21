@@ -56,6 +56,12 @@ interface LinhaRanking {
   gols_contra: number;
 }
 
+type PosicaoFiltro = Exclude<PosicaoId, 'random'> | 'todas';
+
+const POSICOES_FILTRO = (Object.keys(POSICOES) as PosicaoId[]).filter(
+  (pos): pos is Exclude<PosicaoId, 'random'> => pos !== 'random'
+);
+
 export function Ranking() {
   const jogadorLogado = useJogadorLogado();
   const { metrica: parametro } = useParams<{ metrica: Metrica }>();
@@ -63,7 +69,7 @@ export function Ranking() {
   const configuracao = metricas[metrica];
   const [colunaOrdenacao, setColunaOrdenacao] = useState<ColunaOrdenacao>(configuracao.campo);
   const [direcaoOrdenacao, setDirecaoOrdenacao] = useState<DirecaoOrdenacao>('desc');
-  const [posicaoFiltro, setPosicaoFiltro] = useState<PosicaoId | 'todas'>('todas');
+  const [posicaoFiltro, setPosicaoFiltro] = useState<PosicaoFiltro>('todas');
   const [minimoPartidas, setMinimoPartidas] = useState(6);
 
   const { handlers: swipeHandlers } = useSwipeTabs({
@@ -271,7 +277,7 @@ export function Ranking() {
               >
                 Todas
               </button>
-              {(Object.keys(POSICOES) as PosicaoId[]).map((pos) => (
+              {POSICOES_FILTRO.map((pos) => (
                 <button
                   key={pos}
                   type="button"
