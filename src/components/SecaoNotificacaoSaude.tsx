@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { AlertTriangle, CheckCircle2, ChevronDown, Clock, RefreshCw } from 'lucide-react';
-import { Avatar } from './Avatar';
 import { Badge } from './Badge';
 import { Carregando, MensagemEstado } from './Estado';
 import { formatarDataMobile, formatarNome } from '../lib/formatacao';
@@ -117,7 +116,6 @@ export function SecaoNotificacaoSaude({
                   className="w-full min-h-[44px] flex items-center justify-between gap-3 py-2.5 px-1 text-left transition hover:bg-superficie-2/50 focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2"
                 >
                   <span className="flex items-center gap-2 min-w-0">
-                    <Avatar username={r.username} posicao={r.posicao} size="sm" />
                     <span className="font-display font-bold text-sm uppercase tracking-wide text-giz truncate">
                       {formatarNome(r.username)}
                     </span>
