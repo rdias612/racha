@@ -83,9 +83,9 @@ export function HistoricoComparador({
                   </span>
                 </span>
                 <span className="flex shrink-0 items-center gap-1">
-                  <span className={classeBadgeNeutra}>
-                    {p.relacao === 'juntos' ? 'Juntos' : 'Rival'}
-                  </span>
+                  {p.relacao === 'juntos' && (
+                    <span className={classeBadgeNeutra}>Juntos</span>
+                  )}
                   {nomeVencedor && (
                     <span className="inline-flex max-w-28 items-center gap-1 rounded-[2px] bg-destaque px-1.5 py-0.5 font-display text-[10px] font-bold uppercase tracking-wider text-destaque-tinta">
                       <Trophy className="size-3 shrink-0" aria-hidden="true" />
