@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { UserPlus, Phone, CreditCard } from 'lucide-react';
+import { UserPlus, Phone, Pix } from 'lucide-react';
 import { MensagemEstado } from './Estado';
 import { ModalBase } from './ModalBase';
 import { formatarMensagemErro } from '../lib/erros';
@@ -104,7 +104,7 @@ export function ModalNovoGoleiro({ open, onClose, onSalvar }: ModalNovoGoleiroPr
         <div>
           <label className="block text-xs font-display font-bold uppercase tracking-wider text-giz-fraco mb-1">
             <span className="inline-flex items-center gap-1">
-              <CreditCard className="size-3.5 text-destaque-texto" />
+              <Pix className="size-3.5 text-destaque-texto" />
               Chave PIX (Para diária de R$ 30)
             </span>
           </label>

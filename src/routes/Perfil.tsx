@@ -15,7 +15,7 @@ import { vibrateError, vibrateSuccess } from '../lib/haptics';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { StatBox } from '../components/StatBox';
 import { SkeletonPerfil } from '../components/Skeletons';
-import { CreditCard, Phone } from 'lucide-react';
+import { Pix, Phone } from 'lucide-react';
 import { formatarMensagemErro } from '../lib/erros';
 
 export function Perfil() {
@@ -269,7 +269,7 @@ export function Perfil() {
       <section className="rounded-[4px] border border-borda bg-superficie p-3.5 shadow-carimbo space-y-3">
         <div>
           <h3 className="text-xs font-display font-bold uppercase tracking-wider text-giz flex items-center gap-1.5">
-            <CreditCard className="size-3.5 text-destaque-texto" />
+            <Pix className="size-3.5 text-destaque-texto" />
             <span>Dados de Pagamento (PIX / WhatsApp)</span>
           </h3>
           <p className="text-[11px] font-sans text-giz-fraco mt-0.5">
@@ -294,7 +294,7 @@ export function Perfil() {
 
           <div>
             <label className="block text-[10px] font-display font-bold uppercase tracking-wider text-giz-fraco mb-1 flex items-center gap-1">
-              <CreditCard className="size-3.5 text-destaque-texto" />
+              <Pix className="size-3.5 text-destaque-texto" />
               <span>Chave PIX</span>
             </label>
             <input

@@ -1,6 +1,6 @@
 import {
   Phone,
-  CreditCard,
+  Pix,
   Copy,
   Check,
   Edit2,
@@ -196,7 +196,7 @@ export function LinhaGoleiro({
           {/* Chave PIX */}
           <div className="flex items-center justify-between gap-2 text-giz-fraco min-h-[44px]">
             <div className="flex items-center gap-2 truncate">
-              <CreditCard className="size-3.5 shrink-0 text-destaque-texto" />
+              <Pix className="size-3.5 shrink-0 text-destaque-texto" />
               {temPix ? (
                 <span className="truncate text-giz" title={g.chave_pix ?? ''}>
                   {g.chave_pix}
