@@ -30,24 +30,11 @@ const numero2casas = new Intl.NumberFormat('pt-BR', {
   maximumFractionDigits: 2,
 });
 
-const metricas: Record<
-  Metrica,
-  { titulo: string; coluna: string; campo: CampoMetrica; unidade: string }
-> = {
-  pontos: { titulo: 'Classificação Geral', coluna: 'PTS', campo: 'pontos', unidade: 'pts' },
-  gols: { titulo: 'Artilharia da Temporada', coluna: 'GOLS', campo: 'gols', unidade: 'gols' },
-  assistencias: {
-    titulo: 'Líderes de Assistências',
-    coluna: 'ASSISTS',
-    campo: 'assistencias',
-    unidade: 'assists',
-  },
-  'gols-contra': {
-    titulo: 'Ranking de Gols Contra (Zoeira)',
-    coluna: 'GC',
-    campo: 'gols_contra',
-    unidade: 'GC',
-  },
+const metricas: Record<Metrica, { titulo: string; coluna: string; campo: CampoMetrica }> = {
+  pontos: { titulo: 'Classificação Geral', coluna: 'PTS', campo: 'pontos' },
+  gols: { titulo: 'Artilharia da Temporada', coluna: 'GOLS', campo: 'gols' },
+  assistencias: { titulo: 'Líderes de Assistências', coluna: 'ASSISTS', campo: 'assistencias' },
+  'gols-contra': { titulo: 'Ranking de Gols Contra (Zoeira)', coluna: 'GC', campo: 'gols_contra' },
 };
 
 interface ColunaTabela {
@@ -326,101 +313,18 @@ export function Ranking() {
             O ranking nasce no primeiro apito. Nada publicado com esses filtros ainda.
           </MensagemEstado>
         ) : (
-          <>
-            {/* Pódio Top 3 */}
-            {linhasFiltradas.length >= 3 && (
-              <PodioTop3
-                linhas={linhasFiltradas.slice(0, 3)}
-                campoMetrica={configuracao.campo}
-                unidade={configuracao.unidade}
-              />
-            )}
-
-            {/* Tabela com data-no-swipe para não travar scroll horizontal */}
-            <TabelaRanking
-              linhas={linhasFiltradas}
-              colunasOrdenacao={colunasOrdenacao}
-              colunaOrdenacao={colunaOrdenacao}
-              direcaoOrdenacao={direcaoOrdenacao}
-              selecionarOrdenacao={selecionarOrdenacao}
-              valorOrdenacao={valorOrdenacao}
-              jogadorLogadoId={jogadorLogado?.id}
-            />
-          </>
+          <TabelaRanking
+            linhas={linhasFiltradas}
+            colunasOrdenacao={colunasOrdenacao}
+            colunaOrdenacao={colunaOrdenacao}
+            direcaoOrdenacao={direcaoOrdenacao}
+            selecionarOrdenacao={selecionarOrdenacao}
+            valorOrdenacao={valorOrdenacao}
+            jogadorLogadoId={jogadorLogado?.id}
+          />
         )}
       </div>
     </PullToRefresh>
-  );
-}
-
-function PodioTop3({
-  linhas,
-  campoMetrica,
-  unidade,
-}: {
-  linhas: LinhaRanking[];
-  campoMetrica: CampoMetrica;
-  unidade: string;
-}) {
-  const primeiro = linhas[0];
-  const segundo = linhas[1];
-  const terceiro = linhas[2];
-
-  if (!primeiro || !segundo || !terceiro) return null;
-
-  return (
-    <div className="mb-4">
-      <div className="grid grid-cols-3 gap-2 items-end pt-2">
-        {/* 2º Lugar (Esquerda) */}
-        <div className="rounded-[4px] border border-borda bg-superficie p-2.5 text-center shadow-carimbo flex flex-col items-center justify-between min-h-[140px]">
-          <span className="texto-vazado font-display font-black text-3xl leading-none">2</span>
-          <Avatar username={segundo.username} posicao={segundo.posicao} size="sm" />
-          <div className="w-full truncate mt-1">
-            <span className="block truncate text-xs font-bold text-giz">@{segundo.username}</span>
-            <span className="block font-mono text-xs font-bold text-giz-fraco tabular-nums">
-              {segundo[campoMetrica]} {unidade}
-            </span>
-          </div>
-        </div>
-
-        {/* 1º Lugar (Centro - Maior e em Destaque Âmbar) */}
-        <div className="rounded-[4px] border-2 border-destaque bg-destaque text-destaque-tinta p-3 text-center shadow-carimbo-destaque flex flex-col items-center justify-between min-h-[165px] -translate-y-1">
-          <div className="flex items-center justify-center gap-1">
-            <span className="font-display font-black text-4xl leading-none text-destaque-tinta">
-              1
-            </span>
-            <span className="text-xs">👑</span>
-          </div>
-          <Avatar username={primeiro.username} posicao={primeiro.posicao} size="md" />
-          <div className="w-full truncate mt-1">
-            <span className="block truncate text-xs font-black uppercase tracking-wider">
-              @{primeiro.username}
-            </span>
-            <span className="block font-mono text-sm font-black tabular-nums">
-              {primeiro[campoMetrica]} {unidade}
-            </span>
-          </div>
-        </div>
-
-        {/* 3º Lugar (Direita) */}
-        <div className="rounded-[4px] border border-borda bg-superficie p-2.5 text-center shadow-carimbo flex flex-col items-center justify-between min-h-[130px]">
-          <span className="texto-vazado font-display font-black text-2xl leading-none">3</span>
-          <Avatar username={terceiro.username} posicao={terceiro.posicao} size="sm" />
-          <div className="w-full truncate mt-1">
-            <span className="block truncate text-xs font-bold text-giz">@{terceiro.username}</span>
-            <span className="block font-mono text-xs font-bold text-giz-fraco tabular-nums">
-              {terceiro[campoMetrica]} {unidade}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-2 my-3 text-[10px] font-mono uppercase tracking-widest text-giz-fraco justify-center">
-        <span className="h-px bg-borda flex-1" />
-        <span>— classificação geral —</span>
-        <span className="h-px bg-borda flex-1" />
-      </div>
-    </div>
   );
 }
 

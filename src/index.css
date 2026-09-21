@@ -233,11 +233,6 @@ textarea:focus-visible {
   border-bottom: 2px dotted var(--cor-borda);
 }
 
-@utility texto-vazado {
-  -webkit-text-stroke: 1.5px var(--cor-giz);
-  color: transparent;
-}
-
 @utility animate-fade-in {
   animation: fadeIn 150ms ease-out forwards;
 }

@@ -268,7 +268,7 @@ Cards com borda e sombra são utilizados **apenas** quando houver necessidade se
 │ 🟢 NÍVEL 3: EXCEÇÕES CONTEXTUAIS (MAY) — PERMITIDAS COM JUSTIFICATIVA   │
 │ 1. Uso de Cards para entidades isoladas (Próxima Partida, Craque, Push). │
 │ 2. Prancheta de campo tático com fundo verde noturno diferenciado.       │
-│ 3. Destaque âmbar expandido para celebrações (Pódio 1º lugar do Ranking).│
+│ 3. Destaque âmbar preenchido para ações prioritárias (botões e banners).  │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 

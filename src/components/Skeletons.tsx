@@ -109,13 +109,6 @@ export function SkeletonRanking() {
         ))}
       </div>
 
-      {/* Pódio Top 3 */}
-      <div className="grid grid-cols-3 gap-2 items-end pt-2">
-        <div className="h-32 rounded-[4px] border border-borda bg-superficie p-2.5 shadow-carimbo" />
-        <div className="h-40 rounded-[4px] border-2 border-destaque/50 bg-superficie p-3 shadow-carimbo -translate-y-1" />
-        <div className="h-28 rounded-[4px] border border-borda bg-superficie p-2.5 shadow-carimbo" />
-      </div>
-
       {/* Tabela de Classificação */}
       <div className="rounded-[4px] border border-borda bg-superficie shadow-carimbo divide-y divide-borda overflow-hidden">
         {Array.from({ length: 6 }).map((_, i) => (

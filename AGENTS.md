@@ -119,7 +119,7 @@ racha/
 │       ├── Login.tsx          # Tela de autenticação por username/senha
 │       ├── Resumo.tsx         # Boletim Oficial da Temporada
 │       ├── Jogos.tsx          # Mural de placares de jogos
-│       ├── Ranking.tsx        # Pódio Top 3 e tabela de classificação
+│       ├── Ranking.tsx        # Tabela de classificação
 │       ├── Perfil.tsx         # Estatísticas individuais e troca de senha
 │       ├── Estatisticas.tsx   # Visão detalhada por jogador
 │       ├── EstatisticasRacha.tsx # Destaques do ano e duplas do racha
@@ -157,7 +157,7 @@ Antes de criar, estilizar ou refatorar qualquer componente, tela ou fluxo visual
 
 ### 4.2 Resumo dos Pilares Invioláveis de Interface
 
-1. **Padrão Estrutural (Listas Contínuas vs. Cards)**: O padrão visual primário para rankings, histórico de jogos e listas de presença é a **lista contínua minimalista** (`divide-y divide-borda/40 border-y border-borda`). Cards com `shadow-carimbo` e borda são reservados **apenas para destaques semânticos reais** (ex: Próxima Partida, Craque da Partida, Banners Push/Offline, Pódio).
+1. **Padrão Estrutural (Listas Contínuas vs. Cards)**: O padrão visual primário para rankings, histórico de jogos e listas de presença é a **lista contínua minimalista** (`divide-y divide-borda/40 border-y border-borda`). Cards com `shadow-carimbo` e borda são reservados **apenas para destaques semânticos reais** (ex: Próxima Partida, Craque da Partida, Banners Push/Offline).
 2. **Tokens Semânticos**: Proibido hardcodar hexadecimais ou cores Tailwind genéricas (`bg-blue-600`, `text-gray-900`) no JSX. Utilize exclusivamente os tokens semânticos (`bg-fundo`, `bg-superficie`, `bg-superficie-2`, `border-borda`, `text-giz`, `text-giz-fraco`, `bg-destaque`, `text-destaque-texto`, `text-destaque-tinta`, `bg-ok`, `bg-perigo`, `bg-campo`, `bg-preto-time`, `bg-branco-time`).
 3. **Tríade Tipográfica Estrita**:
    - **`font-display` (`Barlow Condensed`)**: Títulos, nomes de jogadores, cabeçalhos de súmula, badges, crachás e botões (com `uppercase tracking-wider` ou `tracking-widest`).
