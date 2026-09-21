@@ -331,4 +331,4 @@ CHECK (cardinality(caracteristicas_gerais) <= 2);
 - `gerarEscalacaoAutomatica()` — `src/lib/escalacao.ts`
 - `autoEscalar()` — `src/hooks/useEscalacaoTimes.ts`
 - `JogadorLista` — `src/lib/jogadores.ts`
-- `design-system.md` — Tokens de cor, tipografia de badges e carimbos.
+- `../DESIGN.md` — Tokens de cor, tipografia de badges e carimbos.

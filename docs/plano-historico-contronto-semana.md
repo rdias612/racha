@@ -4,12 +4,12 @@ Implementação do recurso de **Histórico de Confronto de Elencos / Raio-X da P
 
 ---
 
-## 📐 Diretrizes e Regras Seguidas (AGENTS.md & design-system.md)
+## 📐 Diretrizes e Regras Seguidas (AGENTS.md & DESIGN.md)
 
 1. **Regra Zero UUID (7.1)**: Identificadores numéricos `bigint`/`bigserial`.
 2. **Migrations Sequenciais de 3 Dígitos (7.2)**: `074_rpc_historico_confronto_times.sql`.
 3. **Agregação 100% no PostgreSQL (7.3 & 7.5)**: Agregação relacional complexa via RPC `STABLE`, `SECURITY DEFINER`, `SET search_path = public` e `GRANT EXECUTE` explícito.
-4. **Identidade Visual "Súmula de Quinta" (design-system.md)**:
+4. **Identidade Visual "Súmula de Quinta" (DESIGN.md)**:
    - Tipografia estrita: `font-display` (Barlow Condensed) nos cabeçalhos/crachás, `font-mono` (Chivo Mono) nos placares/médias/datas com `tabular-nums`, `font-sans` (Archivo) no corpo de texto.
    - Geometria e superfícies: `rounded-[4px]`, `border border-borda`, `bg-superficie`, `shadow-carimbo`.
    - Cores semânticas exclusivas: `bg-fundo`, `bg-superficie`, `border-borda`, `text-giz`, `text-giz-fraco`, `text-destaque`, `bg-ok`, `bg-perigo`, `bg-preto-time`, `bg-branco-time`.

@@ -2,7 +2,7 @@
 
 > **Aviso para Modelos de Linguagem (LLMs) e Agentes Autônomos**:  
 > Este documento é a **fonte canônica de verdade** sobre arquitetura geral, stack técnica, banco de dados (Supabase/PostgreSQL), segurança e regras de negócio do projeto **Racha Gragoatá CBO**.  
-> 🎨 **Para qualquer desenvolvimento de Frontend, UI, UX, Tokens, Layout, Componentes ou Redação/Tom de Voz**: O arquivo canônico e mandatório é o [`design-system.md`](./design-system.md). Consulte-o obrigatoriamente antes de criar ou refatorar interfaces.
+> 🎨 **Para qualquer desenvolvimento de Frontend, UI, UX, Tokens, Layout, Componentes ou Redação/Tom de Voz**: O arquivo canônico e mandatório é o [`DESIGN.md`](./DESIGN.md). Consulte-o obrigatoriamente antes de criar ou refatorar interfaces.
 > Qualquer contribuição, refatoração ou criação de código deve seguir rigorosamente as diretrizes aqui consolidadas. **Não desvie destes padrões.**
 
 ---
@@ -64,7 +64,7 @@ O **Racha Gragoatá CBO** é uma plataforma progressiva (PWA) de gerenciamento e
 ```text
 racha/
 ├── AGENTS.md                  # Este arquivo (guia canônico para agentes: arquitetura, backend e regras)
-├── design-system.md           # Guia canônico do Design System "Súmula de Quinta" (UI, UX, Tokens, Redação)
+├── DESIGN.md                  # Guia canônico do Design System "Súmula de Quinta" (UI, UX, Tokens, Redação)
 ├── package.json               # Dependências e scripts de desenvolvimento
 ├── vite.config.ts             # Configuração do Vite e plugins
 ├── eslint.config.js           # Configuração ESLint flat config v9+
@@ -144,14 +144,15 @@ racha/
 
 ## 4. Identidade Visual e Design System — "Súmula de Quinta"
 
-> 📖 **Fonte Canônica e Oficial do Design System**: [`design-system.md`](./design-system.md)  
-> Para detalhes aprofundados sobre tokens de cores, escala formal de espaçamento (_spacing tokens_), tipografia, anatomia de componentes, snippets de código, tom de voz em 3 níveis, glossário canônico e checklist de acessibilidade (a11y), **consulte e siga rigorosamente o [`design-system.md`](./design-system.md)**.
+> 📖 **Fonte Canônica e Oficial do Design System**: [`DESIGN.md`](./DESIGN.md)
+>
+> Para detalhes aprofundados sobre tokens de cores, escala formal de espaçamento (_spacing tokens_), tipografia, anatomia de componentes, snippets de código, tom de voz em 3 níveis, glossário canônico e checklist de acessibilidade (a11y), **consulte e siga rigorosamente o [`DESIGN.md`](./DESIGN.md)**.
 
 ### 4.1 Diretriz Mandatória para Agentes e Modelos de IA
 
 Antes de criar, estilizar ou refatorar qualquer componente, tela ou fluxo visual:
 
-1. **Consulte o [`design-system.md`](./design-system.md)** para garantir fidelidade aos tokens, espaçamentos, tipografia e padrões de interface.
+1. **Consulte o [`DESIGN.md`](./DESIGN.md)** para garantir fidelidade aos tokens, espaçamentos, tipografia e padrões de interface.
 2. 🚫 **É TERMINANTEMENTE PROIBIDO criar interfaces com visual SaaS genérico de IA** (como `rounded-xl`, sombras difusas azuladas `shadow-lg`, gradientes desnecessários, fundos brancos puros estéreis ou fontes corporativas genéricas). A estética emula a súmula de mesa, placar de LED e o futebol amador noturno.
 
 ### 4.2 Resumo dos Pilares Invioláveis de Interface
@@ -166,7 +167,7 @@ Antes de criar, estilizar ou refatorar qualquer componente, tela ou fluxo visual
    - Cantos duros: `rounded-[2px]` (badges compactas), `rounded-[3px]`, `rounded-[4px]` (botões, inputs, cards e modais) e no máximo `rounded-[6px]` (diálogos tela cheia).
    - Sombras secas sem blur: `shadow-carimbo`, `shadow-carimbo-destaque`, `shadow-carimbo-preto`.
 5. **Formulários e Foco Acessível**: Inputs e selects em `bg-superficie-2`, `rounded-[4px]`, `text-base` (previne zoom indesejado no iOS) e foco acessível visível (`focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2`).
-6. **Tom de Voz e Glossário Canônico**: Seguir os 3 níveis de comunicação definidos no `design-system.md` (1. Oficial/Administrativo, 2. Funcional/Amigável, 3. Resenha/Pós-Jogo) e os termos oficiais (_Boletim Oficial_, _Artilheiro Oficial_, _Maestro do Racha_, _Craque da Rodada_, _Quadro de Presença_).
+6. **Tom de Voz e Glossário Canônico**: Seguir os 3 níveis de comunicação definidos no `DESIGN.md` (1. Oficial/Administrativo, 2. Funcional/Amigável, 3. Resenha/Pós-Jogo) e os termos oficiais (_Boletim Oficial_, _Artilheiro Oficial_, _Maestro do Racha_, _Craque da Rodada_, _Quadro de Presença_).
 
 ---
 
@@ -516,7 +517,7 @@ Antes de considerar qualquer modificação concluída, valide item por item:
 - [ ] **1. Verificação de Tipos e Linter**: Executou `npm run lint` e o resultado passou com **0 erros**?
 - [ ] **2. Formatação de Código**: Executou `npm run format` para alinhar com o Prettier?
 - [ ] **3. Build de Produção**: O comando `npm run build` gerou a pasta `dist/` sem falhas?
-- [ ] **4. Fidelidade ao Design System (`design-system.md`)**: A interface respeita listas contínuas, cantos 4px, `shadow-carimbo`, tokens semânticos de cor, tom de voz e fontes `Archivo`, `Barlow Condensed` e `Chivo Mono`?
+- [ ] **4. Fidelidade ao Design System (`DESIGN.md`)**: A interface respeita listas contínuas, cantos 4px, `shadow-carimbo`, tokens semânticos de cor, tom de voz e fontes `Archivo`, `Barlow Condensed` e `Chivo Mono`?
 - [ ] **5. Alvos de Toque e Safe Areas**: Todos os botões possuem no mínimo 44px (`min-h-[44px]`) e respeitam safe area insets do iOS/Android?
 - [ ] **6. Strict Rules of Hooks**: Todos os hooks estão no topo da função antes de qualquer retorno condicional?
 - [ ] **7. Race Conditions**: Todo `useEffect` de carregamento trata a flag `let ativo = true` no cleanup (ou delega essa proteção ao `useCache`, seção 5.5)?

@@ -124,7 +124,7 @@ Além disso:
     - `03-regras-negocio-racha.md` (`type: concept`, tags: `[partidas, presenca, times, goleiros, notas]`)
     - `04-modulo-financeiro.md` (`type: concept`, tags: `[mensalidades, avulsos, pix, superadmins]`)
     - `05-ux-mobile-pwa.md` (`type: guideline`, tags: `[haptics, safe-areas, touch-44px, pwa]`)
-  - O arquivo `design-system.md` permanece como o bundle oficial de UI/UX.
+  - O arquivo `DESIGN.md` permanece como o bundle oficial de UI/UX.
 
 ### Alternativa 2: Customização Nativa por Skills sob Demanda (`.agents/skills/`)
 
@@ -173,7 +173,7 @@ Caso você decida avançar com a implementação, a estrutura recomendada é:
 ```text
 racha/
 ├── AGENTS.md                  # 🎯 Hub Central Enxuto (~100 linhas: Stack, Golden Rules, Índice de Conhecimento)
-├── design-system.md           # 🎨 Guia Canônico de UI/UX (já modularizado)
+├── DESIGN.md                  # 🎨 Guia Canônico de UI/UX
 ├── docs/
 │   └── knowledge/             # 📚 OKF Knowledge Bundles (Google Open Knowledge Format)
 │       ├── frontend.md        # [type: guideline] React 19, useCache, Hooks, Skeletons, Feedback
@@ -192,7 +192,7 @@ type: guideline
 title: Padrões de Frontend e React 19
 description: Regras invioláveis de Hooks, cache SWR em memória, prevenção de race conditions e skeletons.
 tags: [react, hooks, useCache, skeletons, frontend]
-related: [../../design-system.md, ./mobile-pwa.md]
+related: [../../DESIGN.md, ./mobile-pwa.md]
 ---
 ```
 

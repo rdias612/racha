@@ -1,8 +1,8 @@
 # 📋 Plano de Implementação: P1-4 — Componentes Gigantes com Responsabilidade Misturada
 
-> **Item da Auditoria**: `P1-4` de [`docs/plano-refatoracoes.md`](./plano-refatoracoes.md)
+> **Item da Auditoria**: `P1-4`
 > **Status**: Proposto — **Rev. 2, reauditado contra o código** no commit `d7ec74a` (28/08/2026)
-> **Fontes Canônicas**: [`AGENTS.md`](../AGENTS.md) e [`design-system.md`](../design-system.md)
+> **Fontes Canônicas**: [`AGENTS.md`](../AGENTS.md) e [`DESIGN.md`](../DESIGN.md)
 > **Escopo**: `src/routes/PartidaDetalhe.tsx`, `src/routes/Administrador.tsx`, `src/routes/Notificacoes.tsx`, `src/routes/GestaoJogadores.tsx`, `src/routes/PartidaEditar.tsx`, `src/components/EventosAutomaticosFinanceiro.tsx`.
 
 ---
@@ -11,7 +11,7 @@
 
 Seis arquivos do projeto acumulam de 475 a 817 linhas cada (contagem via `wc -l` no commit `d7ec74a`), misturando coordenação de tela, formulários complexos, listas com ações transacionais, subcomponentes inline e modais inteiros no mesmo arquivo. Dois deles já têm subcomponentes inline prontos para extração (`Confirmacoes`/`BotoesSelf`/`BotoesAdmin` em `PartidaDetalhe`; `StepperBox` em `PartidaEditar`).
 
-> **Fronteira de escopo**: `Comparador.tsx` (554), `Ranking.tsx` (530), `EscalacaoTimesEditor.tsx` (520) e `GestaoGoleiros.tsx` (469) também estão na faixa de 450–560 linhas, mas ficam **fora** deste item — o P1-4 da auditoria delimitou estes seis arquivos. Se desejado, viram item próprio no [`docs/plano-refatoracoes.md`](./plano-refatoracoes.md).
+> **Fronteira de escopo**: `Comparador.tsx` (554), `Ranking.tsx` (530), `EscalacaoTimesEditor.tsx` (520) e `GestaoGoleiros.tsx` (469) também estão na faixa de 450–560 linhas, mas ficam **fora** deste item — o P1-4 da auditoria delimitou estes seis arquivos. Se desejado, podem ser tratados em uma futura consolidação de planos.
 
 ### 🚫 Problemas Identificados (verificados no código atual):
 
@@ -25,7 +25,7 @@ Seis arquivos do projeto acumulam de 475 a 817 linhas cada (contagem via `wc -l`
 2. **Extrair 18 componentes especializados** para `src/components/`, com props tipadas estritamente e contratos unidirecionais (dados descem, ações sobem).
 3. **Internalizar estado de UI pura nos componentes extraídos** (`expandido`, `bucketAberto`, busca/filtro do modal) — correção direta ao problema nº 2.
 4. **Preservar integralmente o comportamento funcional**: mesmas RPCs, mesmo fluxo de otimista/rollback, mesmos textos e classes visuais. Refatoração de movimentação de código, sem mudança de regra de negócio.
-5. **Fidelidade estrita a [`AGENTS.md`](../AGENTS.md) e [`design-system.md`](../design-system.md)**: hooks no topo, alvos ≥ 44px, tríade tipográfica, tokens semânticos, `shadow-carimbo`.
+5. **Fidelidade estrita a [`AGENTS.md`](../AGENTS.md) e [`DESIGN.md`](../DESIGN.md)**: hooks no topo, alvos ≥ 44px, tríade tipográfica, tokens semânticos, `shadow-carimbo`.
 
 ### 📌 O que mudou desde a Rev. 1 (plano original de 27/08):
 
