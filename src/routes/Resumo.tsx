@@ -160,7 +160,7 @@ export function Resumo() {
         {/* Rodapé Editorial do Boletim */}
         <div className="pt-4 text-center">
           <p className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
-            Racha Gragoatá · desde 2024 · toda quinta, CBO
+            Racha Gragoatá · desde 2022 · toda quinta, CBO
           </p>
         </div>
       </div>

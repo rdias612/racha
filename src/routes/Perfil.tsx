@@ -286,7 +286,7 @@ export function Perfil() {
       {/* Footer de Boletim */}
       <div className="pt-2 text-center">
         <p className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
-          Racha Gragoatá · desde 2024 · toda quinta, CBO
+          Racha Gragoatá · desde 2022 · toda quinta, CBO
         </p>
       </div>
     </div>
