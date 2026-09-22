@@ -15,11 +15,42 @@ function isIOS() {
   );
 }
 
-// Detecta se o app já está rodando em modo standalone (instalado).
+const CHAVE_PWA_INSTALADO = 'racha_pwa_instalado';
+
+function lerPwaInstalado(): boolean {
+  try {
+    return localStorage.getItem(CHAVE_PWA_INSTALADO) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function gravarPwaInstalado(status: boolean) {
+  try {
+    if (status) {
+      localStorage.setItem(CHAVE_PWA_INSTALADO, '1');
+    } else {
+      localStorage.removeItem(CHAVE_PWA_INSTALADO);
+    }
+  } catch {
+    /* storage indisponível: segue sem gravar */
+  }
+}
+
+// Detecta se o app já está rodando em modo standalone (instalado) ou gravado localmente.
 function isStandalone() {
-  return (
-    window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true
-  );
+  if (typeof window === 'undefined') return false;
+  const standaloneDisplay =
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.matchMedia('(display-mode: fullscreen)').matches ||
+    window.matchMedia('(display-mode: minimal-ui)').matches ||
+    window.matchMedia('(display-mode: window-controls-overlay)').matches;
+  const navigatorStandalone =
+    (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+  const androidAppReferrer =
+    typeof document !== 'undefined' && document.referrer.startsWith('android-app://');
+
+  return standaloneDisplay || navigatorStandalone || androidAppReferrer || lerPwaInstalado();
 }
 
 // --- Store module-level: o listener é registrado uma única vez no boot,
@@ -71,15 +102,35 @@ export function initPWA() {
 
   registrarServiceWorker();
 
+  // Checagem assíncrona nativa do Chromium se o app já está instalado no celular
+  if ('getInstalledRelatedApps' in navigator) {
+    (navigator as unknown as { getInstalledRelatedApps: () => Promise<unknown[]> })
+      .getInstalledRelatedApps()
+      .then((apps) => {
+        if (apps && apps.length > 0) {
+          instalado = true;
+          gravarPwaInstalado(true);
+          notificar();
+        }
+      })
+      .catch(() => {
+        // Falha silenciosa se não suportado ou bloqueado
+      });
+  }
+
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault(); // impede o banner/mini-infobar automático do Chrome
     deferredPrompt = e as BeforeInstallPromptEvent;
-    instalado = false;
+    // Não reverte para não-instalado se o usuário já instalou anteriormente
+    if (!isStandalone() && !lerPwaInstalado()) {
+      instalado = false;
+    }
     notificar();
   });
   window.addEventListener('appinstalled', () => {
     deferredPrompt = null;
     instalado = true;
+    gravarPwaInstalado(true);
     notificar();
   });
 }
@@ -88,7 +139,11 @@ export function initPWA() {
 export async function instalar() {
   if (!deferredPrompt) return;
   await deferredPrompt.prompt();
-  await deferredPrompt.userChoice;
+  const choice = await deferredPrompt.userChoice;
+  if (choice.outcome === 'accepted') {
+    instalado = true;
+    gravarPwaInstalado(true);
+  }
   deferredPrompt = null;
   notificar();
 }

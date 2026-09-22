@@ -6,11 +6,16 @@ import { formatarMensagemErro } from '../lib/erros';
 import { vibrateSuccess, vibrateError, vibrateLight } from '../lib/haptics';
 import { MensagemEstado } from './Estado';
 
+interface CardNotificacoesProps {
+  ocultarQuandoAtivo?: boolean;
+}
+
 /**
- * Cartão para ativação e controle de notificações Push na tela inicial (Resumo).
- * Melhora a retenção e adesão dos jogadores a instalar o PWA e receber lembretes de jogos/votação.
+ * Cartão para ativação e controle de notificações Push.
+ * Na tela inicial (Resumo), oculta-se quando já ativado para evitar poluição visual.
+ * Na aba Perfil, permite o controle completo (ativar/desativar).
  */
-export function CardNotificacoes() {
+export function CardNotificacoes({ ocultarQuandoAtivo = false }: CardNotificacoesProps = {}) {
   const { jogador } = useSessao();
   const [pushStatus, setPushStatus] = useState<StatusPush>('desativado');
   const [carregandoPush, setCarregandoPush] = useState(true);
@@ -62,6 +67,10 @@ export function CardNotificacoes() {
 
   // Não renderiza nada durante a checagem inicial para evitar flicker
   if (carregandoPush) return null;
+
+  // Na tela inicial (ou onde ocultarQuandoAtivo for true), se já ativado,
+  // não renderiza o card para não poluir o boletim com o botão de desativar.
+  if (ocultarQuandoAtivo && pushStatus === 'ativado') return null;
 
   return (
     <section className="rounded-[4px] border border-borda bg-superficie p-3.5 shadow-carimbo space-y-2.5">

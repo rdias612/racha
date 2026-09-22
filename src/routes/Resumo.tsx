@@ -135,7 +135,7 @@ export function Resumo() {
         </div>
 
         <BotaoInstalar />
-        <CardNotificacoes />
+        <CardNotificacoes ocultarQuandoAtivo />
 
         <CardProximaPartida proxima={proxima} />
 

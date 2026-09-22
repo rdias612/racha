@@ -15,6 +15,7 @@ import { vibrateError, vibrateSuccess } from '../lib/haptics';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { StatBox } from '../components/StatBox';
 import { SkeletonPerfil } from '../components/Skeletons';
+import { CardNotificacoes } from '../components/CardNotificacoes';
 import { QrCode, Phone } from 'lucide-react';
 import { formatarMensagemErro } from '../lib/erros';
 
@@ -318,6 +319,9 @@ export function Perfil() {
           </button>
         </form>
       </section>
+
+      {/* Lembretes e Notificações Push */}
+      <CardNotificacoes />
 
       {/* Trocar senha */}
       <section className="rounded-[4px] border border-borda bg-superficie p-3.5 shadow-carimbo space-y-3">
