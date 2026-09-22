@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState, useMemo } from 'react';
 import { NavLink, useParams } from 'react-router-dom';
+import { SlidersHorizontal, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { POSICOES, type PosicaoId } from '../lib/times';
+import { vibrateLight } from '../lib/haptics';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
 import { useCache } from '../hooks/useCache';
 import { chaveRanking } from '../lib/chavesCache';
@@ -9,6 +11,7 @@ import { useSwipeTabs } from '../hooks/useSwipeTabs';
 import { MensagemEstado } from '../components/Estado';
 import { SkeletonRanking } from '../components/Skeletons';
 import { PullToRefresh } from '../components/PullToRefresh';
+import { ModalFiltrosRanking, type PosicaoFiltro } from '../components/ModalFiltrosRanking';
 
 type Metrica = 'pontos' | 'gols' | 'assistencias' | 'gols-contra';
 type CampoMetrica = 'pontos' | 'gols' | 'assistencias' | 'gols_contra';
@@ -55,12 +58,6 @@ interface LinhaRanking {
   gols_contra: number;
 }
 
-type PosicaoFiltro = Exclude<PosicaoId, 'random'> | 'todas';
-
-const POSICOES_FILTRO = (Object.keys(POSICOES) as PosicaoId[]).filter(
-  (pos): pos is Exclude<PosicaoId, 'random'> => pos !== 'random'
-);
-
 export function Ranking() {
   const jogadorLogado = useJogadorLogado();
   const { metrica: parametro } = useParams<{ metrica: Metrica }>();
@@ -70,6 +67,28 @@ export function Ranking() {
   const [direcaoOrdenacao, setDirecaoOrdenacao] = useState<DirecaoOrdenacao>('desc');
   const [posicaoFiltro, setPosicaoFiltro] = useState<PosicaoFiltro>('todas');
   const [minimoPartidas, setMinimoPartidas] = useState(6);
+  const [modalFiltrosAberto, setModalFiltrosAberto] = useState(false);
+
+  function handleAplicarFiltros(novaPosicao: PosicaoFiltro, novoMinimo: number) {
+    setPosicaoFiltro(novaPosicao);
+    setMinimoPartidas(novoMinimo);
+  }
+
+  function handleLimparFiltros() {
+    vibrateLight();
+    setPosicaoFiltro('todas');
+    setMinimoPartidas(6);
+  }
+
+  function handleRemoverFiltroPosicao() {
+    vibrateLight();
+    setPosicaoFiltro('todas');
+  }
+
+  function handleRemoverFiltroMinimo() {
+    vibrateLight();
+    setMinimoPartidas(6);
+  }
 
   const { handlers: swipeHandlers } = useSwipeTabs({
     tabs: ['/ranking/pontos', '/ranking/gols', '/ranking/assistencias', '/ranking/gols-contra'],
@@ -184,6 +203,10 @@ export function Ranking() {
     return linhasOrdenadas.filter((linha) => linha.partidas >= minimoPartidas);
   }, [linhasOrdenadas, minimoPartidas]);
 
+  const posicaoAtiva = posicaoFiltro !== 'todas';
+  const partidasAtivas = minimoPartidas !== 6;
+  const totalFiltrosAtivos = (posicaoAtiva ? 1 : 0) + (partidasAtivas ? 1 : 0);
+
   if (carregando) return <SkeletonRanking />;
   // Erro apenas na primeira visita (sem cache): com dados em tela, a falha de
   // revalidação em background é tolerada silenciosamente.
@@ -258,65 +281,107 @@ export function Ranking() {
           </NavLink>
         </div>
 
-        {/* Filtros */}
-        <div className="mb-4 space-y-3 rounded-[4px] border border-borda bg-superficie p-3 shadow-carimbo">
-          <div>
-            <span className="block text-xs font-display font-bold uppercase tracking-wider text-giz-fraco mb-1.5">
-              Posição
+        {/* Barra de Ferramentas / Filtros */}
+        <div className="mb-3 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-display uppercase tracking-wider text-giz-fraco">
+              {linhasFiltradas.length === linhas.length ? (
+                <>
+                  <span className="font-mono font-bold text-giz">{linhas.length}</span> atletas no
+                  boletim
+                </>
+              ) : (
+                <>
+                  Exibindo{' '}
+                  <span className="font-mono font-bold text-giz">{linhasFiltradas.length}</span> de{' '}
+                  <span className="font-mono text-giz">{linhas.length}</span> atletas
+                </>
+              )}
             </span>
-            <div className="flex flex-wrap gap-1.5">
-              <button
-                type="button"
-                onClick={() => setPosicaoFiltro('todas')}
-                className={`min-h-[44px] inline-flex items-center justify-center rounded-[3px] px-3 py-1.5 text-xs font-display font-bold uppercase tracking-wider transition cursor-pointer ${
-                  posicaoFiltro === 'todas'
-                    ? 'bg-destaque text-destaque-tinta shadow-xs'
-                    : 'border border-borda bg-superficie-2 text-giz-fraco hover:text-giz'
-                }`}
-              >
-                Todas
-              </button>
-              {POSICOES_FILTRO.map((pos) => (
-                <button
-                  key={pos}
-                  type="button"
-                  onClick={() => setPosicaoFiltro(pos)}
-                  className={`min-h-[44px] inline-flex items-center justify-center rounded-[3px] px-3 py-1.5 text-xs font-display font-bold uppercase tracking-wider transition cursor-pointer ${
-                    posicaoFiltro === pos
-                      ? 'bg-destaque text-destaque-tinta shadow-xs'
-                      : 'border border-borda bg-superficie-2 text-giz-fraco hover:text-giz'
-                  }`}
-                >
-                  {POSICOES[pos]}
-                </button>
-              ))}
-            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                vibrateLight();
+                setModalFiltrosAberto(true);
+              }}
+              aria-haspopup="dialog"
+              aria-expanded={modalFiltrosAberto}
+              className={`min-h-[40px] px-3 py-1.5 rounded-[4px] border inline-flex items-center gap-1.5 font-display uppercase tracking-wider text-xs font-bold transition cursor-pointer select-none active:translate-y-px ${
+                totalFiltrosAtivos > 0
+                  ? 'border-destaque bg-destaque/10 text-destaque-texto shadow-xs font-black'
+                  : 'border-borda bg-superficie text-giz-fraco hover:text-giz hover:bg-superficie-2 shadow-xs'
+              }`}
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>Filtros</span>
+              {totalFiltrosAtivos > 0 && (
+                <span className="font-mono text-[10px] px-1.5 py-0.2 rounded-[2px] bg-destaque text-destaque-tinta font-black">
+                  {totalFiltrosAtivos}
+                </span>
+              )}
+            </button>
           </div>
 
-          <div>
-            <div className="flex items-center justify-between text-xs font-display font-bold uppercase tracking-wider text-giz-fraco mb-1">
-              <span>Mínimo de partidas</span>
-              <span className="font-mono text-destaque-texto">{minimoPartidas} jogos</span>
+          {/* Chips de filtros ativos */}
+          {totalFiltrosAtivos > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+              {posicaoAtiva && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-[3px] border border-destaque/40 bg-destaque/10 text-destaque-texto text-xs font-display font-bold uppercase tracking-wider">
+                  <span>Posição: {POSICOES[posicaoFiltro]}</span>
+                  <button
+                    type="button"
+                    onClick={handleRemoverFiltroPosicao}
+                    aria-label="Remover filtro de posição"
+                    className="hover:text-giz cursor-pointer p-0.5"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {partidasAtivas && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-[3px] border border-destaque/40 bg-destaque/10 text-destaque-texto text-xs font-display font-bold uppercase tracking-wider">
+                  <span>Mín. {minimoPartidas} jogos</span>
+                  <button
+                    type="button"
+                    onClick={handleRemoverFiltroMinimo}
+                    aria-label="Remover filtro de mínimo de partidas"
+                    className="hover:text-giz cursor-pointer p-0.5"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={handleLimparFiltros}
+                className="text-[11px] font-display uppercase tracking-wider text-giz-fraco hover:text-giz underline cursor-pointer ml-1"
+              >
+                Limpar
+              </button>
             </div>
-            <input
-              type="range"
-              min={0}
-              max={maximoPartidas}
-              value={minimoPartidas}
-              onChange={(e) =>
-                setMinimoPartidas(
-                  Number(e.target.value) <= maximoPartidas ? Number(e.target.value) : maximoPartidas
-                )
-              }
-              className="w-full accent-destaque"
-            />
-          </div>
+          )}
         </div>
 
         {linhasFiltradas.length === 0 ? (
-          <MensagemEstado tipo="info">
-            O ranking nasce no primeiro apito. Nada publicado com esses filtros ainda.
-          </MensagemEstado>
+          <div className="space-y-3">
+            <MensagemEstado tipo="info">
+              {totalFiltrosAtivos > 0
+                ? 'Nenhum atleta encontrado com os filtros atuais.'
+                : 'O ranking nasce no primeiro apito. Nada publicado com esses filtros ainda.'}
+            </MensagemEstado>
+            {totalFiltrosAtivos > 0 && (
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={handleLimparFiltros}
+                  className="min-h-[44px] inline-flex items-center justify-center rounded-[4px] border border-borda bg-superficie px-4 py-2 text-xs font-display font-bold uppercase tracking-wider text-giz hover:bg-superficie-2 transition shadow-carimbo cursor-pointer"
+                >
+                  Redefinir filtros
+                </button>
+              </div>
+            )}
+          </div>
         ) : (
           <TabelaRanking
             linhas={linhasFiltradas}
@@ -328,6 +393,16 @@ export function Ranking() {
             jogadorLogadoId={jogadorLogado?.id}
           />
         )}
+
+        <ModalFiltrosRanking
+          open={modalFiltrosAberto}
+          onClose={() => setModalFiltrosAberto(false)}
+          posicao={posicaoFiltro}
+          minimoPartidas={minimoPartidas}
+          maximoPartidas={maximoPartidas}
+          onAplicar={handleAplicarFiltros}
+          onLimpar={handleLimparFiltros}
+        />
       </div>
     </PullToRefresh>
   );

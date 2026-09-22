@@ -109,6 +109,12 @@ export function SkeletonRanking() {
         ))}
       </div>
 
+      {/* Barra de Ferramentas / Filtros */}
+      <div className="flex justify-between items-center py-0.5">
+        <div className="h-3.5 w-28 bg-superficie-2 border border-borda rounded-[2px]" />
+        <div className="h-8 w-20 bg-superficie-2 border border-borda rounded-[4px]" />
+      </div>
+
       {/* Tabela de Classificação */}
       <div className="rounded-[4px] border border-borda bg-superficie shadow-carimbo divide-y divide-borda overflow-hidden">
         {Array.from({ length: 6 }).map((_, i) => (
@@ -364,7 +370,10 @@ export function SkeletonNotificacoes() {
       {/* Abas */}
       <div className="flex gap-1 overflow-x-auto rounded-[4px] border border-borda bg-superficie p-1">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="flex-1 min-w-max h-11 rounded-[3px] bg-superficie-2 border border-borda" />
+          <div
+            key={i}
+            className="flex-1 min-w-max h-11 rounded-[3px] bg-superficie-2 border border-borda"
+          />
         ))}
       </div>
 
@@ -412,7 +421,10 @@ export function SkeletonNotificacoesSaude() {
       {/* Abas */}
       <div className="flex gap-1 overflow-x-auto rounded-[4px] border border-borda bg-superficie p-1">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="flex-1 min-w-max h-11 rounded-[3px] bg-superficie-2 border border-borda" />
+          <div
+            key={i}
+            className="flex-1 min-w-max h-11 rounded-[3px] bg-superficie-2 border border-borda"
+          />
         ))}
       </div>
 
@@ -434,7 +446,10 @@ export function SkeletonNotificacoesSaude() {
         {/* Linhas de atletas */}
         <div className="divide-y divide-borda/40 border-y border-borda">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="min-h-[44px] py-2.5 px-1 flex items-center justify-between gap-3">
+            <div
+              key={i}
+              className="min-h-[44px] py-2.5 px-1 flex items-center justify-between gap-3"
+            >
               <div className="h-3.5 w-28 bg-superficie-2 border border-borda rounded-[2px]" />
               <div className="flex items-center gap-2">
                 <div className="h-3 w-16 bg-superficie-2 border border-borda rounded-[2px]" />
