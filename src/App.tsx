@@ -62,7 +62,10 @@ export function App() {
           <Route path="/gestao-jogadores" element={<GestaoJogadores />} />
           <Route path="/gestao-goleiros" element={<GestaoGoleiros />} />
           <Route path="/administrador" element={<Administrador />} />
-          <Route path="/notificacoes" element={<Navigate to="/notificacoes/confirmacao" replace />} />
+          <Route
+            path="/notificacoes"
+            element={<Navigate to="/notificacoes/confirmacao" replace />}
+          />
           <Route path="/notificacoes/confirmacao" element={<NotificacoesConfirmacao />} />
           <Route path="/notificacoes/votacao" element={<NotificacoesVotacao />} />
           <Route path="/notificacoes/testes" element={<NotificacoesTestes />} />

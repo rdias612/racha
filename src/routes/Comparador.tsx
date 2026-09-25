@@ -20,7 +20,10 @@ import { PullToRefresh } from '../components/PullToRefresh';
 import { vibrateLight } from '../lib/haptics';
 import { DueloCard } from '../components/DueloCard';
 import { SeletorAtletasComparador } from '../components/SeletorAtletasComparador';
-import { SecaoMetricasComparador, type MetricaComparativa } from '../components/SecaoMetricasComparador';
+import {
+  SecaoMetricasComparador,
+  type MetricaComparativa,
+} from '../components/SecaoMetricasComparador';
 import { SecaoJuntosComparador } from '../components/SecaoJuntosComparador';
 import { SecaoAdversosComparador } from '../components/SecaoAdversosComparador';
 import { HistoricoComparador } from '../components/HistoricoComparador';

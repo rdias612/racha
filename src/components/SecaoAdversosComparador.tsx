@@ -30,14 +30,10 @@ export function SecaoAdversosComparador({
             </span>
           </div>
           <LinhaAtletaContexto username={usernameA} linha={linhaA} comRetrospecto />
-          {linhaB && (
-            <LinhaAtletaContexto username={usernameB} linha={linhaB} comRetrospecto />
-          )}
+          {linhaB && <LinhaAtletaContexto username={usernameB} linha={linhaB} comRetrospecto />}
         </div>
       ) : (
-        <MensagemEstado tipo="info">
-          Ainda não se enfrentaram em campos opostos.
-        </MensagemEstado>
+        <MensagemEstado tipo="info">Ainda não se enfrentaram em campos opostos.</MensagemEstado>
       )}
     </section>
   );

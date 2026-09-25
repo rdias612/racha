@@ -9,12 +9,7 @@ interface DueloCardProps {
 }
 
 /** Card do duelo: dois lados, separador e botão de inversão. */
-export function DueloCard({
-  usernameA,
-  usernameB,
-  idBSelecionado,
-  onTrocarLados,
-}: DueloCardProps) {
+export function DueloCard({ usernameA, usernameB, idBSelecionado, onTrocarLados }: DueloCardProps) {
   return (
     <div className="rounded-[4px] border border-borda bg-superficie p-3 shadow-carimbo">
       <div className="flex items-center gap-2">

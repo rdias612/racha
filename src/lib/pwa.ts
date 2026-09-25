@@ -15,29 +15,10 @@ function isIOS() {
   );
 }
 
-const CHAVE_PWA_INSTALADO = 'racha_pwa_instalado';
-
-function lerPwaInstalado(): boolean {
-  try {
-    return localStorage.getItem(CHAVE_PWA_INSTALADO) === '1';
-  } catch {
-    return false;
-  }
-}
-
-export function gravarPwaInstalado(status: boolean) {
-  try {
-    if (status) {
-      localStorage.setItem(CHAVE_PWA_INSTALADO, '1');
-    } else {
-      localStorage.removeItem(CHAVE_PWA_INSTALADO);
-    }
-  } catch {
-    /* storage indisponível: segue sem gravar */
-  }
-}
-
-// Detecta se o app já está rodando em modo standalone (instalado) ou gravado localmente.
+// Detecta se o app já está rodando em modo standalone (instalado).
+// O estado de "instalado" NUNCA é persistido no localStorage: o storage do
+// navegador sobrevive à desinstalação do PWA e deixaria o estado preso em
+// "instalado", impedindo o cartão de instalação de reaparecer.
 function isStandalone() {
   if (typeof window === 'undefined') return false;
   const standaloneDisplay =
@@ -50,7 +31,7 @@ function isStandalone() {
   const androidAppReferrer =
     typeof document !== 'undefined' && document.referrer.startsWith('android-app://');
 
-  return standaloneDisplay || navigatorStandalone || androidAppReferrer || lerPwaInstalado();
+  return standaloneDisplay || navigatorStandalone || androidAppReferrer;
 }
 
 // --- Store module-level: o listener é registrado uma única vez no boot,
@@ -109,7 +90,6 @@ export function initPWA() {
       .then((apps) => {
         if (apps && apps.length > 0) {
           instalado = true;
-          gravarPwaInstalado(true);
           notificar();
         }
       })
@@ -121,16 +101,15 @@ export function initPWA() {
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault(); // impede o banner/mini-infobar automático do Chrome
     deferredPrompt = e as BeforeInstallPromptEvent;
-    // Não reverte para não-instalado se o usuário já instalou anteriormente
-    if (!isStandalone() && !lerPwaInstalado()) {
-      instalado = false;
-    }
+    // O navegador só dispara este evento quando o PWA NÃO está instalado:
+    // é a evidência autoritativa de desinstalação e deve prevalecer sobre
+    // qualquer estado anterior da sessão.
+    instalado = false;
     notificar();
   });
   window.addEventListener('appinstalled', () => {
     deferredPrompt = null;
     instalado = true;
-    gravarPwaInstalado(true);
     notificar();
   });
 }
@@ -142,7 +121,6 @@ export async function instalar() {
   const choice = await deferredPrompt.userChoice;
   if (choice.outcome === 'accepted') {
     instalado = true;
-    gravarPwaInstalado(true);
   }
   deferredPrompt = null;
   notificar();

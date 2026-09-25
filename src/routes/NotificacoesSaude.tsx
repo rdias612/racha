@@ -7,10 +7,7 @@ import { useSwipeTabs } from '../hooks/useSwipeTabs';
 import { BotaoVoltar } from '../components/BotaoVoltar';
 import { AbasNotificacoes } from '../components/AbasNotificacoes';
 import { SecaoNotificacaoSaude } from '../components/SecaoNotificacaoSaude';
-import {
-  obterPainelEntregasPush,
-  type PainelEntregaJogador,
-} from '../lib/notificacoes';
+import { obterPainelEntregasPush, type PainelEntregaJogador } from '../lib/notificacoes';
 import { formatarMensagemErro } from '../lib/erros';
 
 const TABS_NOTIFICACOES = [

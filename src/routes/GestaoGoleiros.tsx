@@ -18,9 +18,7 @@ import { Snackbar } from '../components/Snackbar';
 import { useSnackbar } from '../hooks/useSnackbar';
 import { BotaoVoltar } from '../components/BotaoVoltar';
 import { CampoBusca } from '../components/CampoBusca';
-import {
-  UserPlus,
-} from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 import { ListaGoleiros } from '../components/ListaGoleiros';
 
 export function GestaoGoleiros() {

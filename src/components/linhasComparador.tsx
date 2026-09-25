@@ -25,7 +25,8 @@ export function LinhaAtletaContexto({
       <p className="shrink-0 font-mono text-[11px] tabular-nums text-giz-fraco">
         <span className="font-bold text-giz">{linha.gols}</span>G{' '}
         <span className="font-bold text-giz">{linha.assistencias}</span>A{' '}
-        <span aria-hidden="true">·</span> {linha.media_nota != null ? linha.media_nota.toFixed(1) : '—'}
+        <span aria-hidden="true">·</span>{' '}
+        {linha.media_nota != null ? linha.media_nota.toFixed(1) : '—'}
       </p>
     </div>
   );

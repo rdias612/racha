@@ -88,18 +88,18 @@ HAVING count(*) > 1 OR count(*) FILTER (WHERE username <> trim(username)) > 0;
 2. Confirmar que o índice existe e que `criar_jogador`/`alterar_username` estão na assinatura esperada.
 3. Executar a matriz abaixo no frontend e no banco/RPC:
 
-| Caso                              | Resultado esperado                |
-| --------------------------------- | --------------------------------- |
-| `john`                            | Aceito                            |
-| `john123`                         | Aceito                            |
-| `joão`                            | Aceito                            |
-| `john_doe`                        | Aceito                            |
-| `j` ou 31 caracteres              | Rejeitado                         |
-| `random`, `random1`, `RANDOM_x`   | Rejeitado                         |
-| espaço, hífen ou ponto            | Rejeitado                         |
-| `john` versus `JOHN`              | Segunda operação rejeitada        |
+| Caso                              | Resultado esperado                                                                 |
+| --------------------------------- | ---------------------------------------------------------------------------------- |
+| `john`                            | Aceito                                                                             |
+| `john123`                         | Aceito                                                                             |
+| `joão`                            | Aceito                                                                             |
+| `john_doe`                        | Aceito                                                                             |
+| `j` ou 31 caracteres              | Rejeitado                                                                          |
+| `random`, `random1`, `RANDOM_x`   | Rejeitado                                                                          |
+| espaço, hífen ou ponto            | Rejeitado                                                                          |
+| `john` versus `JOHN`              | Segunda operação rejeitada                                                         |
 | alteração `john` → `John`         | Aceita no próprio registro; rejeitada se outro jogador já tiver `john`/equivalente |
-| superadmin por ID alterando caixa | Mantém privilégio                 |
+| superadmin por ID alterando caixa | Mantém privilégio                                                                  |
 
 4. Executar `npm run lint` e `npm run build`.
 5. Registrar a confirmação de migration remota e os resultados da matriz; sem essa evidência o plano permanece bloqueado.

@@ -66,17 +66,13 @@ export function Toggle({
       />
       <div
         className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border p-0.5 transition-colors duration-200 ease-in-out peer-focus-visible:outline-2 peer-focus-visible:outline-destaque-texto peer-focus-visible:outline-offset-2 ${
-          checked
-            ? 'border-destaque bg-destaque'
-            : 'border-borda bg-superficie-2'
+          checked ? 'border-destaque bg-destaque' : 'border-borda bg-superficie-2'
         } ${switchClassName}`}
         aria-hidden="true"
       >
         <span
           className={`pointer-events-none inline-block size-4.5 rounded-full shadow-xs transition-transform duration-200 ease-in-out ${
-            checked
-              ? 'translate-x-5 bg-destaque-tinta'
-              : 'translate-x-0 bg-giz-fraco'
+            checked ? 'translate-x-5 bg-destaque-tinta' : 'translate-x-0 bg-giz-fraco'
           }`}
         />
       </div>

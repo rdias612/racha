@@ -1,14 +1,4 @@
-import {
-  Phone,
-  QrCode,
-  Copy,
-  Check,
-  Edit2,
-  Save,
-  X,
-  Power,
-  Shield,
-} from 'lucide-react';
+import { Phone, QrCode, Copy, Check, Edit2, Save, X, Power, Shield } from 'lucide-react';
 import type { JogadorLista } from '../lib/jogadores';
 
 interface LinhaGoleiroProps {
@@ -67,7 +57,9 @@ export function LinhaGoleiro({
               </h3>
               <span
                 className={`inline-block px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-wider rounded-[2px] border ${
-                  g.is_ativo ? 'bg-ok/15 text-ok border-ok/40' : 'bg-perigo/15 text-perigo border-perigo/40'
+                  g.is_ativo
+                    ? 'bg-ok/15 text-ok border-ok/40'
+                    : 'bg-perigo/15 text-perigo border-perigo/40'
                 }`}
               >
                 {g.is_ativo ? 'Ativo' : 'Inativo'}
@@ -79,9 +71,7 @@ export function LinhaGoleiro({
                 </span>
               )}
               {g.posicao_b && (
-                <span className="text-[11px] font-mono text-giz-fraco">
-                  (Linha: {g.posicao_b})
-                </span>
+                <span className="text-[11px] font-mono text-giz-fraco">(Linha: {g.posicao_b})</span>
               )}
             </div>
           </div>
