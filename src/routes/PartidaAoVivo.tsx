@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { CampoPartida } from '../components/CampoPartida';
+import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { DialogoEvento } from '../components/DialogoEvento';
 import { Carregando, MensagemEstado } from '../components/Estado';
@@ -241,33 +242,34 @@ export function PartidaAoVivo() {
       <BotaoVoltar fallback={`/partida/${partida.id}`} />
 
       {/* Cabeçalho da Súmula */}
-      <div className="sumula-header pb-2 flex items-start justify-between">
-        <div>
-          <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
-            Partida #{partida.id}
-          </h2>
+      <CabecalhoSumula
+        titulo={`Partida #${partida.id}`}
+        kicker={
           <p className="text-xs text-giz-fraco capitalize font-mono mt-0.5">
             <span className="sm:hidden">{formatarDataMobile(partida.data_jogo)}</span>
             <span className="hidden sm:inline">{formatarDataCompleta(partida.data_jogo)}</span>
           </p>
-        </div>
-        <div className="text-right">
-          <span
-            className={`inline-block font-display font-black uppercase tracking-widest text-[10px] border px-2 py-0.5 rounded-[2px] shadow-xs ${
-              partida.status === 'live'
-                ? 'border-destaque text-destaque-texto bg-destaque/10'
-                : 'border-borda text-giz-fraco bg-superficie-2'
-            }`}
-          >
-            {STATUS_LABEL[partida.status]}
-          </span>
-          {aoVivo && (
-            <p className="text-[10px] font-mono text-destaque-texto flex items-center justify-end gap-1 mt-1 animate-pulse">
-              <span className="size-1.5 rounded-full bg-destaque" /> AO VIVO
-            </p>
-          )}
-        </div>
-      </div>
+        }
+        acao={
+          <div className="text-right">
+            <span
+              className={`inline-block font-display font-black uppercase tracking-widest text-[10px] border px-2 py-0.5 rounded-[2px] shadow-xs ${
+                partida.status === 'live'
+                  ? 'border-destaque text-destaque-texto bg-destaque/10'
+                  : 'border-borda text-giz-fraco bg-superficie-2'
+              }`}
+            >
+              {STATUS_LABEL[partida.status]}
+            </span>
+            {aoVivo && (
+              <p className="text-[10px] font-mono text-destaque-texto flex items-center justify-end gap-1 mt-1 animate-pulse">
+                <span className="size-1.5 rounded-full bg-destaque" /> AO VIVO
+              </p>
+            )}
+          </div>
+        }
+        className="items-start"
+      />
 
       {partida.status === 'draft' && (
         <MensagemEstado tipo="info">
