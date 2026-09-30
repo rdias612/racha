@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2, Plus } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 import { useAdmin } from '../hooks/useAdmin';
 import { useCache } from '../hooks/useCache';
 import { CHAVE_JOGOS, invalidarCachesDependentesDePartida } from '../lib/chavesCache';
@@ -13,64 +12,33 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Snackbar } from '../components/Snackbar';
 import { useSnackbar } from '../hooks/useSnackbar';
 import { formatarDataLista } from '../lib/formatacao';
-import { STATUS_LABEL, excluirPartida, type StatusPartida } from '../lib/partidas';
+import {
+  STATUS_LABEL,
+  carregarMuralJogos,
+  excluirPartida,
+  type MuralJogos,
+  type PartidaMural,
+} from '../lib/partidas';
 import { PullToRefresh } from '../components/PullToRefresh';
 import { Badge } from '../components/Badge';
 import { PainelPlacar } from '../components/PainelPlacar';
 import { formatarMensagemErro } from '../lib/erros';
 
-interface Partida {
-  id: number;
-  data_jogo: string;
-  status: StatusPartida;
-}
-
-interface Placar {
-  partida_id: number;
-  gols_time_a: number;
-  gols_time_b: number;
-}
-
-interface DadosJogos {
-  partidas: Partida[];
-  placares: Record<number, Placar>;
-}
-
 export function Jogos() {
   const isAdmin = useAdmin();
   const { jogador } = useSessao();
   const [idsExcluidos, setIdsExcluidos] = useState<Set<number>>(new Set());
-  const [partidaParaExcluir, setPartidaParaExcluir] = useState<Partida | null>(null);
+  const [partidaParaExcluir, setPartidaParaExcluir] = useState<PartidaMural | null>(null);
   const [excluindo, setExcluindo] = useState(false);
   const { snackbarProps, mostrarSnackbar } = useSnackbar();
 
   // Mural completo (partidas + placares) cacheado: revisitas
-  // renderizam na hora e revalidam em background. Uma unica query na view
+  // renderizam na hora e revalidam em background. A query na view
   // `partidas_com_placar` (migration 071) concentra partidas e placares em uma
-  // unica consulta; a view e pre-requisito deste mural.
-  const buscar = useCallback(async (): Promise<DadosJogos> => {
-    const { data, error } = await supabase
-      .from('partidas_com_placar')
-      .select('id, data_jogo, status, gols_time_a, gols_time_b')
-      .order('data_jogo', { ascending: false });
-    if (error) throw error;
+  // unica consulta (carregarMuralJogos, na lib); a view e pre-requisito deste mural.
+  const buscar = useCallback(() => carregarMuralJogos(), []);
 
-    const partidas: Partida[] = [];
-    const placares: Record<number, Placar> = {};
-    for (const { id, data_jogo, status, gols_time_a, gols_time_b } of data ?? []) {
-      if (id != null && data_jogo != null && status != null) {
-        partidas.push({ id, data_jogo, status: status as StatusPartida });
-        placares[id] = {
-          partida_id: id,
-          gols_time_a: gols_time_a ?? 0,
-          gols_time_b: gols_time_b ?? 0,
-        };
-      }
-    }
-    return { partidas, placares };
-  }, []);
-
-  const { dados, carregando, erro, recarregar } = useCache<DadosJogos>(CHAVE_JOGOS, buscar);
+  const { dados, carregando, erro, recarregar } = useCache<MuralJogos>(CHAVE_JOGOS, buscar);
 
   // Exclusões locais sobrepõem o cache até a próxima busca na rede.
   const partidas = (dados?.partidas ?? []).filter((p) => !idsExcluidos.has(p.id));

@@ -86,6 +86,49 @@ export async function carregarPlacar(partidaId: number) {
   return data as Placar | null;
 }
 
+/** Partida como exibida no mural (view `partidas_com_placar`): só os campos da tela. */
+export interface PartidaMural {
+  id: number;
+  data_jogo: string;
+  status: StatusPartida;
+}
+
+/** Placar do mural, indexável por id de partida. */
+export interface PlacarMural {
+  partida_id: number;
+  gols_time_a: number;
+  gols_time_b: number;
+}
+
+/** Conteúdo do mural de jogos: partidas + placares lookup. */
+export interface MuralJogos {
+  partidas: PartidaMural[];
+  placares: Record<number, PlacarMural>;
+}
+
+/** Mural completo (view `partidas_com_placar`), mais recente primeiro. */
+export async function carregarMuralJogos(): Promise<MuralJogos> {
+  const { data, error } = await supabase
+    .from('partidas_com_placar')
+    .select('id, data_jogo, status, gols_time_a, gols_time_b')
+    .order('data_jogo', { ascending: false });
+  if (error) throw error;
+
+  const partidas: PartidaMural[] = [];
+  const placares: Record<number, PlacarMural> = {};
+  for (const { id, data_jogo, status, gols_time_a, gols_time_b } of data ?? []) {
+    if (id != null && data_jogo != null && status != null) {
+      partidas.push({ id, data_jogo, status: status as StatusPartida });
+      placares[id] = {
+        partida_id: id,
+        gols_time_a: gols_time_a ?? 0,
+        gols_time_b: gols_time_b ?? 0,
+      };
+    }
+  }
+  return { partidas, placares };
+}
+
 interface ParticipanteJoinRow {
   partida_id: number;
   jogador_id: number;
