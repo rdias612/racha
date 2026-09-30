@@ -12,6 +12,7 @@ import {
 import { formatarMensagemErro } from '../lib/erros';
 import { vibrateLight } from '../lib/haptics';
 import { MensagemEstado } from '../components/Estado';
+import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 import { ModalNovoGoleiro } from '../components/ModalNovoGoleiro';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Snackbar } from '../components/Snackbar';
@@ -181,33 +182,33 @@ export function GestaoGoleiros() {
       <BotaoVoltar fallback="/" label="início" />
 
       {/* Header Editorial */}
-      <div className="sumula-header flex items-center justify-between gap-3 pb-3 border-b border-borda">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xl" role="img" aria-label="Luva">
-              🧤
-            </span>
-            <h2 className="font-display font-black text-xl uppercase tracking-wider text-giz">
-              Gestão de Goleiros
-            </h2>
-          </div>
+      <CabecalhoSumula
+        titulo="Gestão de Goleiros"
+        icone={
+          <span className="text-xl" role="img" aria-label="Luva">
+            🧤
+          </span>
+        }
+        kicker={
           <p className="text-xs font-mono text-giz-fraco mt-0.5">
             Cadastro, contato e chave PIX para diárias de R$ 30,00 ({totalAtivos} ativos)
           </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => {
-            vibrateLight();
-            setModalNovoAberto(true);
-          }}
-          className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-[4px] bg-destaque text-destaque-tinta font-display font-bold text-xs uppercase tracking-wider shadow-carimbo hover:brightness-105 active:translate-y-px transition min-h-[44px]"
-        >
-          <UserPlus className="size-4" />
-          <span>+ Novo Goleiro</span>
-        </button>
-      </div>
+        }
+        acao={
+          <button
+            type="button"
+            onClick={() => {
+              vibrateLight();
+              setModalNovoAberto(true);
+            }}
+            className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-[4px] bg-destaque text-destaque-tinta font-display font-bold text-xs uppercase tracking-wider shadow-carimbo hover:brightness-105 active:translate-y-px transition min-h-[44px]"
+          >
+            <UserPlus className="size-4" />
+            <span>+ Novo Goleiro</span>
+          </button>
+        }
+        className="items-center gap-3 pb-3 border-b border-borda"
+      />
 
       {erro && <MensagemEstado tipo="erro">{erro}</MensagemEstado>}
 
