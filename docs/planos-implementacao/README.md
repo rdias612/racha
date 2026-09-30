@@ -1,6 +1,7 @@
 # Planos de Implementação — Plano de Melhorias Frontend PWA
 
 > Um plano por item do ranking em `docs/rank-melhorias-reuso-codigo.md` (critério: redução de code slop / duplicação / reuso). Estrutura padrão em `TEMPLATE.md`.
+> Registros de execução/validação de planos executados ficam em [`registros/`](registros/).
 > Plano de origem: `docs/plano-melhorias-frontend-pwa.md`. Filosofia: `AGENTS.md` — passos pequenos, 1 commit por passo, sem novas bibliotecas, validação manual.
 
 ## Índice (ordem do ranking anti-slop)
