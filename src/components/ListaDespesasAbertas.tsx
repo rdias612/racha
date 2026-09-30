@@ -1,5 +1,6 @@
 import { Check, Copy } from 'lucide-react';
 import { Badge } from './Badge';
+import { CabecalhoSumula } from './ui/CabecalhoSumula';
 import { MensagemEstado } from './Estado';
 import { COR_TIPO } from './ListaReceitasAbertas';
 import { labelTipoDivida, type Divida } from '../lib/dividas';
@@ -22,14 +23,17 @@ export function ListaDespesasAbertas({
 
   return (
     <div className="space-y-3">
-      <div className="flex items-baseline justify-between sumula-header pb-1.5">
-        <h3 className="font-display font-bold text-sm uppercase tracking-wider text-giz">
-          Despesas em aberto
-        </h3>
-        <span className="font-mono text-base font-bold text-perigo tabular-nums">
-          {formatarReais(totalDespesas)}
-        </span>
-      </div>
+      <CabecalhoSumula
+        titulo="Despesas em aberto"
+        nivel="h3"
+        tamanho="sm"
+        acao={
+          <span className="font-mono text-base font-bold text-perigo tabular-nums">
+            {formatarReais(totalDespesas)}
+          </span>
+        }
+        className="pb-1.5!"
+      />
 
       {!carregando && despesas.length === 0 ? (
         <MensagemEstado tipo="info">Nenhuma despesa pendente no caixa.</MensagemEstado>
