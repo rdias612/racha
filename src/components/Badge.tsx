@@ -2,7 +2,14 @@ import type { ReactNode } from 'react';
 import type { PosicaoId } from '../lib/times';
 import type { StatusPartida, StatusConfirmacao } from '../lib/partidas';
 
-export type BadgeVariante = 'posicao' | 'destaque' | 'ok' | 'perigo' | 'neutro' | 'status';
+export type BadgeVariante =
+  | 'posicao'
+  | 'destaque'
+  | 'destaque-solido'
+  | 'ok'
+  | 'perigo'
+  | 'neutro'
+  | 'status';
 
 export type StatusBadge =
   | StatusPartida
@@ -22,6 +29,7 @@ export interface BadgeProps {
   posicao?: PosicaoId | string;
   className?: string;
   icone?: ReactNode;
+  densidade?: 'normal' | 'mini';
 }
 
 const SIGLAS_POSICAO: Record<string, string> = {
@@ -58,11 +66,20 @@ const VARIANTE_CLASSES: Record<BadgeVariante, string> = {
   destaque: 'border-destaque/60 bg-destaque/15 text-destaque-texto',
   ok: 'border-ok/40 bg-ok/10 text-ok',
   perigo: 'border-perigo/40 bg-perigo/10 text-perigo',
+  'destaque-solido': 'border-transparent bg-destaque text-destaque-tinta shadow-xs',
   neutro: 'border-borda bg-superficie-2 text-giz-fraco',
   status: 'border-borda bg-superficie-2 text-giz-fraco',
 };
 
-export function Badge({ children, variante, status, posicao, className = '', icone }: BadgeProps) {
+export function Badge({
+  children,
+  variante,
+  status,
+  posicao,
+  className = '',
+  icone,
+  densidade = 'normal',
+}: BadgeProps) {
   let resolvedVariante: BadgeVariante = variante ?? 'neutro';
   let defaultContent: ReactNode = children;
   let showPulse = false;
@@ -83,8 +100,11 @@ export function Badge({ children, variante, status, posicao, className = '', ico
     }
   }
 
-  const baseClasses =
-    'inline-flex items-center gap-1 rounded-[2px] border px-1.5 py-0.5 font-display font-black uppercase tracking-widest text-[10px] leading-tight select-none';
+  const tipografiaClasses =
+    densidade === 'mini'
+      ? 'font-bold tracking-wider text-[9px]'
+      : 'font-black tracking-widest text-[10px]';
+  const baseClasses = `inline-flex items-center gap-1 rounded-[2px] border px-1.5 py-0.5 font-display uppercase ${tipografiaClasses} leading-tight select-none`;
   const variantClass = VARIANTE_CLASSES[resolvedVariante] ?? VARIANTE_CLASSES.neutro;
 
   return (
