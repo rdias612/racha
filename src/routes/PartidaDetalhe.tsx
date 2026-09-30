@@ -21,6 +21,7 @@ import {
   type NotaPartida,
 } from '../lib/partidas';
 import { MensagemEstado } from '../components/Estado';
+import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 import { SkeletonDetalhe } from '../components/Skeletons';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { CardCraquePartida } from '../components/CardCraquePartida';
@@ -168,27 +169,28 @@ export function PartidaDetalhe() {
       <BotaoVoltar fallback="/jogos" />
 
       {/* Cabeçalho da Súmula */}
-      <div className="sumula-header pb-2 flex items-start justify-between">
-        <div>
-          <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
-            Partida #{partida.id}
-          </h2>
+      <CabecalhoSumula
+        titulo={`Partida #${partida.id}`}
+        kicker={
           <p className="text-xs text-giz-fraco capitalize font-mono mt-0.5">
             <span className="sm:hidden">{formatarDataMobile(partida.data_jogo)}</span>
             <span className="hidden sm:inline">{formatarDataCompleta(partida.data_jogo)}</span>
           </p>
-        </div>
-        <div className="text-right flex flex-col items-end">
-          <Badge variante="status" status={partida.status}>
-            {STATUS_LABEL[partida.status]}
-          </Badge>
-          {isVotacaoAberta && partida.voting_closes_at && (
-            <p className="text-[10px] font-mono text-destaque-texto mt-1">
-              Urna fecha {formatarFechamento(partida.voting_closes_at)}
-            </p>
-          )}
-        </div>
-      </div>
+        }
+        acao={
+          <div className="text-right flex flex-col items-end">
+            <Badge variante="status" status={partida.status}>
+              {STATUS_LABEL[partida.status]}
+            </Badge>
+            {isVotacaoAberta && partida.voting_closes_at && (
+              <p className="text-[10px] font-mono text-destaque-texto mt-1">
+                Urna fecha {formatarFechamento(partida.voting_closes_at)}
+              </p>
+            )}
+          </div>
+        }
+        className="items-start"
+      />
 
       {/* Placar: Painel de LED */}
       {placar && partida.status !== 'draft' && (
