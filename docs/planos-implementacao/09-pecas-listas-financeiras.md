@@ -32,7 +32,7 @@ Conferidas no código em 2026-09-30. Nenhum número divergiu do doc de origem.
 
 Cada passo é pequeno, reversível por `git revert` isolado e deixa o build funcionando. Migração completa em 2 commits (apenas 2 arquivos consumidores).
 
-1. **Extrair `ChipTipoLancamento`** — criar `src/components/ChipTipoLancamento.tsx` com `COR_TIPO` como constante **privada** do módulo (sem `export`) e a assinatura:
+1. **Extrair `ChipTipoLancamento`** — criar `src/components/ui/ChipTipoLancamento.tsx` (conforme §3, pois a pasta `ui/` já existe) com `COR_TIPO` como constante **privada** do módulo (sem `export`) e a assinatura:
 
    ```tsx
    interface ChipTipoLancamentoProps {
@@ -41,8 +41,8 @@ Cada passo é pequeno, reversível por `git revert` isolado e deixa o build func
    export function ChipTipoLancamento({ tipo }: ChipTipoLancamentoProps)
    ```
 
-   O componente renderiza exatamente o `<span>` atual (classes de `COR_TIPO[tipo]` + `labelTipoDivida(tipo)`), importando `labelTipoDivida`/`TipoDivida` de `../lib/dividas`. Migrar os 2 call sites no mesmo commit: `ListaReceitasAbertas.tsx:150-154` e `ListaDespesasAbertas.tsx:50-54`. Remover a exportação de `COR_TIPO` de `ListaReceitasAbertas.tsx:14-22` e o import de `ListaDespesasAbertas.tsx:4` — o acoplamento invertido morre neste commit. Zero mudança visual.
-2. **Extrair `LinhaMetaLancamento`** — criar `src/components/LinhaMetaLancamento.tsx` encapsulando a linha de metadados (usa `ChipTipoLancamento` internamente):
+   O componente renderiza exatamente o `<span>` atual (classes de `COR_TIPO[tipo]` + `labelTipoDivida(tipo)`), importando `labelTipoDivida`/`TipoDivida` de `../../lib/dividas`. Migrar os 2 call sites no mesmo commit: `ListaReceitasAbertas.tsx` e `ListaDespesasAbertas.tsx`. Remover a exportação de `COR_TIPO` de `ListaReceitasAbertas.tsx` e o import de `ListaDespesasAbertas.tsx` — o acoplamento invertido morre neste commit. Zero mudança visual.
+2. **Extrair `LinhaMetaLancamento`** — criar `src/components/ui/LinhaMetaLancamento.tsx` encapsulando a linha de metadados (usa `ChipTipoLancamento` internamente):
 
    ```tsx
    interface LinhaMetaLancamentoProps {
