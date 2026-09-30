@@ -3,6 +3,7 @@ import { SlidersHorizontal, RotateCcw } from 'lucide-react';
 import { POSICOES, type PosicaoId } from '../lib/times';
 import { vibrateLight } from '../lib/haptics';
 import { ModalBase } from './ModalBase';
+import { Botao } from './ui/Botao';
 
 export type PosicaoFiltro = Exclude<PosicaoId, 'random'> | 'todas';
 
@@ -89,26 +90,19 @@ export function ModalFiltrosRanking({
       posicao="bottom-sheet"
       rodape={
         <div className="flex gap-2 w-full">
-          <button
+          <Botao
             type="button"
             onClick={handleLimpar}
             disabled={!alterado}
-            className={`flex-1 min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-[4px] border font-display uppercase tracking-wider text-xs font-bold transition active:translate-y-px ${
-              alterado
-                ? 'border-borda bg-superficie-2 text-giz hover:bg-superficie cursor-pointer shadow-xs'
-                : 'border-borda/40 bg-superficie-2/40 text-giz-fraco/50 cursor-not-allowed'
-            }`}
+            variante="secundario"
+            className="flex-1 cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Limpar</span>
-          </button>
-          <button
-            type="button"
-            onClick={handleAplicar}
-            className="flex-1 min-h-[44px] inline-flex items-center justify-center rounded-[4px] border border-destaque bg-destaque font-display uppercase tracking-wider text-xs font-black text-destaque-tinta shadow-carimbo-destaque hover:brightness-105 active:translate-y-px transition cursor-pointer"
-          >
+          </Botao>
+          <Botao type="button" onClick={handleAplicar} variante="primario" className="flex-1 cursor-pointer">
             Aplicar Filtros
-          </button>
+          </Botao>
         </div>
       }
     >
