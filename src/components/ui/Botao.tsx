@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes } from 'react';
+import type { ButtonHTMLAttributes, Ref } from 'react';
 
 export type VarianteBotao = 'primario' | 'secundario' | 'perigo';
 
@@ -9,6 +9,8 @@ export interface BotaoProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   larguraCompleta?: boolean;
   /** Escape de layout/dimensão (ex.: 'flex-1'); entra por último. Não use para cor ou sombra. */
   className?: string;
+  /** Foco gerenciado (ex.: initialFocusRef do useModalA11y). Encaminhado ao <button> pelo spread. */
+  ref?: Ref<HTMLButtonElement>;
 }
 
 const CLASSES_BASE =
