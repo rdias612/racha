@@ -1,4 +1,6 @@
 import { Calendar, Clock, Info } from 'lucide-react';
+import { CampoTexto } from './ui/CampoTexto';
+import { CampoTextoLongo } from './ui/CampoTextoLongo';
 import { Toggle } from './Toggle';
 import type { NotificacoesConfig } from '../lib/notificacoes';
 
@@ -125,33 +127,21 @@ export function SecaoNotificacaoConfirmacao({
           ))}
         </div>
 
-        <label className="block">
-          <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
-            Título (máx. 120 caracteres)
-          </span>
-          <input
-            type="text"
-            maxLength={120}
-            value={config.confirmacao_titulo ?? TEXTO_PADRAO_CONFIRMACAO_TITULO}
-            onChange={(e) => onAlterar({ confirmacao_titulo: e.target.value })}
-            placeholder={TEXTO_PADRAO_CONFIRMACAO_TITULO}
-            className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto"
-          />
-        </label>
+        <CampoTexto
+          rotulo="Título (máx. 120 caracteres)"
+          valor={config.confirmacao_titulo ?? TEXTO_PADRAO_CONFIRMACAO_TITULO}
+          aoMudar={(novoValor) => onAlterar({ confirmacao_titulo: novoValor })}
+          placeholder={TEXTO_PADRAO_CONFIRMACAO_TITULO}
+          maxLength={120}
+        />
 
-        <label className="block">
-          <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
-            Mensagem (máx. 500 caracteres)
-          </span>
-          <textarea
-            rows={2}
-            maxLength={500}
-            value={config.confirmacao_mensagem ?? TEXTO_PADRAO_CONFIRMACAO_MENSAGEM}
-            onChange={(e) => onAlterar({ confirmacao_mensagem: e.target.value })}
-            placeholder={TEXTO_PADRAO_CONFIRMACAO_MENSAGEM}
-            className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto"
-          />
-        </label>
+        <CampoTextoLongo
+          rotulo="Mensagem (máx. 500 caracteres)"
+          valor={config.confirmacao_mensagem ?? TEXTO_PADRAO_CONFIRMACAO_MENSAGEM}
+          aoMudar={(novoValor) => onAlterar({ confirmacao_mensagem: novoValor })}
+          placeholder={TEXTO_PADRAO_CONFIRMACAO_MENSAGEM}
+          maxLength={500}
+        />
       </div>
 
       {/* BLOCO DE REFORÇO */}
@@ -192,33 +182,21 @@ export function SecaoNotificacaoConfirmacao({
               </button>
             </div>
 
-            <label className="block">
-              <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
-                Título do Reforço
-              </span>
-              <input
-                type="text"
-                maxLength={120}
-                value={config.reforco_titulo ?? TEXTO_PADRAO_REFORCO_TITULO}
-                onChange={(e) => onAlterar({ reforco_titulo: e.target.value })}
-                placeholder={TEXTO_PADRAO_REFORCO_TITULO}
-                className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto"
-              />
-            </label>
+            <CampoTexto
+              rotulo="Título do Reforço"
+              valor={config.reforco_titulo ?? TEXTO_PADRAO_REFORCO_TITULO}
+              aoMudar={(novoValor) => onAlterar({ reforco_titulo: novoValor })}
+              placeholder={TEXTO_PADRAO_REFORCO_TITULO}
+              maxLength={120}
+            />
 
-            <label className="block">
-              <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
-                Mensagem do Reforço
-              </span>
-              <textarea
-                rows={2}
-                maxLength={500}
-                value={config.reforco_mensagem ?? TEXTO_PADRAO_REFORCO_MENSAGEM}
-                onChange={(e) => onAlterar({ reforco_mensagem: e.target.value })}
-                placeholder={TEXTO_PADRAO_REFORCO_MENSAGEM}
-                className="w-full rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base sm:text-sm text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto"
-              />
-            </label>
+            <CampoTextoLongo
+              rotulo="Mensagem do Reforço"
+              valor={config.reforco_mensagem ?? TEXTO_PADRAO_REFORCO_MENSAGEM}
+              aoMudar={(novoValor) => onAlterar({ reforco_mensagem: novoValor })}
+              placeholder={TEXTO_PADRAO_REFORCO_MENSAGEM}
+              maxLength={500}
+            />
           </div>
         )}
       </div>
