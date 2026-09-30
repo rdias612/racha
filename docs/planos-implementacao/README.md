@@ -8,9 +8,9 @@
 
 | # | Plano | Item (plano) | Tier |
 |---|---|---|---|
-| 01 | [cabecalho-sumula.md](01-cabecalho-sumula.md) | A1 · Extrair `CabecalhoSumula` | 1 |
+| 01 | [cabecalho-sumula.md](01-cabecalho-sumula.md) | A1 · Extrair `CabecalhoSumula` — ✅ **executado** ([registro](registros/01-cabecalho-sumula.md)) | 1 |
 | 02 | [botao-variantes.md](02-botao-variantes.md) | A2 · Extrair `Botao` com variantes | 1 |
-| 03 | [helper-invalidacao-partida.md](03-helper-invalidacao-partida.md) | D1 · Helper de invalidação pós-mutação | 1 |
+| 03 | [helper-invalidacao-partida.md](03-helper-invalidacao-partida.md) | D1 · Helper de invalidação pós-mutação — ✅ **executado** ([registro](registros/03-helper-invalidacao-partida.md)) | 1 |
 | 04 | [campo-texto.md](04-campo-texto.md) | A3 · `CampoTexto`/`CampoTextoLongo` | 1 |
 | 05 | [elenco-usecache.md](05-elenco-usecache.md) | D2 · Elenco/derivados via `useCache` | 2 |
 | 06 | [aposentar-geracao-ref.md](06-aposentar-geracao-ref.md) | D3 · Aposentar `geracaoRef` manual | 2 |
