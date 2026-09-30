@@ -1,4 +1,5 @@
 import { useMemo, useState, type FormEvent } from 'react';
+import { CampoTexto } from './ui/CampoTexto';
 import { SelectSumula } from './SelectSumula';
 import {
   NATUREZAS_LANCAMENTO,
@@ -15,9 +16,6 @@ import {
   type GatilhoEventoAuto,
 } from '../lib/eventosFinanceirosAutomaticos';
 import type { JogadorLista } from '../lib/jogadores';
-
-const INPUT_CLASS =
-  'w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2';
 
 export interface FormEventoAutomaticoProps {
   eventoEmEdicao: EventoFinanceiroAutomatico | null;
@@ -153,18 +151,13 @@ export function FormEventoAutomatico({
         {form.id ? 'Editar evento' : 'Novo evento'}
       </h4>
 
-      <label className="block">
-        <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
-          Nome
-        </span>
-        <input
-          value={form.nome}
-          onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))}
-          placeholder="ex.: Aluguel do campo"
-          className={INPUT_CLASS}
-          required
-        />
-      </label>
+      <CampoTexto
+        rotulo="Nome"
+        valor={form.nome}
+        aoMudar={(novoValor) => setForm((f) => ({ ...f, nome: novoValor }))}
+        placeholder="ex.: Aluguel do campo"
+        obrigatorio
+      />
 
       <div className="grid grid-cols-2 gap-3">
         <label className="block">
@@ -203,21 +196,17 @@ export function FormEventoAutomatico({
           />
         </label>
 
-        <label className="block">
-          <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
-            Valor (R$)
-          </span>
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            inputMode="decimal"
-            value={form.valor}
-            onChange={(e) => setForm((f) => ({ ...f, valor: e.target.value }))}
-            className={`${INPUT_CLASS} font-mono`}
-            required
-          />
-        </label>
+        <CampoTexto
+          rotulo="Valor (R$)"
+          tipo="number"
+          min="0"
+          step="0.01"
+          inputMode="decimal"
+          valor={form.valor}
+          aoMudar={(novoValor) => setForm((f) => ({ ...f, valor: novoValor }))}
+          fonteMono
+          obrigatorio
+        />
 
         <label className="block col-span-2">
           <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
@@ -251,30 +240,23 @@ export function FormEventoAutomatico({
           </label>
         )}
 
-        <label className="block col-span-2">
-          <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
-            Descrição (modelo)
-          </span>
-          <input
-            value={form.descricao_template}
-            onChange={(e) => setForm((f) => ({ ...f, descricao_template: e.target.value }))}
-            placeholder="ex.: Diária goleiro racha dia {data}"
-            className={INPUT_CLASS}
-            required
-          />
-        </label>
+        <CampoTexto
+          rotulo="Descrição (modelo)"
+          valor={form.descricao_template}
+          aoMudar={(novoValor) => setForm((f) => ({ ...f, descricao_template: novoValor }))}
+          placeholder="ex.: Diária goleiro racha dia {data}"
+          obrigatorio
+          className="col-span-2"
+        />
 
-        <label className="block col-span-2">
-          <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
-            Referência {form.tipo === 'mensalidade' ? '(mês)' : '(opcional)'}
-          </span>
-          <input
-            value={form.referencia_template}
-            onChange={(e) => setForm((f) => ({ ...f, referencia_template: e.target.value }))}
-            placeholder="ex.: 2026-08"
-            className={`${INPUT_CLASS} font-mono`}
-          />
-        </label>
+        <CampoTexto
+          rotulo={`Referência ${form.tipo === 'mensalidade' ? '(mês)' : '(opcional)'}`}
+          valor={form.referencia_template}
+          aoMudar={(novoValor) => setForm((f) => ({ ...f, referencia_template: novoValor }))}
+          placeholder="ex.: 2026-08"
+          fonteMono
+          className="col-span-2"
+        />
 
         <label className="col-span-2 flex min-h-[44px] items-center gap-2 cursor-pointer">
           <input
