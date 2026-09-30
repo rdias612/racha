@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { Wallet } from 'lucide-react';
 import { useAdmin } from '../hooks/useAdmin';
 import { MensagemEstado } from '../components/Estado';
+import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { EventosAutomaticosFinanceiro } from '../components/EventosAutomaticosFinanceiro';
 import { FormLancamentoFinanceiro } from '../components/FormLancamentoFinanceiro';
@@ -196,17 +197,12 @@ export function Administrador() {
       <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
         <BotaoVoltar fallback="/" />
 
-        <div className="flex items-center justify-between sumula-header pb-2">
-          <div className="flex items-center gap-2">
-            <Wallet className="size-5 text-destaque-texto" />
-            <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
-              Controle Financeiro
-            </h2>
-          </div>
-          <span className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
-            Súmula CBO
-          </span>
-        </div>
+        <CabecalhoSumula
+          titulo="Controle Financeiro"
+          icone={<Wallet className="size-5 text-destaque-texto" />}
+          acao="Súmula CBO"
+          className="items-center"
+        />
 
         {erro && <MensagemEstado>{erro}</MensagemEstado>}
 
