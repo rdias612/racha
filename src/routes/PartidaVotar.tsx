@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { useSessao } from '../context/SessaoContext';
 import { SeletorNota } from '../components/SeletorNota';
+import { Botao } from '../components/ui/Botao';
 import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { ConfirmDialog } from '../components/ConfirmDialog';
@@ -375,11 +376,7 @@ export function PartidaVotar() {
       {feedback && <MensagemEstado tipo="sucesso">{feedback}</MensagemEstado>}
 
       <BarraAcaoInferior>
-        <button
-          onClick={enviar}
-          disabled={!todosAvaliados || salvando}
-          className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo transition active:translate-y-px disabled:opacity-40"
-        >
+        <Botao onClick={enviar} disabled={!todosAvaliados || salvando} larguraCompleta>
           {salvando
             ? 'Depositando votos na urna…'
             : editando
@@ -387,7 +384,7 @@ export function PartidaVotar() {
               : todosAvaliados
                 ? 'Enviar todos os votos'
                 : `Avalie todos (${alvos.length - avaliadosCount} restantes)`}
-        </button>
+        </Botao>
       </BarraAcaoInferior>
 
       <ConfirmDialog

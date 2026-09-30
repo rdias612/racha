@@ -29,6 +29,7 @@ import { GridTimesPartida } from '../components/GridTimesPartida';
 import { ListaNotasPartida } from '../components/ListaNotasPartida';
 import { formatarDataCompleta, formatarDataMobile, formatarFechamento } from '../lib/formatacao';
 import { Badge } from '../components/Badge';
+import { Botao } from '../components/ui/Botao';
 import { BotaoVoltar } from '../components/BotaoVoltar';
 import { PainelPlacar } from '../components/PainelPlacar';
 import { formatarMensagemErro } from '../lib/erros';
@@ -229,14 +230,9 @@ export function PartidaDetalhe() {
           >
             Escalar Times
           </Link>
-          <button
-            type="button"
-            disabled={abrindo}
-            onClick={confirmarAbrir}
-            className="w-full rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 transition active:translate-y-px disabled:opacity-40"
-          >
+          <Botao type="button" disabled={abrindo} onClick={confirmarAbrir} larguraCompleta>
             {abrindo ? 'Iniciando partida…' : 'Iniciar Modo Ao Vivo'}
-          </button>
+          </Botao>
         </div>
       )}
 
