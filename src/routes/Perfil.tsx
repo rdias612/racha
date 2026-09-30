@@ -17,6 +17,7 @@ import { Carregando, MensagemEstado } from '../components/Estado';
 import { StatBox } from '../components/StatBox';
 import { SkeletonPerfil } from '../components/Skeletons';
 import { CardNotificacoes } from '../components/CardNotificacoes';
+import { Badge } from '../components/Badge';
 import { formatarMensagemErro } from '../lib/erros';
 
 export function Perfil() {
@@ -147,9 +148,9 @@ export function Perfil() {
               {jogador.username}
             </h2>
             {isSuperAdminId(jogador.id) && (
-              <span className="shrink-0 rounded-[2px] bg-destaque px-1.5 py-0.5 font-display text-[9px] font-black uppercase tracking-wider text-destaque-tinta shadow-xs">
+              <Badge densidade="mini" variante="destaque-solido">
                 Admin
-              </span>
+              </Badge>
             )}
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs font-mono text-giz-fraco">

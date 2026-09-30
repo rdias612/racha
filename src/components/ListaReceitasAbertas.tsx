@@ -108,9 +108,9 @@ export function ListaReceitasAbertas({
                     <div className="flex items-center gap-1.5">
                       <span className="truncate text-sm font-bold text-giz">{g.username}</span>
                       {g.is_mensalista && (
-                        <span className="shrink-0 rounded-[2px] border border-destaque/40 bg-destaque/15 px-1.5 py-0.5 text-[9px] font-display uppercase tracking-wider font-bold text-destaque-texto">
+                        <Badge densidade="mini" variante="destaque">
                           mensalista
-                        </span>
+                        </Badge>
                       )}
                     </div>
                     <span className="text-xs font-mono text-giz-fraco">
