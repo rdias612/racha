@@ -13,7 +13,9 @@ import { PullToRefresh } from '../components/PullToRefresh';
 import { SecaoExportacaoFinanceira } from '../components/SecaoExportacaoFinanceira';
 import { Snackbar } from '../components/Snackbar';
 import { useSnackbar } from '../hooks/useSnackbar';
-import { isRandomUsername, listarJogadoresAtivos, type JogadorLista } from '../lib/jogadores';
+import { isRandomUsername, listarJogadoresAtivos } from '../lib/jogadores';
+import { useCache } from '../hooks/useCache';
+import { CHAVE_ELENCO_ATIVO } from '../lib/chavesCache';
 import { BotaoVoltar } from '../components/BotaoVoltar';
 import { formatarMensagemErro } from '../lib/erros';
 import {
@@ -31,7 +33,6 @@ export function Administrador() {
 
   const [grupos, setGrupos] = useState<DividaPorJogador[]>([]);
   const [despesas, setDespesas] = useState<Divida[]>([]);
-  const [jogadores, setJogadores] = useState<JogadorLista[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const { snackbarProps, mostrarSnackbar } = useSnackbar();
@@ -42,31 +43,27 @@ export function Administrador() {
     onConfirm: () => void;
   } | null>(null);
 
+  // Elenco carrega à parte do financeiro: falha na coluna `natureza` (migração
+  // 078) não pode esvaziar o dropdown do formulário — e falha do próprio
+  // elenco deixa o dropdown vazio sem derrubar o resto da tela.
+  const { dados: elenco, carregando: carregandoElenco, erro: erroElenco } = useCache(
+    CHAVE_ELENCO_ATIVO,
+    listarJogadoresAtivos
+  );
+  const jogadores = elenco?.filter((j) => !isRandomUsername(j.username)) ?? [];
+  const erroTela = [erroElenco, erro].filter(Boolean).join(' ');
+
   const carregar = useCallback(
     async (isAtivo?: () => boolean) => {
       if (!isAdmin) return;
       setCarregando(true);
       setErro(null);
       try {
-        // Jogadores carregam à parte: falha na coluna `natureza` (migração 078)
-        // não pode esvaziar o dropdown do formulário.
-        const [rResumo, rLancamentos, rJogs] = await Promise.allSettled([
+        const [rResumo, rLancamentos] = await Promise.allSettled([
           listarResumoDevedores(),
           listarDividasEmAberto(),
-          listarJogadoresAtivos(),
         ]);
         if (isAtivo && !isAtivo()) return;
-
-        if (rJogs.status === 'fulfilled') {
-          setJogadores(rJogs.value.filter((j) => !isRandomUsername(j.username)));
-        } else {
-          setJogadores([]);
-        }
-
-        const erros: string[] = [];
-        if (rJogs.status === 'rejected') {
-          erros.push(formatarMensagemErro(rJogs.reason, 'Erro ao carregar jogadores.'));
-        }
 
         if (rResumo.status === 'rejected' || rLancamentos.status === 'rejected') {
           const motivo =
@@ -76,7 +73,7 @@ export function Administrador() {
                 ? rResumo.reason
                 : null;
           const msg = formatarMensagemErro(motivo, 'Erro ao carregar lançamentos.');
-          erros.push(
+          setErro(
             isMigrationAusenteNatureza(msg)
               ? 'Aplique a migration 078_dividas_natureza_despesa.sql no Supabase para receitas/despesas.'
               : msg
@@ -107,10 +104,7 @@ export function Administrador() {
             }))
           );
         }
-
-        if (erros.length > 0) setErro(erros.join(' '));
-      } catch (e) {
-        if (isAtivo && !isAtivo()) return;
+      } catch (e) {        if (isAtivo && !isAtivo()) return;
         setErro(formatarMensagemErro(e, 'Erro ao carregar lançamentos.'));
       } finally {
         if (!isAtivo || isAtivo()) setCarregando(false);
@@ -204,7 +198,7 @@ export function Administrador() {
           className="items-center"
         />
 
-        {erro && <MensagemEstado>{erro}</MensagemEstado>}
+        {erroTela && <MensagemEstado>{erroTela}</MensagemEstado>}
 
         <FormLancamentoFinanceiro
           jogadores={jogadores}
@@ -222,7 +216,7 @@ export function Administrador() {
 
         <ListaReceitasAbertas
           grupos={grupos}
-          carregando={carregando}
+          carregando={carregando || carregandoElenco}
           onNotificar={mostrarSnackbar}
           onSolicitarQuitar={handleQuitar}
           onSolicitarQuitarTodas={handleQuitarTodas}
@@ -230,7 +224,7 @@ export function Administrador() {
 
         <ListaDespesasAbertas
           despesas={despesas}
-          carregando={carregando}
+          carregando={carregando || carregandoElenco}
           onNotificar={mostrarSnackbar}
           onSolicitarQuitar={handleQuitar}
         />

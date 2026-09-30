@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useSessao } from '../context/SessaoContext';
 import { MensagemEstado } from '../components/Estado';
 import { fazerLoginRpc, listarUsernames } from '../lib/jogadores';
+import { useCache } from '../hooks/useCache';
+import { CHAVE_USERNAMES } from '../lib/chavesCache';
 import { type PosicaoId } from '../lib/times';
 import { Logo } from '../components/Logo';
 import { formatarMensagemErro } from '../lib/erros';
@@ -12,14 +14,18 @@ export function Login() {
   const { setJogador } = useSessao();
   const [username, setUsername] = useState('');
   const [senha, setSenha] = useState('');
-  const [usernames, setUsernames] = useState<string[]>([]);
-  const [carregandoUsernames, setCarregandoUsernames] = useState(true);
-  const [erroUsernames, setErroUsernames] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
   const [aberto, setAberto] = useState(false);
   const refInput = useRef<HTMLInputElement>(null);
   const timerBlurRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const {
+    dados: usernamesCarregados,
+    carregando: carregandoUsernames,
+    erro: erroUsernames,
+  } = useCache(CHAVE_USERNAMES, listarUsernames);
+  const usernames = usernamesCarregados ?? [];
 
   useEffect(() => {
     return () => {
@@ -33,24 +39,6 @@ export function Login() {
     (nome) => !username || nome.toLowerCase().includes(username.toLowerCase())
   );
   const indiceAtivo = usernamesFiltrados.indexOf(username);
-
-  useEffect(() => {
-    let ativo = true;
-    listarUsernames()
-      .then((nomes) => {
-        if (ativo) setUsernames(nomes);
-      })
-      .catch((err) => {
-        if (ativo)
-          setErroUsernames(formatarMensagemErro(err, 'Não foi possível carregar os usuários.'));
-      })
-      .finally(() => {
-        if (ativo) setCarregandoUsernames(false);
-      });
-    return () => {
-      ativo = false;
-    };
-  }, []);
 
   function selecionar(nome: string) {
     setUsername(nome);
