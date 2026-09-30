@@ -1,10 +1,9 @@
 import { Check, Copy } from 'lucide-react';
-import { Badge } from './Badge';
 import { CabecalhoSumula } from './ui/CabecalhoSumula';
-import { ChipTipoLancamento } from './ui/ChipTipoLancamento';
+import { LinhaMetaLancamento } from './ui/LinhaMetaLancamento';
 import { MensagemEstado } from './Estado';
 import { type Divida } from '../lib/dividas';
-import { formatarReais, formatarDataLista } from '../lib/formatacao';
+import { formatarReais } from '../lib/formatacao';
 
 export interface ListaDespesasAbertasProps {
   despesas: Divida[];
@@ -49,18 +48,12 @@ export function ListaDespesasAbertas({
             return (
               <li key={d.id} className="flex items-start gap-2 px-3 py-2.5 min-h-[44px]">
                 <div className="min-w-0 flex-1 space-y-1">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <Badge variante="perigo">Despesa</Badge>
-                    <ChipTipoLancamento tipo={d.tipo} />
-                    {d.referencia && (
-                      <span className="text-[11px] font-mono text-giz-fraco">
-                        ref. {d.referencia}
-                      </span>
-                    )}
-                    <span className="text-[11px] font-mono text-giz-fraco">
-                      {formatarDataLista(d.data_divida)}
-                    </span>
-                  </div>
+                  <LinhaMetaLancamento
+                    natureza={d.natureza}
+                    tipo={d.tipo}
+                    referencia={d.referencia}
+                    data={d.data_divida}
+                  />
                   <p className="text-sm font-display font-bold uppercase tracking-wide text-giz">
                     {rotulo}
                   </p>

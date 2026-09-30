@@ -4,7 +4,7 @@ import { Check, ChevronDown, MessageSquare } from 'lucide-react';
 import { Badge } from './Badge';
 import { Botao } from './ui/Botao';
 import { CabecalhoSumula } from './ui/CabecalhoSumula';
-import { ChipTipoLancamento } from './ui/ChipTipoLancamento';
+import { LinhaMetaLancamento } from './ui/LinhaMetaLancamento';
 import { Carregando, MensagemEstado } from './Estado';
 import {
   montarLembreteWhatsApp,
@@ -140,18 +140,12 @@ export function ListaReceitasAbertas({
                     {g.dividas.map((d) => (
                       <li key={d.id} className="flex items-start gap-2 px-3 py-2.5">
                         <div className="min-w-0 flex-1 space-y-1">
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            <Badge variante="ok">Receita</Badge>
-                            <ChipTipoLancamento tipo={d.tipo} />
-                            {d.referencia && (
-                              <span className="text-[11px] font-mono text-giz-fraco">
-                                ref. {d.referencia}
-                              </span>
-                            )}
-                            <span className="text-[11px] font-mono text-giz-fraco">
-                              {formatarDataLista(d.data_divida)}
-                            </span>
-                          </div>
+                          <LinhaMetaLancamento
+                            natureza={d.natureza}
+                            tipo={d.tipo}
+                            referencia={d.referencia}
+                            data={d.data_divida}
+                          />
                           {d.descricao && <p className="text-xs text-giz">{d.descricao}</p>}
                           {d.partida_id && (
                             <Link
