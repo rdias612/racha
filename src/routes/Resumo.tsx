@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { MensagemEstado } from '../components/Estado';
+import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 import { SkeletonResumo } from '../components/Skeletons';
 import { BotaoInstalar } from '../components/BotaoInstalar';
 import { CardNotificacoes } from '../components/CardNotificacoes';
@@ -120,19 +121,22 @@ export function Resumo() {
     <PullToRefresh onRefresh={recarregar}>
       <div className="px-3 py-4 pb-20 sm:px-4 sm:mx-auto sm:max-w-2xl text-giz space-y-4">
         {/* Cabeçalho Editorial de Súmula */}
-        <div className="flex items-end justify-between sumula-header pb-2">
-          <div>
+        <CabecalhoSumula
+          titulo={`TEMPORADA ${ano}`}
+          nivel="h1"
+          tamanho="lg"
+          kicker={
             <p className="text-[10px] font-mono uppercase tracking-widest text-destaque-texto font-bold">
               BOLETIM OFICIAL DO RACHA
             </p>
-            <h1 className="font-display font-bold text-2xl uppercase tracking-wider text-giz">
-              TEMPORADA {ano}
-            </h1>
-          </div>
-          <p className="font-mono text-xs font-bold text-giz-fraco tabular-nums">
-            {resumo?.total_partidas ?? 0} {resumo?.total_partidas === 1 ? 'partida' : 'partidas'}
-          </p>
-        </div>
+          }
+          acao={
+            <p className="font-mono text-xs font-bold text-giz-fraco tabular-nums">
+              {resumo?.total_partidas ?? 0} {resumo?.total_partidas === 1 ? 'partida' : 'partidas'}
+            </p>
+          }
+          className="items-end"
+        />
 
         <BotaoInstalar />
         <CardNotificacoes ocultarQuandoAtivo />
