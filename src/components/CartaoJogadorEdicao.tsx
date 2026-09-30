@@ -1,4 +1,5 @@
 import { ArrowLeftRight, Trash2 } from 'lucide-react';
+import { Botao } from './ui/Botao';
 import { StepperBox } from './StepperBox';
 import { POSICOES } from '../lib/times';
 import type { ParticipanteEdicao } from '../lib/partidas';
@@ -60,15 +61,16 @@ export function CartaoJogadorEdicao({
 
         {/* Botões de Ação */}
         <div className="flex items-center gap-1.5 shrink-0">
-          <button
+          <Botao
             type="button"
+            variante="secundario"
             onClick={() => onMover(p.jogador_id)}
             title={`Mover para o Time ${outroTimeNome}`}
-            className="min-h-[44px] inline-flex items-center gap-1 px-3 py-1.5 rounded-[3px] border border-borda bg-superficie-2 text-[11px] font-display font-bold uppercase tracking-wider text-giz hover:text-destaque-texto active:translate-y-px transition cursor-pointer shadow-carimbo"
+            className="px-3 cursor-pointer"
           >
             <ArrowLeftRight className="size-3.5 text-destaque-texto" />
             <span>{outroTimeNome}</span>
-          </button>
+          </Botao>
           <button
             type="button"
             onClick={() => onSolicitarRemover(p)}

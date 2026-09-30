@@ -5,6 +5,7 @@ import { POSICOES, POSICOES_B, type PosicaoId } from '../lib/times';
 import { MensagemEstado } from '../components/Estado';
 import { User, Shield, Star, Copy, Check, UserPlus } from 'lucide-react';
 import { BotaoVoltar } from '../components/BotaoVoltar';
+import { Botao } from '../components/ui/Botao';
 import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 import { formatarMensagemErro, type ErroComCodigo } from '../lib/erros';
 import { criarJogador, isentoMensalidade, validarFormatoUsername } from '../lib/jogadores';
@@ -286,11 +287,7 @@ export function NovoJogador() {
               no primeiro acesso.
             </span>
           </div>
-          <button
-            type="button"
-            onClick={copiarSenhaPadrao}
-            className="flex min-h-[44px] items-center gap-1 px-3 py-1.5 rounded-[3px] border border-destaque bg-destaque text-destaque-tinta font-display font-bold uppercase tracking-wider text-xs shadow-xs hover:brightness-105 active:translate-y-px transition shrink-0"
-          >
+          <Botao type="button" onClick={copiarSenhaPadrao} className="px-3 shrink-0">
             {copiado ? (
               <>
                 <Check className="size-3.5" />
@@ -302,15 +299,11 @@ export function NovoJogador() {
                 <span>Copiar</span>
               </>
             )}
-          </button>
+          </Botao>
         </div>
 
         {/* Botão de Submissão */}
-        <button
-          type="submit"
-          disabled={criando}
-          className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-50 flex items-center justify-center gap-2"
-        >
+        <Botao type="submit" disabled={criando} larguraCompleta>
           {criando ? (
             'Gravando na súmula...'
           ) : (
@@ -319,7 +312,7 @@ export function NovoJogador() {
               <span>Cadastrar Jogador no Racha</span>
             </>
           )}
-        </button>
+        </Botao>
       </form>
     </div>
   );

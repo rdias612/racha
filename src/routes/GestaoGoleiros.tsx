@@ -20,6 +20,7 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Snackbar } from '../components/Snackbar';
 import { useSnackbar } from '../hooks/useSnackbar';
 import { BotaoVoltar } from '../components/BotaoVoltar';
+import { Botao } from '../components/ui/Botao';
 import { CampoBusca } from '../components/CampoBusca';
 import { UserPlus } from 'lucide-react';
 import { ListaGoleiros } from '../components/ListaGoleiros';
@@ -207,17 +208,17 @@ export function GestaoGoleiros() {
           </p>
         }
         acao={
-          <button
+          <Botao
             type="button"
             onClick={() => {
               vibrateLight();
               setModalNovoAberto(true);
             }}
-            className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-[4px] bg-destaque text-destaque-tinta font-display font-bold text-xs uppercase tracking-wider shadow-carimbo hover:brightness-105 active:translate-y-px transition min-h-[44px]"
+            className="shrink-0 px-3.5"
           >
             <UserPlus className="size-4" />
             <span>+ Novo Goleiro</span>
-          </button>
+          </Botao>
         }
         className="items-center gap-3 pb-3 border-b border-borda"
       />

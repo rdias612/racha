@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { UserPlus, Phone, QrCode } from 'lucide-react';
 import { MensagemEstado } from './Estado';
 import { ModalBase } from './ModalBase';
+import { Botao } from './ui/Botao';
 import { formatarMensagemErro } from '../lib/erros';
 
 interface ModalNovoGoleiroProps {
@@ -118,22 +119,19 @@ export function ModalNovoGoleiro({ open, onClose, onSalvar }: ModalNovoGoleiroPr
         </div>
 
         <div className="pt-2 flex items-center justify-end gap-2 border-t border-borda">
-          <button
+          <Botao
             type="button"
+            variante="secundario"
             onClick={onClose}
             disabled={salvando}
-            className="px-3.5 py-2.5 rounded-[4px] border border-borda text-xs font-display font-bold uppercase tracking-wider text-giz-fraco hover:text-giz hover:bg-superficie-2 transition min-h-[44px] focus-visible:outline-2 focus-visible:outline-destaque-texto cursor-pointer"
+            className="px-3.5 cursor-pointer"
           >
             Cancelar
-          </button>
-          <button
-            type="submit"
-            disabled={salvando || !nome.trim()}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-[4px] bg-destaque text-destaque-tinta text-xs font-display font-bold uppercase tracking-wider shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-50 min-h-[44px] focus-visible:outline-2 focus-visible:outline-destaque-texto cursor-pointer"
-          >
+          </Botao>
+          <Botao type="submit" disabled={salvando || !nome.trim()} className="px-4">
             <UserPlus className="size-4" />
             <span>{salvando ? 'Salvando…' : 'Cadastrar e Selecionar'}</span>
-          </button>
+          </Botao>
         </div>
       </form>
     </ModalBase>

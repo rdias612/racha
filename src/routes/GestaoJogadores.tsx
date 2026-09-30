@@ -26,6 +26,7 @@ import { formatarMensagemErro } from '../lib/erros';
 import { invalidarCache } from '../hooks/useCache';
 import { CHAVE_ELENCO_ATIVO, CHAVE_ELENCO_TODOS, CHAVE_GOLEIROS } from '../lib/chavesCache';
 import { Users } from 'lucide-react';
+import { Botao } from '../components/ui/Botao';
 import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 
 type FiltroTipo = 'todos' | 'mensalistas' | 'avulsos' | 'admins';
@@ -324,46 +325,38 @@ export function GestaoJogadores() {
 
         {/* Abas de filtro */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
-          <button
+          <Botao
+            type="button"
+            variante={filtro === 'todos' ? 'primario' : 'secundario'}
             onClick={() => setFiltro('todos')}
-            className={`min-h-[44px] px-3 py-1.5 rounded-[3px] font-display font-bold uppercase tracking-wider transition shrink-0 cursor-pointer ${
-              filtro === 'todos'
-                ? 'bg-destaque text-destaque-tinta shadow-carimbo'
-                : 'bg-superficie border border-borda text-giz-fraco hover:text-giz hover:bg-superficie-2'
-            }`}
+            className="shrink-0 px-3 cursor-pointer"
           >
             Todos ({totalJogadores})
-          </button>
-          <button
+          </Botao>
+          <Botao
+            type="button"
+            variante={filtro === 'mensalistas' ? 'primario' : 'secundario'}
             onClick={() => setFiltro('mensalistas')}
-            className={`min-h-[44px] px-3 py-1.5 rounded-[3px] font-display font-bold uppercase tracking-wider transition shrink-0 cursor-pointer ${
-              filtro === 'mensalistas'
-                ? 'bg-destaque text-destaque-tinta shadow-carimbo'
-                : 'bg-superficie border border-borda text-giz-fraco hover:text-giz hover:bg-superficie-2'
-            }`}
+            className="shrink-0 px-3 cursor-pointer"
           >
             Mensalistas ({totalMensalistas}/{MAX_MENSALISTAS})
-          </button>
-          <button
+          </Botao>
+          <Botao
+            type="button"
+            variante={filtro === 'avulsos' ? 'primario' : 'secundario'}
             onClick={() => setFiltro('avulsos')}
-            className={`min-h-[44px] px-3 py-1.5 rounded-[3px] font-display font-bold uppercase tracking-wider transition shrink-0 cursor-pointer ${
-              filtro === 'avulsos'
-                ? 'bg-destaque text-destaque-tinta shadow-carimbo'
-                : 'bg-superficie border border-borda text-giz-fraco hover:text-giz hover:bg-superficie-2'
-            }`}
+            className="shrink-0 px-3 cursor-pointer"
           >
             Avulsos ({totalAvulsos})
-          </button>
-          <button
+          </Botao>
+          <Botao
+            type="button"
+            variante={filtro === 'admins' ? 'primario' : 'secundario'}
             onClick={() => setFiltro('admins')}
-            className={`min-h-[44px] px-3 py-1.5 rounded-[3px] font-display font-bold uppercase tracking-wider transition shrink-0 cursor-pointer ${
-              filtro === 'admins'
-                ? 'bg-destaque text-destaque-tinta shadow-carimbo'
-                : 'bg-superficie border border-borda text-giz-fraco hover:text-giz hover:bg-superficie-2'
-            }`}
+            className="shrink-0 px-3 cursor-pointer"
           >
             Admins ({totalAdmins})
-          </button>
+          </Botao>
         </div>
       </div>
 
