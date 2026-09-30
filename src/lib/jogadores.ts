@@ -97,6 +97,8 @@ export function mapearJogadorLista(j: {
   chave_pix?: string | null;
   telefone?: string | null;
 }): JogadorLista {
+  // Cast de narrowing intencional: posicao/posicao_b: string no Row gerado
+  // (database.types.ts); PosicaoId é união de domínio (times.ts).
   return aplicarSuperAdmin({
     ...j,
     posicao: j.posicao as PosicaoId,
@@ -323,6 +325,7 @@ export async function obterPartidasRecentesJogadores(meses = 2): Promise<Record<
 
 // Linha crua da RPC confronto_direto: numéricos do Postgres (bigint/numeric)
 // podem chegar como string dependendo do driver, por isso o union com string.
+// O gerado (database.types.ts) declara number puro — o union defensivo é intencional.
 interface LinhaConfrontoRow {
   lado: string;
   bloco: string;
@@ -352,6 +355,8 @@ export interface LinhaConfronto {
   media_nota: number | null;
 }
 
+// Linha crua da RPC confronto_direto_partidas: idem LinhaConfrontoRow — o gerado
+// (database.types.ts) declara number puro, mas o driver pode entregar string.
 interface PartidaConfrontoRow {
   partida_id: number | string;
   data_jogo: string;
@@ -527,6 +532,8 @@ export async function listarGoleiros(): Promise<JogadorLista[]> {
   return (data ?? []).map(mapearJogadorLista);
 }
 
+// Casts de narrowing intencional: view stats_jogador tem colunas | null no gerado
+// (database.types.ts:830); a normalização ?? 0 é intencional.
 export interface StatsJogador {
   jogador_id: number;
   partidas: number;
@@ -621,6 +628,8 @@ export async function carregarParceriasJogador(jogadorId: number): Promise<Parce
   });
 
   if (error) throw error;
+  // Cast de narrowing intencional: tipo: string no gerado (database.types.ts);
+  // estreitamento para a união 'companheiro' | 'adversario' é intencional.
   return (data ?? []).map((p) => ({
     tipo: p.tipo as Parceria['tipo'],
     outro_jogador_id: p.outro_jogador_id,
@@ -642,6 +651,8 @@ export async function carregarParceriasDestaque(jogadorId: number): Promise<Parc
   });
 
   if (error) throw error;
+  // Cast de narrowing intencional: metrica: string no gerado (database.types.ts);
+  // estreitamento para a união com descarte de desconhecidos é intencional.
   return (data ?? [])
     .filter((d) => METRICAS_DESTAQUE.includes(d.metrica as MetricaDestaque))
     .map((d) => ({
