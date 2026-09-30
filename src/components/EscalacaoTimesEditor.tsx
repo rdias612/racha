@@ -4,6 +4,7 @@ import { type JogadorLista } from '../lib/jogadores';
 import { LIMITE_POR_TIME, POSICOES, type PosicaoId, type TimeId } from '../lib/times';
 import { useSnackbar } from '../hooks/useSnackbar';
 import { Snackbar } from './Snackbar';
+import { CabecalhoSumula } from './ui/CabecalhoSumula';
 import { MensagemEstado } from './Estado';
 import { ModalSelecionarGoleiro } from './ModalSelecionarGoleiro';
 import { BotaoVoltar } from './BotaoVoltar';
@@ -228,12 +229,7 @@ export function EscalacaoTimesEditor({
       <BotaoVoltar onClick={onVoltar} />
 
       {/* Cabeçalho */}
-      <div className="sumula-header pb-2">
-        <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
-          {titulo}
-        </h2>
-        {subtitulo}
-      </div>
+      <CabecalhoSumula titulo={titulo} kicker={subtitulo} />
 
       {infoExtra}
 
