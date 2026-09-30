@@ -13,6 +13,7 @@ import { invalidarCachesDependentesDePartida } from '../lib/chavesCache';
 import { formatarDataMobile, formatarDataCompleta } from '../lib/formatacao';
 import { BotaoVoltar } from '../components/BotaoVoltar';
 import { BarraAcaoInferior } from '../components/BarraAcaoInferior';
+import { Botao } from '../components/ui/Botao';
 import { formatarMensagemErro } from '../lib/erros';
 import { dispararPushVotacaoAberta } from '../lib/notificacoes';
 import {
@@ -369,26 +370,17 @@ export function PartidaAoVivo() {
 
       {isAdmin && partida.status === 'draft' && (
         <BarraAcaoInferior>
-          <button
-            type="button"
-            onClick={confirmarAbrir}
-            disabled={abrindo}
-            className="w-full min-h-[44px] cursor-pointer rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-40"
-          >
+          <Botao onClick={confirmarAbrir} disabled={abrindo} larguraCompleta>
             {abrindo ? 'Abrindo partida…' : 'Abrir partida ao vivo'}
-          </button>
+          </Botao>
         </BarraAcaoInferior>
       )}
 
       {isAdmin && aoVivo && (
         <BarraAcaoInferior legenda="Grava o placar final e abre a urna de votação por 24 horas.">
-          <button
-            type="button"
-            onClick={() => setConfirmandoFim(true)}
-            className="w-full min-h-[44px] cursor-pointer rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition"
-          >
+          <Botao onClick={() => setConfirmandoFim(true)} larguraCompleta>
             Finalizar partida e abrir votação
-          </button>
+          </Botao>
         </BarraAcaoInferior>
       )}
 
