@@ -74,3 +74,8 @@ export function chaveStatsJogador(jogadorId: number): string {
 export function chaveParesRacha(minPartidas: number): string {
   return `pares-racha:${minPartidas}`;
 }
+
+/** Estatísticas da aba "Por jogador" (stats + parcerias + destaques) de um atleta. */
+export function chaveEstatisticasJogador(jogadorId: number): string {
+  return `estatisticas-jogador:${jogadorId}`;
+}

@@ -653,6 +653,35 @@ export async function carregarParceriasDestaque(jogadorId: number): Promise<Parc
     }));
 }
 
+/** Conjunto de dados da aba "Por jogador" das estatísticas, buscado em paralelo. */
+export interface EstatisticasJogador {
+  stats: StatsJogador | null;
+  parcerias: Parceria[];
+  destaques: Record<MetricaDestaque, ParceriaDestaque | undefined>;
+}
+
+// Agrega as três leituras da aba "Por jogador" em uma única promise (usado
+// pelo useCache da tela Estatísticas, uma chave por atleta).
+export async function carregarEstatisticasJogador(jogadorId: number): Promise<EstatisticasJogador> {
+  const [stats, parcerias, destaques] = await Promise.all([
+    carregarStatsJogador(jogadorId),
+    carregarParceriasJogador(jogadorId),
+    carregarParceriasDestaque(jogadorId),
+  ]);
+
+  // Mapeia array de destaques para lookup fácil por métrica
+  const mapaDestaques: Record<MetricaDestaque, ParceriaDestaque | undefined> = {
+    mais_gols: undefined,
+    melhor_nota: undefined,
+    pior_nota: undefined,
+  };
+  for (const d of destaques) {
+    mapaDestaques[d.metrica] = d;
+  }
+
+  return { stats, parcerias, destaques: mapaDestaques };
+}
+
 /**
  * Comparador reutilizável para ordenar jogadores elegíveis/avulsos por presença recente
  * (mais partidas primeiro), com desempate por username em ordem alfabética.

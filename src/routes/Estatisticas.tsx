@@ -1,25 +1,27 @@
-import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import {
-  carregarParceriasDestaque,
-  carregarParceriasJogador,
-  carregarStatsJogador,
+  carregarEstatisticasJogador,
   listarJogadoresAtivosSemRandom,
+  type EstatisticasJogador,
   type MetricaDestaque,
   type Parceria,
   type ParceriaDestaque,
-  type StatsJogador,
 } from '../lib/jogadores';
 import { useSessao } from '../context/SessaoContext';
 import { useSwipeTabs } from '../hooks/useSwipeTabs';
+import { useCache } from '../hooks/useCache';
+import { chaveEstatisticasJogador } from '../lib/chavesCache';
 import { MensagemEstado } from '../components/Estado';
 import { SkeletonEstatisticas } from '../components/Skeletons';
 import { PullToRefresh } from '../components/PullToRefresh';
 import { AbasEstatisticas } from '../components/AbasEstatisticas';
 import { StatBox } from '../components/StatBox';
 import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
-import { formatarMensagemErro } from '../lib/erros';
 
 const DEFAULT_MIN_PARTIDAS = 5;
+
+// Estado vazio estável para os useMemos enquanto nada foi carregado.
+const SEM_PARCERIAS: Parceria[] = [];
 
 // Item do dropdown de jogadores
 interface JogadorOpcao {
@@ -32,17 +34,6 @@ export function Estatisticas() {
   const [jogadores, setJogadores] = useState<JogadorOpcao[]>([]);
   const [jogadorSelecionadoId, setJogadorSelecionadoId] = useState<number | null>(null);
   const [minimoPartidas, setMinimoPartidas] = useState(DEFAULT_MIN_PARTIDAS);
-  const [stats, setStats] = useState<StatsJogador | null>(null);
-  const [parcerias, setParcerias] = useState<Parceria[]>([]);
-  const [destaques, setDestaques] = useState<Record<MetricaDestaque, ParceriaDestaque | undefined>>(
-    {
-      mais_gols: undefined,
-      melhor_nota: undefined,
-      pior_nota: undefined,
-    }
-  );
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState<string | null>(null);
 
   const { handlers: swipeHandlers } = useSwipeTabs({
     tabs: ['/estatisticas/jogador', '/estatisticas/racha', '/estatisticas/comparar'],
@@ -70,52 +61,36 @@ export function Estatisticas() {
     };
   }, [jogadorId]);
 
-  // Geração de requisição: `carregar` também é usado pelo PullToRefresh (fora
-  // do ciclo de useEffect), então a proteção contra resposta obsoleta — trocar
-  // o jogador selecionado durante o fetch — vive aqui, não na flag do efeito.
-  const geracaoRef = useRef(0);
-
-  const carregar = useCallback(async () => {
-    if (jogadorSelecionadoId === null) return;
-    const geracao = ++geracaoRef.current;
-    setCarregando(true);
-    setErro(null);
-
-    try {
-      // Busca stats basicas, parcerias e destaques em paralelo (libs lançam cru)
-      const [dadosStats, parcerias, destaques] = await Promise.all([
-        carregarStatsJogador(jogadorSelecionadoId),
-        carregarParceriasJogador(jogadorSelecionadoId),
-        carregarParceriasDestaque(jogadorSelecionadoId),
-      ]);
-
-      if (geracao !== geracaoRef.current) return;
-
-      setStats(dadosStats);
-      setParcerias(parcerias);
-
-      // Mapeia array de destaques para lookup facil por metrica
-      const mapaDestaques: Record<MetricaDestaque, ParceriaDestaque | undefined> = {
-        mais_gols: undefined,
-        melhor_nota: undefined,
-        pior_nota: undefined,
+  // Nada selecionado (pré-carga do elenco): estado vazio determinístico sob a
+  // chave sentinela -1, mesmo espírito do '-' de chaveComparador.
+  const buscarEstatisticas = useCallback(async () => {
+    if (jogadorSelecionadoId === null) {
+      return {
+        stats: null,
+        parcerias: [],
+        destaques: {
+          mais_gols: undefined,
+          melhor_nota: undefined,
+          pior_nota: undefined,
+        },
       };
-      for (const d of destaques) {
-        mapaDestaques[d.metrica] = d;
-      }
-      setDestaques(mapaDestaques);
-    } catch (e) {
-      if (geracao === geracaoRef.current) {
-        setErro(formatarMensagemErro(e, 'Erro ao carregar dados.'));
-      }
-    } finally {
-      if (geracao === geracaoRef.current) setCarregando(false);
     }
+    return carregarEstatisticasJogador(jogadorSelecionadoId);
   }, [jogadorSelecionadoId]);
 
-  useEffect(() => {
-    carregar();
-  }, [carregar]);
+  const { dados, carregando, erro, recarregar } = useCache<EstatisticasJogador>(
+    chaveEstatisticasJogador(jogadorSelecionadoId ?? -1),
+    buscarEstatisticas
+  );
+
+  // Derivações para os useMemos/cards existentes (dados é undefined só na primeira carga).
+  const stats = dados?.stats ?? null;
+  const parcerias = dados?.parcerias ?? SEM_PARCERIAS;
+  const destaques = dados?.destaques ?? {
+    mais_gols: undefined,
+    melhor_nota: undefined,
+    pior_nota: undefined,
+  };
 
   const maximoPartidas = useMemo(
     () => Math.max(DEFAULT_MIN_PARTIDAS, ...parcerias.map((p) => p.partidas)),
@@ -155,7 +130,7 @@ export function Estatisticas() {
   }
 
   return (
-    <PullToRefresh onRefresh={carregar}>
+    <PullToRefresh onRefresh={recarregar}>
       <div
         className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-4 touch-pan-y text-giz"
         {...swipeHandlers}
