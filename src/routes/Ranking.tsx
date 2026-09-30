@@ -12,6 +12,7 @@ import { MensagemEstado } from '../components/Estado';
 import { SkeletonRanking } from '../components/Skeletons';
 import { PullToRefresh } from '../components/PullToRefresh';
 import { ModalFiltrosRanking, type PosicaoFiltro } from '../components/ModalFiltrosRanking';
+import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 
 type Metrica = 'pontos' | 'gols' | 'assistencias' | 'gols-contra';
 type CampoMetrica = 'pontos' | 'gols' | 'assistencias' | 'gols_contra';
@@ -220,14 +221,7 @@ export function Ranking() {
         {...swipeHandlers}
       >
         {/* Cabeçalho de Súmula */}
-        <div className="sumula-header pb-2 mb-3 flex items-baseline justify-between">
-          <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
-            {configuracao.titulo}
-          </h2>
-          <span className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
-            Oficial CBO
-          </span>
-        </div>
+        <CabecalhoSumula titulo={configuracao.titulo} acao="Oficial CBO" className="mb-3" />
 
         {/* Abas de métricas */}
         <div className="mb-4 flex gap-1 overflow-x-auto rounded-[4px] border border-borda bg-superficie p-1 shadow-xs no-scrollbar">
