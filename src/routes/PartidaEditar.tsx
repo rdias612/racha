@@ -3,7 +3,11 @@ import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { UserPlus } from 'lucide-react';
 import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
-import { invalidarCachesDependentesDePartida } from '../lib/chavesCache';
+import {
+  CHAVE_ELENCO_ATIVO,
+  invalidarCachesDependentesDePartida,
+} from '../lib/chavesCache';
+import { useCache } from '../hooks/useCache';
 import { listarJogadoresAtivos, type JogadorLista } from '../lib/jogadores';
 import { TIMES, type TimeId } from '../lib/times';
 import {
@@ -35,12 +39,17 @@ export function PartidaEditar() {
 
   const [partida, setPartida] = useState<Partida | null>(null);
   const [participantes, setParticipantes] = useState<ParticipanteEdicao[]>([]);
-  const [jogadoresAtivos, setJogadoresAtivos] = useState<JogadorLista[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [confirmandoSalvar, setConfirmandoSalvar] = useState(false);
+
+  const { dados: elenco, carregando: carregandoElenco } = useCache(
+    CHAVE_ELENCO_ATIVO,
+    listarJogadoresAtivos
+  );
+  const jogadoresAtivos = elenco ?? [];
 
   // Modal de adição (montagem condicional) e diálogo de remoção
   const [modalTime, setModalTime] = useState<TimeId | null>(null);
@@ -61,15 +70,10 @@ export function PartidaEditar() {
     let ativo = true;
     setCarregando(true);
     setErro(null);
-    Promise.all([
-      carregarPartida(partidaId),
-      carregarParticipantes(partidaId),
-      listarJogadoresAtivos(),
-    ])
-      .then(([p, parts, ativos]) => {
+    Promise.all([carregarPartida(partidaId), carregarParticipantes(partidaId)])
+      .then(([p, parts]) => {
         if (!ativo) return;
         setPartida(p);
-        setJogadoresAtivos(ativos);
         setParticipantes(
           parts.map((pt) => ({
             partida_id: pt.partida_id,
@@ -121,7 +125,7 @@ export function PartidaEditar() {
   if (partida?.status === 'live') {
     return <Navigate to={`/partida/${partidaId}/ao-vivo`} replace />;
   }
-  if (carregando) return <Carregando>Carregando partida</Carregando>;
+  if (carregando || carregandoElenco) return <Carregando>Carregando partida</Carregando>;
   if (erro && !partida)
     return (
       <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">Erro: {erro}</MensagemEstado>

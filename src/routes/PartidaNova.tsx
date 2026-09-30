@@ -8,7 +8,12 @@ import {
 } from '../lib/jogadores';
 import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
-import { invalidarCachesDependentesDePartida } from '../lib/chavesCache';
+import { useCache } from '../hooks/useCache';
+import {
+  CHAVE_ELENCO_ATIVO,
+  chavePartidasRecentesJogadores,
+  invalidarCachesDependentesDePartida,
+} from '../lib/chavesCache';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { obterProximaQuintaFeira } from '../lib/formatacao';
 import { BotaoVoltar } from '../components/BotaoVoltar';
@@ -25,6 +30,12 @@ import {
 
 const HORA_PADRAO = '19:00';
 
+// Fetcher estável para o useCache (o efeito do hook revalida quando a
+// identidade de `buscar` muda — hooks/useCache.ts).
+function carregarPartidasRecentes() {
+  return obterPartidasRecentesJogadores(2);
+}
+
 interface EstadoPersistido {
   selecionados: number[];
   dataJogo: string;
@@ -35,9 +46,6 @@ export function PartidaNova() {
   const adminLogado = useJogadorLogado();
   const navigate = useNavigate();
 
-  const [jogadores, setJogadores] = useState<JogadorLista[]>([]);
-  const [partidasRecentes, setPartidasRecentes] = useState<Record<number, number>>({});
-  const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [selecionados, setSelecionados] = useState<number[]>([]);
@@ -45,9 +53,23 @@ export function PartidaNova() {
   const [busca, setBusca] = useState('');
   const [hidratado, setHidratado] = useState(false);
 
-  // Hidratação no mount: lê localStorage e lista jogadores ativos.
+  const {
+    dados: elenco,
+    carregando: carregandoElenco,
+    erro: erroElenco,
+  } = useCache(CHAVE_ELENCO_ATIVO, listarJogadoresAtivos);
+  const {
+    dados: recentes,
+    carregando: carregandoRecentes,
+    erro: erroRecentes,
+  } = useCache(chavePartidasRecentesJogadores(2), carregarPartidasRecentes);
+
+  const jogadores = useMemo(() => elenco ?? [], [elenco]);
+  const partidasRecentes = useMemo(() => recentes ?? {}, [recentes]);
+  const erroCarregamento = erroElenco ?? erroRecentes;
+
+  // Hidratação no mount: lê o rascunho de selecionados/data do localStorage.
   useEffect(() => {
-    let ativo = true;
     let estadoInicial: EstadoPersistido | null = null;
     try {
       const cru = localStorage.getItem(STORAGE_NOVA_PARTIDA);
@@ -68,23 +90,7 @@ export function PartidaNova() {
       setSelecionados(estadoInicial.selecionados);
       setDataJogo(estadoInicial.dataJogo);
     }
-    Promise.all([listarJogadoresAtivos(), obterPartidasRecentesJogadores(2)])
-      .then(([jogadoresCarregados, recentesCarregadas]) => {
-        if (!ativo) return;
-        setJogadores(jogadoresCarregados);
-        setPartidasRecentes(recentesCarregadas);
-      })
-      .catch((e) => {
-        if (ativo) setErro(formatarMensagemErro(e, 'Não foi possível carregar os jogadores.'));
-      })
-      .finally(() => {
-        if (!ativo) return;
-        setHidratado(true);
-        setCarregando(false);
-      });
-    return () => {
-      ativo = false;
-    };
+    setHidratado(true);
   }, []);
 
   // Persiste a cada mudança (só depois de hidratado).
@@ -123,7 +129,7 @@ export function PartidaNova() {
   const podeCriar = linhaSel === CAPACIDADE_PARTIDA && Boolean(dataJogo) && !salvando;
 
   if (!isAdmin) return <Navigate to="/" replace />;
-  if (carregando) return <Carregando>Carregando jogadores</Carregando>;
+  if (carregandoElenco || carregandoRecentes) return <Carregando>Carregando jogadores</Carregando>;
 
   function toggleSelecionado(id: number) {
     setSelecionados((prev) => {
@@ -194,7 +200,9 @@ export function PartidaNova() {
         />
       </div>
 
-      {erro && <MensagemEstado>{erro}</MensagemEstado>}
+      {(erroCarregamento ?? erro) && (
+        <MensagemEstado>{erroCarregamento ?? erro}</MensagemEstado>
+      )}
 
       {/* Data e Cota */}
       <div className="rounded-[4px] border border-borda bg-superficie p-3.5 shadow-carimbo space-y-3">

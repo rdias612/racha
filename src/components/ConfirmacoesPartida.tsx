@@ -4,8 +4,9 @@ import {
   compararPorPresencaRecente,
   listarJogadoresAtivos,
   obterPartidasRecentesJogadores,
-  type JogadorLista,
 } from '../lib/jogadores';
+import { useCache } from '../hooks/useCache';
+import { CHAVE_ELENCO_ATIVO, chavePartidasRecentesJogadores } from '../lib/chavesCache';
 import {
   adminDefinirConfirmacao,
   adicionarParticipante,
@@ -31,6 +32,12 @@ type PropsBotoes = {
   processando: boolean;
   onAtualizar: (alvo: StatusConfirmacao) => void;
 };
+
+// Fetcher estável para o useCache (o efeito do hook revalida quando a
+// identidade de `buscar` muda — hooks/useCache.ts).
+function carregarPartidasRecentes() {
+  return obterPartidasRecentesJogadores(2);
+}
 
 // Botões do próprio jogador (confirma/desconfirma/recusa a própria presença).
 function BotoesSelf({ status, podeConf, ocupadas, processando, onAtualizar }: PropsBotoes) {
@@ -156,8 +163,18 @@ export function ConfirmacoesPartida({
   const [processando, setProcessando] = useState<number | null>(null);
   const [erroLocal, setErroLocal] = useState<string | null>(null);
   const [mostrandoAvulso, setMostrandoAvulso] = useState(false);
-  const [todosAtivos, setTodosAtivos] = useState<JogadorLista[]>([]);
-  const [partidasRecentes, setPartidasRecentes] = useState<Record<number, number>>({});
+
+  // Elenco e presenças recentes para o painel de avulsos. Antes o fetch era
+  // lazy (só ao abrir o painel); agora ocorre no mount — em virtually toda
+  // navegação a chave já está quente (veio de Nova partida/Detalhe), então é
+  // cache hit ou dedupe, sem requisição nova.
+  const { dados: elenco } = useCache(CHAVE_ELENCO_ATIVO, listarJogadoresAtivos);
+  const { dados: recentes } = useCache(
+    chavePartidasRecentesJogadores(2),
+    carregarPartidasRecentes
+  );
+  const todosAtivos = useMemo(() => elenco ?? [], [elenco]);
+  const partidasRecentes = useMemo(() => recentes ?? {}, [recentes]);
 
   useEffect(() => {
     setParticipantesLocais(participantes);
@@ -243,18 +260,6 @@ export function ConfirmacoesPartida({
 
   async function abrirAvulso() {
     setMostrandoAvulso((v) => !v);
-    if (todosAtivos.length === 0) {
-      try {
-        const [jogadores, recentes] = await Promise.all([
-          listarJogadoresAtivos(),
-          obterPartidasRecentesJogadores(2),
-        ]);
-        setTodosAtivos(jogadores);
-        setPartidasRecentes(recentes);
-      } catch {
-        /* ignora erro de listagem */
-      }
-    }
   }
 
   const candidatosAvulso = useMemo(() => {

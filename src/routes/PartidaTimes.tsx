@@ -3,8 +3,15 @@ import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
 import { useEscalacaoTimes } from '../hooks/useEscalacaoTimes';
+import { useCache } from '../hooks/useCache';
 import { invalidarCache } from '../hooks/useCache';
-import { invalidarCachesDependentesDePartida, CHAVE_ELENCO_ATIVO, CHAVE_ELENCO_TODOS, CHAVE_GOLEIROS } from '../lib/chavesCache';
+import {
+  CHAVE_ELENCO_ATIVO,
+  CHAVE_ELENCO_TODOS,
+  CHAVE_GOLEIROS,
+  CHAVE_MEDIAS_NOTAS,
+  invalidarCachesDependentesDePartida,
+} from '../lib/chavesCache';
 import {
   carregarPartida,
   carregarParticipantes,
@@ -17,7 +24,6 @@ import {
   listarGoleiros,
   criarGoleiroRapido,
   obterMediasNotasJogadores,
-  type JogadorLista,
 } from '../lib/jogadores';
 import { LIMITE_POR_TIME, type TimeId } from '../lib/times';
 import { formatarDataCompleta, formatarDataMobile } from '../lib/formatacao';
@@ -36,9 +42,6 @@ export function PartidaTimes() {
 
   const [partida, setPartida] = useState<Partida | null>(null);
   const [participantes, setParticipantes] = useState<Participante[]>([]);
-  const [jogadoresAtivos, setJogadoresAtivos] = useState<JogadorLista[]>([]);
-  const [goleirosDisponiveis, setGoleirosDisponiveis] = useState<JogadorLista[]>([]);
-  const [mediasNotas, setMediasNotas] = useState<Record<number, number>>({});
   const [goleiroA, setGoleiroA] = useState<number | null>(null);
   const [goleiroB, setGoleiroB] = useState<number | null>(null);
   const [modalNovoGoleiroAberto, setModalNovoGoleiroAberto] = useState(false);
@@ -46,6 +49,23 @@ export function PartidaTimes() {
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+
+  const { dados: elenco, carregando: carregandoElenco } = useCache(
+    CHAVE_ELENCO_ATIVO,
+    listarJogadoresAtivos
+  );
+  const { dados: goleiros, carregando: carregandoGoleiros } = useCache(
+    CHAVE_GOLEIROS,
+    listarGoleiros
+  );
+  const { dados: medias, carregando: carregandoMedias } = useCache(
+    CHAVE_MEDIAS_NOTAS,
+    obterMediasNotasJogadores
+  );
+
+  const jogadoresAtivos = useMemo(() => elenco ?? [], [elenco]);
+  const goleirosDisponiveis = goleiros ?? [];
+  const mediasNotas = medias ?? {};
 
   const timerNavegacaoRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -96,20 +116,11 @@ export function PartidaTimes() {
     let ativo = true;
     setCarregando(true);
     setErro(null);
-    Promise.all([
-      carregarPartida(partidaId),
-      carregarParticipantes(partidaId),
-      listarJogadoresAtivos(),
-      listarGoleiros(),
-      obterMediasNotasJogadores(),
-    ])
-      .then(([p, parts, ativos, goleiros, medias]) => {
+    Promise.all([carregarPartida(partidaId), carregarParticipantes(partidaId)])
+      .then(([p, parts]) => {
         if (!ativo) return;
         setPartida(p);
         setParticipantes(parts);
-        setJogadoresAtivos(ativos);
-        setGoleirosDisponiveis(goleiros);
-        setMediasNotas(medias);
 
         // Pré-carrega o time atual de cada confirmado de linha
         const init: Record<number, TimeId> = {};
@@ -138,7 +149,8 @@ export function PartidaTimes() {
   }, [partidaId, setTimes]);
 
   if (!isAdmin) return <Navigate to="/" replace />;
-  if (carregando) return <Carregando>Carregando partida</Carregando>;
+  if (carregando || carregandoElenco || carregandoGoleiros || carregandoMedias)
+    return <Carregando>Carregando partida</Carregando>;
   if (!partida)
     return (
       <MensagemEstado tipo="info" className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">
@@ -167,8 +179,8 @@ export function PartidaTimes() {
     invalidarCache(CHAVE_GOLEIROS);
     invalidarCache(CHAVE_ELENCO_ATIVO);
     invalidarCache(CHAVE_ELENCO_TODOS);
-    const listaAtualizada = await listarGoleiros();
-    setGoleirosDisponiveis(listaAtualizada);
+    // A invalidação revalida o hook CHAVE_GOLEIROS montado; aqui só
+    // posicionamos o novo goleiro no time escolhido.
     if (timeParaNovoGoleiro === 'a') {
       setGoleiroA(novoId);
     } else {
