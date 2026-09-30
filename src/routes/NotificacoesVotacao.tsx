@@ -9,6 +9,7 @@ import { BotaoVoltar } from '../components/BotaoVoltar';
 import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 import { AbasNotificacoes } from '../components/AbasNotificacoes';
 import { Carregando, MensagemEstado } from '../components/Estado';
+import { Botao } from '../components/ui/Botao';
 import { Snackbar } from '../components/Snackbar';
 import { SecaoNotificacaoVotacao } from '../components/SecaoNotificacaoVotacao';
 import {
@@ -121,14 +122,10 @@ export function NotificacoesVotacao() {
           <form onSubmit={handleSalvar} className="space-y-4">
             <SecaoNotificacaoVotacao config={config} onAlterar={alterar} />
 
-            <button
-              type="submit"
-              disabled={salvando}
-              className="w-full min-h-[44px] flex items-center justify-center gap-2 rounded-[4px] border border-destaque bg-destaque px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo transition active:translate-y-px disabled:opacity-50"
-            >
+            <Botao type="submit" larguraCompleta disabled={salvando}>
               <Save className="size-4" />
               {salvando ? 'Salvando Alterações…' : 'Salvar Alterações'}
-            </button>
+            </Botao>
           </form>
         </>
       )}

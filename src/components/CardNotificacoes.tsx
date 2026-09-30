@@ -5,6 +5,7 @@ import { ativarPush, desativarPush, statusPush, type StatusPush } from '../lib/p
 import { formatarMensagemErro } from '../lib/erros';
 import { vibrateSuccess, vibrateError, vibrateLight } from '../lib/haptics';
 import { MensagemEstado } from './Estado';
+import { Botao } from './ui/Botao';
 
 interface CardNotificacoesProps {
   ocultarQuandoAtivo?: boolean;
@@ -125,15 +126,12 @@ export function CardNotificacoes({ ocultarQuandoAtivo = false }: CardNotificacoe
 
       {pushStatus !== 'indisponivel' && pushStatus !== 'negado' && (
         <div className="pt-0.5">
-          <button
+          <Botao
             type="button"
+            variante={pushStatus === 'ativado' ? 'secundario' : 'primario'}
+            larguraCompleta
             onClick={alternarPush}
             disabled={alterandoPush}
-            className={`w-full min-h-[44px] rounded-[4px] border font-display font-bold uppercase tracking-wider text-xs shadow-carimbo transition active:translate-y-px disabled:opacity-50 flex items-center justify-center gap-2 px-4 py-2.5 ${
-              pushStatus === 'ativado'
-                ? 'border-borda bg-superficie-2 text-giz-fraco hover:text-giz hover:bg-superficie'
-                : 'border-destaque bg-destaque text-destaque-tinta font-black shadow-carimbo-destaque hover:brightness-105'
-            }`}
           >
             {alterandoPush && <Loader2 className="size-4 animate-spin" />}
             {alterandoPush
@@ -141,7 +139,7 @@ export function CardNotificacoes({ ocultarQuandoAtivo = false }: CardNotificacoe
               : pushStatus === 'ativado'
                 ? 'Desativar notificações'
                 : 'Ativar lembretes do racha'}
-          </button>
+          </Botao>
         </div>
       )}
     </section>

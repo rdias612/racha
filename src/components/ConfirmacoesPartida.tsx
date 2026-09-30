@@ -21,6 +21,7 @@ import {
   type StatusConfirmacao,
 } from '../lib/partidas';
 import { Badge } from './Badge';
+import { Botao } from './ui/Botao';
 import { formatarFechamento } from '../lib/formatacao';
 import { vibrateLight, vibrateSuccess } from '../lib/haptics';
 import { formatarMensagemErro } from '../lib/erros';
@@ -58,14 +59,15 @@ function BotoesSelf({ status, podeConf, ocupadas, processando, onAtualizar }: Pr
         </button>
       )}
       {status === 'confirmado' && (
-        <button
+        <Botao
           type="button"
+          variante="secundario"
           disabled={processando}
           onClick={() => onAtualizar('pendente')}
-          className={`${btn} border-borda bg-superficie-2 text-giz-fraco hover:text-giz`}
+          className="px-3"
         >
           Desconfirmar
-        </button>
+        </Botao>
       )}
       {status !== 'recusado' && (
         <button
