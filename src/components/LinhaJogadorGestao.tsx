@@ -1,6 +1,7 @@
 import { Check, Crown, KeyRound, Shield, Sparkles, UserCheck2 } from 'lucide-react';
 import { isSuperAdminId, MAX_MENSALISTAS, type JogadorLista } from '../lib/jogadores';
 import { POSICOES } from '../lib/times';
+import { Badge } from './Badge';
 
 export interface LinhaJogadorGestaoProps {
   /** Estado de rascunho (original mesclado com alterações pendentes) */
@@ -47,40 +48,38 @@ export function LinhaJogadorGestao({
               </span>
 
               {modificado && (
-                <span className="inline-flex items-center gap-1 rounded-[2px] bg-destaque/20 border border-destaque/50 px-1.5 py-0.5 text-[9px] font-display font-bold uppercase tracking-wider text-destaque-texto animate-pulse shrink-0">
-                  <Sparkles className="size-3 text-destaque-texto" />
+                <Badge
+                  densidade="mini"
+                  variante="destaque"
+                  icone={<Sparkles className="size-3" />}
+                  className="animate-pulse shrink-0"
+                >
                   Pendente
-                </span>
+                </Badge>
               )}
 
               {superadmin && (
-                <span
-                  title="Superadmin permanente"
-                  className="inline-flex items-center gap-1 rounded-[2px] bg-destaque text-destaque-tinta px-1.5 py-0.5 text-[9px] font-display font-black uppercase tracking-wider shadow-xs shrink-0"
-                >
-                  <Crown className="size-3" />
+                <Badge densidade="mini" variante="destaque-solido" icone={<Crown className="size-3" />}>
                   Superadmin
-                </span>
+                </Badge>
               )}
               {!superadmin && j.is_admin && (
-                <span className="inline-flex items-center gap-1 rounded-[2px] bg-superficie-2 border border-destaque/50 text-destaque-texto px-1.5 py-0.5 text-[9px] font-display font-bold uppercase tracking-wider shrink-0">
-                  <Shield className="size-3" />
+                <Badge densidade="mini" variante="destaque" icone={<Shield className="size-3" />}>
                   Admin
-                </span>
+                </Badge>
               )}
               {j.posicao === 'goleiro' ? (
-                <span className="inline-flex items-center gap-1 rounded-[2px] bg-ok/15 border border-ok/40 px-1.5 py-0.5 text-[9px] font-display font-bold uppercase tracking-wider text-ok shrink-0">
+                <Badge densidade="mini" variante="ok">
                   🧤 Isento (Goleiro)
-                </span>
+                </Badge>
               ) : j.is_mensalista ? (
-                <span className="inline-flex items-center gap-1 rounded-[2px] bg-ok/15 border border-ok/40 px-1.5 py-0.5 text-[9px] font-display font-bold uppercase tracking-wider text-ok shrink-0">
-                  <UserCheck2 className="size-3 text-ok" />
+                <Badge densidade="mini" variante="ok" icone={<UserCheck2 className="size-3" />}>
                   Mensalista
-                </span>
+                </Badge>
               ) : (
-                <span className="inline-flex items-center gap-1 rounded-[2px] bg-superficie-2 border border-borda px-1.5 py-0.5 text-[9px] font-display font-bold uppercase tracking-wider text-giz-fraco shrink-0">
+                <Badge densidade="mini" variante="neutro">
                   Avulso
-                </span>
+                </Badge>
               )}
             </div>
 
