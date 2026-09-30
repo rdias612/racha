@@ -9,9 +9,7 @@ interface DuplaCardProps {
 export function DuplaCard({ titulo, par, metrica = 'pontos' }: DuplaCardProps) {
   const badgeTexto = par
     ? metrica === 'percentual'
-      ? par.percentual === null
-        ? '—'
-        : `${Math.round(par.percentual * 100)}%`
+      ? `${Math.round(par.percentual * 100)}%`
       : metrica === 'partidas'
         ? `${par.partidas} jogos`
         : metrica === 'vitorias'
@@ -48,7 +46,7 @@ export function DuplaCard({ titulo, par, metrica = 'pontos' }: DuplaCardProps) {
               {par.partidas}J · {par.vitorias}V {par.empates}E {par.derrotas}D
             </span>
             <span className="font-bold text-giz tabular-nums">
-              {par.percentual === null ? '—' : `${Math.round(par.percentual * 100)}%`}
+              {`${Math.round(par.percentual * 100)}%`}
             </span>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import type { Database } from './database.types';
 import { LIMITE_POR_TIME, type TimeId, type PosicaoId } from './times';
 
 export type StatusPartida = 'draft' | 'live' | 'published' | 'closed';
@@ -174,21 +175,13 @@ export async function carregarNotas(partidaId: number) {
     .select('partida_id, target_id, username, avg_rating, vote_count, is_craque')
     .eq('partida_id', partidaId);
   if (error) throw error;
+  // Cast de narrowing intencional: view partida_notas tem todas as colunas | null
+  // no gerado (database.types.ts:733); o select nunca produz nulos nestas colunas.
   return (data ?? []) as NotaPartida[];
 }
 
-export interface ParRacha {
-  jogador_a_id: number;
-  jogador_b_id: number;
-  jogador_a_username: string;
-  jogador_b_username: string;
-  partidas: number;
-  vitorias: number;
-  empates: number;
-  derrotas: number;
-  pontos: number;
-  percentual: number | null;
-}
+/** Linha da RPC pares_racha (fonte: database.types.ts — Functions.pares_racha.Returns). */
+export type ParRacha = Database['public']['Functions']['pares_racha']['Returns'][number];
 
 export type ColunaOrdenacaoDuplas = 'pontos' | 'partidas' | 'percentual' | 'vitorias' | 'dupla';
 
@@ -197,7 +190,7 @@ export async function carregarParesRacha(minPartidas: number = 5) {
     p_min_partidas: minPartidas,
   });
   if (error) throw error;
-  return (data ?? []) as ParRacha[];
+  return data ?? [];
 }
 
 // Type alias (não interface) para o formato ser atribuível ao parâmetro jsonb das RPCs.
@@ -565,11 +558,11 @@ export async function salvarTimesEGoleirosPartida(
 
 // Critério único canônico: a partida em status 'draft' com a data de jogo mais próxima
 // (ascending). Todas as telas que precisam da "próxima partida" devem usar esta função.
-export interface PartidaDraftAtual {
-  id: number;
-  data_jogo: string;
-  confirmacao_closes_at: string | null;
-}
+// Subconjunto do Row da tabela partidas (database.types.ts) usado pelo select abaixo.
+export type PartidaDraftAtual = Pick<
+  Database['public']['Tables']['partidas']['Row'],
+  'id' | 'data_jogo' | 'confirmacao_closes_at'
+>;
 
 export async function obterPartidaDraftAtual(): Promise<PartidaDraftAtual | null> {
   const { data, error } = await supabase
@@ -582,7 +575,7 @@ export async function obterPartidaDraftAtual(): Promise<PartidaDraftAtual | null
 
   if (error) throw error;
 
-  return data as PartidaDraftAtual | null;
+  return data;
 }
 
 // ---------------------------------------------------------------------------
@@ -591,6 +584,9 @@ export async function obterPartidaDraftAtual(): Promise<PartidaDraftAtual | null
 
 // Destaques oficiais do ano, agregados no PostgreSQL (RPC resumo_ano). Campos
 // de atleta são anuláveis porque a temporada pode ainda não ter partidas.
+// Hand-written deliberadamente MAIS defensivo que o gerado
+// (database.types.ts — Functions.resumo_ano.Returns declara não-nulo): a RPC pode
+// não ter destaques no ano. NÃO derivar — derivar afrouxaria a segurança.
 export interface ResumoAno {
   ano: number;
   total_partidas: number;

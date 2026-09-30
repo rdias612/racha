@@ -35,9 +35,7 @@ function compararPares(
 
   if (coluna === 'pontos') {
     if (a.pontos !== b.pontos) return (a.pontos - b.pontos) * fator;
-    const percA = a.percentual ?? 0;
-    const percB = b.percentual ?? 0;
-    if (percA !== percB) return (percA - percB) * fator;
+    if (a.percentual !== b.percentual) return (a.percentual - b.percentual) * fator;
     if (a.partidas !== b.partidas) return (a.partidas - b.partidas) * fator;
     return nomeA.localeCompare(nomeB);
   }
@@ -45,16 +43,12 @@ function compararPares(
   if (coluna === 'partidas') {
     if (a.partidas !== b.partidas) return (a.partidas - b.partidas) * fator;
     if (a.pontos !== b.pontos) return (a.pontos - b.pontos) * fator;
-    const percA = a.percentual ?? 0;
-    const percB = b.percentual ?? 0;
-    if (percA !== percB) return (percA - percB) * fator;
+    if (a.percentual !== b.percentual) return (a.percentual - b.percentual) * fator;
     return nomeA.localeCompare(nomeB);
   }
 
   if (coluna === 'percentual') {
-    const percA = a.percentual ?? 0;
-    const percB = b.percentual ?? 0;
-    if (percA !== percB) return (percA - percB) * fator;
+    if (a.percentual !== b.percentual) return (a.percentual - b.percentual) * fator;
     if (a.pontos !== b.pontos) return (a.pontos - b.pontos) * fator;
     if (a.partidas !== b.partidas) return (a.partidas - b.partidas) * fator;
     return nomeA.localeCompare(nomeB);
@@ -300,7 +294,7 @@ function TabelaDuplas({
                   colunaOrdenacao === 'percentual' ? 'font-bold text-destaque-texto' : 'text-giz'
                 }`}
               >
-                {par.percentual === null ? '—' : `${Math.round(par.percentual * 100)}%`}
+                {`${Math.round(par.percentual * 100)}%`}
               </td>
             </tr>
           ))}
