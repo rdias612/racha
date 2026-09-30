@@ -18,6 +18,7 @@ import { StatBox } from '../components/StatBox';
 import { SkeletonPerfil } from '../components/Skeletons';
 import { CardNotificacoes } from '../components/CardNotificacoes';
 import { Badge } from '../components/Badge';
+import { Botao } from '../components/ui/Botao';
 import { formatarMensagemErro } from '../lib/erros';
 
 export function Perfil() {
@@ -202,13 +203,9 @@ export function Perfil() {
           </div>
           {erroUsername && <MensagemEstado tipo="erro">{erroUsername}</MensagemEstado>}
           {okUsername && <MensagemEstado tipo="sucesso">{okUsername}</MensagemEstado>}
-          <button
-            type="submit"
-            disabled={salvandoUsername || !usernameNovo.trim()}
-            className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-50"
-          >
+          <Botao type="submit" disabled={salvandoUsername || !usernameNovo.trim()} larguraCompleta>
             {salvandoUsername ? 'Salvando…' : 'Salvar novo username'}
-          </button>
+          </Botao>
         </form>
       </section>
 
@@ -250,13 +247,9 @@ export function Perfil() {
           />
           {erroSenha && <MensagemEstado>{erroSenha}</MensagemEstado>}
           {okSenha && <MensagemEstado tipo="sucesso">{okSenha}</MensagemEstado>}
-          <button
-            type="submit"
-            disabled={trocando}
-            className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-50"
-          >
+          <Botao type="submit" disabled={trocando} larguraCompleta>
             {trocando ? 'Alterando…' : 'Salvar nova senha'}
-          </button>
+          </Botao>
         </form>
       </section>
 

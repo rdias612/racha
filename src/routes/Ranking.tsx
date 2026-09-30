@@ -13,6 +13,7 @@ import { SkeletonRanking } from '../components/Skeletons';
 import { PullToRefresh } from '../components/PullToRefresh';
 import { ModalFiltrosRanking, type PosicaoFiltro } from '../components/ModalFiltrosRanking';
 import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
+import { Botao } from '../components/ui/Botao';
 
 type Metrica = 'pontos' | 'gols' | 'assistencias' | 'gols-contra';
 type CampoMetrica = 'pontos' | 'gols' | 'assistencias' | 'gols_contra';
@@ -318,13 +319,9 @@ export function Ranking() {
             </MensagemEstado>
             {totalFiltrosAtivos > 0 && (
               <div className="flex justify-center">
-                <button
-                  type="button"
-                  onClick={handleLimparFiltros}
-                  className="min-h-[44px] inline-flex items-center justify-center rounded-[4px] border border-borda bg-superficie px-4 py-2 text-xs font-display font-bold uppercase tracking-wider text-giz hover:bg-superficie-2 transition shadow-carimbo cursor-pointer"
-                >
+                <Botao variante="secundario" onClick={handleLimparFiltros} className="px-4 cursor-pointer">
                   Redefinir filtros
-                </button>
+                </Botao>
               </div>
             )}
           </div>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useInstalacaoPWA } from '../lib/pwa';
 import { vibrateLight, vibrateSuccess } from '../lib/haptics';
+import { Botao } from './ui/Botao';
 
 /**
  * Cartão de instalação do PWA.
@@ -41,27 +42,24 @@ export function BotaoInstalar() {
             Adicione a Súmula de Quinta à tela inicial para acesso instantâneo em campo, sem barra
             do navegador.
           </p>
-          <button
-            type="button"
-            onClick={handleClick}
-            disabled={instalando}
-            className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-2.5 font-display font-black uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo-destaque hover:brightness-105 active:translate-y-px transition disabled:opacity-50 flex items-center justify-center gap-2"
-          >
+          <Botao type="button" onClick={handleClick} disabled={instalando} larguraCompleta>
             {instalando ? 'Instalando…' : 'Instalar Aplicativo'}
-          </button>
+          </Botao>
         </>
       ) : (
         <>
           <p className="text-xs text-giz-fraco leading-relaxed">
             No iPhone / iPad, a instalação é feita pelo Safari:
           </p>
-          <button
+          <Botao
             type="button"
+            variante="secundario"
             onClick={handleToggleManual}
-            className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-giz shadow-carimbo hover:bg-superficie-2 active:translate-y-px transition flex items-center justify-center gap-1.5"
+            larguraCompleta
+            className="cursor-pointer"
           >
             {expandido ? 'Ocultar passo a passo ▴' : 'Ver passo a passo ▾'}
-          </button>
+          </Botao>
           {expandido && (
             <ol className="space-y-1.5 text-xs text-giz-fraco font-mono pl-1 pt-1">
               <li>

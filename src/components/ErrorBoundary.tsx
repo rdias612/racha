@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { Botao } from './ui/Botao';
 
 interface Props {
   children: ReactNode;
@@ -37,13 +38,13 @@ export class ErrorBoundary extends Component<Props, State> {
             <p className="text-sm text-giz-fraco mb-6 max-w-sm mx-auto font-sans">
               {this.state.error?.message || 'Erro inesperado ao renderizar a tela.'}
             </p>
-            <button
+            <Botao
               type="button"
               onClick={() => (window.location.href = '/')}
-              className="min-h-[44px] inline-flex items-center justify-center rounded-[4px] bg-destaque px-5 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 transition active:translate-y-px cursor-pointer"
+              className="px-5 cursor-pointer"
             >
               Voltar para o início
-            </button>
+            </Botao>
           </div>
         </div>
       );

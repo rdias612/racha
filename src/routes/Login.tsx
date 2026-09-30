@@ -7,6 +7,7 @@ import { useCache } from '../hooks/useCache';
 import { CHAVE_USERNAMES } from '../lib/chavesCache';
 import { type PosicaoId } from '../lib/times';
 import { Logo } from '../components/Logo';
+import { Botao } from '../components/ui/Botao';
 import { formatarMensagemErro } from '../lib/erros';
 
 export function Login() {
@@ -214,13 +215,14 @@ export function Login() {
 
           {(erroUsernames || erro) && <MensagemEstado>{erroUsernames || erro}</MensagemEstado>}
 
-          <button
+          <Botao
             type="submit"
             disabled={carregando || carregandoUsernames || !!erroUsernames || !username}
-            className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-50"
+            larguraCompleta
+            className="cursor-pointer"
           >
             {carregando ? 'Acessando súmula…' : 'Entrar no Racha'}
-          </button>
+          </Botao>
         </form>
       </div>
     </div>
