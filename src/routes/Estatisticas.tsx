@@ -16,6 +16,7 @@ import { SkeletonEstatisticas } from '../components/Skeletons';
 import { PullToRefresh } from '../components/PullToRefresh';
 import { AbasEstatisticas } from '../components/AbasEstatisticas';
 import { StatBox } from '../components/StatBox';
+import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 import { formatarMensagemErro } from '../lib/erros';
 
 const DEFAULT_MIN_PARTIDAS = 5;
@@ -160,14 +161,10 @@ export function Estatisticas() {
         {...swipeHandlers}
       >
         {/* Cabeçalho da Súmula */}
-        <div className="sumula-header pb-2 flex items-baseline justify-between">
-          <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
-            Estatísticas{usernameSelecionado ? ` · ${usernameSelecionado}` : ''}
-          </h2>
-          <span className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
-            Oficial CBO
-          </span>
-        </div>
+        <CabecalhoSumula
+          titulo={`Estatísticas${usernameSelecionado ? ` · ${usernameSelecionado}` : ''}`}
+          acao="Oficial CBO"
+        />
 
         {/* Abas */}
         <AbasEstatisticas />
