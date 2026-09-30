@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSessao } from '../context/SessaoContext';
 import { POSICOES } from '../lib/times';
@@ -10,6 +10,8 @@ import {
   validarFormatoUsername,
   type StatsJogador,
 } from '../lib/jogadores';
+import { useCache } from '../hooks/useCache';
+import { chaveStatsJogador } from '../lib/chavesCache';
 import { vibrateError, vibrateSuccess } from '../lib/haptics';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { StatBox } from '../components/StatBox';
@@ -21,9 +23,20 @@ export function Perfil() {
   const { jogador, setJogador, logout } = useSessao();
   const navigate = useNavigate();
 
-  const [stats, setStats] = useState<StatsJogador | null>(null);
-  const [carregandoStats, setCarregandoStats] = useState(true);
+  const jogadorId = jogador?.id;
 
+  // Fetcher estável para o useCache (contrato do hook: buscar estável —
+  // hooks/useCache.ts). Sem sessão, resolve null sem rede.
+  const carregarStats = useCallback(
+    () => (jogadorId ? carregarStatsJogador(jogadorId) : Promise.resolve(null)),
+    [jogadorId]
+  );
+  // A troca de chave com o componente montado (outro jogador logado) é
+  // resolvida pelo próprio hook (useCache.ts:123-125).
+  const { dados: stats, carregando: carregandoStats } = useCache<StatsJogador | null>(
+    chaveStatsJogador(jogadorId ?? -1),
+    carregarStats
+  );
   // formulário de alteração de username
   const [usernameNovo, setUsernameNovo] = useState('');
   const [salvandoUsername, setSalvandoUsername] = useState(false);
@@ -37,33 +50,6 @@ export function Perfil() {
   const [trocando, setTrocando] = useState(false);
   const [erroSenha, setErroSenha] = useState<string | null>(null);
   const [okSenha, setOkSenha] = useState<string | null>(null);
-
-  const jogadorId = jogador?.id;
-
-  useEffect(() => {
-    let ativo = true;
-    async function carregarStats() {
-      if (!jogadorId) return;
-      try {
-        const dados = await carregarStatsJogador(jogadorId);
-        if (ativo) {
-          setStats(dados);
-        }
-      } catch {
-        if (ativo) {
-          setStats(null);
-        }
-      } finally {
-        if (ativo) {
-          setCarregandoStats(false);
-        }
-      }
-    }
-    carregarStats();
-    return () => {
-      ativo = false;
-    };
-  }, [jogadorId]);
 
   if (!jogador) return null;
 

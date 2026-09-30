@@ -6,13 +6,12 @@ import {
   listarTodosJogadores,
   obterMediasNotasJogadores,
   type ComparativoConfronto,
-  type JogadorLista,
   type PartidaConfronto,
   type StatsJogador,
 } from '../lib/jogadores';
 import { useSessao } from '../context/SessaoContext';
 import { useCache } from '../hooks/useCache';
-import { chaveComparador } from '../lib/chavesCache';
+import { CHAVE_ELENCO_TODOS, CHAVE_MEDIAS_NOTAS, chaveComparador } from '../lib/chavesCache';
 import { useSwipeTabs } from '../hooks/useSwipeTabs';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { SkeletonComparador } from '../components/Skeletons';
@@ -30,20 +29,19 @@ import { HistoricoComparador } from '../components/HistoricoComparador';
 import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 
 // Tudo o que a tela precisa em uma ida só: confronto direto (RPCs 072) +
-// números gerais da temporada + mapa de médias aparadas (RPC 070).
+// números gerais da temporada. As médias aparadas (RPC 070) vêm do cache
+// próprio (CHAVE_MEDIAS_NOTAS) e são mescladas no resultado exibido.
 // `confronto === null` = par incompleto (B ainda não escolhido): sem rede.
 interface ComparativoTela {
   confronto: ComparativoConfronto | null;
   statsA: StatsJogador | null;
   statsB: StatsJogador | null;
-  medias: Record<number, number>;
 }
 
 const COMPARATIVO_VAZIO: ComparativoTela = {
   confronto: null,
   statsA: null,
   statsB: null,
-  medias: {},
 };
 
 function aproveitamento(stats: StatsJogador | null): number | null {
@@ -53,7 +51,6 @@ function aproveitamento(stats: StatsJogador | null): number | null {
 
 export function Comparador() {
   const { jogador } = useSessao();
-  const [jogadores, setJogadores] = useState<JogadorLista[]>([]);
   const [idA, setIdA] = useState<number | null>(() => jogador?.id ?? null);
   const [idB, setIdB] = useState<number | null>(null);
 
@@ -65,25 +62,24 @@ export function Comparador() {
   const jogadorId = jogador?.id;
 
   // Elenco para os seletores (randoms filtrados pela própria lib; inclui
-  // veteranos inativos, que têm histórico). Effect próprio, fora do useCache:
-  // por isso usa a flag `ativo` de cleanup (AGENTS.md 5.2).
+  // veteranos inativos, que têm histórico). Falha de rede deixa os seletores
+  // vazios e o confronto em cache segue utilizável.
+  const { dados: elenco } = useCache(CHAVE_ELENCO_TODOS, listarTodosJogadores);
+  const jogadores = elenco ?? [];
+
+  // Médias aparadas fora do fetcher do par: trocar o par de atletas não
+  // re-busca as médias (uma requisição a menos por comparação).
+  const { dados: mediasCarregadas, carregando: carregandoMedias } = useCache(
+    CHAVE_MEDIAS_NOTAS,
+    obterMediasNotasJogadores
+  );
+  const medias = mediasCarregadas ?? {};
+
+  // Lado A padrão: o atleta logado, assim que a sessão terminar de hidratar.
   useEffect(() => {
-    let ativo = true;
-    listarTodosJogadores()
-      .then((lista) => {
-        if (!ativo) return;
-        setJogadores(lista);
-        if (jogadorId != null) {
-          setIdA((atual) => (atual === null ? jogadorId : atual));
-        }
-      })
-      .catch(() => {
-        // Lista indisponível (offline): seletores ficam vazios e o confronto
-        // em cache segue utilizável. Falha silenciosa, como em Estatisticas.
-      });
-    return () => {
-      ativo = false;
-    };
+    if (jogadorId != null) {
+      setIdA((atual) => (atual === null ? jogadorId : atual));
+    }
   }, [jogadorId]);
 
   // Função pura (apenas consulta e lança erro) — requisito do useCache
@@ -91,17 +87,15 @@ export function Comparador() {
   const buscar = useCallback(async (): Promise<ComparativoTela> => {
     if (idA === null || idB === null) return COMPARATIVO_VAZIO;
 
-    const [confronto, linhasStats, medias] = await Promise.all([
+    const [confronto, linhasStats] = await Promise.all([
       compararJogadores(idA, idB),
       carregarStatsJogador([idA, idB]),
-      obterMediasNotasJogadores(),
     ]);
 
     return {
       confronto,
       statsA: linhasStats.find((s) => s.jogador_id === idA) ?? null,
       statsB: linhasStats.find((s) => s.jogador_id === idB) ?? null,
-      medias,
     };
   }, [idA, idB]);
 
@@ -119,7 +113,7 @@ export function Comparador() {
     setIdB(idA);
   }
 
-  if (carregando) return <SkeletonComparador />;
+  if (carregando || carregandoMedias) return <SkeletonComparador />;
   if (erro && !dados)
     return (
       <MensagemEstado tipo="erro" className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">
@@ -156,7 +150,6 @@ export function Comparador() {
 
   const statsA = dados?.statsA ?? null;
   const statsB = dados?.statsB ?? null;
-  const medias = dados?.medias ?? {};
 
   const metricas: MetricaComparativa[] = [
     { rotulo: 'Partidas', valorA: statsA?.partidas ?? 0, valorB: statsB?.partidas ?? 0 },
