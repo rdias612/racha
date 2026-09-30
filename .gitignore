@@ -31,6 +31,9 @@ dist-ssr
 *.sln
 *.sw?
 
+# Superdesign
+.superdesign
+
 # Vercel
 .vercel
 
