@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Check, ChevronDown, MessageSquare } from 'lucide-react';
 import { Badge } from './Badge';
+import { CabecalhoSumula } from './ui/CabecalhoSumula';
 import { Carregando, MensagemEstado } from './Estado';
 import {
   labelTipoDivida,
@@ -59,14 +60,17 @@ export function ListaReceitasAbertas({
 
   return (
     <div className="space-y-3">
-      <div className="flex items-baseline justify-between sumula-header pb-1.5">
-        <h3 className="font-display font-bold text-sm uppercase tracking-wider text-giz">
-          Receitas em aberto
-        </h3>
-        <span className="font-mono text-base font-bold text-ok tabular-nums">
-          {formatarReais(totalReceitas)}
-        </span>
-      </div>
+      <CabecalhoSumula
+        titulo="Receitas em aberto"
+        nivel="h3"
+        tamanho="sm"
+        acao={
+          <span className="font-mono text-base font-bold text-ok tabular-nums">
+            {formatarReais(totalReceitas)}
+          </span>
+        }
+        className="pb-1.5!"
+      />
 
       {carregando && grupos.length === 0 ? (
         <Carregando>Carregando lançamentos…</Carregando>
