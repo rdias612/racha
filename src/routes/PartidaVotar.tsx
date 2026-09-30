@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { useSessao } from '../context/SessaoContext';
 import { SeletorNota } from '../components/SeletorNota';
+import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import {
@@ -283,40 +284,43 @@ export function PartidaVotar() {
     <div className="px-3 py-4 pb-28 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
       <BotaoVoltar onClick={handleVoltar} />
 
-      <div className="sumula-header pb-2">
-        <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
-          {editando ? 'Editar Votos da Súmula' : 'Cédula de Votação'} — Partida #{partida.id}
-        </h2>
-        <div className="flex items-center justify-between mt-1">
-          <p className="text-xs font-mono font-bold text-destaque-texto">
-            ⏳ Fecha em {horasRestantes}h {minutosRestantes}min
-          </p>
-          <span className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
-            Urna Anônima
-          </span>
-        </div>
-        <p className="mt-1 text-xs text-giz-fraco">
-          Dê uma nota de 1 a 10 para cada parceiro e adversário. O craque nasce da média da galera.
-        </p>
+      <CabecalhoSumula
+        titulo={`${editando ? 'Editar Votos da Súmula' : 'Cédula de Votação'} — Partida #${partida.id}`}
+        kicker={
+          <>
+            <div className="flex items-center justify-between mt-1">
+              <p className="text-xs font-mono font-bold text-destaque-texto">
+                ⏳ Fecha em {horasRestantes}h {minutosRestantes}min
+              </p>
+              <span className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
+                Urna Anônima
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-giz-fraco">
+              Dê uma nota de 1 a 10 para cada parceiro e adversário. O craque nasce da média da
+              galera.
+            </p>
 
-        {/* Barra de Progresso Real */}
-        <div className="mt-3 space-y-1">
-          <div className="flex items-center justify-between text-xs font-mono">
-            <span className="text-giz-fraco">Progresso da cédula:</span>
-            <span
-              className={todosAvaliados ? 'text-ok font-bold' : 'text-destaque-texto font-bold'}
-            >
-              {avaliadosCount}/{alvos.length} avaliados
-            </span>
-          </div>
-          <div className="h-2 w-full bg-superficie-2 rounded-[2px] overflow-hidden border border-borda">
-            <div
-              className={`h-full transition-all duration-200 ease-out ${todosAvaliados ? 'bg-ok' : 'bg-destaque'}`}
-              style={{ width: `${alvos.length ? (avaliadosCount / alvos.length) * 100 : 0}%` }}
-            />
-          </div>
-        </div>
-      </div>
+            {/* Barra de Progresso Real */}
+            <div className="mt-3 space-y-1">
+              <div className="flex items-center justify-between text-xs font-mono">
+                <span className="text-giz-fraco">Progresso da cédula:</span>
+                <span
+                  className={todosAvaliados ? 'text-ok font-bold' : 'text-destaque-texto font-bold'}
+                >
+                  {avaliadosCount}/{alvos.length} avaliados
+                </span>
+              </div>
+              <div className="h-2 w-full bg-superficie-2 rounded-[2px] overflow-hidden border border-borda">
+                <div
+                  className={`h-full transition-all duration-200 ease-out ${todosAvaliados ? 'bg-ok' : 'bg-destaque'}`}
+                  style={{ width: `${alvos.length ? (avaliadosCount / alvos.length) * 100 : 0}%` }}
+                />
+              </div>
+            </div>
+          </>
+        }
+      />
 
       <div className="space-y-4">
         {(['a', 'b'] as TimeId[]).map((t) => {
