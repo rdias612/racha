@@ -8,6 +8,14 @@ import { BotaoVoltar } from '../components/BotaoVoltar';
 import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 import { formatarMensagemErro, type ErroComCodigo } from '../lib/erros';
 import { criarJogador, isentoMensalidade, validarFormatoUsername } from '../lib/jogadores';
+import { invalidarCache } from '../hooks/useCache';
+import {
+  CHAVE_ELENCO_ATIVO,
+  CHAVE_ELENCO_SEM_RANDOM,
+  CHAVE_ELENCO_TODOS,
+  CHAVE_GOLEIROS,
+  CHAVE_USERNAMES,
+} from '../lib/chavesCache';
 
 export function NovoJogador() {
   const isAdmin = useAdmin();
@@ -74,6 +82,13 @@ export function NovoJogador() {
         setErro('Não foi possível criar o jogador.');
         return;
       }
+
+      // O novo jogador pode ser goleiro e entra no autocomplete do login.
+      invalidarCache(CHAVE_ELENCO_ATIVO);
+      invalidarCache(CHAVE_ELENCO_TODOS);
+      invalidarCache(CHAVE_ELENCO_SEM_RANDOM);
+      invalidarCache(CHAVE_GOLEIROS);
+      invalidarCache(CHAVE_USERNAMES);
 
       setOk(`Jogador "${usernameLimpo}" criado com sucesso! Senha padrão: 123`);
       setUsername('');

@@ -38,4 +38,34 @@ export function chaveComparador(idA: number | null, idB: number | null): string 
 export function invalidarCachesDependentesDePartida(): void {
   invalidarCache(CHAVE_JOGOS);
   invalidarCache(chaveResumo(new Date().getFullYear()));
+  invalidarCache(CHAVE_MEDIAS_NOTAS);
+  invalidarCache(chavePartidasRecentesJogadores(2));
+}
+
+/** Elenco ativo (inclui randoms) para escalação/confirmação/edição de partidas. */
+export const CHAVE_ELENCO_ATIVO = 'elenco:ativos';
+
+/** Elenco completo (exclui randoms) para gestão e comparador. */
+export const CHAVE_ELENCO_TODOS = 'elenco:todos';
+
+/** Atletas reais ativos (id+username) para seletores de estatísticas. */
+export const CHAVE_ELENCO_SEM_RANDOM = 'elenco:ativos-reais';
+
+/** Goleiros ativos e inativos. */
+export const CHAVE_GOLEIROS = 'elenco:goleiros';
+
+/** Usernames reais (exclui randoms) para o autocomplete do login. */
+export const CHAVE_USERNAMES = 'jogadores:usernames';
+
+/** Médias de notas aparadas por atleta (RPC `obter_medias_notas_jogadores`). */
+export const CHAVE_MEDIAS_NOTAS = 'jogadores:medias-notas';
+
+/** Presenças recentes por atleta; os meses entram na chave (hoje só se usa 2). */
+export function chavePartidasRecentesJogadores(meses: number): string {
+  return `jogadores:partidas-recentes:${meses}`;
+}
+
+/** Stats da temporada de um atleta (view `stats_jogador`). */
+export function chaveStatsJogador(jogadorId: number): string {
+  return `stats-jogador:${jogadorId}`;
 }

@@ -80,6 +80,13 @@ Verificado no código em **30/09/2026**; divergências do doc de origem corrigid
 
 Total hoje: **1 commit aplicável** (Passo 4, junto do plano 01). Passos 1 e 3 ficam armados nos gatilhos "ao tocar o arquivo"; Passo 2 é convenção sem commit.
 
+### Passo 5 — Invalidação de `stats-jogador:*` após publicação de partida · **AGUARDA MECANISMO POR PREFIXO** (registrado pelo plano 05)
+
+- **Origem**: seção 7 do plano `05-elenco-usecache.md` — decisão do dono (seção 3 do 05) aceitou que stats por jogador (`chaveStatsJogador(jogadorId)`, introduzida pelo Passo 4 do 05) ficam obsoletos dentro da sessão que atravessa uma publicação de partida: o helper `invalidarCachesDependentesDePartida()` não tem como enumerar os ids para invalidar por chave. O grau de obsolescência é o mesmo já aceito no `Comparador` (`chaveComparador` nunca é invalidada na publicação).
+- **Gatilho**: criação de um mecanismo de invalidação por prefixo/padrão em `hooks/useCache.ts`/`lib/chavesCache.ts` (YAGNI enquanto não houver segunda demanda por ele — Fora de escopo do 05, seção 6).
+- **Correção**: com o mecanismo existindo, `invalidarCachesDependentesDePartida()` passa a invalidar `stats-jogador:*` junto de `CHAVE_MEDIAS_NOTAS` e `chavePartidasRecentesJogadores(2)`.
+- Não criar testes, libs ou abstrações auxiliares para isso.
+
 ## 5. Validação manual
 
 Sem testes automáticos (AGENTS.md). Checklist por passo executado:

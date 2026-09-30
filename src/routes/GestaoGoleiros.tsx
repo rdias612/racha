@@ -10,6 +10,8 @@ import {
   type JogadorLista,
 } from '../lib/jogadores';
 import { formatarMensagemErro } from '../lib/erros';
+import { invalidarCache } from '../hooks/useCache';
+import { CHAVE_ELENCO_ATIVO, CHAVE_ELENCO_TODOS, CHAVE_GOLEIROS } from '../lib/chavesCache';
 import { vibrateLight } from '../lib/haptics';
 import { MensagemEstado } from '../components/Estado';
 import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
@@ -89,6 +91,9 @@ export function GestaoGoleiros() {
   async function handleSalvarNovo(dados: { nome: string; telefone: string; chave_pix: string }) {
     if (!jogadorLogado?.id) return;
     await criarGoleiroRapido(dados, jogadorLogado.id);
+    invalidarCache(CHAVE_GOLEIROS);
+    invalidarCache(CHAVE_ELENCO_ATIVO);
+    invalidarCache(CHAVE_ELENCO_TODOS);
     const lista = await listarGoleiros();
     setGoleiros(lista);
     mostrarSnackbar('sucesso', 'Goleiro cadastrado com sucesso!');
@@ -128,6 +133,10 @@ export function GestaoGoleiros() {
         },
         jogadorLogado.id
       );
+      // PIX/telefone fazem parte de JogadorLista, exibido por outras telas.
+      invalidarCache(CHAVE_GOLEIROS);
+      invalidarCache(CHAVE_ELENCO_ATIVO);
+      invalidarCache(CHAVE_ELENCO_TODOS);
       const lista = await listarGoleiros();
       setGoleiros(lista);
       setEditandoId(null);
@@ -146,6 +155,9 @@ export function GestaoGoleiros() {
 
     try {
       await alternarStatusAtivoJogador(goleiro.id, novoStatus, jogadorLogado.id);
+      invalidarCache(CHAVE_GOLEIROS);
+      invalidarCache(CHAVE_ELENCO_ATIVO);
+      invalidarCache(CHAVE_ELENCO_TODOS);
       const lista = await listarGoleiros();
       setGoleiros(lista);
       mostrarSnackbar(

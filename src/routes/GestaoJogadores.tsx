@@ -23,6 +23,8 @@ import { BarraRascunhoGestao } from '../components/BarraRascunhoGestao';
 import { LinhaJogadorGestao } from '../components/LinhaJogadorGestao';
 import { ResumoGestao } from '../components/ResumoGestao';
 import { formatarMensagemErro } from '../lib/erros';
+import { invalidarCache } from '../hooks/useCache';
+import { CHAVE_ELENCO_ATIVO, CHAVE_ELENCO_TODOS, CHAVE_GOLEIROS } from '../lib/chavesCache';
 import { Users } from 'lucide-react';
 import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 
@@ -265,6 +267,11 @@ export function GestaoJogadores() {
       }));
 
       await salvarCaracteristicasJogadores(adminLogado.id, lote);
+
+      // Mensalista/admin/status mudam o JogadorLista que outras telas exibem.
+      invalidarCache(CHAVE_ELENCO_ATIVO);
+      invalidarCache(CHAVE_ELENCO_TODOS);
+      invalidarCache(CHAVE_GOLEIROS);
 
       // Estado local só é commitado após o servidor confirmar o lote inteiro.
       setJogadores(jogadoresDraft);

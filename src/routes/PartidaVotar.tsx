@@ -16,6 +16,8 @@ import {
 } from '../lib/partidas';
 import { POSICOES, type TimeId } from '../lib/times';
 import { isRandomUsername } from '../lib/jogadores';
+import { invalidarCache } from '../hooks/useCache';
+import { CHAVE_MEDIAS_NOTAS } from '../lib/chavesCache';
 import { voltar } from '../lib/navegacao';
 import { BotaoVoltar } from '../components/BotaoVoltar';
 import { BarraAcaoInferior } from '../components/BarraAcaoInferior';
@@ -249,6 +251,9 @@ export function PartidaVotar() {
         setErro('Não foi possível registrar (a votação pode ter fechado ou há voto inválido).');
         return;
       }
+
+      // Votos alteram as médias de notas aparadas exibidas em outras telas.
+      invalidarCache(CHAVE_MEDIAS_NOTAS);
 
       if (draftKey) {
         try {

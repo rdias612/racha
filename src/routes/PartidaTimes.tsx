@@ -3,7 +3,8 @@ import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
 import { useEscalacaoTimes } from '../hooks/useEscalacaoTimes';
-import { invalidarCachesDependentesDePartida } from '../lib/chavesCache';
+import { invalidarCache } from '../hooks/useCache';
+import { invalidarCachesDependentesDePartida, CHAVE_ELENCO_ATIVO, CHAVE_ELENCO_TODOS, CHAVE_GOLEIROS } from '../lib/chavesCache';
 import {
   carregarPartida,
   carregarParticipantes,
@@ -163,6 +164,9 @@ export function PartidaTimes() {
   }) {
     if (!jogadorLogado?.id) return;
     const novoId = await criarGoleiroRapido(dados, jogadorLogado.id);
+    invalidarCache(CHAVE_GOLEIROS);
+    invalidarCache(CHAVE_ELENCO_ATIVO);
+    invalidarCache(CHAVE_ELENCO_TODOS);
     const listaAtualizada = await listarGoleiros();
     setGoleirosDisponiveis(listaAtualizada);
     if (timeParaNovoGoleiro === 'a') {
