@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { UserPlus } from 'lucide-react';
 import { CampoBusca } from './CampoBusca';
 import { ModalBase } from './ModalBase';
+import { Botao } from './ui/Botao';
 import { POSICOES, TIMES, type TimeId } from '../lib/times';
 import type { JogadorLista } from '../lib/jogadores';
 
@@ -51,13 +52,9 @@ export function ModalEscalarJogador({
       posicao="centro"
       rodape={
         <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={onClose}
-            className="min-h-[44px] px-4 py-2 rounded-[3px] border border-borda text-xs font-display font-bold uppercase tracking-wider text-giz hover:bg-superficie cursor-pointer"
-          >
+          <Botao type="button" onClick={onClose} variante="secundario" className="cursor-pointer">
             Fechar
-          </button>
+          </Botao>
         </div>
       }
     >

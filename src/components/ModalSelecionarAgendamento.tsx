@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Check, Clock, Calendar } from 'lucide-react';
 import { vibrateLight } from '../lib/haptics';
 import { ModalBase } from './ModalBase';
+import { Botao } from './ui/Botao';
 
 export interface OpcaoAgendamento {
   value: string;
@@ -67,20 +68,12 @@ export function ModalSelecionarAgendamento({
       posicao="bottom-sheet"
       rodape={
         <div className="space-y-2">
-          <button
-            type="button"
-            onClick={handleConfirmar}
-            className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 transition active:translate-y-px"
-          >
+          <Botao type="button" onClick={handleConfirmar} variante="primario" larguraCompleta>
             Confirmar Agendamento
-          </button>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie text-xs font-display font-bold uppercase tracking-wider text-giz hover:bg-superficie-2 transition active:translate-y-px shadow-xs"
-          >
+          </Botao>
+          <Botao type="button" onClick={onClose} variante="secundario" larguraCompleta>
             Cancelar
-          </button>
+          </Botao>
         </div>
       }
     >

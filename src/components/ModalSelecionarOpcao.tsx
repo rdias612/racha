@@ -1,6 +1,7 @@
 import { Check } from 'lucide-react';
 import { vibrateLight } from '../lib/haptics';
 import { ModalBase } from './ModalBase';
+import { Botao } from './ui/Botao';
 
 export interface OpcaoModal {
   value: string;
@@ -48,13 +49,9 @@ export function ModalSelecionarOpcao({
       tamanhoMaximo="md"
       posicao="bottom-sheet"
       rodape={
-        <button
-          type="button"
-          onClick={onClose}
-          className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie text-xs font-display font-bold uppercase tracking-wider text-giz hover:bg-superficie-2 transition active:translate-y-px shadow-xs cursor-pointer"
-        >
+        <Botao type="button" onClick={onClose} variante="secundario" larguraCompleta className="cursor-pointer">
           Fechar
-        </button>
+        </Botao>
       }
     >
       <div className="p-2 sm:p-3 space-y-1">

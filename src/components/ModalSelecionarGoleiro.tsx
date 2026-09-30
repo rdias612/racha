@@ -3,6 +3,7 @@ import { UserPlus, Check, X } from 'lucide-react';
 import { CampoBusca } from './CampoBusca';
 import { BadgeTime } from './BadgeTime';
 import { ModalBase } from './ModalBase';
+import { Botao } from './ui/Botao';
 import { type JogadorLista } from '../lib/jogadores';
 import { type TimeId } from '../lib/times';
 import { vibrateLight } from '../lib/haptics';
@@ -65,13 +66,9 @@ export function ModalSelecionarGoleiro({
       tamanhoMaximo="md"
       posicao="bottom-sheet"
       rodape={
-        <button
-          type="button"
-          onClick={onClose}
-          className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie text-xs font-display font-bold uppercase tracking-wider text-giz hover:bg-superficie-2 transition active:translate-y-px shadow-xs"
-        >
+        <Botao type="button" onClick={onClose} variante="secundario" larguraCompleta>
           Fechar
-        </button>
+        </Botao>
       }
     >
       {/* Barra de Busca e Ações Rápidas */}
