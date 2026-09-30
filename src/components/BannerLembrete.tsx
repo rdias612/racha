@@ -1,13 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
-import { carregarPartidasVotadas, votacaoAberta } from '../lib/partidas';
-
-interface PartidaAberta {
-  id: number;
-  voting_closes_at: string;
-}
+import {
+  carregarPartidasComVotacaoAberta,
+  carregarPartidasVotadas,
+  type PartidaVotacaoAberta,
+} from '../lib/partidas';
 
 function formatarRestante(ms: number): string {
   if (ms <= 0) return 'encerrando';
@@ -19,7 +17,7 @@ function formatarRestante(ms: number): string {
 export function BannerLembrete() {
   const jogador = useJogadorLogado();
   const jogadorId = jogador?.id;
-  const [pendentes, setPendentes] = useState<PartidaAberta[]>([]);
+  const [pendentes, setPendentes] = useState<PartidaVotacaoAberta[]>([]);
   const [agora, setAgora] = useState(Date.now());
 
   // Geração de requisição: resposta de um polling antigo (troca de jogador
@@ -33,16 +31,12 @@ export function BannerLembrete() {
     const geracao = ++geracaoRef.current;
 
     try {
-      // Busca partidas published com votação aberta
-      const { data, error } = await supabase
-        .from('partidas')
-        .select('id, status, voting_closes_at')
-        .eq('status', 'published')
-        .gt('voting_closes_at', new Date().toISOString());
+      // Busca partidas published com votação aberta (predicado na lib)
+      const abertas = await carregarPartidasComVotacaoAberta();
 
-      if (error || geracao !== geracaoRef.current) return;
+      if (geracao !== geracaoRef.current) return;
 
-      if (!data || data.length === 0) {
+      if (abertas.length === 0) {
         setPendentes([]);
         return;
       }
@@ -50,15 +44,10 @@ export function BannerLembrete() {
       // Filtra as que o usuário ainda não votou (LEFT JOIN virtual)
       const idsVotados = await carregarPartidasVotadas(
         jogadorId,
-        data.map((p) => p.id)
+        abertas.map((p) => p.id)
       );
       if (geracao !== geracaoRef.current) return;
-      setPendentes(
-        data.filter(
-          (p): p is { id: number; voting_closes_at: string; status: string } =>
-            votacaoAberta(p) && p.voting_closes_at != null && !idsVotados.has(p.id)
-        )
-      );
+      setPendentes(abertas.filter((p) => !idsVotados.has(p.id)));
     } catch {
       // Falha de rede durante o polling: mantém o último estado conhecido.
     }

@@ -236,6 +236,29 @@ export async function carregarPartidasVotadas(
   return new Set((data ?? []).map((v) => v.partida_id));
 }
 
+/** Partida com urna aberta (status `published`, prazo no futuro). */
+export interface PartidaVotacaoAberta {
+  id: number;
+  voting_closes_at: string;
+}
+
+/** Partidas `published` com votação ainda aberta, já filtradas por `votacaoAberta`. */
+export async function carregarPartidasComVotacaoAberta(): Promise<PartidaVotacaoAberta[]> {
+  const { data, error } = await supabase
+    .from('partidas')
+    .select('id, status, voting_closes_at')
+    .eq('status', 'published')
+    .gt('voting_closes_at', new Date().toISOString());
+  if (error) throw error;
+
+  return (data ?? [])
+    .filter(
+      (p): p is PartidaVotacaoAberta & { status: string } =>
+        votacaoAberta(p) && p.voting_closes_at != null
+    )
+    .map((p) => ({ id: p.id, voting_closes_at: p.voting_closes_at }));
+}
+
 // Deposita a cédula completa do votante na urna (RPC registrar_votos, que valida
 // prazo, elegibilidade e self-vote no servidor). Retorna false quando o servidor
 // recusa (votação fechada ou voto inválido).
