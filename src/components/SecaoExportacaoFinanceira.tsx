@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { FileSpreadsheet } from 'lucide-react';
+import { CampoTexto } from './ui/CampoTexto';
 import { baixarExcelLancamentos } from '../lib/exportacao';
 import { listarLancamentosPorPeriodo } from '../lib/dividas';
 import { hojeStr, primeiroDiaMesStr } from '../lib/formatacao';
@@ -56,28 +57,20 @@ export function SecaoExportacaoFinanceira({ onNotificar }: SecaoExportacaoFinanc
         no intervalo escolhido.
       </p>
       <div className="grid grid-cols-2 gap-3">
-        <label className="block">
-          <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
-            De
-          </span>
-          <input
-            type="date"
-            value={exportDe}
-            onChange={(e) => setExportDe(e.target.value)}
-            className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz font-mono shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2"
-          />
-        </label>
-        <label className="block">
-          <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
-            Até
-          </span>
-          <input
-            type="date"
-            value={exportAte}
-            onChange={(e) => setExportAte(e.target.value)}
-            className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz font-mono shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2"
-          />
-        </label>
+        <CampoTexto
+          rotulo="De"
+          tipo="date"
+          valor={exportDe}
+          aoMudar={setExportDe}
+          fonteMono
+        />
+        <CampoTexto
+          rotulo="Até"
+          tipo="date"
+          valor={exportAte}
+          aoMudar={setExportAte}
+          fonteMono
+        />
       </div>
       <button
         type="button"
