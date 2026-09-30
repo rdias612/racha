@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
 import {
   compararPorPresencaRecente,
   listarJogadoresAtivos,
@@ -17,7 +16,12 @@ import { BarraAcaoInferior } from '../components/BarraAcaoInferior';
 import { CampoBusca } from '../components/CampoBusca';
 import { formatarMensagemErro } from '../lib/erros';
 import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
-import { CAPACIDADE_PARTIDA, STORAGE_NOVA_PARTIDA } from '../lib/partidas';
+import {
+  CAPACIDADE_PARTIDA,
+  STORAGE_NOVA_PARTIDA,
+  criarPartida,
+  type ParticipanteNovo,
+} from '../lib/partidas';
 
 const HORA_PADRAO = '19:00';
 
@@ -143,7 +147,7 @@ export function PartidaNova() {
 
     try {
       const dataIso = new Date(`${dataJogo}T${HORA_PADRAO}`).toISOString();
-      const payloadParticipantes = selecionados.map((id) => {
+      const payloadParticipantes: ParticipanteNovo[] = selecionados.map((id) => {
         const j = jogadores.find((x) => x.id === id);
         return {
           jogador_id: id,
@@ -155,14 +159,11 @@ export function PartidaNova() {
         };
       });
 
-      const { data: novaPartidaId, error } = await supabase.rpc('criar_partida', {
-        p_data_jogo: dataIso,
-        p_criado_por: adminLogado.id,
-        p_participantes: payloadParticipantes,
+      const novaPartidaId = await criarPartida({
+        dataJogo: dataIso,
+        criadoPor: adminLogado.id,
+        participantes: payloadParticipantes,
       });
-
-      if (error) throw error;
-      if (!novaPartidaId) throw new Error('Falha ao criar partida (rollback).');
 
       try {
         localStorage.removeItem(STORAGE_NOVA_PARTIDA);

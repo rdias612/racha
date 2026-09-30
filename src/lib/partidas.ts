@@ -390,6 +390,34 @@ export async function finalizarPartida(partidaId: number) {
   return data as boolean;
 }
 
+// Type alias (não interface) para o payload ser atribuível ao parâmetro jsonb das RPCs.
+export type ParticipanteNovo = {
+  jogador_id: number;
+  posicao: PosicaoId;
+  time: TimeId | null;
+  gols: number;
+  assistencias: number;
+  gols_contra: number;
+};
+
+/** Cria a partida via RPC `criar_partida`; retorna o id novo. Erro se a RPC falhar ou vier sem id (rollback). */
+export async function criarPartida(dados: {
+  dataJogo: string;
+  criadoPor: number;
+  participantes: ParticipanteNovo[];
+}): Promise<number> {
+  const { data: novaPartidaId, error } = await supabase.rpc('criar_partida', {
+    p_data_jogo: dados.dataJogo,
+    p_criado_por: dados.criadoPor,
+    p_participantes: dados.participantes,
+  });
+
+  if (error) throw error;
+  if (!novaPartidaId) throw new Error('Falha ao criar partida (rollback).');
+
+  return novaPartidaId;
+}
+
 // --- Confirmação de presença ---
 
 // 14 de linha = 2 times x 7 jogadores (LIMITE_POR_TIME).
