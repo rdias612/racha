@@ -163,14 +163,10 @@ export function ModalSelecionarGoleiro({
               {busca ? 'Nenhum goleiro encontrado para esta busca.' : 'Nenhum goleiro disponível.'}
             </p>
             {onAbrirNovoGoleiro && (
-              <button
-                type="button"
-                onClick={handleNovoGoleiro}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[3px] bg-destaque text-destaque-tinta font-display font-bold text-xs uppercase tracking-wider shadow-carimbo min-h-[44px] cursor-pointer"
-              >
+              <Botao onClick={handleNovoGoleiro}>
                 <UserPlus className="size-3.5" />
                 <span>Cadastrar Goleiro</span>
-              </button>
+              </Botao>
             )}
           </div>
         )}
