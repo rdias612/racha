@@ -49,6 +49,10 @@ export async function listarEventosAutomaticos(): Promise<EventoFinanceiroAutoma
     .order('gatilho')
     .order('nome');
   if (error) throw error;
+  // Cast de narrowing intencional: colunas string no Row gerado
+  // (database.types.ts:132); as unions de domínio (GatilhoEventoAuto,
+  // NaturezaLancamento, TipoDivida, DestinoEventoAuto — fontes: dividas.ts e este
+  // módulo) exigem narrowing.
   return (data ?? []) as EventoFinanceiroAutomatico[];
 }
 
@@ -97,6 +101,8 @@ export async function salvarEventoAutomatico(
     .select('id')
     .single();
   if (error) throw error;
+  // Cast de narrowing intencional: insert().select('id').single() tipa o retorno
+  // como Row genérico do driver; estreita o id para number.
   return data.id as number;
 }
 
