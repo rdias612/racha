@@ -3,7 +3,7 @@ setlocal
 
 echo.
 echo ===================================================
-echo    RACHA GRAGOATA CBO - FRONTEND LOCAL (5173)
+echo    RACHA GRAGOATA CBO - FRONTEND LOCAL (5175)
 echo ===================================================
 echo.
 
@@ -58,15 +58,15 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo [OK] Build concluido. Iniciando preview em http://localhost:5173 ...
+echo [OK] Build concluido. Iniciando preview em http://localhost:5175 ...
 echo.
-call npx vite preview --port 5173 --strictPort --open
+call npx vite preview --port 5175 --strictPort --open
 goto fim
 
 :dev
-echo [OK] Modo desenvolvimento. Servidor Vite iniciando na porta 5173...
+echo [OK] Modo desenvolvimento. Servidor Vite iniciando na porta 5175...
 echo.
-call npx vite --port 5173 --strictPort --open
+call npx vite --port 5175 --strictPort --open
 
 :fim
 endlocal
