@@ -17,6 +17,7 @@ import { BotaoVoltar } from '../components/BotaoVoltar';
 import { BarraAcaoInferior } from '../components/BarraAcaoInferior';
 import { CampoBusca } from '../components/CampoBusca';
 import { formatarMensagemErro } from '../lib/erros';
+import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 import { CAPACIDADE_PARTIDA, STORAGE_NOVA_PARTIDA } from '../lib/partidas';
 
 const HORA_PADRAO = '19:00';
@@ -184,14 +185,14 @@ export function PartidaNova() {
     <div className="px-3 py-4 pb-40 sm:px-4 space-y-4 max-w-2xl mx-auto text-giz">
       <div>
         <BotaoVoltar fallback="/jogos" className="mb-2" />
-        <div className="sumula-header pb-2 flex items-baseline justify-between">
-          <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
-            Nova Partida da Súmula
-          </h2>
-          <span className="text-[10px] font-mono uppercase tracking-widest text-destaque-texto">
-            14 Titulares
-          </span>
-        </div>
+        <CabecalhoSumula
+          titulo="Nova Partida da Súmula"
+          acao={
+            <span className="text-[10px] font-mono uppercase tracking-widest text-destaque-texto">
+              14 Titulares
+            </span>
+          }
+        />
       </div>
 
       {erro && <MensagemEstado>{erro}</MensagemEstado>}
