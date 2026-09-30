@@ -3,8 +3,7 @@ import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { UserPlus } from 'lucide-react';
 import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
-import { invalidarCache } from '../hooks/useCache';
-import { CHAVE_JOGOS, chaveResumo } from '../lib/chavesCache';
+import { invalidarCachesDependentesDePartida } from '../lib/chavesCache';
 import { listarJogadoresAtivos, type JogadorLista } from '../lib/jogadores';
 import { TIMES, type TimeId } from '../lib/times';
 import {
@@ -201,8 +200,7 @@ export function PartidaEditar() {
     try {
       await salvarEdicaoCompletaPartida(partidaId, participantes, primeiraVez);
 
-      invalidarCache(CHAVE_JOGOS);
-      invalidarCache(chaveResumo(new Date().getFullYear()));
+      invalidarCachesDependentesDePartida();
 
       // Push de abertura da votação é best-effort: falha fica em cron_execucoes
       // e não suja o feedback da publicação (buckets 6h/3h/1h/30m são a rede).

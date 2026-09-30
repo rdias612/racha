@@ -2,8 +2,7 @@ import { useCallback, useEffect, useState, useMemo } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
-import { invalidarCache } from '../hooks/useCache';
-import { CHAVE_JOGOS, chaveResumo } from '../lib/chavesCache';
+import { invalidarCachesDependentesDePartida } from '../lib/chavesCache';
 import { isRandomUsername } from '../lib/jogadores';
 import {
   abrirPartida,
@@ -149,8 +148,7 @@ export function PartidaDetalhe() {
         );
         return;
       }
-      invalidarCache(CHAVE_JOGOS);
-      invalidarCache(chaveResumo(new Date().getFullYear()));
+      invalidarCachesDependentesDePartida();
       navigate(`/partida/${partida.id}/ao-vivo`, { replace: true });
     } catch (e) {
       setErro(formatarMensagemErro(e, 'Não foi possível iniciar a partida.'));

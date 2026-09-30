@@ -9,8 +9,7 @@ import { Snackbar } from '../components/Snackbar';
 import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
 import { useSnackbar } from '../hooks/useSnackbar';
-import { invalidarCache } from '../hooks/useCache';
-import { CHAVE_JOGOS, chaveResumo } from '../lib/chavesCache';
+import { invalidarCachesDependentesDePartida } from '../lib/chavesCache';
 import { formatarDataMobile, formatarDataCompleta } from '../lib/formatacao';
 import { BotaoVoltar } from '../components/BotaoVoltar';
 import { BarraAcaoInferior } from '../components/BarraAcaoInferior';
@@ -134,8 +133,7 @@ export function PartidaAoVivo() {
         );
         return;
       }
-      invalidarCache(CHAVE_JOGOS);
-      invalidarCache(chaveResumo(new Date().getFullYear()));
+      invalidarCachesDependentesDePartida();
       await recarregar();
     } catch (e: unknown) {
       setErro(formatarMensagemErro(e, 'Não foi possível iniciar a partida.'));
@@ -221,8 +219,7 @@ export function PartidaAoVivo() {
         setConfirmandoFim(false);
         return;
       }
-      invalidarCache(CHAVE_JOGOS);
-      invalidarCache(chaveResumo(new Date().getFullYear()));
+      invalidarCachesDependentesDePartida();
       if (jogadorLogado) {
         // Push é best-effort: falha não suja o feedback da publicação e fica
         // registrada em cron_execucoes; os buckets 6h/3h/1h/30m são a rede.

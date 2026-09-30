@@ -9,8 +9,7 @@ import {
 } from '../lib/jogadores';
 import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
-import { invalidarCache } from '../hooks/useCache';
-import { CHAVE_JOGOS, chaveResumo } from '../lib/chavesCache';
+import { invalidarCachesDependentesDePartida } from '../lib/chavesCache';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { obterProximaQuintaFeira } from '../lib/formatacao';
 import { BotaoVoltar } from '../components/BotaoVoltar';
@@ -171,8 +170,7 @@ export function PartidaNova() {
         // Storage indisponível — ignora silenciosamente.
       }
 
-      invalidarCache(CHAVE_JOGOS);
-      invalidarCache(chaveResumo(new Date().getFullYear()));
+      invalidarCachesDependentesDePartida();
 
       navigate(`/partida/${novaPartidaId}/times`, { replace: true });
     } catch (err) {

@@ -3,8 +3,7 @@ import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
 import { useEscalacaoTimes } from '../hooks/useEscalacaoTimes';
-import { invalidarCache } from '../hooks/useCache';
-import { CHAVE_JOGOS, chaveResumo } from '../lib/chavesCache';
+import { invalidarCachesDependentesDePartida } from '../lib/chavesCache';
 import {
   carregarPartida,
   carregarParticipantes,
@@ -207,8 +206,7 @@ export function PartidaTimes() {
         jogadorLogado?.id ?? null
       );
 
-      invalidarCache(CHAVE_JOGOS);
-      invalidarCache(chaveResumo(new Date().getFullYear()));
+      invalidarCachesDependentesDePartida();
       setFeedback('Times e goleiros salvos com sucesso.');
       if (timerNavegacaoRef.current) {
         clearTimeout(timerNavegacaoRef.current);
