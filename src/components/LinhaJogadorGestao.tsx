@@ -59,7 +59,12 @@ export function LinhaJogadorGestao({
               )}
 
               {superadmin && (
-                <Badge densidade="mini" variante="destaque-solido" icone={<Crown className="size-3" />}>
+                <Badge
+                  densidade="mini"
+                  variante="destaque-solido"
+                  icone={<Crown className="size-3" />}
+                  title="Superadmin permanente"
+                >
                   Superadmin
                 </Badge>
               )}

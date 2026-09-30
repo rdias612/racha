@@ -30,6 +30,8 @@ export interface BadgeProps {
   className?: string;
   icone?: ReactNode;
   densidade?: 'normal' | 'mini';
+  /** Tooltip nativo (ex.: "Superadmin permanente"). */
+  title?: string;
 }
 
 const SIGLAS_POSICAO: Record<string, string> = {
@@ -79,6 +81,7 @@ export function Badge({
   className = '',
   icone,
   densidade = 'normal',
+  title,
 }: BadgeProps) {
   let resolvedVariante: BadgeVariante = variante ?? 'neutro';
   let defaultContent: ReactNode = children;
@@ -108,7 +111,7 @@ export function Badge({
   const variantClass = VARIANTE_CLASSES[resolvedVariante] ?? VARIANTE_CLASSES.neutro;
 
   return (
-    <span className={`${baseClasses} ${variantClass} ${className}`}>
+    <span className={`${baseClasses} ${variantClass} ${className}`} title={title}>
       {showPulse && (
         <span
           className="size-1.5 rounded-full bg-destaque animate-pulse shrink-0"
