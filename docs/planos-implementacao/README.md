@@ -4,6 +4,19 @@
 > Registros de execução/validação de planos executados ficam em [`registros/`](registros/).
 > Plano de origem: `docs/plano-melhorias-frontend-pwa.md`. Filosofia: `AGENTS.md` — passos pequenos, 1 commit por passo, sem novas bibliotecas, validação manual.
 
+## Processo padrão de execução (válido para todo plano deste diretório)
+
+Ao executar qualquer plano, este fluxo é **parte da execução esperada** — não precisa ser solicitado a cada vez:
+
+1. **Implementar**: disparar subagente executor, que segue o plano passo a passo (1 passo = 1 commit), valida com `npm run build` a cada passo e reporta divergências plano × código real.
+2. **Validar**: disparar subagente auditor read-only em seguida, que audita commits, superfície de diff, fora de escopo e critérios de encerramento, emitindo veredito (aprovado / aprovado com ressalvas / reprovado).
+3. **Registrar**: criar o registro da execução em `registros/<NN>-<slug>.md` (mesmo formato dos existentes), contendo: commits, divergências plano × código real, normalizações aplicadas, confirmações técnicas da auditoria, observações e o checklist de validação manual pendente para o dono.
+4. **Marcar como feito**: atualizar a linha do item na tabela de índice abaixo com `✅ **executado**` + link para o registro.
+5. **Corrigir o plano na fonte**: se a auditoria detectar imprecisões no doc do plano (linhas deslocadas, critérios de encerramento falsos por construção), corrigi-las no próprio doc do plano no mesmo commit do registro.
+6. **Commitar** tudo em commit próprio (`docs: registro de execução/validação do plano NN`).
+
+As validações visuais/funcionais no aparelho listadas na seção 5 de cada plano e nos registros permanecem **pendentes para o dono** — agentes não as executam.
+
 ## Índice (ordem do ranking anti-slop)
 
 | # | Plano | Item (plano) | Tier |
@@ -11,7 +24,7 @@
 | 01 | [cabecalho-sumula.md](01-cabecalho-sumula.md) | A1 · Extrair `CabecalhoSumula` — ✅ **executado** ([registro](registros/01-cabecalho-sumula.md)) | 1 |
 | 02 | [botao-variantes.md](02-botao-variantes.md) | A2 · Extrair `Botao` com variantes | 1 |
 | 03 | [helper-invalidacao-partida.md](03-helper-invalidacao-partida.md) | D1 · Helper de invalidação pós-mutação — ✅ **executado** ([registro](registros/03-helper-invalidacao-partida.md)) | 1 |
-| 04 | [campo-texto.md](04-campo-texto.md) | A3 · `CampoTexto`/`CampoTextoLongo` | 1 |
+| 04 | [campo-texto.md](04-campo-texto.md) | A3 · `CampoTexto`/`CampoTextoLongo` — ✅ **executado** ([registro](registros/04-campo-texto.md)) | 1 |
 | 05 | [elenco-usecache.md](05-elenco-usecache.md) | D2 · Elenco/derivados via `useCache` | 2 |
 | 06 | [aposentar-geracao-ref.md](06-aposentar-geracao-ref.md) | D3 · Aposentar `geracaoRef` manual | 2 |
 | 07 | [queries-fora-da-lib.md](07-queries-fora-da-lib.md) | D5 · Queries fora da `lib` → `lib` | 2 |
