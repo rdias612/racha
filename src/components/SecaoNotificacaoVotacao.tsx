@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { CampoTexto } from './ui/CampoTexto';
+import { CampoTextoLongo } from './ui/CampoTextoLongo';
 import { Toggle } from './Toggle';
 import type { NotificacoesConfig } from '../lib/notificacoes';
 
@@ -177,33 +179,21 @@ export function SecaoNotificacaoVotacao({ config, onAlterar }: SecaoNotificacaoV
 
                   {aberto && (
                     <div className="p-3 border-t border-borda bg-fundo/40 space-y-2">
-                      <label className="block">
-                        <span className="block text-[11px] font-display uppercase tracking-wider text-giz-fraco mb-1">
-                          Título
-                        </span>
-                        <input
-                          type="text"
-                          maxLength={120}
-                          value={config[b.titField] ?? ''}
-                          onChange={(e) => alterarCampo(b.titField, e.target.value)}
-                          placeholder={b.placeholderTit}
-                          className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie px-3 py-2 text-base sm:text-sm text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto"
-                        />
-                      </label>
+                      <CampoTexto
+                        rotulo="Título"
+                        valor={config[b.titField] ?? ''}
+                        aoMudar={(novoValor) => alterarCampo(b.titField, novoValor)}
+                        placeholder={b.placeholderTit}
+                        maxLength={120}
+                      />
 
-                      <label className="block">
-                        <span className="block text-[11px] font-display uppercase tracking-wider text-giz-fraco mb-1">
-                          Mensagem
-                        </span>
-                        <textarea
-                          rows={2}
-                          maxLength={500}
-                          value={config[b.msgField] ?? ''}
-                          onChange={(e) => alterarCampo(b.msgField, e.target.value)}
-                          placeholder={b.placeholderMsg}
-                          className="w-full rounded-[4px] border border-borda bg-superficie px-3 py-2 text-base sm:text-sm text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto"
-                        />
-                      </label>
+                      <CampoTextoLongo
+                        rotulo="Mensagem"
+                        valor={config[b.msgField] ?? ''}
+                        aoMudar={(novoValor) => alterarCampo(b.msgField, novoValor)}
+                        placeholder={b.placeholderMsg}
+                        maxLength={500}
+                      />
                     </div>
                   )}
                 </div>
