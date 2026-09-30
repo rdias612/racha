@@ -72,6 +72,8 @@ export async function obterConfiguracoesNotificacoes(adminId: number): Promise<N
     };
   }
 
+  // Cast de narrowing intencional: a RPC obter_configuracoes_notificacoes retorna
+  // Json no gerado (database.types.ts:1013) — o `as unknown as` é a ponte necessária.
   return data as unknown as NotificacoesConfig;
 }
 
@@ -144,5 +146,7 @@ export async function obterPainelEntregasPush(adminId: number): Promise<PainelEn
     p_admin_id: adminId,
   });
   if (error) throw error;
+  // Cast de narrowing intencional: a RPC estreita posicao: string → PosicaoId e
+  // aparelhos: Json → AparelhoPush[] (gerado em database.types.ts:1024).
   return (data ?? []) as unknown as PainelEntregaJogador[];
 }
