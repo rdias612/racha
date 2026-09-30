@@ -35,6 +35,8 @@ export interface Divida {
   paga: boolean;
   data_pagamento: string | null;
   created_at: string;
+  // join jogadores(username, is_mensalista, chave_pix, telefone): formato do select,
+  // não do Row da tabela — o gerado (database.types.ts) não expressa este formato.
   jogadores?: {
     username: string;
     is_mensalista: boolean;
@@ -60,6 +62,7 @@ export const SELECT_DIVIDA =
  * normalizando a natureza do lançamento com fallback defensivo para 'receita'.
  */
 export function mapearLinhaDivida(row: unknown): Divida {
+  // Cast de narrowing intencional: Row gerado de dividas não tipa o enum de natureza.
   const r = row as unknown as Divida;
   return {
     ...r,
@@ -79,6 +82,8 @@ export async function listarDividasEmAberto(): Promise<Divida[]> {
 }
 
 /** Linha da view `dividas_resumo` (total devido + qtd por jogador — só receitas). */
+// Cast de narrowing intencional: view dividas_resumo tem colunas | null no gerado
+// (database.types.ts:723); o cast para DevedorResumo é a ponte legítima.
 export interface DevedorResumo {
   jogador_id: number;
   username: string;
@@ -95,6 +100,7 @@ export async function listarResumoDevedores(): Promise<DevedorResumo[]> {
     .gt('total_devido', 0)
     .order('total_devido', { ascending: false });
   if (error) throw error;
+  // Cast de narrowing intencional: colunas | null no gerado (database.types.ts:723).
   return (data ?? []) as DevedorResumo[];
 }
 

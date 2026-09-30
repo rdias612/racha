@@ -2,6 +2,8 @@ import { supabase } from './supabase';
 import type { PosicaoId } from './times';
 
 /** Linha da view `ranking`. */
+// Casts de narrowing intencional: view ranking tem colunas | null no gerado
+// (database.types.ts:799); o mapeamento tolerante a nulos é intencional — NÃO derivar.
 export interface LinhaRanking {
   jogador_id: number;
   username: string;
