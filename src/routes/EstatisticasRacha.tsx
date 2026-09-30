@@ -8,6 +8,7 @@ import { SecaoRacha } from '../components/SecaoRacha';
 import { PullToRefresh } from '../components/PullToRefresh';
 import { carregarParesRacha, type ColunaOrdenacaoDuplas, type ParRacha } from '../lib/partidas';
 import { useSwipeTabs } from '../hooks/useSwipeTabs';
+import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 import { formatarMensagemErro } from '../lib/erros';
 
 const MIN_PARTIDAS = 5;
@@ -145,14 +146,7 @@ export function EstatisticasRacha() {
         {...swipeHandlers}
       >
         {/* Cabeçalho da Súmula */}
-        <div className="sumula-header pb-2 flex items-baseline justify-between">
-          <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
-            Estatísticas do Racha
-          </h2>
-          <span className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
-            Oficial CBO
-          </span>
-        </div>
+        <CabecalhoSumula titulo="Estatísticas do Racha" acao="Oficial CBO" />
 
         {/* Abas */}
         <AbasEstatisticas />
