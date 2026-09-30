@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Plus } from 'lucide-react';
+import { CampoTexto } from './ui/CampoTexto';
 import { SelectSumula } from './SelectSumula';
 import { hojeStr, mesAtualStr } from '../lib/formatacao';
 import {
@@ -159,63 +160,45 @@ export function FormLancamentoFinanceiro({
           />
         </label>
 
-        <label className="block">
-          <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
-            Valor (R$)
-          </span>
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            inputMode="decimal"
-            value={fValor}
-            onChange={(e) => setFValor(e.target.value)}
-            className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz font-mono shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2"
-            required
-          />
-        </label>
+        <CampoTexto
+          rotulo="Valor (R$)"
+          tipo="number"
+          min="0"
+          step="0.01"
+          inputMode="decimal"
+          valor={fValor}
+          aoMudar={setFValor}
+          fonteMono
+          obrigatorio
+        />
 
-        <label className="block">
-          <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
-            Data
-          </span>
-          <input
-            type="date"
-            value={fData}
-            onChange={(e) => setFData(e.target.value)}
-            className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz font-mono shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2"
-          />
-        </label>
+        <CampoTexto
+          rotulo="Data"
+          tipo="date"
+          valor={fData}
+          aoMudar={setFData}
+          fonteMono
+        />
 
-        <label className="block">
-          <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
-            Referência {fTipo === 'mensalidade' ? '(mês)' : '(opcional)'}
-          </span>
-          <input
-            type="text"
-            value={fReferencia}
-            onChange={(e) => setFReferencia(e.target.value)}
-            placeholder="ex.: 2026-08"
-            className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz font-mono shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2"
-          />
-        </label>
+        <CampoTexto
+          rotulo={`Referência ${fTipo === 'mensalidade' ? '(mês)' : '(opcional)'}`}
+          valor={fReferencia}
+          aoMudar={setFReferencia}
+          placeholder="ex.: 2026-08"
+          fonteMono
+        />
 
-        <label className="block col-span-2">
-          <span className="block text-xs font-display uppercase tracking-wider text-giz-fraco mb-1">
-            Descrição (opcional)
-          </span>
-          <input
-            type="text"
-            value={fDescricao}
-            onChange={(e) => setFDescricao(e.target.value)}
-            placeholder={
-              fNatureza === 'despesa'
-                ? 'ex.: Aluguel do campo — agosto'
-                : 'ex.: Mensalidade Agosto/2026'
-            }
-            className="w-full min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 text-base text-giz shadow-xs focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2"
-          />
-        </label>
+        <CampoTexto
+          rotulo="Descrição (opcional)"
+          valor={fDescricao}
+          aoMudar={setFDescricao}
+          placeholder={
+            fNatureza === 'despesa'
+              ? 'ex.: Aluguel do campo — agosto'
+              : 'ex.: Mensalidade Agosto/2026'
+          }
+          className="col-span-2"
+        />
       </div>
 
       <button
