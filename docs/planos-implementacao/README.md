@@ -31,7 +31,7 @@ As validações visuais/funcionais no aparelho listadas na seção 5 de cada pla
 | 08 | [dialogo-evento-modal-base.md](08-dialogo-evento-modal-base.md) | A5 · `DialogoEvento` → `ModalBase` — ✅ **executado** ([registro](registros/08-dialogo-evento-modal-base.md)) | 2 |
 | 09 | [pecas-listas-financeiras.md](09-pecas-listas-financeiras.md) | A6 · Peças das listas financeiras | 2 |
 | 10 | [tipos-derivados.md](10-tipos-derivados.md) | D4 · Tipos derivados de `database.types.ts` — ✅ **executado** ([registro](registros/10-tipos-derivados.md)) | 2 |
-| 11 | [badge-mini.md](11-badge-mini.md) | A8 · Chip "mini" no `Badge` | 3 |
+| 11 | [badge-mini.md](11-badge-mini.md) | A8 · Chip "mini" no `Badge` — ✅ **executado** ([registro](registros/11-badge-mini.md)) | 3 |
 | 12 | [token-scrim.md](12-token-scrim.md) | C3 · Token `--cor-scrim` | 3 |
 | 13 | [remocao-tokens-mortos.md](13-remocao-tokens-mortos.md) | C4 · Remoção de tokens/dados mortos | 3 |
 | 14 | [higiene-nomenclatura.md](14-higiene-nomenclatura.md) | A4 · Higiene de nomenclatura | 3 |
