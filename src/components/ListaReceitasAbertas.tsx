@@ -4,24 +4,13 @@ import { Check, ChevronDown, MessageSquare } from 'lucide-react';
 import { Badge } from './Badge';
 import { Botao } from './ui/Botao';
 import { CabecalhoSumula } from './ui/CabecalhoSumula';
+import { ChipTipoLancamento } from './ui/ChipTipoLancamento';
 import { Carregando, MensagemEstado } from './Estado';
 import {
-  labelTipoDivida,
   montarLembreteWhatsApp,
   type DividaPorJogador,
-  type TipoDivida,
 } from '../lib/dividas';
 import { formatarReais, formatarDataLista } from '../lib/formatacao';
-
-// Mapa de cores por tipo de lançamento (compartilhado com ListaDespesasAbertas)
-export const COR_TIPO: Record<TipoDivida, string> = {
-  mensalidade: 'bg-destaque/15 text-destaque-texto border-destaque/40',
-  avulso: 'bg-ok/15 text-ok border-ok/40',
-  goleiro: 'bg-campo/20 text-giz border-borda',
-  campo: 'bg-superficie-2 text-giz border-borda',
-  eventos: 'bg-destaque/10 text-destaque-texto border-destaque/30',
-  outro: 'bg-superficie-2 text-giz-fraco border-borda',
-};
 
 export interface ListaReceitasAbertasProps {
   grupos: DividaPorJogador[];
@@ -153,11 +142,7 @@ export function ListaReceitasAbertas({
                         <div className="min-w-0 flex-1 space-y-1">
                           <div className="flex flex-wrap items-center gap-1.5">
                             <Badge variante="ok">Receita</Badge>
-                            <span
-                              className={`rounded-[2px] border px-1.5 py-0.5 text-[9px] font-display uppercase tracking-wider font-bold ${COR_TIPO[d.tipo]}`}
-                            >
-                              {labelTipoDivida(d.tipo)}
-                            </span>
+                            <ChipTipoLancamento tipo={d.tipo} />
                             {d.referencia && (
                               <span className="text-[11px] font-mono text-giz-fraco">
                                 ref. {d.referencia}
