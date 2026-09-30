@@ -24,6 +24,7 @@ import { CartaoJogadorEdicao } from '../components/CartaoJogadorEdicao';
 import { ModalEscalarJogador } from '../components/ModalEscalarJogador';
 import { formatarDataCompleta } from '../lib/formatacao';
 import { BotaoVoltar } from '../components/BotaoVoltar';
+import { Botao } from '../components/ui/Botao';
 import { BarraAcaoInferior } from '../components/BarraAcaoInferior';
 import { PainelPlacar } from '../components/PainelPlacar';
 import { CabecalhoTime } from '../components/CabecalhoTime';
@@ -315,14 +316,10 @@ export function PartidaEditar() {
                 {lista.length === 0 && (
                   <div className="rounded-[4px] border border-dashed border-borda p-6 text-center text-xs text-giz-fraco bg-superficie-2">
                     <p className="mb-2 font-mono">Nenhum jogador escalado no {TIMES[t].nome}.</p>
-                    <button
-                      type="button"
-                      onClick={() => setModalTime(t)}
-                      className="min-h-[44px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-xs font-display font-bold uppercase tracking-wider bg-destaque text-destaque-tinta shadow-carimbo cursor-pointer"
-                    >
+                    <Botao type="button" onClick={() => setModalTime(t)} className="px-3">
                       <UserPlus className="size-3.5" />
                       <span>Adicionar primeiro jogador</span>
-                    </button>
+                    </Botao>
                   </div>
                 )}
               </div>
@@ -342,17 +339,13 @@ export function PartidaEditar() {
             : 'Atualiza escalação, participantes e placar imediatamente.'
         }
       >
-        <button
-          onClick={() => setConfirmandoSalvar(true)}
-          disabled={salvando}
-          className="w-full min-h-[44px] rounded-[4px] bg-destaque hover:brightness-105 px-4 py-3 font-display font-bold uppercase tracking-wider text-destaque-tinta shadow-carimbo disabled:opacity-40 active:translate-y-px transition cursor-pointer text-xs"
-        >
+        <Botao onClick={() => setConfirmandoSalvar(true)} disabled={salvando} larguraCompleta>
           {salvando
             ? 'Salvando alterações…'
             : primeiraVez
               ? 'Publicar resultado e escalação'
               : 'Salvar alterações da partida'}
-        </button>
+        </Botao>
       </BarraAcaoInferior>
 
       {/* Modal para Adicionar Jogador com Busca e Filtros Rápidos */}

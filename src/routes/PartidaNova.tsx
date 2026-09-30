@@ -21,6 +21,7 @@ import { BarraAcaoInferior } from '../components/BarraAcaoInferior';
 import { CampoBusca } from '../components/CampoBusca';
 import { formatarMensagemErro } from '../lib/erros';
 import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
+import { Botao } from '../components/ui/Botao';
 import {
   CAPACIDADE_PARTIDA,
   STORAGE_NOVA_PARTIDA,
@@ -275,15 +276,11 @@ export function PartidaNova() {
             : undefined
         }
       >
-        <button
-          onClick={handleCriarEEscalar}
-          disabled={!podeCriar}
-          className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-40"
-        >
+        <Botao onClick={handleCriarEEscalar} disabled={!podeCriar} larguraCompleta>
           {salvando
             ? 'Criando partida…'
             : `Avançar para Escalação (${selecionados.length}/${CAPACIDADE_PARTIDA})`}
-        </button>
+        </Botao>
       </BarraAcaoInferior>
     </div>
   );

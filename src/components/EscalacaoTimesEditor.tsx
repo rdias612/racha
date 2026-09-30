@@ -5,6 +5,7 @@ import { LIMITE_POR_TIME, POSICOES, type PosicaoId, type TimeId } from '../lib/t
 import { useSnackbar } from '../hooks/useSnackbar';
 import { Snackbar } from './Snackbar';
 import { CabecalhoSumula } from './ui/CabecalhoSumula';
+import { Botao } from './ui/Botao';
 import { MensagemEstado } from './Estado';
 import { ModalSelecionarGoleiro } from './ModalSelecionarGoleiro';
 import { BotaoVoltar } from './BotaoVoltar';
@@ -472,14 +473,9 @@ export function EscalacaoTimesEditor({
             <span>Copiar escalações</span>
           </button>
         )}
-        <button
-          type="button"
-          onClick={onSalvar}
-          disabled={!podeSalvar}
-          className="w-full min-h-[44px] rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 active:translate-y-px transition disabled:opacity-40"
-        >
+        <Botao type="button" onClick={onSalvar} disabled={!podeSalvar} larguraCompleta>
           {salvando ? salvandoRotulo : salvarRotulo}
-        </button>
+        </Botao>
       </BarraAcaoInferior>
 
       {mostrarCopiarEscalacao && <Snackbar {...snackbarProps} />}

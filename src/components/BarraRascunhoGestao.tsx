@@ -1,4 +1,5 @@
 import { RotateCcw, Save } from 'lucide-react';
+import { Botao } from './ui/Botao';
 
 export interface BarraRascunhoGestaoProps {
   qtdModificacoes: number;
@@ -30,21 +31,22 @@ export function BarraRascunhoGestao({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <button
+          <Botao
             type="button"
+            variante="secundario"
             disabled={salvandoLote}
             onClick={onDescartar}
-            className="inline-flex items-center gap-1 px-3 py-2 rounded-[3px] border border-borda text-xs font-display font-bold uppercase tracking-wider text-giz-fraco hover:text-giz hover:bg-superficie-2 transition disabled:opacity-50 min-h-[44px]"
+            className="px-3"
           >
             <RotateCcw className="size-3.5" />
             <span>Descartar</span>
-          </button>
+          </Botao>
 
-          <button
+          <Botao
             type="button"
             disabled={salvandoLote}
             onClick={onSalvar}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[3px] text-xs font-display font-bold uppercase tracking-wider bg-destaque hover:brightness-105 text-destaque-tinta transition shadow-carimbo active:translate-y-px disabled:opacity-50 shrink-0 min-h-[44px]"
+            className="shrink-0 px-4"
           >
             {salvandoLote ? (
               'Salvando...'
@@ -54,7 +56,7 @@ export function BarraRascunhoGestao({
                 <span>Confirmar</span>
               </>
             )}
-          </button>
+          </Botao>
         </div>
       </div>
     </div>
