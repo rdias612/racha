@@ -27,6 +27,7 @@ import {
 import { SecaoJuntosComparador } from '../components/SecaoJuntosComparador';
 import { SecaoAdversosComparador } from '../components/SecaoAdversosComparador';
 import { HistoricoComparador } from '../components/HistoricoComparador';
+import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 
 // Tudo o que a tela precisa em uma ida só: confronto direto (RPCs 072) +
 // números gerais da temporada + mapa de médias aparadas (RPC 070).
@@ -202,14 +203,7 @@ export function Comparador() {
         {...swipeHandlers}
       >
         {/* Cabeçalho da Súmula */}
-        <div className="sumula-header pb-2 flex items-baseline justify-between">
-          <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
-            Confronto Direto
-          </h2>
-          <span className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
-            Estatísticas CBO
-          </span>
-        </div>
+        <CabecalhoSumula titulo="Confronto Direto" acao="Estatísticas CBO" />
 
         {/* Abas */}
         <AbasEstatisticas />
