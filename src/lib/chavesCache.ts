@@ -69,3 +69,8 @@ export function chavePartidasRecentesJogadores(meses: number): string {
 export function chaveStatsJogador(jogadorId: number): string {
   return `stats-jogador:${jogadorId}`;
 }
+
+/** Estatísticas do racha (RPC `pares_racha`): o mínimo de partidas em dupla entra na chave. */
+export function chaveParesRacha(minPartidas: number): string {
+  return `pares-racha:${minPartidas}`;
+}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
+import { useCallback, useState, useMemo } from 'react';
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
 import { AbasEstatisticas } from '../components/AbasEstatisticas';
 import { MensagemEstado } from '../components/Estado';
@@ -7,9 +7,10 @@ import { DuplaCard } from '../components/DuplaCard';
 import { SecaoRacha } from '../components/SecaoRacha';
 import { PullToRefresh } from '../components/PullToRefresh';
 import { carregarParesRacha, type ColunaOrdenacaoDuplas, type ParRacha } from '../lib/partidas';
+import { useCache } from '../hooks/useCache';
+import { chaveParesRacha } from '../lib/chavesCache';
 import { useSwipeTabs } from '../hooks/useSwipeTabs';
 import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
-import { formatarMensagemErro } from '../lib/erros';
 
 const MIN_PARTIDAS = 5;
 
@@ -69,9 +70,6 @@ function compararPares(
 }
 
 export function EstatisticasRacha() {
-  const [pares, setPares] = useState<ParRacha[] | null>(null);
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState<string | null>(null);
   const [colunaOrdenacao, setColunaOrdenacao] = useState<ColunaOrdenacaoDuplas>('pontos');
   const [direcaoOrdenacao, setDirecaoOrdenacao] = useState<DirecaoOrdenacao>('desc');
 
@@ -80,30 +78,11 @@ export function EstatisticasRacha() {
     activeTab: '/estatisticas/racha',
   });
 
-  // Geração de requisição: `carregar` também é usado pelo PullToRefresh (fora
-  // do ciclo de useEffect), então a proteção contra resposta obsoleta vive
-  // aqui, não na flag do efeito.
-  const geracaoRef = useRef(0);
-
-  const carregar = useCallback(async () => {
-    const geracao = ++geracaoRef.current;
-    setCarregando(true);
-    setErro(null);
-    try {
-      const dados = await carregarParesRacha(MIN_PARTIDAS);
-      if (geracao === geracaoRef.current) setPares(dados);
-    } catch (e: unknown) {
-      if (geracao === geracaoRef.current) {
-        setErro(formatarMensagemErro(e, 'Erro ao carregar dados.'));
-      }
-    } finally {
-      if (geracao === geracaoRef.current) setCarregando(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    carregar();
-  }, [carregar]);
+  const buscarPares = useCallback(() => carregarParesRacha(MIN_PARTIDAS), []);
+  const { dados: pares, carregando, erro, recarregar } = useCache<ParRacha[]>(
+    chaveParesRacha(MIN_PARTIDAS),
+    buscarPares
+  );
 
   function selecionarOrdenacao(coluna: ColunaOrdenacaoDuplas) {
     if (coluna === colunaOrdenacao) {
@@ -135,12 +114,12 @@ export function EstatisticasRacha() {
   if (erro) {
     return <MensagemEstado tipo="erro">Falha ao carregar: {erro}</MensagemEstado>;
   }
-  if (carregando && pares === null) {
+  if (carregando && pares === undefined) {
     return <SkeletonEstatisticas />;
   }
 
   return (
-    <PullToRefresh onRefresh={carregar}>
+    <PullToRefresh onRefresh={recarregar}>
       <div
         className="mx-auto w-full max-w-2xl space-y-4 px-3 py-4 pb-20 sm:px-4 touch-pan-y text-giz"
         {...swipeHandlers}
