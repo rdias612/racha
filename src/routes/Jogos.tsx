@@ -7,6 +7,7 @@ import { useCache, invalidarCache } from '../hooks/useCache';
 import { CHAVE_JOGOS, chaveResumo } from '../lib/chavesCache';
 import { useSessao } from '../context/SessaoContext';
 import { MensagemEstado } from '../components/Estado';
+import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 import { SkeletonJogos } from '../components/Skeletons';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Snackbar } from '../components/Snackbar';
@@ -107,25 +108,22 @@ export function Jogos() {
     <PullToRefresh onRefresh={recarregar}>
       <div className="px-3 py-4 pb-20 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
         {/* Cabeçalho de Súmula */}
-        <div className="flex items-center justify-between sumula-header pb-2">
-          <div>
-            <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
-              Mural de Jogos
-            </h2>
-            <p className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
-              Temporada Oficial
-            </p>
-          </div>
-          {isAdmin && (
-            <Link
-              to="/partida/nova"
-              className="inline-flex items-center gap-1 text-xs font-display font-bold uppercase tracking-wider rounded-[3px] border border-destaque bg-destaque text-destaque-tinta px-3 py-1.5 shadow-carimbo hover:brightness-105 transition active:translate-y-px"
-            >
-              <Plus className="size-3.5" />
-              <span>Nova partida</span>
-            </Link>
-          )}
-        </div>
+        <CabecalhoSumula
+          titulo="Mural de Jogos"
+          kicker="Temporada Oficial"
+          acao={
+            isAdmin && (
+              <Link
+                to="/partida/nova"
+                className="inline-flex items-center gap-1 text-xs font-display font-bold uppercase tracking-wider rounded-[3px] border border-destaque bg-destaque text-destaque-tinta px-3 py-1.5 shadow-carimbo hover:brightness-105 transition active:translate-y-px"
+              >
+                <Plus className="size-3.5" />
+                <span>Nova partida</span>
+              </Link>
+            )
+          }
+          className="items-center"
+        />
 
         {partidas.length === 0 ? (
           <div className="rounded-[4px] border border-borda bg-superficie p-5 text-center shadow-carimbo">
