@@ -11,13 +11,13 @@ Substituir, por **uma única função**, o par `invalidarCache(CHAVE_JOGOS); inv
 
 Verificado no código em **30/09/2026**; todas as linhas do doc de origem conferidas e corretas:
 
-- O par idêntico e contíguo aparece em **7 sites / 6 rotas**:
-  - `src/routes/Jogos.tsx:86-87` (exclusão de partida da súmula)
-  - `src/routes/PartidaDetalhe.tsx:151-152` (início da partida)
-  - `src/routes/PartidaAoVivo.tsx:136-137` (início da partida) **e** `src/routes/PartidaAoVivo.tsx:223-224` (publicação/fim)
+- O par idêntico e contíguo aparece em **7 sites / 6 rotas** (linhas conferidas na base executada em 2026-09-30; corrigidas em 1 nos 4 primeiros arquivos após derivação de base anterior):
+  - `src/routes/Jogos.tsx:87-88` (exclusão de partida da súmula)
+  - `src/routes/PartidaDetalhe.tsx:152-153` (início da partida)
+  - `src/routes/PartidaAoVivo.tsx:137-138` (início da partida) **e** `src/routes/PartidaAoVivo.tsx:224-225` (publicação/fim)
   - `src/routes/PartidaEditar.tsx:204-205` (salvar edição)
   - `src/routes/PartidaTimes.tsx:210-211` (salvar times e goleiros)
-  - `src/routes/PartidaNova.tsx:173-174` (criar partida)
+  - `src/routes/PartidaNova.tsx:174-175` (criar partida)
 - `invalidarCache(chave?: string): void` é exportada de `src/hooks/useCache.ts:39-58` (função de módulo, não hook: incrementa geração, limpa `cache`/`emVoo` e notifica ouvintes inscritos).
 - `src/lib/chavesCache.ts` (29 linhas) é a **fonte única das chaves** por design — o comentário de cabeçalho manda importar chaves daqui "tanto no `useCache` quanto no `invalidarCache`". Exporta `CHAVE_JOGOS` e `chaveResumo(ano)`, cujo docstring registra que o ano entra na chave por causa da "virada do ano numa sessão aberta".
 - Os 6 arquivos de rota importam `import { CHAVE_JOGOS, chaveResumo } from '../lib/chavesCache'`; `Jogos.tsx:6` importa também `useCache` de `../hooks/useCache` (mantém uso); os outros 5 importam **apenas** `invalidarCache` de `../hooks/useCache` (import some após a migração).
@@ -64,23 +64,25 @@ Custo de camada consciente e aceitável: `lib/chavesCache.ts` passa a importar `
   }
   ```
 
-- **`src/routes/Jogos.tsx`** (piloto) — substituir as linhas 86-87 por `invalidarCachesDependentesDePartida();`; ajustar imports: `useCache` segue de `../hooks/useCache`, e `CHAVE_JOGOS`/`chaveResumo` saem do import de `../lib/chavesCache` (entram na função).
+- **`src/routes/Jogos.tsx`** (piloto) — substituir as linhas 87-88 por `invalidarCachesDependentesDePartida();`; ajustar imports: `useCache` segue de `../hooks/useCache`, e `chaveResumo` sai do import de `../lib/chavesCache` (entram na função — `CHAVE_JOGOS` permanece no import, pois `Jogos.tsx` também é **leitor** da chave no `useCache` do mural).
 - Commit: "extrai helper único de invalidação pós-mutação de partida (D1)".
 
 ### Passo 2 — Migrar os 6 call sites restantes · 1 commit
 
 Substituição literal do par por `invalidarCachesDependentesDePartida();` em:
 
-1. `src/routes/PartidaDetalhe.tsx:151-152`
-2. `src/routes/PartidaAoVivo.tsx:136-137`
-3. `src/routes/PartidaAoVivo.tsx:223-224`
+1. `src/routes/PartidaDetalhe.tsx:152-153`
+2. `src/routes/PartidaAoVivo.tsx:137-138`
+3. `src/routes/PartidaAoVivo.tsx:224-225`
 4. `src/routes/PartidaEditar.tsx:204-205`
 5. `src/routes/PartidaTimes.tsx:210-211`
-6. `src/routes/PartidaNova.tsx:173-174`
+6. `src/routes/PartidaNova.tsx:174-175`
 
 Em cada arquivo, remover o import de `invalidarCache` de `../hooks/useCache` (nos 5 arquivos ele é o único símbolo importado — a linha some) e trocar `import { CHAVE_JOGOS, chaveResumo } from '../lib/chavesCache'` por `import { invalidarCachesDependentesDePartida } from '../lib/chavesCache'`.
 
-- Validar com `tsc -b` (zero referências restantes: `grep -rn "CHAVE_JOGOS\|chaveResumo" src/routes/` deve retornar vazio).
+- Validar com `tsc -b`. Critérios de encerramento (não usar grep cru pelos nomes das chaves: `CHAVE_JOGOS` e `chaveResumo` permanecem legítimos como **leitores** em `Jogos.tsx:7,73` e `Resumo.tsx:20,59`, e o nome do helper contém o substring `invalidarCache`):
+  - `grep -rn "invalidarCache(" src/routes/` deve retornar **vazio** (nenhum call site direto restante).
+  - `grep -rn "invalidarCache" src/` deve retornar apenas: a definição em `src/hooks/useCache.ts`, o import e as 2 chamadas dentro do helper em `src/lib/chavesCache.ts`, e o próprio nome do helper nas rotas.
 - Commit: "migra as rotas de partida para o helper de invalidação (D1)".
 
 Total: 2 commits, ~30 linhas líquidas removidas, comportamento byte-equivalente.
