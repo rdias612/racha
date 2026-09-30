@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { Trash2, Plus } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAdmin } from '../hooks/useAdmin';
-import { useCache, invalidarCache } from '../hooks/useCache';
-import { CHAVE_JOGOS, chaveResumo } from '../lib/chavesCache';
+import { useCache } from '../hooks/useCache';
+import { CHAVE_JOGOS, invalidarCachesDependentesDePartida } from '../lib/chavesCache';
 import { useSessao } from '../context/SessaoContext';
 import { MensagemEstado } from '../components/Estado';
 import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
@@ -84,8 +84,7 @@ export function Jogos() {
       const ok = await excluirPartida(alvo.id, jogador.id);
       if (ok) {
         setIdsExcluidos((anteriores) => new Set(anteriores).add(alvo.id));
-        invalidarCache(CHAVE_JOGOS);
-        invalidarCache(chaveResumo(new Date().getFullYear()));
+        invalidarCachesDependentesDePartida();
         mostrarSnackbar('sucesso', 'Partida excluída da súmula');
       } else {
         mostrarSnackbar('erro', 'Não foi possível excluir a partida.');
