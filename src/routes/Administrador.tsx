@@ -104,7 +104,8 @@ export function Administrador() {
             }))
           );
         }
-      } catch (e) {        if (isAtivo && !isAtivo()) return;
+      } catch (e) {
+        if (isAtivo && !isAtivo()) return;
         setErro(formatarMensagemErro(e, 'Erro ao carregar lançamentos.'));
       } finally {
         if (!isAtivo || isAtivo()) setCarregando(false);

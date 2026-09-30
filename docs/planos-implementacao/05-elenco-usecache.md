@@ -127,7 +127,7 @@ Migrar `PartidaNova`, `PartidaEditar`, `PartidaTimes`, `ConfirmacoesPartida`:
 - **`src/routes/Perfil.tsx`** (Passo 4b, mesmo commit) — trocar o effect `:48` por `useCache(chaveStatsJogador(jogadorId), () => carregarStatsJogador(jogadorId))`; a troca de chave com componente montado já é resolvida pelo hook (`useCache.ts:123-125`); `carregandoStats` sai do hook.
 - Commit: "serve elenco do comparador e stats do perfil pelo useCache (D2)".
 
-**`GestaoJogadores` (`:60`) NÃO é migrado** — fica na exceção da seção 6. Com isso, o inventário final de call sites migrados é 13 dos ~15; os 2 restantes são exceções documentadas.
+**`GestaoJogadores` (`:60`) NÃO é migrado** — fica na exceção da seção 6. Com isso, o inventário final de call sites migrados é 13; os pontos não migrados somam 6 (corrigido em 2026-09-30 após auditoria da execução — o texto original subestimava as exceções): `GestaoJogadores:60` e `GestaoGoleiros:63`+3 refetches (exceção PIX/telefone), seletor de `Estatisticas:57` + fetch composto `:86` (plano 06), e `carregarStatsJogador([idA,idB])`/`compararJogadores` que permanecem sob `chaveComparador` (decisão do passo 4).
 
 ## 5. Validação manual
 
