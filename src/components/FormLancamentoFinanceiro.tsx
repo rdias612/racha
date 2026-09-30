@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Plus } from 'lucide-react';
+import { Botao } from './ui/Botao';
 import { CampoTexto } from './ui/CampoTexto';
 import { SelectSumula } from './SelectSumula';
 import { hojeStr, mesAtualStr } from '../lib/formatacao';
@@ -201,14 +202,11 @@ export function FormLancamentoFinanceiro({
         />
       </div>
 
-      <button
+      <Botao
         type="submit"
+        variante={fNatureza === 'despesa' ? 'perigo' : 'primario'}
+        larguraCompleta
         disabled={salvando}
-        className={`w-full min-h-[44px] flex items-center justify-center gap-1.5 rounded-[4px] border px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs shadow-carimbo transition active:translate-y-px disabled:opacity-50 ${
-          fNatureza === 'despesa'
-            ? 'border-perigo bg-perigo text-branco-time'
-            : 'border-destaque bg-destaque text-destaque-tinta'
-        }`}
       >
         <Plus className="size-4" />
         {salvando
@@ -216,7 +214,7 @@ export function FormLancamentoFinanceiro({
           : fNatureza === 'despesa'
             ? 'Adicionar despesa'
             : 'Adicionar receita'}
-      </button>
+      </Botao>
     </form>
   );
 }
