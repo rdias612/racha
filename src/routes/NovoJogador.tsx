@@ -5,6 +5,7 @@ import { POSICOES, POSICOES_B, type PosicaoId } from '../lib/times';
 import { MensagemEstado } from '../components/Estado';
 import { User, Shield, Star, Copy, Check, UserPlus } from 'lucide-react';
 import { BotaoVoltar } from '../components/BotaoVoltar';
+import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 import { formatarMensagemErro, type ErroComCodigo } from '../lib/erros';
 import { criarJogador, isentoMensalidade, validarFormatoUsername } from '../lib/jogadores';
 
@@ -95,20 +96,16 @@ export function NovoJogador() {
     <div className="px-3 py-4 pb-24 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
       <BotaoVoltar fallback="/administrador" />
 
-      <div className="sumula-header pb-2 flex items-baseline justify-between">
-        <div>
-          <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz flex items-center gap-2">
-            <UserPlus className="size-5 text-destaque-texto" />
-            Novo Jogador da Súmula
-          </h2>
+      <CabecalhoSumula
+        titulo="Novo Jogador da Súmula"
+        icone={<UserPlus className="size-5 text-destaque-texto" />}
+        kicker={
           <p className="text-xs font-mono text-giz-fraco mt-0.5">
             Cadastro oficial de atleta do racha
           </p>
-        </div>
-        <span className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
-          Ficha CBO
-        </span>
-      </div>
+        }
+        acao="Ficha CBO"
+      />
 
       {erro && <MensagemEstado>{erro}</MensagemEstado>}
       {ok && <MensagemEstado tipo="sucesso">{ok}</MensagemEstado>}
