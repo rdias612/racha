@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState, useMemo } from 'react';
 import { NavLink, useParams } from 'react-router-dom';
 import { SlidersHorizontal, X } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { POSICOES, type PosicaoId } from '../lib/times';
+import { POSICOES } from '../lib/times';
+import { carregarRanking, type LinhaRanking } from '../lib/ranking';
 import { vibrateLight } from '../lib/haptics';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
 import { useCache } from '../hooks/useCache';
@@ -43,20 +43,6 @@ const metricas: Record<Metrica, { titulo: string; coluna: string; campo: CampoMe
 interface ColunaTabela {
   key: ColunaOrdenacao;
   label: string;
-}
-
-interface LinhaRanking {
-  jogador_id: number;
-  username: string;
-  posicao: PosicaoId;
-  pontos: number;
-  vitorias: number;
-  empates: number;
-  derrotas: number;
-  partidas: number;
-  gols: number;
-  assistencias: number;
-  gols_contra: number;
 }
 
 export function Ranking() {
@@ -105,41 +91,7 @@ export function Ranking() {
 
   // Cache por filtro de posição: trocar de filtro serve o cache na hora (ou
   // mantém a lista atual enquanto busca) sem nunca piscar skeleton.
-  const buscar = useCallback(async (): Promise<LinhaRanking[]> => {
-    let query = supabase
-      .from('ranking')
-      .select(
-        'jogador_id, username, posicao, pontos, vitorias, empates, derrotas, partidas, gols, assistencias, gols_contra'
-      )
-      .order('pontos', { ascending: false })
-      .order('vitorias', { ascending: false })
-      .order('partidas', { ascending: false })
-      .order('gols', { ascending: false })
-      .order('assistencias', { ascending: false })
-      .order('username', { ascending: true });
-
-    if (posicaoFiltro !== 'todas') {
-      query = query.eq('posicao', posicaoFiltro);
-    }
-
-    const { data, error } = await query;
-    if (error) throw error;
-    return (data ?? [])
-      .filter((r) => r.jogador_id != null && r.username != null)
-      .map((r) => ({
-        jogador_id: r.jogador_id!,
-        username: r.username!,
-        posicao: (r.posicao as PosicaoId) ?? 'random',
-        pontos: r.pontos ?? 0,
-        vitorias: r.vitorias ?? 0,
-        empates: r.empates ?? 0,
-        derrotas: r.derrotas ?? 0,
-        partidas: r.partidas ?? 0,
-        gols: r.gols ?? 0,
-        assistencias: r.assistencias ?? 0,
-        gols_contra: r.gols_contra ?? 0,
-      }));
-  }, [posicaoFiltro]);
+  const buscar = useCallback(() => carregarRanking(posicaoFiltro), [posicaoFiltro]);
 
   const { dados, carregando, erro, recarregar } = useCache<LinhaRanking[]>(
     chaveRanking(posicaoFiltro),
