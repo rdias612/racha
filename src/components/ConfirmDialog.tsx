@@ -2,6 +2,7 @@ import { useId, useRef } from 'react';
 import type { MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useModalA11y } from '../hooks/useModalA11y';
+import { Botao } from './ui/Botao';
 
 export interface ConfirmDialogProps {
   open: boolean;
@@ -64,26 +65,24 @@ export function ConfirmDialog({
           <p className="text-xs text-giz-fraco mt-1.5 leading-relaxed font-sans">{mensagem}</p>
         ) : null}
         <div className="flex gap-2.5 mt-5">
-          <button
+          <Botao
             ref={cancelRef}
             type="button"
             onClick={onClose}
-            className="flex-1 min-h-[44px] inline-flex items-center justify-center cursor-pointer rounded-[4px] border border-borda bg-superficie-2 font-display uppercase tracking-wider text-xs font-bold text-giz shadow-carimbo hover:bg-superficie transition-fast active:translate-y-px focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2"
+            variante="secundario"
+            className="flex-1 cursor-pointer"
           >
             {textoCancelar}
-          </button>
-          <button
+          </Botao>
+          <Botao
             ref={confirmRef}
             type="button"
             onClick={onConfirm}
-            className={`flex-1 min-h-[44px] inline-flex items-center justify-center cursor-pointer rounded-[4px] border font-display uppercase tracking-wider text-xs font-bold transition-fast active:translate-y-px focus-visible:outline-2 focus-visible:outline-destaque-texto focus-visible:outline-offset-2 ${
-              tomConfirmar === 'perigo'
-                ? 'border-perigo bg-perigo text-branco-time hover:brightness-110 shadow-carimbo'
-                : 'border-destaque bg-destaque text-destaque-tinta font-black hover:brightness-105 shadow-carimbo-destaque'
-            }`}
+            variante={tomConfirmar === 'perigo' ? 'perigo' : 'primario'}
+            className="flex-1 cursor-pointer"
           >
             {textoConfirmar}
-          </button>
+          </Botao>
         </div>
       </div>
     </div>,
