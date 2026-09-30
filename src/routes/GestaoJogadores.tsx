@@ -24,6 +24,7 @@ import { LinhaJogadorGestao } from '../components/LinhaJogadorGestao';
 import { ResumoGestao } from '../components/ResumoGestao';
 import { formatarMensagemErro } from '../lib/erros';
 import { Users } from 'lucide-react';
+import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 
 type FiltroTipo = 'todos' | 'mensalistas' | 'avulsos' | 'admins';
 
@@ -283,20 +284,16 @@ export function GestaoJogadores() {
     <div className="px-3 py-4 pb-36 sm:px-4 max-w-3xl mx-auto space-y-4 text-giz relative">
       <BotaoVoltar fallback="/administrador" />
 
-      <div className="sumula-header pb-2 flex items-baseline justify-between">
-        <div>
-          <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz flex items-center gap-2">
-            <Users className="size-5 text-destaque-texto" />
-            Gestão de Atletas
-          </h2>
+      <CabecalhoSumula
+        titulo="Gestão de Atletas"
+        icone={<Users className="size-5 text-destaque-texto" />}
+        kicker={
           <p className="text-xs font-mono text-giz-fraco mt-0.5">
             Mensalistas (máx {MAX_MENSALISTAS}) e administradores do racha
           </p>
-        </div>
-        <span className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
-          Oficial CBO
-        </span>
-      </div>
+        }
+        acao="Oficial CBO"
+      />
 
       {mensagemErro && <MensagemEstado>{mensagemErro}</MensagemEstado>}
       {mensagemSucesso && <MensagemEstado tipo="sucesso">{mensagemSucesso}</MensagemEstado>}
