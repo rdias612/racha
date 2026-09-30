@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FileSpreadsheet } from 'lucide-react';
 import { CampoTexto } from './ui/CampoTexto';
+import { Botao } from './ui/Botao';
 import { baixarExcelLancamentos } from '../lib/exportacao';
 import { listarLancamentosPorPeriodo } from '../lib/dividas';
 import { hojeStr, primeiroDiaMesStr } from '../lib/formatacao';
@@ -72,15 +73,16 @@ export function SecaoExportacaoFinanceira({ onNotificar }: SecaoExportacaoFinanc
           fonteMono
         />
       </div>
-      <button
+      <Botao
         type="button"
+        variante="secundario"
+        larguraCompleta
         onClick={handleExportar}
         disabled={exportando}
-        className="w-full min-h-[44px] flex items-center justify-center gap-1.5 rounded-[4px] border border-borda bg-superficie-2 px-4 py-2.5 font-display font-bold uppercase tracking-wider text-xs text-giz shadow-carimbo transition active:translate-y-px hover:border-destaque disabled:opacity-50"
       >
         <FileSpreadsheet className="size-4 text-destaque-texto" />
         {exportando ? 'Gerando…' : 'Exportar Excel'}
-      </button>
+      </Botao>
     </section>
   );
 }

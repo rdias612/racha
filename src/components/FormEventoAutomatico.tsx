@@ -1,5 +1,6 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { CampoTexto } from './ui/CampoTexto';
+import { Botao } from './ui/Botao';
 import { SelectSumula } from './SelectSumula';
 import {
   NATUREZAS_LANCAMENTO,
@@ -270,20 +271,17 @@ export function FormEventoAutomatico({
       </div>
 
       <div className="flex gap-2">
-        <button
+        <Botao
           type="button"
+          variante="secundario"
           onClick={onCancelar}
-          className="min-h-[44px] flex-1 rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 font-display text-xs font-bold uppercase tracking-wider text-giz"
+          className="flex-1 px-3"
         >
           Cancelar
-        </button>
-        <button
-          type="submit"
-          disabled={salvando}
-          className="min-h-[44px] flex-1 rounded-[4px] border border-destaque bg-destaque px-3 py-2 font-display text-xs font-bold uppercase tracking-wider text-destaque-tinta disabled:opacity-50"
-        >
+        </Botao>
+        <Botao type="submit" disabled={salvando} className="flex-1 px-3">
           {salvando ? 'Salvando…' : form.id ? 'Salvar' : 'Criar'}
-        </button>
+        </Botao>
       </div>
     </form>
   );

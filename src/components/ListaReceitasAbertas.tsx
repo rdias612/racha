@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Check, ChevronDown, MessageSquare } from 'lucide-react';
 import { Badge } from './Badge';
+import { Botao } from './ui/Botao';
 import { CabecalhoSumula } from './ui/CabecalhoSumula';
 import { Carregando, MensagemEstado } from './Estado';
 import {
@@ -130,17 +131,18 @@ export function ListaReceitasAbertas({
                     >
                       <MessageSquare className="size-4" />
                     </button>
-                    <button
+                    <Botao
                       type="button"
+                      variante="secundario"
                       onClick={(e) => {
                         e.stopPropagation();
                         onSolicitarQuitarTodas(g.jogador_id, g.username);
                       }}
                       title="Quitar todas"
-                      className="min-h-[44px] rounded-[3px] border border-borda bg-superficie-2 px-2.5 py-1 text-xs font-display uppercase tracking-wider font-semibold text-giz hover:border-destaque transition"
+                      className="px-2.5 cursor-pointer"
                     >
                       Quitar todas
-                    </button>
+                    </Botao>
                   </div>
                 </div>
 

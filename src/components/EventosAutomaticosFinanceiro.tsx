@@ -4,6 +4,7 @@ import { Badge } from './Badge';
 import { ConfirmDialog } from './ConfirmDialog';
 import { Carregando, MensagemEstado } from './Estado';
 import { FormEventoAutomatico } from './FormEventoAutomatico';
+import { Botao } from './ui/Botao';
 import { labelTipoDivida } from '../lib/dividas';
 import {
   excluirEventoAutomatico,
@@ -107,14 +108,14 @@ export function EventosAutomaticosFinanceiro({
             Eventos automáticos
           </h3>
         </div>
-        <button
+        <Botao
           type="button"
           onClick={() => setEdicaoAberta({ evento: null })}
-          className="min-h-[44px] shrink-0 inline-flex items-center gap-1 rounded-[4px] border border-destaque bg-destaque px-3 py-2 font-display text-xs font-bold uppercase tracking-wider text-destaque-tinta shadow-carimbo active:translate-y-px"
+          className="shrink-0 px-3"
         >
           <Plus className="size-3.5" />
           Novo
-        </button>
+        </Botao>
       </div>
 
       <p className="text-xs text-giz-fraco font-sans">
