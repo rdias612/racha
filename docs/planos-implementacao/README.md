@@ -28,7 +28,7 @@ As validações visuais/funcionais no aparelho listadas na seção 5 de cada pla
 | 05 | [elenco-usecache.md](05-elenco-usecache.md) | D2 · Elenco/derivados via `useCache` — ✅ **executado** ([registro](registros/05-elenco-usecache.md)) | 2 |
 | 06 | [aposentar-geracao-ref.md](06-aposentar-geracao-ref.md) | D3 · Aposentar `geracaoRef` manual — ✅ **executado** ([registro](registros/06-aposentar-geracao-ref.md)) | 2 |
 | 07 | [queries-fora-da-lib.md](07-queries-fora-da-lib.md) | D5 · Queries fora da `lib` → `lib` — ✅ **executado** ([registro](registros/07-queries-fora-da-lib.md)) | 2 |
-| 08 | [dialogo-evento-modal-base.md](08-dialogo-evento-modal-base.md) | A5 · `DialogoEvento` → `ModalBase` | 2 |
+| 08 | [dialogo-evento-modal-base.md](08-dialogo-evento-modal-base.md) | A5 · `DialogoEvento` → `ModalBase` — ✅ **executado** ([registro](registros/08-dialogo-evento-modal-base.md)) | 2 |
 | 09 | [pecas-listas-financeiras.md](09-pecas-listas-financeiras.md) | A6 · Peças das listas financeiras | 2 |
 | 10 | [tipos-derivados.md](10-tipos-derivados.md) | D4 · Tipos derivados de `database.types.ts` | 2 |
 | 11 | [badge-mini.md](11-badge-mini.md) | A8 · Chip "mini" no `Badge` | 3 |
