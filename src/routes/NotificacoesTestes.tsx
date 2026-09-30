@@ -6,6 +6,7 @@ import { useJogadorLogado } from '../hooks/useJogadorLogado';
 import { useSwipeTabs } from '../hooks/useSwipeTabs';
 import { useSnackbar } from '../hooks/useSnackbar';
 import { BotaoVoltar } from '../components/BotaoVoltar';
+import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 import { AbasNotificacoes } from '../components/AbasNotificacoes';
 import { Carregando, MensagemEstado } from '../components/Estado';
 import { ConfirmDialog } from '../components/ConfirmDialog';
@@ -121,17 +122,12 @@ export function NotificacoesTestes() {
     >
       <BotaoVoltar fallback="/" />
 
-      <div className="flex items-center justify-between sumula-header pb-2">
-        <div className="flex items-center gap-2">
-          <Bell className="size-5 text-destaque-texto" />
-          <h2 className="font-display font-bold text-xl uppercase tracking-wider text-giz">
-            Gestão de Notificações
-          </h2>
-        </div>
-        <span className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
-          Painel Push
-        </span>
-      </div>
+      <CabecalhoSumula
+        titulo="Gestão de Notificações"
+        icone={<Bell className="size-5 text-destaque-texto" />}
+        acao="Painel Push"
+        className="items-center"
+      />
 
       <AbasNotificacoes />
 
