@@ -40,9 +40,9 @@ Arquivo único: `src/index.css`.
 Quatro arquivos, uma classe por linha, sem mudança de props, handlers ou estrutura:
 
 1. `src/components/ModalBase.tsx:68` — `bg-black/75` → `bg-scrim` (mantém `backdrop-blur-xs animate-fade-in`).
-2. `src/components/ConfirmDialog.tsx:44` — `bg-black/70` → `bg-scrim`.
-3. `src/components/DialogoEvento.tsx:64` — `bg-black/70` → `bg-scrim` (**pular este site se o plano 08 já tiver sido executado** — ver seção 3).
-4. `src/components/Snackbar.tsx:73` — substituir o par `hover:bg-black/10 dark:hover:bg-branco-time/20` por `hover:bg-superficie` (herda o tema automaticamente; apaga o último `dark:` do app).
+2. `src/components/ConfirmDialog.tsx:45` — `bg-black/70` → `bg-scrim`.
+3. `src/components/DialogoEvento.tsx` — pulado pois o componente já utiliza `ModalBase` desde o plano 08 (ver seção 3).
+4. `src/components/Snackbar.tsx:73` — substituir o par `hover:bg-black/10 dark:hover:bg-branco-time/20` por `hover:bg-superficie-2` (conforme §7 para preservar contraste sobre o fundo `bg-superficie` do snackbar `info`; herda o tema automaticamente e apaga o último `dark:` do app).
 
 Ordem de verificação dos call sites: nenhum call site dos 4 componentes é tocado — a troca é interna às classes.
 
