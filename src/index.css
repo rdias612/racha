@@ -11,6 +11,7 @@
   --color-superficie: var(--cor-superficie);
   --color-superficie-2: var(--cor-superficie-2);
   --color-borda: var(--cor-borda);
+  --color-scrim: var(--cor-scrim);
   --color-giz: var(--cor-giz);
   --color-giz-fraco: var(--cor-giz-fraco);
 
@@ -36,6 +37,7 @@
   --cor-superficie: #faf7ee;
   --cor-superficie-2: #ece7d8;
   --cor-borda: #d8d2c0;
+  --cor-scrim: rgba(0, 0, 0, 0.72);
   --cor-giz: #1e1c18;
   --cor-giz-fraco: #6b6759;
   --cor-preto-time: #0d0d0e;
@@ -58,6 +60,7 @@
   --cor-superficie: #1b1814;
   --cor-superficie-2: #242019;
   --cor-borda: #35302a;
+  --cor-scrim: rgba(0, 0, 0, 0.72);
   --cor-giz: #f2efe6;
   --cor-giz-fraco: #a39f92;
   --cor-preto-time: #0d0d0e;
