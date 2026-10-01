@@ -42,7 +42,7 @@ export function ConfirmDialog({
       onMouseDown={(e: MouseEvent<HTMLDivElement>) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4 animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-scrim backdrop-blur-xs p-4 animate-fade-in"
     >
       <div
         ref={containerRef}
