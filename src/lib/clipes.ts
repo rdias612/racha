@@ -4,7 +4,11 @@
 // (service key) — aqui só há leitura (grants da Fase 1, fase-1-tasks.md:88).
 
 import { supabase } from './supabase';
-import { FunctionsHttpError } from '@supabase/supabase-js';
+import {
+  FunctionsFetchError,
+  FunctionsHttpError,
+  FunctionsRelayError,
+} from '@supabase/supabase-js';
 import type { Database } from './database.types';
 
 /** Campos de `clipes` usados na UI (types gerados pela Fase 1 — database.types.ts). */
@@ -207,10 +211,18 @@ export async function excluirClipes(
       }
       throw new Error(mensagem);
     }
-    // Demais falhas (FunctionsFetchError/FunctionsRelayError — sem body JSON):
-    // segue o padrão do arquivo; formatarMensagemErro traduz rede/sessão.
+    // Falha de rede/relay (FunctionsFetchError/FunctionsRelayError — sem resposta HTTP):
+    // a mensagem do SDK é técnica em inglês e formatarMensagemErro NÃO a traduz
+    // (erros.ts:21-23 não casa) — lança pt-BR direto para o snackbar no caso offline.
+    if (error instanceof FunctionsFetchError || error instanceof FunctionsRelayError) {
+      throw new Error(
+        'Não foi possível conectar ao servidor. Verifique sua internet e tente novamente.'
+      );
+    }
+    // Demais falhas: segue o padrão do arquivo (throw cru para formatarMensagemErro).
     throw error;
   }
 
+  // Cast documentado (padrão dos casts de RPC acima): redundante via genérico, mas explícito pós-guarda.
   return data as ResultadoExclusaoClipes;
 }
