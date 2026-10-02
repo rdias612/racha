@@ -32,16 +32,21 @@ concurrency:
 jobs:
   importar:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: npm
+          cache-dependency-path: scripts/clipes/package-lock.json
 
       - name: Instalar dependências da Action
         run: npm ci --prefix scripts/clipes
+
+      - name: Instalar Chromium (Playwright)
+        run: npx --prefix scripts/clipes playwright install --with-deps chromium
 
       - name: Importar clipes (workflow base)
         run: node scripts/clipes/importar-clipes.mjs
