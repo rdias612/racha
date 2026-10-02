@@ -56,6 +56,12 @@ As validações visuais/funcionais no aparelho listadas na seção 5 de cada pla
 | 33 | [bundle-inicial.md](33-bundle-inicial.md) | B7 · Bundle inicial (decisão: não mexer) | 4 |
 | 34 | [debitos-registrados.md](34-debitos-registrados.md) | A10 · Débitos registrados | 4 |
 
+### Planos de feature nova (fora do ranking anti-slop)
+
+| # | Plano | Item | Status |
+|---|---|---|---|
+| 35 | [35-clipes-filmaeu.md](35-clipes-filmaeu.md) | Clipes do Filma Eu no app (requisito: [`docs/requisito-clipes-filmaeu.md`](../requisito-clipes-filmaeu.md)) | 📝 **esqueleto** — requisito fechado, plano a detalhar |
+
 ## Ordem de execução recomendada
 
 - **Onda anti-slop**: 03 → 01 → 02 → 04 (Tier 1), depois a cadeia 07 → 05 → 06 (D5 → D2 → D3 — dependência real entre eles).
