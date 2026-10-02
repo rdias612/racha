@@ -3,7 +3,6 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@supabase/supabase-js": "^2.112.2",
-    "racha-gragoata-cbo": "file:../.."
+    "@supabase/supabase-js": "^2.112.2"
   }
 }
