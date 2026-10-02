@@ -57,7 +57,10 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          # Secrets passam SOMENTE via env (RNF02) — nunca interpolados em run:
+          # Credenciais do Filma Eu — passam SOMENTE via env (RNF02), nunca
+          # interpoladas em run:.
+          FILMAEU_USER: ${{ secrets.FILMAEU_USER }}
+          FILMAEU_SECRET: ${{ secrets.FILMAEU_SECRET }}
           INPUT_DATA: ${{ inputs.data }}
           INPUT_HORARIO: ${{ inputs.horario }}
           INPUT_PARTIDA_ID: ${{ inputs.partida_id }}

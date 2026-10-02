@@ -1,6 +1,6 @@
 // Action Clipes do Filma Eu (Fases 2 e 3 do breakdown SDD 35).
-// Lê env, resolve a partida alvo, obtém as credenciais do Filma Eu no Vault,
-// automatiza o browser (login → slot → download dos clipes), sobe para o
+// Lê env, resolve a partida alvo, obtém as credenciais do Filma Eu dos GitHub
+// Secrets (env FILMAEU_USER/FILMAEU_SECRET), automatiza o browser (login → slot → download dos clipes), sobe para o
 // Storage com INSERT idempotente e grava a execução no ledger clipes_importacoes.
 // Ao final de importação bem-sucedida roda a limpeza por retenção (Fase 4, RF09)
 // e, em qualquer desfecho com partida, o push de resultado via Edge Function
@@ -34,6 +34,12 @@ function resolverConfig() {
     );
   }
 
+  const filmaeuUsuario = process.env.FILMAEU_USER;
+  const filmaeuSenha = process.env.FILMAEU_SECRET;
+  if (!filmaeuUsuario || !filmaeuSenha) {
+    throw new Error('Credenciais do Filma Eu ausentes: FILMAEU_USER e FILMAEU_SECRET são obrigatórios');
+  }
+
   const horario = process.env.INPUT_HORARIO || '19:00';
   if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(horario)) {
     throw new Error(`Input horario inválido (esperado HH:MM): "${horario}"`);
@@ -42,6 +48,8 @@ function resolverConfig() {
   return {
     supabaseUrl,
     supabaseServiceKey,
+    filmaeuUsuario,
+    filmaeuSenha,
     inputData: process.env.INPUT_DATA || '',
     horario,
     inputPartidaId: process.env.INPUT_PARTIDA_ID || '',
@@ -163,38 +171,6 @@ async function abrirRegistroImportacao(client, { partidaId, dataReferencia, orig
     .single();
   if (error) throw error;
   return data.id;
-}
-
-async function obterCredenciaisFilmaEu(client) {
-  // Substitui o validarSegredoFilmaeu da Fase 2: parse real do JSON do Vault.
-  // RNF02: o conteúdo do segredo nunca é logado — mensagens de erro só
-  // descrevem o problema, sem interpolar o valor.
-  const { data: valor, error } = await client.rpc('obter_segredo_vault', {
-    p_nome: 'filmaeu_credenciais',
-  });
-  if (error) throw error;
-  if (!valor) {
-    throw new Error('Secret filmaeu_credenciais não configurado no vault');
-  }
-
-  let credenciais;
-  try {
-    credenciais = JSON.parse(valor);
-  } catch {
-    throw new Error('Secret filmaeu_credenciais não contém um JSON válido');
-  }
-
-  const temCampos =
-    credenciais &&
-    typeof credenciais.usuario === 'string' &&
-    credenciais.usuario.length > 0 &&
-    typeof credenciais.senha === 'string' &&
-    credenciais.senha.length > 0;
-  if (!temCampos) {
-    throw new Error('Secret filmaeu_credenciais não contém os campos "usuario" e "senha"');
-  }
-
-  return { usuario: credenciais.usuario, senha: credenciais.senha };
 }
 
 async function fecharRegistroImportacao(
@@ -326,8 +302,8 @@ async function main() {
       origem,
     });
 
-    const credenciais = await obterCredenciaisFilmaEu(client);
-    console.log('[clipes] credenciais filmaeu presentes no vault');
+    const credenciais = { usuario: config.filmaeuUsuario, senha: config.filmaeuSenha };
+    console.log('[clipes] credenciais filmaeu presentes no ambiente');
 
     const resultado = await importarClipesDaPartida(client, {
       partida,
