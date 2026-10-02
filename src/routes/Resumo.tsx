@@ -17,7 +17,11 @@ import {
 } from '../lib/partidas';
 import { formatarDataCompleta, formatarDataMobile } from '../lib/formatacao';
 import { useCache } from '../hooks/useCache';
-import { chaveResumo } from '../lib/chavesCache';
+import { chaveResumo, CHAVE_ULTIMA_PARTIDA_COM_CLIPES } from '../lib/chavesCache';
+import {
+  obterUltimaPartidaComClipes,
+  type UltimaPartidaComClipes,
+} from '../lib/clipes';
 
 interface DadosResumo {
   resumo: ResumoAno | null;
@@ -57,6 +61,14 @@ export function Resumo() {
   }, [ano]);
 
   const { dados, carregando, erro, recarregar } = useCache<DadosResumo>(chaveResumo(ano), buscar);
+
+  // RF05: link "clipes da última partida" — independe dos destaques do ano
+  // (P9: aparece inclusive no empty state `semPartidas`). Erro/carregando
+  // deixam o card de fora (card opcional não quebra nem atrasa a home).
+  const { dados: ultimaComClipes } = useCache<UltimaPartidaComClipes | null>(
+    CHAVE_ULTIMA_PARTIDA_COM_CLIPES,
+    obterUltimaPartidaComClipes
+  );
 
   const resumo = dados?.resumo ?? null;
   const proxima = dados?.proxima ?? null;
@@ -143,6 +155,8 @@ export function Resumo() {
 
         <CardProximaPartida proxima={proxima} />
 
+        <CardClipesDisponiveis ultima={ultimaComClipes ?? null} />
+
         {/* Grade de Destaques ou Empty State Esportivo */}
         {semPartidas ? (
           <div className="rounded-[4px] border border-borda bg-superficie p-5 text-center shadow-carimbo space-y-1">
@@ -192,6 +206,32 @@ function Destaque({ titulo, badge, nome, valor, detalhe }: DestaqueProps) {
         )}
       </div>
     </section>
+  );
+}
+
+function CardClipesDisponiveis({ ultima }: { ultima: UltimaPartidaComClipes | null }) {
+  if (!ultima) return null;
+  return (
+    <Link
+      to={`/partida/${ultima.partidaId}`}
+      className="block rounded-[4px] border-2 border-destaque bg-superficie px-4 py-3.5 shadow-carimbo transition active:scale-[0.99] hover:bg-superficie-2"
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-display font-black text-[10px] uppercase tracking-widest text-destaque-tinta bg-destaque px-2 py-0.5 rounded-[2px] shadow-xs">
+          🎥 CLIPES DA ÚLTIMA PARTIDA
+        </span>
+        <span className="font-mono text-xs font-bold text-destaque-texto tabular-nums">
+          {ultima.totalClipes} {ultima.totalClipes === 1 ? 'CLIPE' : 'CLIPES'}
+        </span>
+      </div>
+      <p className="mt-2 font-display font-bold text-lg uppercase tracking-wider text-giz capitalize">
+        <span className="sm:hidden">{formatarDataMobile(ultima.dataJogo)}</span>
+        <span className="hidden sm:inline">{formatarDataCompleta(ultima.dataJogo)}</span>
+      </p>
+      <p className="mt-0.5 text-xs text-giz-fraco font-mono">
+        Toque para rever os melhores momentos
+      </p>
+    </Link>
   );
 }
 

@@ -10,6 +10,9 @@ import { invalidarCache } from '../hooks/useCache';
 /** Mural de jogos (view `partidas_com_placar`) — query sem parâmetros. */
 export const CHAVE_JOGOS = 'jogos';
 
+/** Última partida publicada/encerrada com clipes (P7) — card/link da home (RF05). */
+export const CHAVE_ULTIMA_PARTIDA_COM_CLIPES = 'clipes:ultima-partida';
+
 /**
  * Boletim Oficial da temporada (RPC `resumo_ano`). O ano entra na chave para
  * que a virada do ano numa sessão aberta não sirva o cache do ano anterior.
