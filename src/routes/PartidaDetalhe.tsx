@@ -268,7 +268,7 @@ export function PartidaDetalhe() {
               <div className="grid grid-cols-2 gap-2">
                 <Link
                   to={`/partida/${partida.id}/votar`}
-                  className="block text-center rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo transition active:translate-y-px"
+                  className="flex min-h-[44px] items-center justify-center rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo transition active:translate-y-px"
                 >
                   Editar votos
                 </Link>

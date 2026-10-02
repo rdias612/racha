@@ -82,7 +82,7 @@ export function Jogos() {
             isAdmin && (
               <Link
                 to="/partida/nova"
-                className="inline-flex items-center gap-1 text-xs font-display font-bold uppercase tracking-wider rounded-[3px] border border-destaque bg-destaque text-destaque-tinta px-3 py-1.5 shadow-carimbo hover:brightness-105 transition active:translate-y-px"
+                className="inline-flex min-h-[44px] items-center gap-1 text-xs font-display font-bold uppercase tracking-wider rounded-[3px] border border-destaque bg-destaque text-destaque-tinta px-3 py-1.5 shadow-carimbo hover:brightness-105 transition active:translate-y-px"
               >
                 <Plus className="size-3.5" />
                 <span>Nova partida</span>
