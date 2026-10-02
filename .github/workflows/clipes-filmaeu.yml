@@ -1,0 +1,54 @@
+# Clipes do Filma Eu — workflow base (Fase 2 do breakdown SDD 35).
+# Cron: sexta 09:00 BRT = 12:00 UTC (P8; BRT = UTC-3 fixo, padrão 060:7).
+# OBSERVAÇÃO P8: default escolhido sem resposta do dono — revisar a hora quando
+# os clipes de quinta aparecem no site do Filma Eu (ajuste de 1 linha aqui).
+name: Clipes Filma Eu
+
+on:
+  schedule:
+    - cron: '0 12 * * 5'   # sexta 12:00 UTC = 09:00 BRT (RF01, P8)
+  workflow_dispatch:
+    inputs:
+      data:
+        description: 'Data da partida (AAAA-MM-DD, fuso BRT). Vazio = última quinta-feira.'
+        required: false
+        default: ''
+      horario:
+        description: 'Horário do slot no Filma Eu (usado na Fase 3)'
+        required: false
+        default: '19:00'
+      partida_id:
+        description: 'ID da partida no Supabase (opcional; tem precedência sobre data)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read   # mínimo; o workflow não escreve no repo
+
+concurrency:
+  group: clipes-filmaeu
+  cancel-in-progress: false   # duas runs não disputam o ledger
+
+jobs:
+  importar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Instalar dependências da Action
+        run: npm ci --prefix scripts/clipes
+
+      - name: Importar clipes (workflow base)
+        run: node scripts/clipes/importar-clipes.mjs
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # Secrets passam SOMENTE via env (RNF02) — nunca interpolados em run:
+          INPUT_DATA: ${{ inputs.data }}
+          INPUT_HORARIO: ${{ inputs.horario }}
+          INPUT_PARTIDA_ID: ${{ inputs.partida_id }}
