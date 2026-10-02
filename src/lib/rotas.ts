@@ -34,6 +34,7 @@ const carregarNotificacoesVotacao = () => import('../routes/NotificacoesVotacao'
 const carregarNotificacoesTestes = () => import('../routes/NotificacoesTestes');
 const carregarNotificacoesSaude = () => import('../routes/NotificacoesSaude');
 const carregarClipesAdmin = () => import('../routes/ClipesAdmin');
+const carregarClipesRepositorio = () => import('../routes/ClipesRepositorio');
 
 // Componentes lazy consumidos pela declaração de rotas em App.tsx.
 export const Login = lazy(() => carregarLogin().then((m) => ({ default: m.Login })));
@@ -93,6 +94,9 @@ export const NotificacoesSaude = lazy(() =>
 export const ClipesAdmin = lazy(() =>
   carregarClipesAdmin().then((m) => ({ default: m.ClipesAdmin }))
 );
+export const ClipesRepositorio = lazy(() =>
+  carregarClipesRepositorio().then((m) => ({ default: m.ClipesRepositorio }))
+);
 
 /**
  * Tabela de prefetch: padrão ancorado no início do pathname (semântica de
@@ -123,6 +127,10 @@ const TABELA_PRE_CARREGAMENTO: Array<{
   { padrao: /^\/notificacoes\/votacao/, carregar: carregarNotificacoesVotacao },
   { padrao: /^\/notificacoes\/testes/, carregar: carregarNotificacoesTestes },
   { padrao: /^\/notificacoes\/saude/, carregar: carregarNotificacoesSaude },
+  // Padrões específicos antes do genérico: '/clipes/admin' é prefixo de
+  // '/clipes/admin/repositorio' — a entrada específica precisa vir primeiro
+  // para o prefetch baixar o chunk certo (mesma regra dos sufixos de /partida/:id).
+  { padrao: /^\/clipes\/admin\/repositorio/, carregar: carregarClipesRepositorio },
   { padrao: /^\/clipes\/admin/, carregar: carregarClipesAdmin },
   { padrao: /^\/login/, carregar: carregarLogin },
   { padrao: /^\/$/, carregar: carregarResumo },

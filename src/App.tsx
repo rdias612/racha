@@ -27,6 +27,7 @@ import {
   NotificacoesTestes,
   NotificacoesSaude,
   ClipesAdmin,
+  ClipesRepositorio,
 } from './lib/rotas';
 
 export function App() {
@@ -73,6 +74,7 @@ export function App() {
           <Route path="/notificacoes/saude" element={<NotificacoesSaude />} />
           <Route path="/clipes" element={<Navigate to="/clipes/admin" replace />} />
           <Route path="/clipes/admin" element={<ClipesAdmin />} />
+          <Route path="/clipes/admin/repositorio" element={<ClipesRepositorio />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

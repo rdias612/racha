@@ -4,6 +4,7 @@ import { Film } from 'lucide-react';
 import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
 import { useSnackbar } from '../hooks/useSnackbar';
+import { AbasClipesAdmin } from '../components/AbasClipesAdmin';
 import { BotaoVoltar } from '../components/BotaoVoltar';
 import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 import { ConfirmDialog } from '../components/ConfirmDialog';
@@ -90,6 +91,8 @@ export function ClipesAdmin() {
         acao="Filma Eu"
         className="items-center"
       />
+
+      <AbasClipesAdmin />
 
       <SecaoFalhasRecentesClipes falhas={falhas} carregando={carregando} erro={null} />
 

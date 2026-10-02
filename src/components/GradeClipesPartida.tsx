@@ -2,7 +2,10 @@
 // Segue o visual de card dos componentes existentes (GridTimesPartida.tsx:29,
 // Resumo.tsx:177). Carregamento/erro/vazio são responsabilidade da rota:
 // o componente SÓ é renderizado com lista não vazia (PartidaDetalhe.tsx),
-// então aqui não há skeleton nem estado de erro — SRP.
+// então aqui não há skeleton nem estado de erro — SRP. O modo de seleção
+// (checkbox por card) é OPCIONAL via props: sem elas o DOM é o de leitura
+// puro (PartidaDetalhe); com elas, o Repositório admin (Plano 36, Passo 3)
+// marca clipes para exclusão em lote.
 
 import { useState } from 'react';
 import { Download, Share2 } from 'lucide-react';
@@ -11,9 +14,20 @@ import type { ClipeComUrl } from '../lib/clipes';
 
 export interface GradeClipesPartidaProps {
   clipes: ClipeComUrl[];
+  /** Modo seleção (opcional): ids marcados. Só faz sentido com onToggleSelecao. */
+  selecionadoIds?: ReadonlySet<number>;
+  /** Modo seleção (opcional): toggle por card. Ausente = grade só de leitura. */
+  onToggleSelecao?: (clipeId: number) => void;
+  /** Congela os checkboxes durante a exclusão (evita toggle com request em voo). */
+  desabilitarSelecao?: boolean;
 }
 
-export function GradeClipesPartida({ clipes }: GradeClipesPartidaProps) {
+export function GradeClipesPartida({
+  clipes,
+  selecionadoIds,
+  onToggleSelecao,
+  desabilitarSelecao = false,
+}: GradeClipesPartidaProps) {
   const [copiadoId, setCopiadoId] = useState<number | null>(null);
 
   // RF04 "compartilhar": Web Share API quando existir (mobile/PWA — o alvo é o
@@ -65,7 +79,28 @@ export function GradeClipesPartida({ clipes }: GradeClipesPartidaProps) {
               className="w-full aspect-video bg-black rounded-[2px]"
             />
             <div className="flex items-center justify-between gap-2">
-              <span className="font-mono text-[11px] text-giz-fraco">
+              {/* Checkbox do modo seleção: presente SOMENTE com onToggleSelecao —
+                  sem a prop o par span/botões fica exatamente como hoje. O label
+                  44x44 dá alvo de toque e não sobrepõe o player. */}
+              {onToggleSelecao && (
+                <label className="flex min-h-[44px] min-w-[44px] shrink-0 cursor-pointer items-center justify-center">
+                  <input
+                    type="checkbox"
+                    checked={selecionadoIds?.has(clipe.id) ?? false}
+                    disabled={desabilitarSelecao}
+                    onChange={() => onToggleSelecao(clipe.id)}
+                    aria-label={`Selecionar clipe ${clipe.ordem ?? indice + 1}`}
+                    className="size-4 cursor-pointer rounded-[2px] accent-destaque disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                </label>
+              )}
+              <span
+                className={
+                  onToggleSelecao
+                    ? 'font-mono text-[11px] text-giz-fraco min-w-0 flex-1'
+                    : 'font-mono text-[11px] text-giz-fraco'
+                }
+              >
                 Clipe {clipe.ordem ?? indice + 1}
                 {formatarTamanhoBytes(clipe.size_bytes) && (
                   <> · {formatarTamanhoBytes(clipe.size_bytes)}</>
