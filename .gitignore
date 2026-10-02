@@ -34,6 +34,10 @@ dist-ssr
 # Superdesign
 .superdesign
 
+# Superpowers
+.superpowers
+
+
 # Vercel
 .vercel
 
