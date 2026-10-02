@@ -109,8 +109,7 @@ AS $$
     AND (
       p_apenas_admins
       OR (
-        j.is_admin = false
-        AND EXISTS (
+        EXISTS (
           SELECT 1 FROM partidas_participantes pp
           WHERE pp.partida_id = p_partida_id
             AND pp.jogador_id = j.id
@@ -485,6 +484,7 @@ Ajustes no `main()` de `importar-clipes.mjs` (pós-Fase 4):
 7. **`database.types.ts` NÃO é regenerado nesta fase**: a RPC `listar_destinatarios_clipes` só é chamada pela Edge Function (que não usa types gerados — padrão `send-confirmation-requests`, `supabase-js` cru) e nenhuma superfície de `src/` muda. Se a Fase 6/8 precisar dela pelo app, regenera lá (mesma regra da Fase 2, `fase-2-tasks.md:430`).
 8. **Numeração 113**: acompanha 109–112 das fases anteriores, com a mesma ressalva de colisão da Fase 1 (seção 9.1 de lá — `docs/plano-escolha-times-realtime.md:560`); se deslocar, renomear só o arquivo.
 9. **Interfaces das Fases 1–4 consumidas sem incompatibilidade**: `resultado` da Action (= `status` do ledger, Fases 2–4) casa 1:1 com os valores do payload; `obter_segredo_vault` (111) é reusada sem alteração; o `main()` pós-Fase 4 recebe o passo 7 como acréscimo puro (nada dos passos 5.5/5.6/6 muda); nenhuma migration da Fase 1 precisa de ajuste (o ledger de entregas é o de push, `036`, não o `clipes_importacoes`).
+10. **Correção da auditoria (A1): admin-participante incluído no modo participantes** — o esboço SQL acima originalmente tinha `j.is_admin = false` na branch de participantes, o que excluía um admin que jogou a partida do push 'clipes-prontos' (contradizia o RF06 e a própria justificativa da divergência 8.1: "quem está em `partidas_participantes` daquela partida é destinatário"). Corrigido na fonte e aplicado via migration corretiva `114_rpc_destinatarios_clipes_admin_participantes.sql` (a condição do modo admins continua na cláusula `CASE`, que não muda).
 
 ## 9. Critérios de encerramento (do breakdown `:125`, refinados)
 
