@@ -223,6 +223,11 @@ Deno.serve(async (request) => {
     // Ledger por último (append-only, padrão retencao.mjs:72-86): status
     // 'limpeza' já existe no CHECK da migration 109; origem 'manual' é a da
     // ação do admin, não de uma run de retenção.
+    // Ressalva: se um INSERT abaixo falha, a exclusão (Storage + linhas) já
+    // aconteceu e o catch devolve 500 — mas um retry achará 0 linhas e a
+    // execução fica sem rastro no ledger. Mesmo trade-off da retenção
+    // (retencao.mjs:132-137, ledger também por último); aceito por ser
+    // operação manual pontual e rara.
     let bytesLiberados = 0;
     for (const [partidaId, grupo] of grupos) {
       const { error: erroLedger } = await supabase.from('clipes_importacoes').insert({
