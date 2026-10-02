@@ -14,7 +14,7 @@ interface SeletorNotaProps {
    * numa linha; o popup do listbox recebe largura mínima e âncora à direita
    * para não ultrapassar a viewport no celular.
    */
-  variant?: 'full' | 'compact';
+  variante?: 'full' | 'compact';
 }
 
 const OPCOES_NOTAS: Array<ListboxOpcao<number>> = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => ({
@@ -31,9 +31,9 @@ export function SeletorNota({
   onChange,
   disabled = false,
   className = '',
-  variant = 'full',
+  variante = 'full',
 }: SeletorNotaProps) {
-  const compact = variant === 'compact';
+  const compact = variante === 'compact';
   const definido = value !== undefined;
 
   const {

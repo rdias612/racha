@@ -359,7 +359,7 @@ export function PartidaVotar() {
                         </span>
                       </div>
                       <SeletorNota
-                        variant="compact"
+                        variante="compact"
                         value={nota}
                         onChange={(n) => setNota(a.jogador_id, n)}
                       />
