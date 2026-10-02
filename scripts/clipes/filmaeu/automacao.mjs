@@ -52,6 +52,17 @@ async function comRetry(passo, fn, { tentativas = 1, page = null } = {}) {
   throw new ErroFilmaeu(passo, ultimoErro ? ultimoErro.message : 'erro desconhecido');
 }
 
+// Passos de navegação/coleta fora do comRetry: capturam a falha, salvam
+// screenshot de debug (best-effort, RNF04) e relançam o erro original.
+async function comScreenshotDeFalha(page, passoPadrao, fn) {
+  try {
+    return await fn();
+  } catch (erro) {
+    await screenshot(page, `falha-${erro.passo || passoPadrao}`);
+    throw erro;
+  }
+}
+
 // Aguarda e clica num elemento; timeout → ErroFilmaeu(passo). Se o seletor
 // configurado não resolver, tenta localizar pelo texto visível como fallback
 // (RNF04: texto muda menos que markup em sites server-rendered).
@@ -99,64 +110,69 @@ export async function navegarParaSlot(page, { dataISO, horario }) {
   // Sequência de cliques prevista no requisito §1 (busca da quadra → data →
   // slot). Se o mapeamento 1.3 confirmar URL endereçável da grade, este método
   // passa a ser page.goto direto — menos cliques, mais resiliência (RNF04).
+  return comScreenshotDeFalha(page, 'navegacao', async () => {
+    await page
+      .waitForSelector(SELETORES.campoBuscaQuadra, { state: 'visible', timeout: PAGINA.timeoutElementoMs })
+      .catch(() => {
+        throw new ErroFilmaeu('busca-quadra', `campo de busca não encontrado: ${SELETORES.campoBuscaQuadra}`);
+      });
+    await page.fill(SELETORES.campoBuscaQuadra, QUADRA);
+    await clicarElemento(page, SELETORES.itemQuadra, 'busca-quadra', { textoFallback: QUADRA });
+    console.log(`[clipes] quadra "${QUADRA}" selecionada`);
 
-  await page
-    .waitForSelector(SELETORES.campoBuscaQuadra, { state: 'visible', timeout: PAGINA.timeoutElementoMs })
-    .catch(() => {
-      throw new ErroFilmaeu('busca-quadra', `campo de busca não encontrado: ${SELETORES.campoBuscaQuadra}`);
-    });
-  await page.fill(SELETORES.campoBuscaQuadra, QUADRA);
-  await clicarElemento(page, SELETORES.itemQuadra, 'busca-quadra', { textoFallback: QUADRA });
-  console.log(`[clipes] quadra "${QUADRA}" selecionada`);
+    await page
+      .waitForSelector(SELETORES.campoData, { state: 'visible', timeout: PAGINA.timeoutElementoMs })
+      .catch(() => {
+        throw new ErroFilmaeu('data', `campo de data não encontrado: ${SELETORES.campoData}`);
+      });
+    await page.fill(SELETORES.campoData, dataISO);
+    console.log(`[clipes] data informada: ${dataISO}`);
 
-  await page
-    .waitForSelector(SELETORES.campoData, { state: 'visible', timeout: PAGINA.timeoutElementoMs })
-    .catch(() => {
-      throw new ErroFilmaeu('data', `campo de data não encontrado: ${SELETORES.campoData}`);
-    });
-  await page.fill(SELETORES.campoData, dataISO);
-  console.log(`[clipes] data informada: ${dataISO}`);
+    await clicarElemento(page, SELETORES.itemSlot, 'slot', { textoFallback: horario });
+    console.log(`[clipes] slot ${horario} selecionado`);
 
-  await clicarElemento(page, SELETORES.itemSlot, 'slot', { textoFallback: horario });
-  console.log(`[clipes] slot ${horario} selecionado`);
-
-  return page;
+    return page;
+  });
 }
 
 export async function coletarClipes(page) {
-  await page
-    .waitForSelector(SELETORES.gradeClipes, { state: 'visible', timeout: PAGINA.timeoutElementoMs })
-    .catch(() => {
-      throw new ErroFilmaeu('grade-clipes', `grade de clipes não encontrada: ${SELETORES.gradeClipes}`);
-    });
+  return comScreenshotDeFalha(page, 'coleta', async () => {
+    await page
+      .waitForSelector(SELETORES.gradeClipes, { state: 'visible', timeout: PAGINA.timeoutElementoMs })
+      .catch(() => {
+        throw new ErroFilmaeu('grade-clipes', `grade de clipes não encontrada: ${SELETORES.gradeClipes}`);
+      });
 
-  const cards = page.locator(SELETORES.cardClipe);
-  const total = await cards.count();
-  console.log(`[clipes] grade carregada: ${total} clipe(s) na listagem`);
+    const cards = page.locator(SELETORES.cardClipe);
+    const total = await cards.count();
+    console.log(`[clipes] grade carregada: ${total} clipe(s) na listagem`);
 
-  const lista = [];
-  for (let indice = 0; indice < total; indice++) {
-    const card = cards.nth(indice);
-    const botao = card.locator(SELETORES.botaoBaixar).first();
-    const tituloLocator = card.locator(SELETORES.tituloClipe).first();
+    const lista = [];
+    for (let indice = 0; indice < total; indice++) {
+      const card = cards.nth(indice);
+      const botao = card.locator(SELETORES.botaoBaixar).first();
+      const tituloLocator = card.locator(SELETORES.tituloClipe).first();
 
-    const titulo =
-      (await tituloLocator.count()) > 0 ? ((await tituloLocator.textContent()) ?? '').trim() : '';
-    // href presente = padrão B do mapeamento 3.1 (âncora direta para o S3).
-    const href = (await botao.count()) > 0 ? await botao.getAttribute('href') : null;
+      const titulo =
+        (await tituloLocator.count()) > 0 ? ((await tituloLocator.textContent()) ?? '').trim() : '';
+      // href presente = padrão B do mapeamento 3.1 (âncora direta para o S3).
+      const href = (await botao.count()) > 0 ? await botao.getAttribute('href') : null;
 
-    // ordem = posição na listagem do slot, 1-based (fixa a semântica da
-    // divergência 3 da Fase 1).
-    lista.push({ ordem: indice + 1, titulo, botaoBaixar: botao, href });
-  }
+      // ordem = posição na listagem do slot, 1-based (fixa a semântica da
+      // divergência 3 da Fase 1).
+      lista.push({ ordem: indice + 1, titulo, botaoBaixar: botao, href });
+    }
 
-  // Lista vazia NÃO é erro aqui — o caller decide 'sem_clipes'.
-  return lista;
+    // Lista vazia NÃO é erro aqui — o caller decide 'sem_clipes'.
+    return lista;
+  });
 }
 
 function nomeArquivoDeUrl(url) {
   try {
-    return decodeURIComponent(basename(new URL(url).pathname));
+    // href pode ser relativo à base do site (ex.: '/media/clipe.mp4') —
+    // resolver contra URLS.base cobre absolutas e relativas.
+    return decodeURIComponent(basename(new URL(url, URLS.base).pathname));
   } catch {
     return null;
   }
@@ -188,8 +204,12 @@ export async function baixarClipes(page, listaClipes, { dirTemp, caminhosPendent
         continue;
       }
 
+      // href relativo é resolvido contra a base (request.get exige URL absoluta);
+      // aqui a âncora já foi validada por nomeArquivoDeUrl.
+      const urlDownload = new URL(clipe.href, URLS.base).href;
+
       const resposta = await comRetry('download', async () => {
-        const tentativa = await page.context().request.get(clipe.href, { timeout: PAGINA.timeoutDownloadMs });
+        const tentativa = await page.context().request.get(urlDownload, { timeout: PAGINA.timeoutDownloadMs });
         if (!tentativa.ok()) {
           throw new ErroFilmaeu('download', `resposta HTTP ${tentativa.status()} da URL da âncora`);
         }
