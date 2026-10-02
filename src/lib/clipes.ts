@@ -72,3 +72,57 @@ export async function obterUltimaPartidaComClipes(): Promise<UltimaPartidaComCli
 
   return { partidaId: data.partida_id, dataJogo: data.data_jogo, totalClipes: count ?? 0 };
 }
+
+/** Linha do ledger `clipes_importacoes` (Fase 1, fase-1-tasks.md:65-83) para o painel admin. */
+export interface ImportacaoClipes {
+  id: number;
+  partida_id: number | null;
+  data_referencia: string; // date do Postgres → 'YYYY-MM-DD'
+  origem: 'automatico' | 'manual';
+  status: 'iniciado' | 'concluido' | 'sem_clipes' | 'falha' | 'limpeza';
+  sucesso: boolean;
+  quantidade_clipes: number | null;
+  bytes_total: number | null;
+  detalhe: string | null;
+  erro: string | null;
+  criado_em: string;
+  atualizado_em: string;
+}
+
+/** RF03: dispara a importação de uma data específica (AAAA-MM-DD; RPC da Fase 6
+ *  rejeita data futura e fixa o horário 19:00 — nada disso é decisão da UI). */
+export async function dispararImportacaoClipes(adminId: number, data: string): Promise<void> {
+  const { error } = await supabase.rpc('disparar_importacao_clipes', {
+    p_admin_id: adminId,
+    p_data: data,
+  });
+  if (error) throw error;
+}
+
+/** RF08: histórico de importações e limpezas, mais recente primeiro. */
+export async function obterImportacoesClipes(
+  adminId: number,
+  limite = 50
+): Promise<ImportacaoClipes[]> {
+  const { data, error } = await supabase.rpc('obter_importacoes_clipes', {
+    p_admin_id: adminId,
+    p_limite: limite,
+  });
+  if (error) throw error;
+  // Cast de narrowing intencional: RETURNS TABLE gera colunas imprecisas no gerado
+  // (padrão obterPainelEntregasPush, notificacoes.ts:149-151).
+  return (data ?? []) as unknown as ImportacaoClipes[];
+}
+
+/** RF07: falhas ('falha' + 'sem_clipes') da janela de horas (default 48h). */
+export async function obterFalhasRecentesClipes(
+  adminId: number,
+  horas = 48
+): Promise<ImportacaoClipes[]> {
+  const { data, error } = await supabase.rpc('obter_falhas_recentes_clipes', {
+    p_admin_id: adminId,
+    p_horas: horas,
+  });
+  if (error) throw error;
+  return (data ?? []) as unknown as ImportacaoClipes[];
+}

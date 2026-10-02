@@ -97,3 +97,9 @@ export function primeiroDiaMesStr(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
 }
+
+/** Bytes em MB com 1 casa ("12.3 MB"); null/0 → null (não exibir). */
+export function formatarTamanhoBytes(bytes: number | null): string | null {
+  if (bytes == null || bytes <= 0) return null;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}

@@ -6,16 +6,11 @@
 
 import { useState } from 'react';
 import { Download, Share2 } from 'lucide-react';
+import { formatarTamanhoBytes } from '../lib/formatacao';
 import type { ClipeComUrl } from '../lib/clipes';
 
 export interface GradeClipesPartidaProps {
   clipes: ClipeComUrl[];
-}
-
-/** Formata bytes em MB (local: só a grade exibe tamanho; formatacao.ts não tem isso). */
-function formatarTamanho(bytes: number | null): string | null {
-  if (bytes == null || bytes <= 0) return null;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export function GradeClipesPartida({ clipes }: GradeClipesPartidaProps) {
@@ -72,8 +67,8 @@ export function GradeClipesPartida({ clipes }: GradeClipesPartidaProps) {
             <div className="flex items-center justify-between gap-2">
               <span className="font-mono text-[11px] text-giz-fraco">
                 Clipe {clipe.ordem ?? indice + 1}
-                {formatarTamanho(clipe.size_bytes) && (
-                  <> · {formatarTamanho(clipe.size_bytes)}</>
+                {formatarTamanhoBytes(clipe.size_bytes) && (
+                  <> · {formatarTamanhoBytes(clipe.size_bytes)}</>
                 )}
               </span>
               <div className="flex items-center gap-2">
