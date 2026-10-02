@@ -2,7 +2,8 @@
 // Lê env, resolve a partida alvo, obtém as credenciais do Filma Eu no Vault,
 // automatiza o browser (login → slot → download dos clipes), sobe para o
 // Storage com INSERT idempotente e grava a execução no ledger clipes_importacoes.
-// Limpeza é a Fase 4; push é a Fase 5.
+// Ao final de importação bem-sucedida roda a limpeza por retenção (Fase 4, RF09);
+// push de resultado é a Fase 5.
 // RNF02: valores de segredo NUNCA vão para console/log — só existência.
 
 import { createClient } from '@supabase/supabase-js';
@@ -16,6 +17,9 @@ import {
   baixarClipes,
 } from './filmaeu/automacao.mjs';
 import { caminhosExistentes, subirClipe, resumoDaPartida } from './armazenamento.mjs';
+import { limparPorRetencao, resolverLimiteBytes } from './retencao.mjs';
+
+const MB = 1024 * 1024;
 
 // ---------- configuração ----------
 function resolverConfig() {
@@ -327,14 +331,32 @@ async function main() {
       horario: config.horario,
       credenciais,
     });
-    // --- Fase 4: limpeza por retenção | Fase 5: push de resultado
+    // --- 5.6 (Fase 4): limpeza por retenção | Fase 5: push de resultado
+    if (resultado.status === 'concluido') {
+      // RF09: limpeza só após importação BEM-SUCEDIDA. 'sem_clipes' não
+      // dispara (nada novo entrou no bucket — requisito :71).
+      const limiteBytes = resolverLimiteBytes();
+      console.log(
+        `[clipes] retenção: limite ${limiteBytes / MB} MB, partida atual ${partida.id}`
+      );
+      const { deletadas, totalRestante } = await limparPorRetencao(client, {
+        limiteBytes,
+        partidaAtualId: partida.id,
+        origem,
+      });
+      resultado.limpeza = { deletadas: deletadas.length, totalRestante };
+    }
 
     await fecharRegistroImportacao(client, registroId, {
       status: resultado.status, // 'concluido' | 'sem_clipes'
       sucesso: resultado.status === 'concluido',
       quantidadeClipes: resultado.resumo.quantidade,
       bytesTotal: resultado.resumo.bytesTotal,
-      detalhe: `${resultado.novos} novos, ${resultado.resumo.quantidade} totais`,
+      detalhe:
+        `${resultado.novos} novos, ${resultado.resumo.quantidade} totais` +
+        (resultado.limpeza
+          ? `; retenção: ${resultado.limpeza.deletadas} partida(s) deletada(s), total restante ${Math.round(resultado.limpeza.totalRestante / MB)} MB`
+          : ''),
     });
     console.log(
       `[clipes] ledger ${registroId} fechado como '${resultado.status}' ` +
