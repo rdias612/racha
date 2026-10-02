@@ -58,7 +58,7 @@ As validações visuais/funcionais no aparelho listadas na seção 5 de cada pla
 
 | # | Plano | Item | Status |
 |---|---|---|---|
-| 35 | [35-clipes-filmaeu.md](35-clipes-filmaeu.md) | Clipes do Filma Eu no app (requisito: [`docs/requisito-clipes-filmaeu.md`](../requisito-clipes-filmaeu.md)) | 📝 **esqueleto** — requisito fechado, plano a detalhar |
+| 35 | [35-clipes-filmaeu.md](35-clipes-filmaeu.md) | Clipes do Filma Eu no app (requisito: [`docs/requisito-clipes-filmaeu.md`](../requisito-clipes-filmaeu.md)) | 📋 **plano detalhado** — 8 fases em [`35-fases/`](35-fases/) (~30 tasks); aguardando execução |
 
 ## Ordem de execução recomendada
 

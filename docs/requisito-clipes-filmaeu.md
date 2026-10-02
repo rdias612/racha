@@ -56,7 +56,7 @@ O requisito é: **baixar automaticamente os clipes de cada partida do racha e di
 └──────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-O gatilho manual do app segue: **botão admin → Edge Function `disparar-importacao-clipes` → GitHub API (`workflow_dispatch`) → Action roda**. O token do GitHub (PAT com permissão de disparar o workflow) fica no Supabase Vault, no mesmo padrão dos outros segredos.
+O gatilho manual do app segue: **botão admin → RPC `disparar_importacao_clipes` (SECURITY DEFINER, gate `is_admin`) → GitHub API (`workflow_dispatch`) via pg_net → Action roda** (padrão `disparar_confirmacao_manual` da migration 099 — o padrão do projeto para "admin dispara HTTP externo" é RPC + pg_net, não Edge Function). O token do GitHub (PAT com permissão de disparar o workflow) fica no Supabase Vault, no mesmo padrão dos outros segredos.
 
 ## 4. Requisitos funcionais
 
@@ -88,7 +88,7 @@ O gatilho manual do app segue: **botão admin → Edge Function `disparar-import
 | Tabela `clipes_importacoes`                  | Migration       | Ledger de execuções (origem, status, detalhe) — padrão `cron_execucoes` |
 | Bucket `clipes`                              | Storage         | Escrita só via service key; leitura pública ou assinada (RNF03)     |
 | Segredos no Vault                            | Migration/manual| Credenciais Filma Eu + PAT do GitHub                                |
-| Edge Function `disparar-importacao-clipes`   | Edge Function   | Chama GitHub API `workflow_dispatch`; valida admin                  |
+| RPC `disparar_importacao_clipes` + RPCs de consulta do ledger | Migration (SQL)  | Gate `is_admin`, chama GitHub API `workflow_dispatch` via pg_net; consulta de importações/falhas para o painel |
 | `src/lib/clipes.ts`                          | Frontend        | Camada de serviço nova, padrão das libs existentes                  |
 | Bloco de clipes no `PartidaDetalhe`          | Frontend        | Grade de vídeos, `<video>` nativo                                   |
 | Link no `Resumo`                             | Frontend        | Acima dos cards de destaque, condicional à existência de clipes     |
