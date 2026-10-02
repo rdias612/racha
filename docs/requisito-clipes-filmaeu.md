@@ -24,7 +24,7 @@ O requisito é: **baixar automaticamente os clipes de cada partida do racha e di
 | D1 | Onde a automação roda                          | **GitHub Action agendada** com browser headless (Playwright)                                                                               |
 | D2 | Gatilho                                        | **Automático semanal** (após cada partida) **+ manual pelo app** (botão admin, com opção de importar um dia específico)                    |
 | D3 | Quais clipes baixar                            | **Todos os clipes do horário da partida** (slot 19:00 da Society Gragoatá na data da partida)                                              |
-| D4 | Onde guardar                                   | **Bucket `clipes` no Supabase Storage**, organizado por partida, **sem expiração**                                                          |
+| D4 | Onde guardar + retenção                        | **Bucket `clipes` no Supabase Storage**, organizado por partida, com **limpeza automática por tamanho** (ordem de deleção pela **data da partida**, não da data de upload) — ver RF09 |
 | D5 | Onde aparecem no app                           | **Bloco dentro do detalhe da partida** + **link na home (Resumo), acima dos cards de destaque dos jogadores**, quando a última partida tem clipes |
 | D6 | Quem vê / quem gere                            | **Todos os jogadores logados veem**; **admin gere** (disparar/reexecutar importações)                                                       |
 | D7 | Credenciais do Filma Eu                        | **1 conta (do dono) em segredo no Supabase Vault**, lida pela Action; quadra fixa Society Gragoatá                                          |
@@ -68,6 +68,7 @@ O gatilho manual do app segue: **botão admin → Edge Function `disparar-import
 - **RF06** — Ao concluir uma importação com sucesso, os participantes recebem **push** "clipes da partida de {data} disponíveis" (reusar a infraestrutura de push existente).
 - **RF07** — Quando a importação **falha** ou **não encontra clipes**, os **admins** são avisados (push e/ou registro visível no painel admin), para poderem reexecutar manualmente.
 - **RF08** — Cada importação (automática ou manual) fica registrada com origem, status e detalhe do resultado, consultável pelos admins.
+- **RF09** — **Limpeza por retenção**: após cada importação bem-sucedida, se o total armazenado no bucket `clipes` ultrapassar um limite configurável (default: **800 MB**, folga sob o teto free de 1 GB), a Action deleta **partidas inteiras mais antigas primeiro**, ordenadas por `data_jogo` — a data do jogo, **não** a data em que o clipe foi salvo no Storage (ex.: clipes de uma partida de 02/02 importados hoje são deletados antes dos de 02/09 importados ontem). A limpeza é por partida (prefixo `clipes/{partida_id}/` + linhas na tabela `clipes`) e fica registrada no ledger de importações; nunca deleta a partida recém-importada.
 
 ## 5. Requisitos não funcionais e restrições
 
@@ -82,7 +83,7 @@ O gatilho manual do app segue: **botão admin → Edge Function `disparar-import
 
 | Componente                                   | Tipo            | Notas                                                              |
 | -------------------------------------------- | --------------- | ------------------------------------------------------------------ |
-| `.github/workflows/` + script Playwright      | GitHub Action   | Cron semanal + `workflow_dispatch` com inputs (data, horário, partida) |
+| `.github/workflows/` + script Playwright      | GitHub Action   | Cron semanal + `workflow_dispatch` com inputs (data, horário, partida); ao final, executa a limpeza por retenção (RF09) |
 | Tabela `clipes`                              | Migration       | `partida_id`, caminho no Storage, horário/ordem, `UNIQUE(partida_id, caminho)` |
 | Tabela `clipes_importacoes`                  | Migration       | Ledger de execuções (origem, status, detalhe) — padrão `cron_execucoes` |
 | Bucket `clipes`                              | Storage         | Escrita só via service key; leitura pública ou assinada (RNF03)     |
@@ -99,10 +100,11 @@ O gatilho manual do app segue: **botão admin → Edge Function `disparar-import
 | Risco                                                        | Mitigação                                                       |
 | ------------------------------------------------------------ | --------------------------------------------------------------- |
 | Filma Eu muda o layout/DOM e quebra a automação              | Log de execução + aviso ao admin (RF07) + correção pontual no script |
-| Credenciais vazarem                                          | Vault-only (RNF02), sem echo em logs, PAT com escopo mínimo      |
-| Custo de Storage crescer com o tempo                         | Sem expiração é decisão do dono (D4); monitorar uso do bucket    |
+| Credenciais vazaram                                          | Vault-only (RNF02), sem echo em logs, PAT com escopo mínimo      |
+| Custo de Storage estourar o free tier (1 GB)                 | Limpeza automática por tamanho com deleção pela data da partida mais antiga primeiro (RF09), limite configurável (default 800 MB) |
 | Site fora / clipes ainda não publicados na hora do cron      | Reexecução manual (RF03); horário do cron ajustável              |
 | GitHub Action sem rede de saída para o S3/filmaeu            | Runners padrão têm saída livre; sem restrição conhecida          |
+| Limpeza deletar partida que o pessoal ainda quer rever        | Sempre resta folga (default 800 MB); limpeza registrada no ledger e auditável no painel admin |
 
 ## 8. Fora de escopo
 

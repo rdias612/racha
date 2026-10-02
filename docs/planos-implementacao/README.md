@@ -30,12 +30,10 @@ As validações visuais/funcionais no aparelho listadas na seção 5 de cada pla
 | 07 | [queries-fora-da-lib.md](07-queries-fora-da-lib.md) | D5 · Queries fora da `lib` → `lib` — ✅ **executado** ([registro](registros/07-queries-fora-da-lib.md)) | 2 |
 | 08 | [dialogo-evento-modal-base.md](08-dialogo-evento-modal-base.md) | A5 · `DialogoEvento` → `ModalBase` — ✅ **executado** ([registro](registros/08-dialogo-evento-modal-base.md)) | 2 |
 | 09 | [pecas-listas-financeiras.md](09-pecas-listas-financeiras.md) | A6 · Peças das listas financeiras — ✅ **executado** ([registro](registros/09-pecas-listas-financeiras.md)) | 2 |
-| 10 | [tipos-derivados.md](10-tipos-derivados.md) | D4 · Tipos derivados de `database.types.ts` — ✅ **executado** ([registro](registros/10-tipos-derivados.md)) | 2 |
 | 11 | [badge-mini.md](11-badge-mini.md) | A8 · Chip "mini" no `Badge` — ✅ **executado** ([registro](registros/11-badge-mini.md)) | 3 |
 | 12 | [token-scrim.md](12-token-scrim.md) | C3 · Token `--cor-scrim` — ✅ **executado** ([registro](registros/12-token-scrim.md)) | 3 |
 | 13 | [remocao-tokens-mortos.md](13-remocao-tokens-mortos.md) | C4 · Remoção de tokens/dados mortos — ✅ **executado** ([registro](registros/13-remocao-tokens-mortos.md)) | 3 |
 | 14 | [higiene-nomenclatura.md](14-higiene-nomenclatura.md) | A4 · Higiene de nomenclatura — ✅ **executado** ([registro](registros/14-higiene-nomenclatura.md)) | 3 |
-| 15 | [pilula-filtro.md](15-pilula-filtro.md) | A7 · `PilulaFiltro` (débito, não executar agora) | 3 |
 | 16 | [retry-ptr-partida.md](16-retry-ptr-partida.md) | E3 · Retry/PTR/haptics nas telas de partida | 4 |
 | 17 | [pasta-ui.md](17-pasta-ui.md) | A9 · Pasta `ui/` para novas primitivas | 4 |
 | 18 | [revalidar-online.md](18-revalidar-online.md) | B1 · Revalidar dados ao voltar online — ✅ **executado** ([registro](registros/18-revalidar-online.md)) | 4 |
@@ -66,6 +64,6 @@ As validações visuais/funcionais no aparelho listadas na seção 5 de cada pla
 
 - **Onda anti-slop**: 03 → 01 → 02 → 04 (Tier 1), depois a cadeia 07 → 05 → 06 (D5 → D2 → D3 — dependência real entre eles).
 - **Junto de qualquer extração**: 17 (pasta `ui/`) custa ~zero se aplicado no commit de criação dos componentes novos.
-- **Tier 3**: executar "ao tocar o arquivo" conforme oportunidade; 15 é débito documentado, não backlog.
+- **Tier 3**: executar "ao tocar o arquivo" conforme oportunidade.
 - **Tier 4**: seguir a ordem de fases do plano original (`docs/plano-melhorias-frontend-pwa.md` §4) — este diretório não altera a prioridade de produto.
 - **Decisões do dono antes de executar**: 02 (componente vs constantes), 24 (aprovar escopo do Painel da Semana), 26 (sincronizar com roadmap "Minhas Dívidas"), 08 (janela fora de ao-vivo).
