@@ -245,6 +245,16 @@ As telas de aba (Resumo, Jogos, Ranking) carregam dados via `useCache<T>(chave, 
 
 Regras de uso: `buscar` deve ser estável (`useCallback`) e uma **função pura** (apenas consulta e lança erro; nunca seta estado); a chave deve identificar o conteúdo consultado, incluindo filtros que alteram a query (ex.: `ranking:${posicaoFiltro}`).
 
+### 5.6 Convenção de Nomenclatura de Props
+
+As props dos componentes de `src/components/` seguem três regras, conforme a natureza da prop. Não misture idiomas para o mesmo conceito (nada de alias bilíngue tipo `valor` + `value` na mesma interface).
+
+1. **Props de dado em pt-BR**: quando a prop é um conceito do domínio do componente, use nomes em português — `valor`, `rotulo`, `variante`, `desabilitado`. É o padrão de `CampoBusca` (`valor`, `desabilitado`), `Badge` (`variante`) e `PainelPlacar`.
+2. **Handlers de evento em `ao*`**: callbacks de evento seguem o prefixo `ao` + verbo no infinitivo — `aoMudar`, `aoLimpar`, `aoAbrir`, `aoFechar`. É o padrão de `CampoBusca` (`aoMudar`, `aoLimpar`) e `MensagemEstado`.
+3. **APIs nativas do DOM em inglês**: quando a prop é repassada verbatim a um elemento HTML (`placeholder`, `autoFocus`, `className`, `id`, `name`, `disabled` em wrappers diretos de `<input>`/`<button>`/`<select>` como `SeletorNota` e `Toggle`), mantenha o nome nativo em inglês para preservar a analogia com o elemento encapsulado.
+
+Exceções já estabelecidas (não padronizar retroativamente): `open`/`onClose` do `ModalBase` e `checked`/`onChange` do `Toggle` permanecem como estão.
+
 ---
 
 ## 6. UX Mobile e Diretrizes PWA
