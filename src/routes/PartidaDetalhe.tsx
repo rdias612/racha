@@ -19,6 +19,7 @@ import {
   type Participante,
   type NotaPartida,
 } from '../lib/partidas';
+import { carregarClipesDaPartida, type ClipeComUrl } from '../lib/clipes';
 import { MensagemEstado } from '../components/Estado';
 import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 import { SkeletonDetalhe } from '../components/Skeletons';
@@ -26,6 +27,7 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { CardCraquePartida } from '../components/CardCraquePartida';
 import { ConfirmacoesPartida } from '../components/ConfirmacoesPartida';
 import { GridTimesPartida } from '../components/GridTimesPartida';
+import { GradeClipesPartida } from '../components/GradeClipesPartida';
 import { ListaNotasPartida } from '../components/ListaNotasPartida';
 import { formatarDataCompleta, formatarDataMobile, formatarFechamento } from '../lib/formatacao';
 import { Badge } from '../components/Badge';
@@ -44,6 +46,7 @@ export function PartidaDetalhe() {
   const [placar, setPlacar] = useState<Placar | null>(null);
   const [participantes, setParticipantes] = useState<Participante[]>([]);
   const [notas, setNotas] = useState<NotaPartida[]>([]);
+  const [clipes, setClipes] = useState<ClipeComUrl[]>([]);
   const [jaVotou, setJaVotou] = useState(false);
   const [confirmandoDescarte, setConfirmandoDescarte] = useState(false);
   const [descartando, setDescartando] = useState(false);
@@ -72,12 +75,23 @@ export function PartidaDetalhe() {
             })()
           : Promise.resolve(0);
 
-        const [p, pl, parts, ns, votos] = await Promise.all([
+        // Clipes são tolerantes a falha (como o count de votos): sem clipes ou erro
+        // de rede, a grade simplesmente não aparece.
+        const buscarClipes = (async () => {
+          try {
+            return await carregarClipesDaPartida(numeroId);
+          } catch {
+            return [];
+          }
+        })();
+
+        const [p, pl, parts, ns, votos, cs] = await Promise.all([
           carregarPartida(numeroId),
           carregarPlacar(numeroId),
           carregarParticipantes(numeroId),
           carregarNotas(numeroId),
           contarVotos,
+          buscarClipes,
         ]);
         if (isAtivo && !isAtivo()) return;
         setPartida(p);
@@ -85,6 +99,7 @@ export function PartidaDetalhe() {
           setPlacar(pl);
           setParticipantes(parts);
           setNotas(ns);
+          setClipes(cs);
           // O count só vira voto quando a partida está publicada e há jogador logado
           setJaVotou(p.status === 'published' && !!jogadorLogado && votos > 0);
         }
@@ -220,6 +235,9 @@ export function PartidaDetalhe() {
       {(partida.status !== 'draft' || participantes.some((p) => p.time !== null)) && (
         <GridTimesPartida participantes={participantes} />
       )}
+
+      {/* Clipes do Filma Eu: só existe bloco quando há clipes importados (RF04) */}
+      {clipes.length > 0 && <GradeClipesPartida clipes={clipes} />}
 
       {/* Ações principais por status */}
       {partida.status === 'draft' && isAdmin && (
