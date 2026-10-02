@@ -30,3 +30,14 @@
   existência (`if (!valor)`).
 - No terminal local, os mesmos cuidados: sem colar a service key em arquivos,
   issues ou conversas.
+
+## 4. Limite de retenção (RF09, P11) — opcional
+
+- Default: **800 MB** (compilado no YAML; folga sob o free tier de 1 GB).
+- **Var do repositório** (Settings → Secrets and variables → Actions → aba
+  **Variables**, não Secrets): `LIMITE_STORAGE_MB` = número inteiro de MB.
+  Define o limite de TODAS as runs (cron e dispatch) enquanto existir.
+- **Override pontual**: input `limite_storage_mb` no `workflow_dispatch`
+  (ex.: 50 para o teste de retenção do esqueleto §5) — vale só para aquela run.
+- Precedência: input > var > default. Valor inválido (<= 0 ou não numérico)
+  faz a run falhar (config errada, não silêncio).

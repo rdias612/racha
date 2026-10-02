@@ -21,6 +21,10 @@ on:
         description: 'ID da partida no Supabase (opcional; tem precedência sobre data)'
         required: false
         default: ''
+      limite_storage_mb:
+        description: 'Limite de retenção do bucket em MB (vazio = var LIMITE_STORAGE_MB ou 800)'
+        required: false
+        default: ''
 
 permissions:
   contents: read   # mínimo; o workflow não escreve no repo
@@ -57,6 +61,8 @@ jobs:
           INPUT_DATA: ${{ inputs.data }}
           INPUT_HORARIO: ${{ inputs.horario }}
           INPUT_PARTIDA_ID: ${{ inputs.partida_id }}
+          # P11: override por input do dispatch > var do repositório > default 800.
+          LIMITE_STORAGE_MB: ${{ inputs.limite_storage_mb || vars.LIMITE_STORAGE_MB || '800' }}
 
       - name: Publicar debug do browser (falhas)
         if: failure()
