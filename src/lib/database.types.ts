@@ -4,10 +4,129 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: '14.15';
+    PostgrestVersion: '14.5';
   };
   public: {
     Tables: {
+      clipes: {
+        Row: {
+          caminho: string;
+          criado_em: string;
+          data_jogo: string;
+          id: number;
+          ordem: number | null;
+          partida_id: number;
+          size_bytes: number | null;
+        };
+        Insert: {
+          caminho: string;
+          criado_em?: string;
+          data_jogo: string;
+          id?: number;
+          ordem?: number | null;
+          partida_id: number;
+          size_bytes?: number | null;
+        };
+        Update: {
+          caminho?: string;
+          criado_em?: string;
+          data_jogo?: string;
+          id?: number;
+          ordem?: number | null;
+          partida_id?: number;
+          size_bytes?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'clipes_partida_id_fkey';
+            columns: ['partida_id'];
+            isOneToOne: false;
+            referencedRelation: 'partida_placar';
+            referencedColumns: ['partida_id'];
+          },
+          {
+            foreignKeyName: 'clipes_partida_id_fkey';
+            columns: ['partida_id'];
+            isOneToOne: false;
+            referencedRelation: 'partidas';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'clipes_partida_id_fkey';
+            columns: ['partida_id'];
+            isOneToOne: false;
+            referencedRelation: 'partidas_com_placar';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      clipes_importacoes: {
+        Row: {
+          atualizado_em: string;
+          bytes_total: number | null;
+          criado_em: string;
+          data_referencia: string;
+          detalhe: string | null;
+          erro: string | null;
+          id: number;
+          origem: string;
+          partida_id: number | null;
+          quantidade_clipes: number | null;
+          status: string;
+          sucesso: boolean;
+        };
+        Insert: {
+          atualizado_em?: string;
+          bytes_total?: number | null;
+          criado_em?: string;
+          data_referencia: string;
+          detalhe?: string | null;
+          erro?: string | null;
+          id?: number;
+          origem: string;
+          partida_id?: number | null;
+          quantidade_clipes?: number | null;
+          status: string;
+          sucesso?: boolean;
+        };
+        Update: {
+          atualizado_em?: string;
+          bytes_total?: number | null;
+          criado_em?: string;
+          data_referencia?: string;
+          detalhe?: string | null;
+          erro?: string | null;
+          id?: number;
+          origem?: string;
+          partida_id?: number | null;
+          quantidade_clipes?: number | null;
+          status?: string;
+          sucesso?: boolean;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'clipes_importacoes_partida_id_fkey';
+            columns: ['partida_id'];
+            isOneToOne: false;
+            referencedRelation: 'partida_placar';
+            referencedColumns: ['partida_id'];
+          },
+          {
+            foreignKeyName: 'clipes_importacoes_partida_id_fkey';
+            columns: ['partida_id'];
+            isOneToOne: false;
+            referencedRelation: 'partidas';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'clipes_importacoes_partida_id_fkey';
+            columns: ['partida_id'];
+            isOneToOne: false;
+            referencedRelation: 'partidas_com_placar';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       cron_execucoes: {
         Row: {
           erro: string | null;
@@ -853,6 +972,60 @@ export type Database = {
           },
         ];
       };
+      v_levantamento: {
+        Row: {
+          assistencias: number | null;
+          data_jogo: string | null;
+          derrota: boolean | null;
+          empate: boolean | null;
+          gols: number | null;
+          gols_contra: number | null;
+          jogador_id: number | null;
+          partida_id: number | null;
+          pontos: number | null;
+          resultado: string | null;
+          time: string | null;
+          vencedor: string | null;
+          vitoria: boolean | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'partidas_participantes_jogador_id_fkey';
+            columns: ['jogador_id'];
+            isOneToOne: false;
+            referencedRelation: 'dividas_resumo';
+            referencedColumns: ['jogador_id'];
+          },
+          {
+            foreignKeyName: 'partidas_participantes_jogador_id_fkey';
+            columns: ['jogador_id'];
+            isOneToOne: false;
+            referencedRelation: 'jogadores';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'partidas_participantes_partida_id_fkey';
+            columns: ['partida_id'];
+            isOneToOne: false;
+            referencedRelation: 'partida_placar';
+            referencedColumns: ['partida_id'];
+          },
+          {
+            foreignKeyName: 'partidas_participantes_partida_id_fkey';
+            columns: ['partida_id'];
+            isOneToOne: false;
+            referencedRelation: 'partidas';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'partidas_participantes_partida_id_fkey';
+            columns: ['partida_id'];
+            isOneToOne: false;
+            referencedRelation: 'partidas_com_placar';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Functions: {
       abrir_partida: {
@@ -882,13 +1055,14 @@ export type Database = {
       };
       atualizar_dados_pix_telefone: {
         Args: {
-          p_chave_pix?: string | null;
+          p_chave_pix: string;
           p_jogador_id: number;
           p_operador_id: number;
-          p_telefone?: string | null;
+          p_telefone: string;
         };
         Returns: boolean;
       };
+      capacidade_partida: { Args: never; Returns: number };
       confirmar_presenca: {
         Args: { p_jogador_id: number; p_partida_id: number; p_status: string };
         Returns: boolean;
@@ -934,16 +1108,28 @@ export type Database = {
             };
             Returns: number;
           };
-      criar_jogador: {
-        Args: {
-          p_is_admin: boolean;
-          p_is_mensalista?: boolean;
-          p_posicao: string;
-          p_posicao_b?: string;
-          p_username: string;
-        };
-        Returns: number;
-      };
+      criar_jogador:
+        | {
+            Args: {
+              p_is_admin: boolean;
+              p_is_mensalista?: boolean;
+              p_nome: string;
+              p_posicao: string;
+              p_posicao_b?: string;
+              p_username: string;
+            };
+            Returns: number;
+          }
+        | {
+            Args: {
+              p_is_admin: boolean;
+              p_is_mensalista?: boolean;
+              p_posicao: string;
+              p_posicao_b?: string;
+              p_username: string;
+            };
+            Returns: number;
+          };
       criar_partida: {
         Args: {
           p_criado_por: number;
@@ -960,6 +1146,16 @@ export type Database = {
       disparar_confirmacao_manual: {
         Args: { p_admin_id: number; p_partida_id: number };
         Returns: boolean;
+      };
+      disparar_e_registrar_cron_http: {
+        Args: {
+          p_body?: Json;
+          p_headers: Json;
+          p_job_nome: string;
+          p_timeout_ms?: number;
+          p_url: string;
+        };
+        Returns: number;
       };
       disparar_push_teste: { Args: { p_admin_id: number }; Returns: boolean };
       disparar_push_votacao_aberta: {
@@ -1001,18 +1197,53 @@ export type Database = {
         Returns: undefined;
       };
       gerar_lancamentos_mensais: { Args: never; Returns: undefined };
+      listar_pendentes_confirmacao: {
+        Args: { p_partida_id?: number };
+        Returns: {
+          confirmacao_closes_at: string;
+          data_jogo: string;
+          jogador_id: number;
+          partida_id: number;
+          subscriptions: Json;
+        }[];
+      };
+      listar_pendentes_votacao: {
+        Args: { p_janela_maxima_interval?: string };
+        Returns: {
+          jogador_id: number;
+          partida_id: number;
+          subscriptions: Json;
+          voting_closes_at: string;
+        }[];
+      };
       listar_pendentes_votacao_abertura: {
         Args: { p_partida_id: number };
         Returns: {
-          partida_id: number;
           jogador_id: number;
-          voting_closes_at: string;
+          partida_id: number;
           subscriptions: Json;
+          voting_closes_at: string;
         }[];
+      };
+      media_aparada: {
+        Args: { p_count: number; p_max: number; p_min: number; p_sum: number };
+        Returns: number;
       };
       obter_configuracoes_notificacoes: {
         Args: { p_admin_id: number };
         Returns: Json;
+      };
+      obter_execucoes_cron: {
+        Args: { p_admin_id: number; p_limite?: number };
+        Returns: {
+          erro: string;
+          executado_em: string;
+          id: number;
+          job_nome: string;
+          resposta: string;
+          status_code: number;
+          sucesso: boolean;
+        }[];
       };
       obter_medias_notas_jogadores: {
         Args: never;
@@ -1024,21 +1255,21 @@ export type Database = {
       obter_painel_entregas_push: {
         Args: { p_admin_id: number; p_limite?: number };
         Returns: {
-          jogador_id: number;
-          username: string;
-          is_mensalista: boolean;
-          posicao: string;
-          qtd_aparelhos: number;
-          primeira_inscricao_em: string | null;
-          ultima_inscricao_em: string | null;
           aparelhos: Json;
+          is_mensalista: boolean;
+          jogador_id: number;
+          posicao: string;
+          primeira_inscricao_em: string;
+          qtd_aparelhos: number;
           total_entregas: number;
-          ultima_entrega_em: string | null;
-          ultima_entrega_key: string | null;
-          ultima_entrega_partida: number | null;
           total_erros: number;
-          ultimo_erro: string | null;
-          ultimo_erro_em: string | null;
+          ultima_entrega_em: string;
+          ultima_entrega_key: string;
+          ultima_entrega_partida: number;
+          ultima_inscricao_em: string;
+          ultimo_erro: string;
+          ultimo_erro_em: string;
+          username: string;
         }[];
       };
       obter_partidas_recentes_jogadores: {
@@ -1087,6 +1318,7 @@ export type Database = {
           vitorias: number;
         }[];
       };
+      posicao_linha_hibrido: { Args: { p_jogador_id: number }; Returns: string };
       publicar_partida: { Args: { p_partida_id: number }; Returns: boolean };
       quitar_divida: { Args: { p_divida_id: number }; Returns: undefined };
       quitar_dividas_jogador: {
@@ -1166,29 +1398,28 @@ export type Database = {
         };
         Returns: boolean;
       };
-      salvar_times_e_goleiros_partida:
-        | {
-            Args: {
-              p_goleiro_a_id: number;
-              p_goleiro_b_id: number;
-              p_partida_id: number;
-              p_times_linha: Json;
-            };
-            Returns: boolean;
-          }
-        | {
-            Args: {
-              p_admin_id?: number;
-              p_goleiro_a_id: number;
-              p_goleiro_b_id: number;
-              p_partida_id: number;
-              p_times_linha: Json;
-            };
-            Returns: boolean;
-          };
+      salvar_times_e_goleiros_partida: {
+        Args: {
+          p_admin_id?: number;
+          p_goleiro_a_id: number;
+          p_goleiro_b_id: number;
+          p_partida_id: number;
+          p_times_linha: Json;
+        };
+        Returns: boolean;
+      };
       sincronizar_contadores_partida: {
         Args: { p_partida_id: number };
         Returns: undefined;
+      };
+      sincronizar_push_subscription: {
+        Args: {
+          p_auth: string;
+          p_endpoint_antigo: string;
+          p_endpoint_novo: string;
+          p_p256dh: string;
+        };
+        Returns: boolean;
       };
       substituir_template_financeiro: {
         Args: { p_data: string; p_nome?: string; p_template: string };
