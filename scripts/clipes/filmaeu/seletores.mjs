@@ -1,35 +1,43 @@
 // Única fonte de rotas e seletores do filmaeu.com.br (RNF04 — requisito §1 e §7:
 // o site muda sem aviso; correção pontual AQUI, nunca espalhada pelo código).
-// TODOS os valores marcados "A CONFIRMAR" vêm do mapeamento do dono
+// Valores CONFIRMADOS no mapeamento DOM do dono de 02/10/2026
 // (docs/filmaeu-mapeamento-dom.md). Estratégia de resiliência, em ordem:
 // id > data-* > name > classe estável > texto visível (getByRole/getByText).
-// Site server-rendered (jQuery/Bootstrap): navegação clássica, sem SPA —
-// usar waitForSelector/waitForURL, não networkidle.
+// Site server-rendered (jQuery/Bootstrap): conteúdo carregado por AJAX sobre
+// /perfil# — NÃO há URL endereçável da grade (mapeamento §1); usar
+// waitForSelector, não waitForURL/networkidle.
 
 export const QUADRA = 'Society Gragoatá'; // D7 — quadra fixa (requisito §2)
+// Linha da quadra no modal de locais (mapeamento §2: tr#client803; o clique
+// preenche input#society com o client-id).
+export const QUADRA_CLIENT_ID = '803';
+
 export const URLS = {
   base: 'https://filmaeu.com.br',
-  login: 'https://filmaeu.com.br/login', // A CONFIRMAR (requisito §1: "atrás de /login")
-  // grade: se o mapeamento 1.3 mostrar URL endereçável, montar aqui
-  // (ex.: `${base}/quadra/...?data=${dataISO}&horario=${horario}`) — A CONFIRMAR
+  login: 'https://filmaeu.com.br/login',
 };
 
-// A CONFIRMAR NO MAPEAMENTO DO DONO — valores iniciais plausíveis para
-// jQuery/Bootstrap, substituídos pelos reais antes da primeira run de validação.
 export const SELETORES = {
-  campoUsuario: 'A CONFIRMAR', // ex.: 'input[name="usuario"]'
-  campoSenha: 'A CONFIRMAR', // ex.: 'input[type="password"]'
-  botaoEntrar: 'A CONFIRMAR', // ex.: 'button[type="submit"]'
-  sinalPostLogin: 'A CONFIRMAR', // elemento só visível autenticado
-  campoBuscaQuadra: 'A CONFIRMAR',
-  itemQuadra: 'A CONFIRMAR', // card/linha contendo QUADRA (texto)
-  campoData: 'A CONFIRMAR', // input date? calendário? (mapeamento 2.3)
-  itemSlot: 'A CONFIRMAR', // elemento do horário (ex.: link '19:00')
-  gradeClipes: 'A CONFIRMAR', // container da grade
-  cardClipe: 'A CONFIRMAR', // card individual (para contar/ordenar)
-  tituloClipe: 'A CONFIRMAR',
-  botaoBaixar: 'A CONFIRMAR', // ex.: 'a:has-text("Baixar")'
+  campoUsuario: '#loginForm input[name="email"]',
+  campoSenha: '#loginForm input[name="password"]',
+  botaoEntrar: '#loginForm button.login_btn',
+  sinalPostLogin: '#datepicker', // só visível autenticado, em /perfil
+  linkTrocarCampo: 'a:has-text("Trocar campo")', // abre o modal #myModal
+  modalLocais: '#myModal',
+  campoBuscaQuadra: '#myModal #client-search', // SEMPRE escopado ao modal (há outro #client-search oculto)
+  itemQuadra: `#myModal tr#client${QUADRA_CLIENT_ID}`,
+  campoData: 'input#datepicker[type="date"]', // valor ISO AAAA-MM-DD
+  botaoPesquisar: 'span#submitDate', // texto "Pesquisar"; carrega a lista de horários
+  gradeClipes: '#showVideos',
+  cardClipe: '#showVideos .card-videos', // um grupo por horário de gravação
+  tituloClipe: '.card-header',
+  botaoBaixar: 'span.download-video', // um por vídeo/câmera (2 por grupo)
 };
+
+// O link do horário usa atributo hour="19HR" para o slot 19:00 (mapeamento §2).
+export function seletorSlot(horario) {
+  return `a.hour[hour="${horario.split(':')[0]}HR"]`;
+}
 
 export const PAGINA = {
   timeoutNavegacaoMs: 30_000, // page.goto / waitForURL

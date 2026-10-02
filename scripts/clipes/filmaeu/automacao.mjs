@@ -5,10 +5,10 @@
 // login/download e screenshot por passo em falha.
 // Seletores e timeouts vêm TODOS de ./seletores.mjs (RNF04).
 import { chromium } from 'playwright';
-import { mkdirSync, statSync, writeFileSync } from 'node:fs';
+import { mkdirSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { basename, join } from 'node:path';
-import { URLS, SELETORES, PAGINA, QUADRA, ErroFilmaeu } from './seletores.mjs';
+import { join } from 'node:path';
+import { URLS, SELETORES, PAGINA, QUADRA, seletorSlot, ErroFilmaeu } from './seletores.mjs';
 
 function diretorioDebug() {
   return join(process.env.RUNNER_TEMP || tmpdir(), 'clipes-debug');
@@ -107,17 +107,19 @@ export async function logarFilmaeu(context, { usuario, senha }) {
 }
 
 export async function navegarParaSlot(page, { dataISO, horario }) {
-  // Sequência de cliques prevista no requisito §1 (busca da quadra → data →
-  // slot). Se o mapeamento 1.3 confirmar URL endereçável da grade, este método
-  // passa a ser page.goto direto — menos cliques, mais resiliência (RNF04).
+  // Fluxo real (mapeamento §1): Trocar campo → buscar quadra no modal →
+  // selecionar a linha → data → Pesquisar → horário. A URL permanece /perfil#
+  // em todos os passos (AJAX); não há atalho por querystring.
   return comScreenshotDeFalha(page, 'navegacao', async () => {
-    await page
-      .waitForSelector(SELETORES.campoBuscaQuadra, { state: 'visible', timeout: PAGINA.timeoutElementoMs })
-      .catch(() => {
-        throw new ErroFilmaeu('busca-quadra', `campo de busca não encontrado: ${SELETORES.campoBuscaQuadra}`);
-      });
-    await page.fill(SELETORES.campoBuscaQuadra, QUADRA);
-    await clicarElemento(page, SELETORES.itemQuadra, 'busca-quadra', { textoFallback: QUADRA });
+    await clicarElemento(page, SELETORES.linkTrocarCampo, 'trocar-campo');
+    await page.waitForSelector(SELETORES.modalLocais, { state: 'visible', timeout: PAGINA.timeoutElementoMs });
+    console.log('[clipes] modal de locais aberto');
+
+    // O filtro do modal reage a keyup (mapeamento §2): page.fill não dispara
+    // eventos de teclado — digitar com pressSequentially.
+    await page.waitForSelector(SELETORES.campoBuscaQuadra, { state: 'visible', timeout: PAGINA.timeoutElementoMs });
+    await page.locator(SELETORES.campoBuscaQuadra).pressSequentially(QUADRA);
+    await clicarElemento(page, SELETORES.itemQuadra, 'busca-quadra');
     console.log(`[clipes] quadra "${QUADRA}" selecionada`);
 
     await page
@@ -128,61 +130,88 @@ export async function navegarParaSlot(page, { dataISO, horario }) {
     await page.fill(SELETORES.campoData, dataISO);
     console.log(`[clipes] data informada: ${dataISO}`);
 
-    await clicarElemento(page, SELETORES.itemSlot, 'slot', { textoFallback: horario });
+    await clicarElemento(page, SELETORES.botaoPesquisar, 'pesquisar');
+
+    // Slot ausente ≠ erro: horário sem gravação no dia é condição esperada
+    // (mapeamento §4 — ausente, não desabilitado). Retornar null para o caller
+    // fechar o ledger com 'sem_clipes'.
+    const seletorHorario = seletorSlot(horario);
+    const slotVisivel = await page
+      .waitForSelector(seletorHorario, { state: 'visible', timeout: PAGINA.timeoutElementoMs })
+      .then(() => true)
+      .catch(() => false);
+    if (!slotVisivel) {
+      console.log(`[clipes] horário ${horario} não ofertado — slot ausente`);
+      return null;
+    }
+    await page.click(seletorHorario);
     console.log(`[clipes] slot ${horario} selecionado`);
 
+    await page.waitForSelector(SELETORES.gradeClipes, { state: 'attached', timeout: PAGINA.timeoutElementoMs });
     return page;
   });
 }
 
 export async function coletarClipes(page) {
   return comScreenshotDeFalha(page, 'coleta', async () => {
+    // state 'attached': a grade pode existir vazia (sem caixa visível) —
+    // contagem 0 cai no caminho 'sem_clipes' do caller.
     await page
-      .waitForSelector(SELETORES.gradeClipes, { state: 'visible', timeout: PAGINA.timeoutElementoMs })
+      .waitForSelector(SELETORES.gradeClipes, { state: 'attached', timeout: PAGINA.timeoutElementoMs })
       .catch(() => {
         throw new ErroFilmaeu('grade-clipes', `grade de clipes não encontrada: ${SELETORES.gradeClipes}`);
       });
 
-    const cards = page.locator(SELETORES.cardClipe);
-    const total = await cards.count();
-    console.log(`[clipes] grade carregada: ${total} clipe(s) na listagem`);
+    const grupos = page.locator(SELETORES.cardClipe);
+    const totalGrupos = await grupos.count();
 
     const lista = [];
-    for (let indice = 0; indice < total; indice++) {
-      const card = cards.nth(indice);
-      const botao = card.locator(SELETORES.botaoBaixar).first();
-      const tituloLocator = card.locator(SELETORES.tituloClipe).first();
-
+    let ordem = 0;
+    for (let indiceGrupo = 0; indiceGrupo < totalGrupos; indiceGrupo++) {
+      const grupo = grupos.nth(indiceGrupo);
+      const tituloLocator = grupo.locator(SELETORES.tituloClipe).first();
       const titulo =
         (await tituloLocator.count()) > 0 ? ((await tituloLocator.textContent()) ?? '').trim() : '';
-      // href presente = padrão B do mapeamento 3.1 (âncora direta para o S3).
-      const href = (await botao.count()) > 0 ? await botao.getAttribute('href') : null;
 
-      // ordem = posição na listagem do slot, 1-based (fixa a semântica da
-      // divergência 3 da Fase 1).
-      lista.push({ ordem: indice + 1, titulo, botaoBaixar: botao, href });
+      // Cada grupo tem um span.download-video por vídeo/câmera (mapeamento §2:
+      // dois por grupo) — enumerar TODOS para não omitir uma câmera.
+      const botoes = grupo.locator(SELETORES.botaoBaixar);
+      const totalBotoes = await botoes.count();
+      for (let indiceCamera = 0; indiceCamera < totalBotoes; indiceCamera++) {
+        ordem += 1;
+        lista.push({ ordem, titulo, camera: indiceCamera + 1, botaoBaixar: botoes.nth(indiceCamera) });
+      }
     }
+    console.log(`[clipes] grade carregada: ${totalGrupos} grupo(s), ${ordem} clipe(s)`);
 
     // Lista vazia NÃO é erro aqui — o caller decide 'sem_clipes'.
     return lista;
   });
 }
 
-function nomeArquivoDeUrl(url) {
-  try {
-    // href pode ser relativo à base do site (ex.: '/media/clipe.mp4') —
-    // resolver contra URLS.base cobre absolutas e relativas.
-    return decodeURIComponent(basename(new URL(url, URLS.base).pathname));
-  } catch {
-    return null;
-  }
+function sanitizarParaNome(texto) {
+  return texto
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]+/g, '')
+    .toLowerCase();
+}
+
+function nomeArquivoDoClipe(clipe) {
+  // O endpoint de download sugere o MESMO nome para todos os clipes do dia
+  // (filmaeu_AAAA_MM_DD.mp4 — mapeamento §3): a identidade única vem do grupo
+  // (horário de gravação no .card-header) + índice da câmera, ambos estáveis
+  // na listagem (grupos em ordem crescente). É a chave da idempotência RF02.
+  const titulo = sanitizarParaNome(clipe.titulo) || `g${clipe.ordem}`;
+  return `v_${titulo}_cam${clipe.camera}.mp4`;
 }
 
 export async function baixarClipes(page, listaClipes, { dirTemp, caminhosPendentes }) {
   // caminhosPendentes: Set de NOMES DE ARQUIVO que ainda não têm linha na
   // tabela (decisão da Task 6 — tabela antes de baixar). O prefixo
   // {partida_id}/ é constante na run, então basename é suficiente para
-  // decidir o que falta. Um clipe cujo nome já existe é PULADO (sem baixar).
+  // decidir o que falta. O nome é derivado da PRÓPRIA LISTAGEM, então a
+  // checagem acontece antes do clique (sem baixar o que já existe).
   mkdirSync(dirTemp, { recursive: true });
 
   const baixados = [];
@@ -190,41 +219,18 @@ export async function baixarClipes(page, listaClipes, { dirTemp, caminhosPendent
 
   for (const [indice, clipe] of listaClipes.entries()) {
     const rotulo = `${indice + 1}/${total}`;
+    const nomeArquivo = nomeArquivoDoClipe(clipe);
 
-    // Padrão B do mapeamento 3.1: âncora aponta direto para o S3 — baixa via
-    // context.request, reusando os cookies da sessão (sem segundo login).
-    // RNF02: a URL (que pode carregar token assinado) nunca vai para log.
-    if (clipe.href) {
-      const nomeArquivo = nomeArquivoDeUrl(clipe.href);
-      if (!nomeArquivo) {
-        throw new ErroFilmaeu('download', 'não foi possível derivar o nome do arquivo a partir da URL da âncora');
-      }
-      if (caminhosPendentes && !caminhosPendentes.has(nomeArquivo)) {
-        console.log(`[clipes] ${rotulo}: ${nomeArquivo} já existente — download pulado`);
-        continue;
-      }
-
-      // href relativo é resolvido contra a base (request.get exige URL absoluta);
-      // aqui a âncora já foi validada por nomeArquivoDeUrl.
-      const urlDownload = new URL(clipe.href, URLS.base).href;
-
-      const resposta = await comRetry('download', async () => {
-        const tentativa = await page.context().request.get(urlDownload, { timeout: PAGINA.timeoutDownloadMs });
-        if (!tentativa.ok()) {
-          throw new ErroFilmaeu('download', `resposta HTTP ${tentativa.status()} da URL da âncora`);
-        }
-        return tentativa;
-      }, { tentativas: PAGINA.tentativasDownload, page });
-
-      const arquivoLocal = join(dirTemp, nomeArquivo);
-      writeFileSync(arquivoLocal, await resposta.body());
-      const sizeBytes = statSync(arquivoLocal).size; // P12: tamanho real do arquivo salvo
-      baixados.push({ ordem: clipe.ordem, titulo: clipe.titulo, nomeArquivo, arquivoLocal, sizeBytes });
-      console.log(`[clipes] baixado ${rotulo}: ${nomeArquivo} (${sizeBytes} bytes)`);
+    if (caminhosPendentes && caminhosPendentes.has(nomeArquivo)) {
+      console.log(`[clipes] ${rotulo}: ${nomeArquivo} já existente — download pulado`);
       continue;
     }
 
-    // Padrão A do mapeamento 3.1: clique dispara evento de download do browser.
+    // Clique no span.download-video: o site define window.location.href para
+    // o endpoint PHP que responde com Content-Disposition: attachment
+    // (mapeamento §3) — a página não navega, o browser dispara o evento de
+    // download. O nome sugerido (repetido) é descartado; salvamos com o nome
+    // derivado acima.
     const download = await comRetry('download', async () => {
       const [evento] = await Promise.all([
         page.waitForEvent('download', { timeout: PAGINA.timeoutDownloadMs }),
@@ -232,13 +238,6 @@ export async function baixarClipes(page, listaClipes, { dirTemp, caminhosPendent
       ]);
       return evento;
     }, { tentativas: PAGINA.tentativasDownload, page });
-
-    const nomeArquivo = basename(download.suggestedFilename());
-    if (caminhosPendentes && !caminhosPendentes.has(nomeArquivo)) {
-      await download.cancel().catch(() => {});
-      console.log(`[clipes] ${rotulo}: ${nomeArquivo} já existente — download pulado`);
-      continue;
-    }
 
     const arquivoLocal = join(dirTemp, nomeArquivo);
     await download.saveAs(arquivoLocal);

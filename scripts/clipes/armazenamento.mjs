@@ -38,7 +38,7 @@ export async function subirClipe(client, { partidaId, dataJogo, ordem, arquivoLo
   //    sobrescreve o objeto órfão em vez de falhar.
   const body = await readFile(arquivoLocal);
   const { error: erroUpload } = await client.storage.from(BUCKET).upload(caminho, body, {
-    contentType: 'video/mp4', // A CONFIRMAR no mapeamento 3.3 (formato do site)
+    contentType: 'video/mp4', // confirmado no mapeamento DOM §3 (.mp4)
     upsert: true,
   });
   if (erroUpload) throw erroUpload;

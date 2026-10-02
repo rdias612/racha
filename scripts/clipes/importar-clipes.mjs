@@ -228,8 +228,9 @@ async function importarClipesDaPartida(client, { partida, dataAlvo, horario, cre
   const { browser, context } = await abrirBrowser();
   try {
     const page = await logarFilmaeu(context, credenciais);
-    await navegarParaSlot(page, { dataISO: dataAlvo, horario });
-    const lista = await coletarClipes(page);
+    const paginaSlot = await navegarParaSlot(page, { dataISO: dataAlvo, horario });
+    // null = horário não ofertado no dia (mapeamento §4) — caminho 'sem_clipes'.
+    const lista = paginaSlot ? await coletarClipes(page) : [];
 
     if (lista.length === 0) {
       // Slot sem clipes: condição esperada — caller fecha o ledger com
