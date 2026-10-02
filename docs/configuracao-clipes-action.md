@@ -9,7 +9,7 @@
 | Nome | Conteúdo | Criado com | Consumidor |
 | --- | --- | --- | --- |
 | `filmaeu_credenciais` | JSON `{"usuario":"<login do dono no filmaeu.com.br>","senha":"<senha>"}` (D7: conta única) | `SELECT vault.create_secret('<json>', 'filmaeu_credenciais');` | Action Fase 3 via RPC `obter_segredo_vault` (migration 111) |
-| `github_pat_clipes` | Fine-grained PAT do GitHub: só este repo, permissão mínima `actions:write` | Mesmo `vault.create_secret` | RPC `disparar_importacao_clipes` da Fase 6 (registrar já; não é lida nesta fase) |
+| `github_pat_clipes` | Fine-grained PAT do GitHub: só este repo, permissão mínima `actions:write` | Mesmo `vault.create_secret` | Consumida pela RPC `disparar_importacao_clipes` (migration 115, Fase 6) |
 | `push_cron_secret` | Secret **já existente** das Edge Functions de push (`077`); não criar | — (já existe; recriar só em rotação) | Action Fase 5 via RPC `obter_segredo_vault`, usado como header `x-push-cron-secret` da Edge Function `notificar-clipes` |
 
 - Rotação: recriar/atualizar com `vault.update_secret` (ou novo `create_secret`
