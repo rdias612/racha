@@ -2,8 +2,9 @@
 // Lê env, resolve a partida alvo, obtém as credenciais do Filma Eu no Vault,
 // automatiza o browser (login → slot → download dos clipes), sobe para o
 // Storage com INSERT idempotente e grava a execução no ledger clipes_importacoes.
-// Ao final de importação bem-sucedida roda a limpeza por retenção (Fase 4, RF09);
-// push de resultado é a Fase 5.
+// Ao final de importação bem-sucedida roda a limpeza por retenção (Fase 4, RF09)
+// e, em qualquer desfecho com partida, o push de resultado via Edge Function
+// notificar-clipes (Fase 5, RF06/RF07 — best-effort, não derruba a run).
 // RNF02: valores de segredo NUNCA vão para console/log — só existência.
 
 import { createClient } from '@supabase/supabase-js';
@@ -18,6 +19,7 @@ import {
 } from './filmaeu/automacao.mjs';
 import { caminhosExistentes, subirClipe, resumoDaPartida } from './armazenamento.mjs';
 import { limparPorRetencao, resolverLimiteBytes } from './retencao.mjs';
+import { notificarResultado } from './notificacoes.mjs';
 
 const MB = 1024 * 1024;
 
@@ -299,6 +301,7 @@ async function main() {
   console.log(`[clipes] data alvo: ${dataAlvo} | origem: ${origem} | partida_id input: ${partidaIdInput ?? '—'}`);
 
   let registroId = null;
+  let partidaIdAlvo = null; // para o push de falha no catch (partida pode não ter sido aberta)
   try {
     const { partida } = await buscarPartidaAlvo(client, {
       partidaId: partidaIdInput,
@@ -316,6 +319,7 @@ async function main() {
     }
 
     console.log(`[clipes] partida alvo: ${partida.id} (${partida.data_jogo})`);
+    partidaIdAlvo = partida.id;
     registroId = await abrirRegistroImportacao(client, {
       partidaId: partida.id,
       dataReferencia: dataAlvo,
@@ -363,6 +367,15 @@ async function main() {
         `(${resultado.novos} novos, ${resultado.resumo.quantidade} totais, ${resultado.resumo.bytesTotal} bytes)`
     );
 
+    // 7. (Fase 5, RF06/RF07) Push de resultado — best-effort, DEPOIS do ledger
+    //    (se falhar, o painel da Fase 8 já reflete o desfecho; reexecução
+    //    re-tenta e os claims da Edge Function impedem duplicata).
+    await notificarResultado(client, {
+      partidaId: partida.id,
+      resultado: resultado.status, // 'concluido' | 'sem_clipes' — literais do ledger
+      supabaseUrl: config.supabaseUrl,
+    });
+
     if (resultado.status === 'sem_clipes') {
       // sucesso false é condição de alerta para a Fase 5 (RF07); a infra está
       // ok — run verde (exit 0), como "partida não encontrada" da Fase 2.
@@ -380,6 +393,16 @@ async function main() {
       });
     }
     console.error(`[clipes] falha: ${mensagem}`);
+    // Push de aviso de falha aos admins (RF07) — também best-effort
+    // (notificarResultado nunca rejeita), entre o fechamento do ledger e o
+    // exit: run segue vermelha (comportamento da Fase 2 mantido).
+    if (partidaIdAlvo) {
+      await notificarResultado(client, {
+        partidaId: partidaIdAlvo,
+        resultado: 'falha',
+        supabaseUrl: config.supabaseUrl,
+      });
+    }
     process.exit(1);
   }
 }
