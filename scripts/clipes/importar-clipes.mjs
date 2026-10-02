@@ -1,10 +1,21 @@
-// Workflow base da Action Clipes do Filma Eu (Fase 2 do breakdown SDD 35).
-// Lê env, resolve a partida alvo, valida o segredo do Filma Eu no Vault e
-// grava a execução no ledger clipes_importacoes. O download (Playwright) é a
-// Fase 3; limpeza é a Fase 4; push é a Fase 5 — pontos de extensão marcados.
+// Action Clipes do Filma Eu (Fases 2 e 3 do breakdown SDD 35).
+// Lê env, resolve a partida alvo, obtém as credenciais do Filma Eu no Vault,
+// automatiza o browser (login → slot → download dos clipes), sobe para o
+// Storage com INSERT idempotente e grava a execução no ledger clipes_importacoes.
+// Limpeza é a Fase 4; push é a Fase 5.
 // RNF02: valores de segredo NUNCA vão para console/log — só existência.
 
 import { createClient } from '@supabase/supabase-js';
+import { tmpdir } from 'node:os';
+import { basename, join } from 'node:path';
+import {
+  abrirBrowser,
+  logarFilmaeu,
+  navegarParaSlot,
+  coletarClipes,
+  baixarClipes,
+} from './filmaeu/automacao.mjs';
+import { caminhosExistentes, subirClipe, resumoDaPartida } from './armazenamento.mjs';
 
 // ---------- configuração ----------
 function resolverConfig() {
@@ -148,8 +159,10 @@ async function abrirRegistroImportacao(client, { partidaId, dataReferencia, orig
   return data.id;
 }
 
-async function validarSegredoFilmaEu(client) {
-  // Só existência — o VALOR nunca é usado nem logado (download é Fase 3).
+async function obterCredenciaisFilmaEu(client) {
+  // Substitui o validarSegredoFilmaeu da Fase 2: parse real do JSON do Vault.
+  // RNF02: o conteúdo do segredo nunca é logado — mensagens de erro só
+  // descrevem o problema, sem interpolar o valor.
   const { data: valor, error } = await client.rpc('obter_segredo_vault', {
     p_nome: 'filmaeu_credenciais',
   });
@@ -157,12 +170,31 @@ async function validarSegredoFilmaEu(client) {
   if (!valor) {
     throw new Error('Secret filmaeu_credenciais não configurado no vault');
   }
+
+  let credenciais;
+  try {
+    credenciais = JSON.parse(valor);
+  } catch {
+    throw new Error('Secret filmaeu_credenciais não contém um JSON válido');
+  }
+
+  const temCampos =
+    credenciais &&
+    typeof credenciais.usuario === 'string' &&
+    credenciais.usuario.length > 0 &&
+    typeof credenciais.senha === 'string' &&
+    credenciais.senha.length > 0;
+  if (!temCampos) {
+    throw new Error('Secret filmaeu_credenciais não contém os campos "usuario" e "senha"');
+  }
+
+  return { usuario: credenciais.usuario, senha: credenciais.senha };
 }
 
 async function fecharRegistroImportacao(
   client,
   registroId,
-  { status, sucesso, quantidadeClipes, detalhe, erro }
+  { status, sucesso, quantidadeClipes, bytesTotal, detalhe, erro }
 ) {
   const { error } = await client
     .from('clipes_importacoes')
@@ -170,6 +202,7 @@ async function fecharRegistroImportacao(
       status,
       sucesso,
       quantidade_clipes: quantidadeClipes,
+      bytes_total: bytesTotal ?? null,
       detalhe,
       erro: erro ?? null,
       atualizado_em: new Date().toISOString(),
@@ -190,6 +223,64 @@ async function registrarFalhaSemPartida(client, { dataReferencia, origem, erro }
     erro,
   });
   if (error) throw error;
+}
+
+// ---------- importação dos clipes (Fase 3) ----------
+async function importarClipesDaPartida(client, { partida, dataAlvo, horario, credenciais }) {
+  // IDEMPOTÊNCIA (RF02): consultar a TABELA antes de tocar no site e derivar o
+  // caminho de forma determinística ({partida_id}/{nomeArquivo}) — baixar
+  // SOMENTE o que não tem linha. Comparar hash exigiria baixar tudo (derrota o
+  // RF02 "não rebaixar"); o nome do arquivo é a chave natural do slot (o
+  // mapeamento 3.2 do dono confirma a estabilidade; plano B: nome por ordem,
+  // previsto no docs/filmaeu-mapeamento-dom.md). Reexecução com tudo presente
+  // → 0 downloads. O prefixo {partida_id}/ é constante na run, então comparar
+  // o basename é equivalente a comparar o caminho completo.
+  const existentes = await caminhosExistentes(client, partida.id);
+  const nomesExistentes = new Set([...existentes].map((caminho) => basename(caminho)));
+  console.log(`[clipes] ${nomesExistentes.size} clipe(s) já registrados na tabela para a partida ${partida.id}`);
+
+  const dirTemp = join(process.env.RUNNER_TEMP || tmpdir(), 'clipes-baixa');
+
+  let status;
+  let novos = 0;
+  const { browser, context } = await abrirBrowser();
+  try {
+    const page = await logarFilmaeu(context, credenciais);
+    await navegarParaSlot(page, { dataISO: dataAlvo, horario });
+    const lista = await coletarClipes(page);
+
+    if (lista.length === 0) {
+      // Slot sem clipes: condição esperada — caller fecha o ledger com
+      // 'sem_clipes' (sucesso false, exit 0).
+      console.log('[clipes] grade do slot vazia — nada a importar');
+      status = 'sem_clipes';
+    } else {
+      const baixados = await baixarClipes(page, lista, {
+        dirTemp,
+        caminhosPendentes: nomesExistentes,
+      });
+
+      for (const clipe of baixados) {
+        await subirClipe(client, {
+          partidaId: partida.id,
+          dataJogo: partida.data_jogo,
+          ordem: clipe.ordem,
+          arquivoLocal: clipe.arquivoLocal,
+          nomeArquivo: clipe.nomeArquivo,
+        });
+      }
+
+      novos = baixados.length;
+      status = 'concluido';
+    }
+  } finally {
+    await browser.close();
+  }
+
+  // Resumo = estado final da partida (inclui runs anteriores), coerente com o
+  // painel da Fase 8; o delta desta run fica no detalhe do ledger.
+  const resumo = await resumoDaPartida(client, partida.id);
+  return { status, resumo, novos };
 }
 
 // ---------- orquestração ----------
@@ -227,18 +318,34 @@ async function main() {
       origem,
     });
 
-    await validarSegredoFilmaEu(client);
-    console.log('[clipes] secret filmaeu_credenciais presente no vault');
-    // --- Fase 3: login Filma Eu + download + upload + INSERT em `clipes`
+    const credenciais = await obterCredenciaisFilmaEu(client);
+    console.log('[clipes] credenciais filmaeu presentes no vault');
+
+    const resultado = await importarClipesDaPartida(client, {
+      partida,
+      dataAlvo,
+      horario: config.horario,
+      credenciais,
+    });
     // --- Fase 4: limpeza por retenção | Fase 5: push de resultado
 
     await fecharRegistroImportacao(client, registroId, {
-      status: 'concluido',
-      sucesso: true,
-      quantidadeClipes: 0,
-      detalhe: 'Workflow base — download implementado na Fase 3',
+      status: resultado.status, // 'concluido' | 'sem_clipes'
+      sucesso: resultado.status === 'concluido',
+      quantidadeClipes: resultado.resumo.quantidade,
+      bytesTotal: resultado.resumo.bytesTotal,
+      detalhe: `${resultado.novos} novos, ${resultado.resumo.quantidade} totais`,
     });
-    console.log(`[clipes] ledger ${registroId} fechado como 'concluido' (0 clipes — fase 2)`);
+    console.log(
+      `[clipes] ledger ${registroId} fechado como '${resultado.status}' ` +
+        `(${resultado.novos} novos, ${resultado.resumo.quantidade} totais, ${resultado.resumo.bytesTotal} bytes)`
+    );
+
+    if (resultado.status === 'sem_clipes') {
+      // sucesso false é condição de alerta para a Fase 5 (RF07); a infra está
+      // ok — run verde (exit 0), como "partida não encontrada" da Fase 2.
+      console.log('[clipes] sem clipes no slot — run verde, ledger com sucesso=false (alerta para fase 5)');
+    }
   } catch (erro) {
     const mensagem = erro instanceof Error ? erro.message : String(erro);
     if (registroId) {

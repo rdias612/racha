@@ -57,3 +57,11 @@ jobs:
           INPUT_DATA: ${{ inputs.data }}
           INPUT_HORARIO: ${{ inputs.horario }}
           INPUT_PARTIDA_ID: ${{ inputs.partida_id }}
+
+      - name: Publicar debug do browser (falhas)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: clipes-debug
+          path: ${{ runner.temp }}/clipes-debug
+          if-no-files-found: ignore
