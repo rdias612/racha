@@ -151,10 +151,8 @@ export function ClipesRepositorio() {
     if (rClipes.status === 'fulfilled') {
       setClipes(rClipes.value);
     } else {
-      mostrarSnackbar(
-        'erro',
-        formatarMensagemErro(rClipes.reason, 'Erro ao atualizar os clipes da partida.')
-      );
+      // Refetch pelo caminho de carga normal: a grade obsoleta mostraria clipes já excluídos como disponíveis.
+      await carregarClipesDaSelecionada(id);
     }
     setCarregandoClipes(false);
   }
@@ -162,7 +160,7 @@ export function ClipesRepositorio() {
   // Padrão de fluxo de EventosAutomaticosFinanceiro/ClipesAdmin: captura o
   // snapshot, limpa o diálogo e só então chama a operação.
   async function confirmarExclusao() {
-    if (!jogador || selecionados.size === 0) return;
+    if (excluindo || !jogador || selecionados.size === 0) return;
     const ids = [...selecionados];
     const partidaAlvo = partidaId;
     setConfirmacaoAberta(false);
@@ -230,9 +228,13 @@ export function ClipesRepositorio() {
           {carregandoClipes ? (
             <Carregando compacto>Carregando clipes da partida…</Carregando>
           ) : clipes.length === 0 ? (
-            // Defensivo: o seletor só lista partidas com clipes, mas uma exclusão
-            // concorrente (outro admin) pode esvaziá-la entre o load e a exibição.
-            <MensagemEstado tipo="info">Esta partida não tem mais clipes.</MensagemEstado>
+            partidaId == null ? (
+              <MensagemEstado tipo="info">Selecione uma partida no seletor acima.</MensagemEstado>
+            ) : (
+              // Defensivo: o seletor só lista partidas com clipes, mas uma exclusão
+              // concorrente (outro admin) pode esvaziá-la entre o load e a exibição.
+              <MensagemEstado tipo="info">Esta partida não tem mais clipes.</MensagemEstado>
+            )
           ) : (
             <>
               <div className="flex items-center justify-between gap-2">
