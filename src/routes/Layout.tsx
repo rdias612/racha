@@ -34,6 +34,7 @@ import {
   SkeletonResumo,
 } from '../components/Skeletons';
 import { preCarregarRota } from '../lib/rotas';
+import { invalidarCache } from '../hooks/useCache';
 
 /**
  * Skeleton de fallback do Suspense do Outlet por prefixo de pathname (CLS = 0
@@ -89,6 +90,7 @@ export function Layout() {
   useEffect(() => {
     function handleOnline() {
       setIsOffline(false);
+      invalidarCache();
     }
     function handleOffline() {
       setIsOffline(true);
