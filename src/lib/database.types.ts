@@ -1163,6 +1163,10 @@ export type Database = {
         }
         Returns: number
       }
+      disparar_importacao_clipes: {
+        Args: { p_admin_id: number; p_data: string }
+        Returns: boolean
+      }
       disparar_push_teste: { Args: { p_admin_id: number }; Returns: boolean }
       disparar_push_votacao_aberta: {
         Args: { p_admin_id: number; p_partida_id: number }
@@ -1203,6 +1207,13 @@ export type Database = {
         Returns: undefined
       }
       gerar_lancamentos_mensais: { Args: never; Returns: undefined }
+      listar_destinatarios_clipes: {
+        Args: { p_apenas_admins?: boolean; p_partida_id: number }
+        Returns: {
+          jogador_id: number
+          subscriptions: Json
+        }[]
+      }
       listar_pendentes_confirmacao: {
         Args: { p_partida_id?: number }
         Returns: {
@@ -1251,6 +1262,40 @@ export type Database = {
           sucesso: boolean
         }[]
       }
+      obter_falhas_recentes_clipes: {
+        Args: { p_admin_id: number; p_horas?: number }
+        Returns: {
+          atualizado_em: string
+          bytes_total: number
+          criado_em: string
+          data_referencia: string
+          detalhe: string
+          erro: string
+          id: number
+          origem: string
+          partida_id: number
+          quantidade_clipes: number
+          status: string
+          sucesso: boolean
+        }[]
+      }
+      obter_importacoes_clipes: {
+        Args: { p_admin_id: number; p_limite?: number }
+        Returns: {
+          atualizado_em: string
+          bytes_total: number
+          criado_em: string
+          data_referencia: string
+          detalhe: string
+          erro: string
+          id: number
+          origem: string
+          partida_id: number
+          quantidade_clipes: number
+          status: string
+          sucesso: boolean
+        }[]
+      }
       obter_medias_notas_jogadores: {
         Args: never
         Returns: {
@@ -1285,6 +1330,7 @@ export type Database = {
           partidas_recentes: number
         }[]
       }
+      obter_segredo_vault: { Args: { p_nome: string }; Returns: string }
       parcerias_destaque_jogador: {
         Args: { p_jogador_id: number; p_min_partidas?: number }
         Returns: {
