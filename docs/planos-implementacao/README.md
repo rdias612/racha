@@ -58,7 +58,7 @@ As validações visuais/funcionais no aparelho listadas na seção 5 de cada pla
 
 | # | Plano | Item | Status |
 |---|---|---|---|
-| 35 | [35-clipes-filmaeu.md](35-clipes-filmaeu.md) | Clipes do Filma Eu no app (requisito: [`docs/requisito-clipes-filmaeu.md`](../requisito-clipes-filmaeu.md)) | 📋 **plano detalhado** — 8 fases em [`35-fases/`](35-fases/) (~30 tasks); aguardando execução |
+| 35 | [35-clipes-filmaeu.md](35-clipes-filmaeu.md) | Clipes do Filma Eu no app (requisito: [`docs/requisito-clipes-filmaeu.md`](../requisito-clipes-filmaeu.md)) | 🔨 **implementado** — 8 fases executadas/auditadas ([registros](registros/35-fase-1-banco.md) a [35-fase-8](registros/35-fase-8-frontend-admin.md)); pendente validação E2E do dono ([roteiro](35-fases/fase-8-tasks.md), Task 5) |
 
 ## Ordem de execução recomendada
 
