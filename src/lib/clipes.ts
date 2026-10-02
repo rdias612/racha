@@ -4,6 +4,7 @@
 // (service key) — aqui só há leitura (grants da Fase 1, fase-1-tasks.md:88).
 
 import { supabase } from './supabase';
+import { FunctionsHttpError } from '@supabase/supabase-js';
 import type { Database } from './database.types';
 
 /** Campos de `clipes` usados na UI (types gerados pela Fase 1 — database.types.ts). */
@@ -125,4 +126,91 @@ export async function obterFalhasRecentesClipes(
   });
   if (error) throw error;
   return (data ?? []) as unknown as ImportacaoClipes[];
+}
+
+/** Partida que tem clipes, para o seletor da aba Repositório (Plano 36, Passo 3). */
+export interface PartidaComClipes {
+  partidaId: number;
+  dataJogo: string;
+  status: string;
+}
+
+/**
+ * Partidas que possuem ao menos um clipe, mais recente primeiro — alimenta o
+ * seletor da aba Repositório (Passo 3). Diferente de obterUltimaPartidaComClipes,
+ * SEM filtro de status: painel de admin enxerga tudo — se a partida tem clipe,
+ * aparece (as cláusulas de status das demais funções servem à visão do jogador).
+ * `status` vem de partidas por ser o único campo dela útil ao label (não há
+ * adversário/nome em partidas; a data já é denormalizada em `clipes`).
+ */
+export async function obterPartidasComClipes(): Promise<PartidaComClipes[]> {
+  // Tabela pequena: busca tudo e deduplica por partida_id em JS (mesma
+  // justificativa KISS de retencao.mjs:34-37 — sem RPC de agregação).
+  const { data, error } = await supabase
+    .from('clipes')
+    .select('partida_id, data_jogo, partidas!inner(status)')
+    .order('data_jogo', { ascending: false })
+    .order('partida_id', { ascending: false });
+  if (error) throw error;
+
+  // Primeira ocorrência de cada partida_id já é a mais recente (ordem acima).
+  const vistas = new Set<number>();
+  const partidas: PartidaComClipes[] = [];
+  for (const row of data ?? []) {
+    if (vistas.has(row.partida_id)) continue;
+    vistas.add(row.partida_id);
+    partidas.push({
+      partidaId: row.partida_id,
+      dataJogo: row.data_jogo,
+      status: row.partidas.status,
+    });
+  }
+  return partidas;
+}
+
+/** Corpo de sucesso da edge function admin-excluir-clipes (Plano 36, Passo 1). */
+export interface ResultadoExclusaoClipes {
+  excluidos: number;
+  bytes_liberados: number;
+}
+
+/**
+ * Exclusão MANUAL de clipes selecionados (linhas + objetos do bucket + ledger)
+ * a pedido de um admin, via edge function admin-excluir-clipes (Passo 1 do
+ * Plano 36). Primeira chamada client-side de Edge Function do app: deploy com
+ * --no-verify-jwt (o app não usa JWT do Supabase; o gate de admin é o admin_id
+ * do corpo, validado server-side).
+ */
+export async function excluirClipes(
+  adminId: number,
+  ids: number[]
+): Promise<ResultadoExclusaoClipes> {
+  const { data, error } = await supabase.functions.invoke<ResultadoExclusaoClipes>(
+    'admin-excluir-clipes',
+    { body: { admin_id: adminId, clipes_ids: ids } }
+  );
+
+  if (error) {
+    // Não-2xx: o SDK devolve FunctionsHttpError cujo `context` é a Response —
+    // extrair o `erro` do body para o snackbar mostrar a mensagem real da
+    // função (ex.: 'Acesso restrito a administradores.') em vez do texto
+    // genérico do SDK ('Edge Function returned a non-2xx status code').
+    if (error instanceof FunctionsHttpError) {
+      let mensagem = 'Não foi possível excluir os clipes. Tente novamente.';
+      try {
+        const body = (await error.context.json()) as { erro?: unknown };
+        if (typeof body.erro === 'string' && body.erro.trim() !== '') {
+          mensagem = body.erro;
+        }
+      } catch {
+        /* body não-JSON (ex.: resposta de gateway) — mantém a mensagem genérica */
+      }
+      throw new Error(mensagem);
+    }
+    // Demais falhas (FunctionsFetchError/FunctionsRelayError — sem body JSON):
+    // segue o padrão do arquivo; formatarMensagemErro traduz rede/sessão.
+    throw error;
+  }
+
+  return data as ResultadoExclusaoClipes;
 }
