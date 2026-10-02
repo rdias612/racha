@@ -25,10 +25,8 @@
   --color-campo-linha: var(--cor-campo-linha);
   --color-perigo: var(--cor-perigo);
   --color-ok: var(--cor-ok);
-  --color-oliva: var(--cor-oliva);
 
   --color-led-fundo: var(--cor-led-fundo);
-  --color-led-fundo-hover: var(--cor-led-fundo-hover);
   --color-led-borda: var(--cor-led-borda);
 }
 
@@ -49,9 +47,7 @@
   --cor-campo-linha: #b9cbb6;
   --cor-perigo: #e4572e;
   --cor-ok: #58b368;
-  --cor-oliva: #54552e;
   --cor-led-fundo: #0d0d0e;
-  --cor-led-fundo-hover: #161513;
   --cor-led-borda: #35302a;
 }
 
@@ -72,9 +68,7 @@
   --cor-campo-linha: #2c4433;
   --cor-perigo: #e4572e;
   --cor-ok: #58b368;
-  --cor-oliva: #54552e;
   --cor-led-fundo: #0d0d0e;
-  --cor-led-fundo-hover: #161513;
   --cor-led-borda: #35302a;
 }
 
