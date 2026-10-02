@@ -35,7 +35,8 @@
 
 - Default: **800 MB** (compilado no YAML; folga sob o free tier de 1 GB).
 - **Var do repositório** (Settings → Secrets and variables → Actions → aba
-  **Variables**, não Secrets): `LIMITE_STORAGE_MB` = número inteiro de MB.
+  **Variables**, não Secrets): `LIMITE_STORAGE_MB` = número de MB (decimais
+  aceitos; `<= 0` ou não numérico falha a run).
   Define o limite de TODAS as runs (cron e dispatch) enquanto existir.
 - **Override pontual**: input `limite_storage_mb` no `workflow_dispatch`
   (ex.: 50 para o teste de retenção do esqueleto §5) — vale só para aquela run.
