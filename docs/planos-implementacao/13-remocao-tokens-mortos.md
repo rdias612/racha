@@ -11,10 +11,10 @@ Remover o **código morto** que sobrevive no CSS e no domínio de times: os toke
 
 Verificado no código em **30/09/2026**; todas as linhas do doc de origem conferidas e corretas:
 
-- `src/index.css:50` — `--cor-oliva: #54552e;` em `:root`; `src/index.css:72` — mesmo valor em `.dark`.
-- `src/index.css:52` — `--cor-led-fundo-hover: #161513;` em `:root`; `src/index.css:74` — mesmo valor em `.dark`.
-- `src/index.css:27` — mapeamento no `@theme`: `--color-oliva: var(--cor-oliva);` (entre `--color-ok` e o grupo do LED).
-- `src/index.css:30` — mapeamento no `@theme`: `--color-led-fundo-hover: var(--cor-led-fundo-hover);` (entre `--color-led-fundo` e `--color-led-borda`).
+- `src/index.css:52` — `--cor-oliva: #54552e;` em `:root`; `src/index.css:75` — mesmo valor em `.dark`.
+- `src/index.css:54` — `--cor-led-fundo-hover: #161513;` em `:root`; `src/index.css:77` — mesmo valor em `.dark`.
+- `src/index.css:28` — mapeamento no `@theme`: `--color-oliva: var(--cor-oliva);` (entre `--color-ok` e o grupo do LED).
+- `src/index.css:31` — mapeamento no `@theme`: `--color-led-fundo-hover: var(--cor-led-fundo-hover);` (entre `--color-led-fundo` e `--color-led-borda`).
 - Grep por `oliva` em `src/**` (incluindo as utilities derivadas `bg-oliva`, `text-oliva` etc. em `*.tsx`) retorna **somente as 4 definições/marcações do próprio `index.css`** — zero consumidores.
 - Grep por `led-fundo-hover` em `src/**` retorna **somente as 4 marcações do `index.css`** — zero consumidores. Nota: os irmãos `--cor-led-fundo` e `--cor-led-borda` **têm** consumidores (placar LED) e não entram neste plano.
 - `src/lib/times.ts:6` — campo `cor: string;` na interface `TimeInfo`; `src/lib/times.ts:16` (`cor: '#0d0d0e'`, Time Preto) e `src/lib/times.ts:24` (`cor: '#f4f1e8'`, Time Branco) — os 3 pontos onde o campo existe.
@@ -35,9 +35,9 @@ Dois passos independentes e reversíveis; a ordem entre eles é indiferente (arq
 **Passo 1 — Remover os 2 tokens do CSS (commit 1).**
 Arquivo único: `src/index.css`. Seis linhas deletadas, nenhuma linha criada ou alterada:
 
-1. Deletar `--cor-oliva: #54552e;` em `:root` (`:50`) e em `.dark` (`:72`).
-2. Deletar `--cor-led-fundo-hover: #161513;` em `:root` (`:52`) e em `.dark` (`:74`).
-3. Deletar os mapeamentos no `@theme`: `--color-oliva: var(--cor-oliva);` (`:27`) e `--color-led-fundo-hover: var(--cor-led-fundo-hover);` (`:30`).
+1. Deletar `--cor-oliva: #54552e;` em `:root` (`:52`) e em `.dark` (`:75`).
+2. Deletar `--cor-led-fundo-hover: #161513;` em `:root` (`:54`) e em `.dark` (`:77`).
+3. Deletar os mapeamentos no `@theme`: `--color-oliva: var(--cor-oliva);` (`:28`) e `--color-led-fundo-hover: var(--cor-led-fundo-hover);` (`:31`).
 4. Conferir que os vizinhos ficam intactos: `--color-ok`, `--color-perigo`, `--cor-led-fundo`, `--cor-led-borda` permanecem (têm consumidores).
 5. Como o grep da seção 2 prova zero consumidores, nenhuma call site precisa migração — o commit é morto por construção.
 
