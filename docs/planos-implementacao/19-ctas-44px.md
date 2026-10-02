@@ -13,9 +13,9 @@ Elevar os 2 CTAs implementados como `<Link>` (que renderiza `<a>`) à altura mí
 
 Verificado no código em **30/09/2026**; divergências de linha do doc de origem corrigidas abaixo:
 
-- `src/index.css:149-156` — regra global de alvo de toque cobre **apenas** `button, [role='button']` (`:149-152`) e `input[type='range']` (`:154-156`); **não cobre `<a>`**. (O doc de origem cita `index.css:149-155`; o bloco real vai até `:156` — mesma regra, range conferido.)
-- `src/routes/Jogos.tsx:120-126` — CTA-Link **"Nova partida"** (`Link` do react-router, className em `:122`): `inline-flex items-center gap-1 ... px-3 py-1.5` — `text-xs` + `py-1.5` resultam em **≈32px** de altura, abaixo do alvo. (Doc de origem citava `Jogos.tsx:121-127`; o `Link` abre em `:120` e fecha em `:126`.)
-- `src/routes/PartidaDetalhe.tsx:273-278` — CTA-Link **"Editar votos"** (`Link`, className em `:275`): `block text-center ... px-4 py-3` — **≈42-44px**, no limiar; fica dentro da grade `grid grid-cols-2 gap-2` (`:272`) ao lado de um `<button>` irmão (`:279-283`) que **já recebe os 44px da regra global** — os dois elementos do par têm alturas potencialmente diferentes hoje.
+- `src/index.css:146-152` — regra global de alvo de toque cobre **apenas** `button, [role='button']` (`:146-148`) e `input[type='range']` (`:151-152`); **não cobre `<a>`**. (Linhas revalidadas em 02/10/2026, na execução do plano.)
+- `src/routes/Jogos.tsx:83-89` — CTA-Link **"Nova partida"** (`Link` do react-router, className em `:85`): `inline-flex items-center gap-1 ... px-3 py-1.5` — `text-xs` + `py-1.5` resultam em **≈32px** de altura, abaixo do alvo.
+- `src/routes/PartidaDetalhe.tsx:269-274` — CTA-Link **"Editar votos"** (`Link`, className em `:271`): `block text-center ... px-4 py-3` — **≈42-44px**, no limiar; fica dentro da grade `grid grid-cols-2 gap-2` (`:268`) ao lado de um `<button>` irmão (`:275-281`) que **já recebe os 44px da regra global** — os dois elementos do par têm alturas potencialmente diferentes hoje.
 - TabBar e menu admin: OK, fora do escopo (conforme doc de origem).
 - **Divergência do exemplo citado no doc de origem**: `EscalacaoTimesEditor.tsx:335` citado como "o e-mail" é, no código real, o className do botão inline **"+ Novo"** (`text-xs font-mono hover:underline`, `:332-338`) — um `<button>`, **já coberto** pela regra global (inclusive com `min-h-[44px]` explícito). O exemplo correto de link inline de texto que a extensão global inflaria é `src/components/ListaReceitasAbertas.tsx:166-172` (`Link` → `<a>` com `inline-block text-[11px] ... hover:underline`). A tese do doc de origem continua válida; apenas a evidência citada diverge.
 - Não há nenhum `<a>` literal em `src/**.tsx` (grep confirmado): os âncoras do app vêm todos do `<Link>` do react-router.
@@ -30,13 +30,13 @@ Verificado no código em **30/09/2026**; divergências de linha do doc de origem
 
 ### Passo 1 — Correção pontual dos 2 CTAs-Link · 1 commit
 
-- **`src/routes/Jogos.tsx`** (className do `Link` "Nova partida", `:122`) — acrescentar `min-h-[44px]` à lista de classes. O elemento já é `inline-flex items-center`, então a centralização vertical vem de graça com a altura mínima:
+- **`src/routes/Jogos.tsx`** (className do `Link` "Nova partida", `:85`) — acrescentar `min-h-[44px]` à lista de classes. O elemento já é `inline-flex items-center`, então a centralização vertical vem de graça com a altura mínima:
 
   ```tsx
   className="inline-flex min-h-[44px] items-center gap-1 text-xs font-display font-bold uppercase tracking-wider rounded-[3px] border border-destaque bg-destaque text-destaque-tinta px-3 py-1.5 shadow-carimbo hover:brightness-105 transition active:translate-y-px"
   ```
 
-- **`src/routes/PartidaDetalhe.tsx`** (className do `Link` "Editar votos", `:275`) — trocar `block text-center` por `flex items-center justify-center` e acrescentar `min-h-[44px]` (centralização horizontal e vertical explícitas, sem depender de line-height):
+- **`src/routes/PartidaDetalhe.tsx`** (className do `Link` "Editar votos", `:271`) — trocar `block text-center` por `flex items-center justify-center` e acrescentar `min-h-[44px]` (centralização horizontal e vertical explícitas, sem depender de line-height):
 
   ```tsx
   className="flex min-h-[44px] items-center justify-center rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo transition active:translate-y-px"

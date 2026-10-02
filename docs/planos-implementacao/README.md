@@ -39,7 +39,7 @@ As validações visuais/funcionais no aparelho listadas na seção 5 de cada pla
 | 16 | [retry-ptr-partida.md](16-retry-ptr-partida.md) | E3 · Retry/PTR/haptics nas telas de partida | 4 |
 | 17 | [pasta-ui.md](17-pasta-ui.md) | A9 · Pasta `ui/` para novas primitivas | 4 |
 | 18 | [revalidar-online.md](18-revalidar-online.md) | B1 · Revalidar dados ao voltar online — ✅ **executado** ([registro](registros/18-revalidar-online.md)) | 4 |
-| 19 | [ctas-44px.md](19-ctas-44px.md) | C1 · Alvos de 44px nos CTAs-Link | 4 |
+| 19 | [ctas-44px.md](19-ctas-44px.md) | C1 · Alvos de 44px nos CTAs-Link — ✅ **executado** ([registro](registros/19-ctas-44px.md)) | 4 |
 | 20 | [aviso-nova-versao.md](20-aviso-nova-versao.md) | B3 · Aviso "nova versão disponível" | 4 |
 | 21 | [cedula-sinal-honesto.md](21-cedula-sinal-honesto.md) | E1 · Cédula de votação: sinal honesto | 4 |
 | 22 | [poda-assets-cache.md](22-poda-assets-cache.md) | B4 · Poda de `/assets/*` no `CACHE_STATIC` | 4 |
