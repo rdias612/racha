@@ -4,12 +4,8 @@ import { Search, X } from 'lucide-react';
 export interface CampoBuscaProps {
   /** Valor textual atual do campo */
   valor?: string;
-  /** Alias em inglês para compatibilidade */
-  value?: string;
   /** Callback disparado quando o texto é alterado */
   aoMudar?: (novoValor: string) => void;
-  /** Alias em inglês para compatibilidade */
-  onChange?: (novoValor: string) => void;
   /** Texto exibido enquanto o campo estiver vazio (padrão: 'Buscar...') */
   placeholder?: string;
   /** Rótulo acessível para leitores de tela */
@@ -18,8 +14,6 @@ export interface CampoBuscaProps {
   autoFocus?: boolean;
   /** Desabilita a interação com o campo */
   desabilitado?: boolean;
-  /** Alias em inglês para desabilitado */
-  disabled?: boolean;
   /** Variante visual de fundo ('superficie-2' é o padrão; 'superficie' para fundos destacados) */
   variante?: 'superficie' | 'superficie-2';
   /** Família tipográfica ('sans' para texto corrido, 'mono' para usernames/códigos) */
@@ -43,14 +37,11 @@ export interface CampoBuscaProps {
  */
 export function CampoBusca({
   valor,
-  value,
   aoMudar,
-  onChange,
   placeholder = 'Buscar...',
   ariaLabel = 'Buscar',
   autoFocus = false,
   desabilitado,
-  disabled,
   variante = 'superficie-2',
   fonte = 'sans',
   aoLimpar,
@@ -59,18 +50,16 @@ export function CampoBusca({
   id,
   name,
 }: CampoBuscaProps) {
-  const textoAtual = valor ?? value ?? '';
-  const isDisabled = desabilitado ?? disabled ?? false;
+  const textoAtual = valor ?? '';
+  const isDisabled = desabilitado ?? false;
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const novoValor = e.target.value;
     aoMudar?.(novoValor);
-    onChange?.(novoValor);
   };
 
   const handleLimpar = () => {
     aoMudar?.('');
-    onChange?.('');
     aoLimpar?.();
   };
 
