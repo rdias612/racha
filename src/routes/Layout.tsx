@@ -14,6 +14,7 @@ import {
   Sun,
   Moon,
   Bell,
+  Film,
 } from 'lucide-react';
 import { useSessao } from '../context/SessaoContext';
 import { useAdmin } from '../hooks/useAdmin';
@@ -76,6 +77,7 @@ const preCarregarAbaRanking = preCarregarAoInteragir('/ranking/pontos');
 const preCarregarAbaEstatisticas = preCarregarAoInteragir('/estatisticas/jogador');
 const preCarregarAbaPerfil = preCarregarAoInteragir('/perfil');
 const preCarregarMenuNotificacoes = preCarregarAoInteragir('/notificacoes/confirmacao');
+const preCarregarMenuClipes = preCarregarAoInteragir('/clipes/admin');
 
 export function Layout() {
   const { jogador } = useSessao();
@@ -227,6 +229,18 @@ export function Layout() {
                         <Bell className="size-4 text-destaque-texto shrink-0" />
                         <span className="font-display font-bold uppercase tracking-wider text-xs">
                           Notificações Push
+                        </span>
+                      </Link>
+
+                      <Link
+                        to="/clipes/admin"
+                        onClick={() => setMenuAberto(false)}
+                        {...preCarregarMenuClipes}
+                        className="flex min-h-[44px] items-center gap-2.5 rounded-[3px] px-3 py-2 text-xs font-medium text-giz hover:bg-superficie-2 hover:text-destaque-texto transition-fast"
+                      >
+                        <Film className="size-4 text-destaque-texto shrink-0" />
+                        <span className="font-display font-bold uppercase tracking-wider text-xs">
+                          Clipes (Filma Eu)
                         </span>
                       </Link>
                     </div>
