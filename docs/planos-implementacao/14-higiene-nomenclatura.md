@@ -17,14 +17,14 @@ Verificado no código em **30/09/2026**; todas as linhas do doc de origem confer
   - `desabilitado` (`:20`) + alias morto `disabled` (`:22`).
 - `src/components/CampoBusca.tsx:44-61` — destruturação dos dois lados de cada par; `:62-63` — fallbacks `valor ?? value ?? ''` e `desabilitado ?? disabled ?? false`; `:67-68` e `:72-73` — **invocação dupla** (`aoMudar?.(novoValor); onChange?.(novoValor);`), inofensiva hoje porque nenhum chamador usa o alias, mas um convite a handler executado 2× se alguém usar.
 - **Os 5 chamadores usam exclusivamente pt-BR** (grep sobre `<CampoBusca` em `src/**`, revalidado):
-  - `src/components/ModalSelecionarGoleiro.tsx:79` — `valor={busca} aoMudar={setBusca}`;
-  - `src/components/ModalEscalarJogador.tsx:67-68` — `valor={buscaJogador} aoMudar={setBuscaJogador}`;
-  - `src/routes/GestaoGoleiros.tsx:216-217` — `valor={busca} aoMudar={setBusca}`;
-  - `src/routes/PartidaNova.tsx:238-239` — `valor={busca} aoMudar={setBusca}`;
-  - `src/routes/GestaoJogadores.tsx:314-315` — `valor={busca} aoMudar={setBusca}`.
+  - `src/components/ModalSelecionarGoleiro.tsx:76` — `valor={busca} aoMudar={setBusca}`;
+  - `src/components/ModalEscalarJogador.tsx:63-68` — `valor={buscaJogador} aoMudar={setBuscaJogador}`;
+  - `src/routes/GestaoGoleiros.tsx:229-231` — `valor={busca} aoMudar={setBusca}`;
+  - `src/routes/PartidaNova.tsx:246-248` — `valor={busca} aoMudar={setBusca}`;
+  - `src/routes/GestaoJogadores.tsx:318-320` — `valor={busca} aoMudar={setBusca}`.
   - Zero ocorrências de `value=`/`onChange=`/`disabled=`/`desabilitado=` em nenhum chamador — os aliases são código morto confirmado.
 - `src/components/linhasComparador.tsx` — arquivo em minúsculas exportando `LinhaAtletaContexto` (`:6`); exatamente **2 importadores**: `src/components/SecaoJuntosComparador.tsx:3` e `src/components/SecaoAdversosComparador.tsx:3` (ambos `import { LinhaAtletaContexto } from './linhasComparador'`).
-- `src/components/SeletorNota.tsx:17` — `variant?: 'full' | 'compact'`; destruturação em `:34`, leitura em `:36` (`variant === 'compact'`). Único call site da prop: `src/routes/PartidaVotar.tsx:352` (`variant="compact"`).
+- `src/components/SeletorNota.tsx:17` — `variant?: 'full' | 'compact'`; destruturação em `:34`, leitura em `:36` (`variant === 'compact'`). Único call site da prop: `src/routes/PartidaVotar.tsx:362` (`variant="compact"`).
 - Padrão estabelecido no resto da base: `variante` em `Badge.tsx:20`, `CabecalhoTime.tsx:10`, `CampoBusca.tsx:24` e `PainelPlacar.tsx:5` — `SeletorNota` é o único fugindo.
 - Observação registrada: `SeletorNota` também usa `value`/`onChange`/`disabled` (`:6-9`) — são espelhos deliberados da API nativa de `<select>` (ver seção 6) e **não** entram neste plano.
 - Lugar canônico da convenção: `DESIGN.md` (raiz do repo, "Diretrizes Canônicas de Contribuição"), seção **5 · Padrões de Código Frontend e React 19** — hoje com subseções 5.1–5.5 e **nenhuma** regra de nomenclatura de props.
@@ -63,7 +63,7 @@ Dois arquivos:
    - `:11-17` — comentário e prop `variant?: 'full' | 'compact'` → `variante?: 'full' | 'compact'`;
    - `:34` — destruturação `variant = 'full'` → `variante = 'full'`;
    - `:36` — `const compact = variant === 'compact';` → `variante === 'compact'`.
-2. `src/routes/PartidaVotar.tsx:352` — `variant="compact"` → `variante="compact"` (único call site, migrado no mesmo commit).
+2. `src/routes/PartidaVotar.tsx:362` — `variant="compact"` → `variante="compact"` (único call site, migrado no mesmo commit).
 3. As props `value`, `onChange` e `disabled` do `SeletorNota` permanecem como estão (ver seção 6). Commit reversível isolado.
 
 **Passo 4 — Documentar a convenção de nomenclatura (commit d; só documentação).**
@@ -106,5 +106,5 @@ Sem testes automáticos (AGENTS.md). Checklist no build local (`npm run dev` + `
 
 - **Risco — baixo em todos os passos**: nenhuma mudança de comportamento em runtime; os passos 1 e 3 são renames de prop com todos os call sites conhecidos e confinados (5, 2 e 1 respectivamente).
 - **Risco específico do passo 2 — case-sensitivity**: em Windows (FS case-insensitive) o `tsc`/Vite podem resolver `./linhasComparador` mesmo após o rename, mascarando um import esquecido. Mitigação: usar `git mv` (nunca renomear só no editor), conferir `git status` mostrando o rename dos 3 arquivos, e rodar `npx tsc --noEmit`/build no CI (case-sensitive) antes do merge.
-- **Risco específico do passo 3 — call site esquecido**: só existe 1 (`PartidaVotar.tsx:352`, confirmado por grep); se surgisse outro futuro, o `tsc` aponta prop desconhecida em modo estrito.
+- **Risco específico do passo 3 — call site esquecido**: só existe 1 (`PartidaVotar.tsx:362`, confirmado por grep); se surgisse outro futuro, o `tsc` aponta prop desconhecida em modo estrito.
 - **Rollback**: cada passo é 1 commit isolado e reversível por `git revert` sem afetar os demais. Reverter o passo 1 restaura os aliases inertes; reverter o passo 2 exige reverter junto os 2 imports (mesmo commit, então um `git revert` único basta); reverter o passo 3 restaura `variant` no `SeletorNota` e no único call site; reverter o passo 4 é só documentação. Nenhum dado, rota ou fluxo funcional é tocado.

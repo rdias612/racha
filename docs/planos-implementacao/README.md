@@ -34,7 +34,7 @@ As validações visuais/funcionais no aparelho listadas na seção 5 de cada pla
 | 11 | [badge-mini.md](11-badge-mini.md) | A8 · Chip "mini" no `Badge` — ✅ **executado** ([registro](registros/11-badge-mini.md)) | 3 |
 | 12 | [token-scrim.md](12-token-scrim.md) | C3 · Token `--cor-scrim` — ✅ **executado** ([registro](registros/12-token-scrim.md)) | 3 |
 | 13 | [remocao-tokens-mortos.md](13-remocao-tokens-mortos.md) | C4 · Remoção de tokens/dados mortos — ✅ **executado** ([registro](registros/13-remocao-tokens-mortos.md)) | 3 |
-| 14 | [higiene-nomenclatura.md](14-higiene-nomenclatura.md) | A4 · Higiene de nomenclatura | 3 |
+| 14 | [higiene-nomenclatura.md](14-higiene-nomenclatura.md) | A4 · Higiene de nomenclatura — ✅ **executado** ([registro](registros/14-higiene-nomenclatura.md)) | 3 |
 | 15 | [pilula-filtro.md](15-pilula-filtro.md) | A7 · `PilulaFiltro` (débito, não executar agora) | 3 |
 | 16 | [retry-ptr-partida.md](16-retry-ptr-partida.md) | E3 · Retry/PTR/haptics nas telas de partida | 4 |
 | 17 | [pasta-ui.md](17-pasta-ui.md) | A9 · Pasta `ui/` para novas primitivas | 4 |
