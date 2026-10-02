@@ -1,6 +1,6 @@
 import type { LinhaConfronto } from '../lib/jogadores';
 import { MensagemEstado } from './Estado';
-import { LinhaAtletaContexto } from './linhasComparador';
+import { LinhaAtletaContexto } from './LinhasComparador';
 
 interface SecaoAdversosComparadorProps {
   usernameA: string;
