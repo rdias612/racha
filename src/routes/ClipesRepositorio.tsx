@@ -10,7 +10,6 @@ import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
 import { useSnackbar } from '../hooks/useSnackbar';
 import { AbasClipesAdmin } from '../components/AbasClipesAdmin';
-import { BarraAcaoInferior } from '../components/BarraAcaoInferior';
 import { BotaoVoltar } from '../components/BotaoVoltar';
 import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 import { Carregando, MensagemEstado } from '../components/Estado';
@@ -47,7 +46,9 @@ export function ClipesRepositorio() {
   const [carregando, setCarregando] = useState(true);
   const [carregandoClipes, setCarregandoClipes] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
-  const [confirmacaoAberta, setConfirmacaoAberta] = useState(false);
+  // Ids que o ConfirmDialog está confirmando: lote do botão do topo OU 1 id
+  // vindo da exclusão individual do card. null = diálogo fechado.
+  const [idsPendenteExclusao, setIdsPendenteExclusao] = useState<number[] | null>(null);
   const [excluindo, setExcluindo] = useState(false);
 
   // Fonte 1: partidas com clipes. A primeira da lista (mais recente) sai
@@ -160,10 +161,10 @@ export function ClipesRepositorio() {
   // Padrão de fluxo de EventosAutomaticosFinanceiro/ClipesAdmin: captura o
   // snapshot, limpa o diálogo e só então chama a operação.
   async function confirmarExclusao() {
-    if (excluindo || !jogador || selecionados.size === 0) return;
-    const ids = [...selecionados];
+    if (excluindo || !jogador || !idsPendenteExclusao || idsPendenteExclusao.length === 0) return;
+    const ids = idsPendenteExclusao;
     const partidaAlvo = partidaId;
-    setConfirmacaoAberta(false);
+    setIdsPendenteExclusao(null);
     setExcluindo(true);
     try {
       const resultado = await excluirClipes(jogador.id, ids);
@@ -172,7 +173,9 @@ export function ClipesRepositorio() {
         'sucesso',
         `${resultado.excluidos} clipe(s) excluído(s)${liberados ? ` — ${liberados} liberados.` : '.'}`
       );
-      setSelecionados(new Set());
+      // Remove só os ids excluídos: exclusão individual de clipe não marcado
+      // preserva as marcações restantes (o lote do topo limpa tudo naturalmente).
+      setSelecionados((atual) => new Set([...atual].filter((id) => !ids.includes(id))));
       if (partidaAlvo != null) await recarregarAposExclusao(partidaAlvo);
     } catch (e) {
       mostrarSnackbar('erro', formatarMensagemErro(e, 'Não foi possível excluir os clipes.'));
@@ -187,7 +190,7 @@ export function ClipesRepositorio() {
     'min-h-[44px] rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 font-display font-bold uppercase tracking-wider text-xs text-giz hover:bg-superficie transition active:translate-y-px disabled:opacity-50 disabled:cursor-not-allowed';
 
   return (
-    <div className="px-3 py-4 pb-28 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
+    <div className="px-3 py-4 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
       <BotaoVoltar fallback="/" />
 
       <CabecalhoSumula
@@ -261,40 +264,46 @@ export function ClipesRepositorio() {
                 </div>
               </div>
 
+              {/* Botão de exclusão no TOPO (antes da grade): a antiga
+                  BarraAcaoInferior era coberta pela TabBar do Layout (ambas
+                  fixed bottom-0 z-40, a TabBar vem depois no DOM). */}
+              <div className="space-y-1">
+                <Botao
+                  variante="perigo"
+                  larguraCompleta
+                  disabled={selecionados.size === 0 || excluindo}
+                  onClick={() => setIdsPendenteExclusao([...selecionados])}
+                >
+                  <Trash2 className="size-3.5" aria-hidden="true" />
+                  {excluindo ? 'Excluindo…' : `Excluir selecionados (${selecionados.size})`}
+                </Botao>
+                <p className="text-[11px] text-giz-fraco">
+                  A exclusão é definitiva: os vídeos saem do ar.
+                </p>
+              </div>
+
               <GradeClipesPartida
                 clipes={clipes}
                 selecionadoIds={selecionados}
                 onToggleSelecao={alternarSelecao}
                 desabilitarSelecao={excluindo}
+                onExcluirClipe={(clipeId) => setIdsPendenteExclusao([clipeId])}
+                desabilitarExclusao={excluindo}
               />
             </>
           )}
         </>
       )}
 
-      {clipes.length > 0 && (
-        <BarraAcaoInferior legenda="A exclusão é definitiva: os vídeos saem do ar.">
-          <Botao
-            variante="perigo"
-            larguraCompleta
-            disabled={selecionados.size === 0 || excluindo}
-            onClick={() => setConfirmacaoAberta(true)}
-          >
-            <Trash2 className="size-3.5" aria-hidden="true" />
-            {excluindo ? 'Excluindo…' : `Excluir selecionados (${selecionados.size})`}
-          </Botao>
-        </BarraAcaoInferior>
-      )}
-
       <ConfirmDialog
-        open={confirmacaoAberta}
-        onClose={() => setConfirmacaoAberta(false)}
+        open={idsPendenteExclusao != null && idsPendenteExclusao.length > 0}
+        onClose={() => setIdsPendenteExclusao(null)}
         onConfirm={confirmarExclusao}
         titulo="Excluir clipes?"
         mensagem={
-          selecionados.size === 1
-            ? 'Excluir o clipe selecionado? O vídeo sai do ar definitivamente.'
-            : `Excluir os ${selecionados.size} clipes selecionados? Os vídeos saem do ar definitivamente.`
+          idsPendenteExclusao?.length === 1
+            ? 'Excluir este clipe? O vídeo sai do ar definitivamente.'
+            : `Excluir os ${idsPendenteExclusao?.length ?? 0} clipes selecionados? Os vídeos saem do ar definitivamente.`
         }
         textoConfirmar="Excluir"
         tomConfirmar="perigo"

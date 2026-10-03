@@ -8,7 +8,7 @@
 // marca clipes para exclusão em lote.
 
 import { useState } from 'react';
-import { Download, Share2 } from 'lucide-react';
+import { Download, Share2, Trash2 } from 'lucide-react';
 import { formatarTamanhoBytes } from '../lib/formatacao';
 import type { ClipeComUrl } from '../lib/clipes';
 
@@ -20,6 +20,10 @@ export interface GradeClipesPartidaProps {
   onToggleSelecao?: (clipeId: number) => void;
   /** Congela os checkboxes durante a exclusão (evita toggle com request em voo). */
   desabilitarSelecao?: boolean;
+  /** Modo admin (opcional): exclusão individual. Ausente = grade só de leitura. */
+  onExcluirClipe?: (clipeId: number) => void;
+  /** Congela o botão de excluir durante a exclusão (request em voo). */
+  desabilitarExclusao?: boolean;
 }
 
 export function GradeClipesPartida({
@@ -27,6 +31,8 @@ export function GradeClipesPartida({
   selecionadoIds,
   onToggleSelecao,
   desabilitarSelecao = false,
+  onExcluirClipe,
+  desabilitarExclusao = false,
 }: GradeClipesPartidaProps) {
   const [copiadoId, setCopiadoId] = useState<number | null>(null);
 
@@ -78,7 +84,7 @@ export function GradeClipesPartida({
               src={clipe.url}
               className="w-full aspect-video bg-black rounded-[2px]"
             />
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               {/* Checkbox do modo seleção: presente SOMENTE com onToggleSelecao —
                   sem a prop o par span/botões fica exatamente como hoje. O label
                   44x44 dá alvo de toque e não sobrepõe o player. */}
@@ -129,6 +135,22 @@ export function GradeClipesPartida({
                   <Share2 className="size-3.5" aria-hidden="true" />
                   {copiadoId === clipe.id ? 'Copiado!' : 'Compartilhar'}
                 </button>
+                {/* Exclusão individual (só no modo admin): ícone-only porque
+                    Baixar + Compartilhar + Excluir com texto não cabem nos
+                    ~336px úteis de um mobile 360px; cores = variante perigo
+                    de ui/Botao.tsx. */}
+                {onExcluirClipe && (
+                  <button
+                    type="button"
+                    onClick={() => onExcluirClipe(clipe.id)}
+                    disabled={desabilitarExclusao}
+                    aria-label={`Excluir clipe ${clipe.ordem ?? indice + 1}`}
+                    title={`Excluir clipe ${clipe.ordem ?? indice + 1}`}
+                    className="flex min-h-[44px] shrink-0 items-center justify-center rounded-[4px] border border-perigo bg-perigo px-3 text-branco-time transition hover:brightness-110 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Trash2 className="size-3.5" aria-hidden="true" />
+                  </button>
+                )}
               </div>
             </div>
           </div>
