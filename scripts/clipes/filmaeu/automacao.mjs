@@ -110,17 +110,47 @@ export async function navegarParaSlot(page, { dataISO, horario }) {
   // Fluxo real (mapeamento §1): Trocar campo → buscar quadra no modal →
   // selecionar a linha → data → Pesquisar → horário. A URL permanece /perfil#
   // em todos os passos (AJAX); não há atalho por querystring.
+  // O perfil pós-login tem DUAS caras: sem quadra vinculada à conta aparece o
+  // link "Trocar campo" (fluxo do modal); com quadra já vinculada (observado
+  // em 03/10/2026 — logo da quadra no lugar do link) o input#society já vem
+  // preenchido e o modal é dispensado. Só abrir o modal quando for preciso.
   return comScreenshotDeFalha(page, 'navegacao', async () => {
-    await clicarElemento(page, SELETORES.linkTrocarCampo, 'trocar-campo');
-    await page.waitForSelector(SELETORES.modalLocais, { state: 'visible', timeout: PAGINA.timeoutElementoMs });
-    console.log('[clipes] modal de locais aberto');
+    const linkTrocarCampoVisivel = await page
+      .waitForSelector(SELETORES.linkTrocarCampo, {
+        state: 'visible',
+        timeout: PAGINA.timeoutVerificacaoMs,
+      })
+      .then(() => true)
+      .catch(() => false);
 
-    // O filtro do modal reage a keyup (mapeamento §2): page.fill não dispara
-    // eventos de teclado — digitar com pressSequentially.
-    await page.waitForSelector(SELETORES.campoBuscaQuadra, { state: 'visible', timeout: PAGINA.timeoutElementoMs });
-    await page.locator(SELETORES.campoBuscaQuadra).pressSequentially(QUADRA);
-    await clicarElemento(page, SELETORES.itemQuadra, 'busca-quadra');
-    console.log(`[clipes] quadra "${QUADRA}" selecionada`);
+    if (linkTrocarCampoVisivel) {
+      await clicarElemento(page, SELETORES.linkTrocarCampo, 'trocar-campo');
+      await page.waitForSelector(SELETORES.modalLocais, { state: 'visible', timeout: PAGINA.timeoutElementoMs });
+      console.log('[clipes] modal de locais aberto');
+
+      // O filtro do modal reage a keyup (mapeamento §2): page.fill não dispara
+      // eventos de teclado — digitar com pressSequentially.
+      await page.waitForSelector(SELETORES.campoBuscaQuadra, { state: 'visible', timeout: PAGINA.timeoutElementoMs });
+      await page.locator(SELETORES.campoBuscaQuadra).pressSequentially(QUADRA);
+      await clicarElemento(page, SELETORES.itemQuadra, 'busca-quadra');
+      console.log(`[clipes] quadra "${QUADRA}" selecionada no modal`);
+    } else {
+      // Gate de correção: sem o link, a única garantia da quadra certa é o valor
+      // de input#society (o clique no modal do fluxo acima só preenche esse
+      // campo — mapeamento §2). Quadra divergente → erro claro em vez de
+      // importar clipes de outro local.
+      const societyId = await page
+        .locator(SELETORES.quadraVinculada)
+        .inputValue()
+        .catch(() => null);
+      if (societyId !== QUADRA_CLIENT_ID) {
+        throw new ErroFilmaeu(
+          'trocar-campo',
+          `link "Trocar campo" ausente e quadra vinculada divergente (input#society="${societyId ?? 'ausente'}", esperado "${QUADRA_CLIENT_ID}")`
+        );
+      }
+      console.log(`[clipes] quadra "${QUADRA}" já vinculada ao perfil (client ${societyId}) — modal dispensado`);
+    }
 
     await page
       .waitForSelector(SELETORES.campoData, { state: 'visible', timeout: PAGINA.timeoutElementoMs })
@@ -130,7 +160,7 @@ export async function navegarParaSlot(page, { dataISO, horario }) {
     await page.fill(SELETORES.campoData, dataISO);
     console.log(`[clipes] data informada: ${dataISO}`);
 
-    await clicarElemento(page, SELETORES.botaoPesquisar, 'pesquisar');
+    await clicarElemento(page, SELETORES.botaoPesquisar, 'pesquisar', { textoFallback: 'Pesquisar' });
 
     // Slot ausente ≠ erro: horário sem gravação no dia é condição esperada
     // (mapeamento §4 — ausente, não desabilitado). Retornar null para o caller

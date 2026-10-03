@@ -65,6 +65,7 @@ Notas:
 
 - Em `02/10/2026`, a lista mostrou somente `18:00`; `19:00` estava **ausente**, não desabilitado, e a grade não tinha vídeos. Na data com clipes (`01/10/2026`), `19:00` apareceu como link `a.hour`.
 - No exemplo observado de `01/10/2026` às 19:00 havia **4 grupos de gravação**, cada um com 2 vídeos/câmeras: **8 arquivos MP4**. É uma contagem observada para sanidade, não uma garantia fixa para todo slot.
+- **Perfil com quadra já vinculada (03/10/2026, screenshot da Action `falha-trocar-campo.png`)**: quando a conta já tem quadra vinculada (efeito persistente da seleção feita no mapeamento de 02/10), o `/perfil` pós-login mostra a logo da quadra (`SOCIETY BRAGATTA`) + `select#campo` ("Campo de Futebol") + `#datepicker` + botão **Pesquisar** — **sem o link "Trocar campo"** e sem modal. A quadra vigente continua sendo `input#society` (preenchido server-side); a automação segue adaptativa: link presente → fluxo do modal §1/§2; link ausente → conferir `input#society == 803` e ir direto à data. O `select#campo` segue sendo o TIPO de campo, não a quadra.
 
 ## Observação para a automação atual
 

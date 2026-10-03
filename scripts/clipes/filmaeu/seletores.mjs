@@ -22,7 +22,8 @@ export const SELETORES = {
   campoSenha: '#loginForm input[name="password"]',
   botaoEntrar: '#loginForm button.login_btn',
   sinalPostLogin: '#datepicker', // só visível autenticado, em /perfil
-  linkTrocarCampo: 'a:has-text("Trocar campo")', // abre o modal #myModal
+  linkTrocarCampo: 'a:has-text("Trocar campo")', // abre o modal #myModal (só existe SEM quadra vinculada à conta)
+  quadraVinculada: 'input#society', // client-id da quadra vinculada ao perfil (preenchido server-side)
   modalLocais: '#myModal',
   campoBuscaQuadra: '#myModal #client-search', // SEMPRE escopado ao modal (há outro #client-search oculto)
   itemQuadra: `#myModal tr#client${QUADRA_CLIENT_ID}`,
@@ -42,6 +43,7 @@ export function seletorSlot(horario) {
 export const PAGINA = {
   timeoutNavegacaoMs: 30_000, // page.goto / waitForURL
   timeoutElementoMs: 15_000, // waitForSelector de cada passo
+  timeoutVerificacaoMs: 5_000, // presença OPCIONAL de elemento (ramo adaptativo do fluxo)
   timeoutDownloadMs: 120_000, // por clipe (~30s de vídeo)
   tentativasDownload: 2, // retry por clipe
 };
