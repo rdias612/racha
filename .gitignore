@@ -42,7 +42,7 @@ dist-ssr
 .vercel
 
 # Zcode
-.zcode
+# .zcode
 
 #supabase
 supabase/.temp/*
