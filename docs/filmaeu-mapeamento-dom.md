@@ -15,6 +15,7 @@
   6. A grade é carregada abaixo dos horários.
 - Depois do login, o navegador chega a `https://filmaeu.com.br/perfil`. O formulário de login envia autenticação por AJAX (`POST login-validate`) e, em caso de sucesso, abre `/perfil`.
 - A seleção de local altera a URL para `https://filmaeu.com.br/perfil#`. As buscas de data e horário permanecem nessa mesma URL e carregam conteúdo por AJAX (`search` e `show`).
+- Após selecionar um horário, `#showVideos` pode continuar anexado e vazio enquanto o AJAX carrega. A automação deve aguardar o primeiro `.card-videos` antes de contar os grupos; timeout nessa etapa indica falha de carregamento.
 - **A URL da grade não carrega data nem horário na querystring.** Após selecionar o slot, `location.search` e `location.hash` estão vazios; a barra mostra `/perfil#`. Não há URL direta estável para substituir os cliques.
 
 | Tela | URL observada e mudança | Captura |

@@ -185,15 +185,22 @@ export async function navegarParaSlot(page, { dataISO, horario }) {
     await page.click(seletorHorario);
     console.log(`[clipes] slot ${horario} selecionado`);
 
-    await page.waitForSelector(SELETORES.gradeClipes, { state: 'attached', timeout: PAGINA.timeoutElementoMs });
+    await page
+      .waitForSelector(SELETORES.cardClipe, { state: 'attached', timeout: PAGINA.timeoutElementoMs })
+      .catch(() => {
+        throw new ErroFilmaeu(
+          'grade-clipes',
+          `nenhum grupo apareceu após selecionar ${horario} (esperado: ${SELETORES.cardClipe})`
+        );
+      });
     return page;
   });
 }
 
 export async function coletarClipes(page) {
   return comScreenshotDeFalha(page, 'coleta', async () => {
-    // state 'attached': a grade pode existir vazia (sem caixa visível) —
-    // contagem 0 cai no caminho 'sem_clipes' do caller.
+    // navegarParaSlot aguarda a resposta AJAX inserir o primeiro grupo antes
+    // de a coleta contar os elementos da grade.
     await page
       .waitForSelector(SELETORES.gradeClipes, { state: 'attached', timeout: PAGINA.timeoutElementoMs })
       .catch(() => {
