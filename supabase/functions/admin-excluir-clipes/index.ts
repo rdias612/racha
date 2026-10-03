@@ -16,7 +16,8 @@
 // Modelo de confiança idêntico ao RPC excluir_partida (migration 066): o app
 // não usa JWT do Supabase (login próprio), então o gate de admin é feito
 // server-side por parâmetro do corpo (admin_id com is_admin em jogadores).
-// Por isso o deploy usa --no-verify-jwt, precedentes notificar-clipes/cron:
+// Por isso o deploy usa --no-verify-jwt, precedentes as irmãs de push send-*
+// e notificar-clipes (verify_jwt=false efetivo em produção desde o plano 37):
 // a função não depende de auth do Supabase e faz o próprio gate.
 // Deploy:
 //   npx supabase functions deploy admin-excluir-clipes --no-verify-jwt
