@@ -240,43 +240,45 @@ export function ClipesRepositorio() {
             )
           ) : (
             <>
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-mono text-xs text-giz-fraco tabular-nums">
-                  {selecionados.size} de {clipes.length} selecionado(s)
-                </span>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setSelecionados(new Set(clipes.map((c) => c.id)))}
-                    disabled={excluindo || selecionados.size === clipes.length}
-                    className={classeBotaoSelecao}
-                  >
-                    Marcar todos
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelecionados(new Set())}
-                    disabled={excluindo || selecionados.size === 0}
-                    className={classeBotaoSelecao}
-                  >
-                    Limpar
-                  </button>
-                </div>
-              </div>
-
-              {/* Botão de exclusão no TOPO (antes da grade): a antiga
-                  BarraAcaoInferior era coberta pela TabBar do Layout (ambas
-                  fixed bottom-0 z-40, a TabBar vem depois no DOM). */}
+              {/* Excluir na MESMA linha de Marcar todos/Limpar (a antiga
+                  BarraAcaoInferior era coberta pela TabBar do Layout — ambas
+                  fixed bottom-0 z-40, a TabBar vem depois no DOM). Rótulo
+                  compacto "Excluir (N)" porque "Excluir selecionados (N)" não
+                  cabe na linha em 360px; o contador trunca e a contagem segue
+                  visível no próprio botão. */}
               <div className="space-y-1">
-                <Botao
-                  variante="perigo"
-                  larguraCompleta
-                  disabled={selecionados.size === 0 || excluindo}
-                  onClick={() => setIdsPendenteExclusao([...selecionados])}
-                >
-                  <Trash2 className="size-3.5" aria-hidden="true" />
-                  {excluindo ? 'Excluindo…' : `Excluir selecionados (${selecionados.size})`}
-                </Botao>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="min-w-0 flex-1 truncate font-mono text-xs text-giz-fraco tabular-nums">
+                    {selecionados.size} de {clipes.length} selecionado(s)
+                  </span>
+                  <div className="flex shrink-0 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelecionados(new Set(clipes.map((c) => c.id)))}
+                      disabled={excluindo || selecionados.size === clipes.length}
+                      className={classeBotaoSelecao}
+                    >
+                      Marcar todos
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelecionados(new Set())}
+                      disabled={excluindo || selecionados.size === 0}
+                      className={classeBotaoSelecao}
+                    >
+                      Limpar
+                    </button>
+                    <Botao
+                      variante="perigo"
+                      className="px-3"
+                      disabled={selecionados.size === 0 || excluindo}
+                      onClick={() => setIdsPendenteExclusao([...selecionados])}
+                    >
+                      <Trash2 className="size-3.5" aria-hidden="true" />
+                      {excluindo ? 'Excluindo…' : `Excluir (${selecionados.size})`}
+                    </Botao>
+                  </div>
+                </div>
                 <p className="text-[11px] text-giz-fraco">
                   A exclusão é definitiva: os vídeos saem do ar.
                 </p>
