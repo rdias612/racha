@@ -1,0 +1,149 @@
+eu tenho um frontend em typescript, quais são os projetos e afins que existem open source que eu posso usar no meu projeto? to atras de coisas pré prontas que eu possa imcorporar ao inves de ter que criar as componentes e afins.
+
+leve em consideração que meu projeto é um site no navegador atraves do vercel, porém eu uso mesmo como um app no celular atravez do download como PWA. Lembre então que suas dicas devem ser orientadas a site no celular
+
+Sim. Para o seu caso — TypeScript + frontend web hospedado na Vercel + usado principalmente como PWA no celular — eu procuraria menos por “biblioteca de componentes” genérica e mais por um ecossistema de componentes mobile-first prontos, incluindo drawers, bottom sheets, menus, notificações, formulários, tabelas, ícones, gestos etc.
+
+A primeira coisa que eu precisaria saber é se seu TypeScript está usando React/Next.js, Vue, Svelte ou outro framework, porque isso muda bastante as opções. Se for React, há um conjunto particularmente bom.
+
+Se for React, eu olharia principalmente estes
+Projeto	O que você ganha	Para PWA mobile
+shadcn/ui	Componentes prontos, bonitos e customizáveis	⭐⭐⭐⭐⭐
+Radix UI	Dialog, Dropdown, Popover, Tabs, Tooltip etc.	⭐⭐⭐⭐
+Mantine	Biblioteca enorme de componentes + hooks	⭐⭐⭐⭐⭐
+MUI	Ecossistema gigantesco	⭐⭐⭐⭐
+TanStack	Tables, Query, Form, Virtual, Router etc.	⭐⭐⭐⭐⭐
+Vaul	Bottom sheets estilo app mobile	⭐⭐⭐⭐⭐
+Sonner	Toasts/notificações	⭐⭐⭐⭐⭐
+Lucide	Ícones	⭐⭐⭐⭐⭐
+
+O shadcn/ui é especialmente interessante para você porque ele não funciona exatamente como uma biblioteca tradicional: você adiciona o código dos componentes ao seu próprio projeto e passa a controlá-lo. Ele é baseado em primitives como Radix e Tailwind.
+
+Eu montaria algo mais ou menos assim
+Seu PWA
+│
+├── shadcn/ui
+│   ├── Button
+│   ├── Input
+│   ├── Select
+│   ├── Dialog
+│   ├── Tabs
+│   ├── Card
+│   ├── Dropdown
+│   ├── Form
+│   └── ...
+│
+├── Vaul
+│   └── Bottom Sheet
+│
+├── Sonner
+│   └── Toast / notificações
+│
+├── Lucide
+│   └── Ícones
+│
+├── TanStack
+│   ├── Query
+│   ├── Table
+│   ├── Form
+│   └── Virtual
+│
+└── PWA
+    ├── Service Worker
+    ├── Install
+    ├── Offline
+    └── Push Notifications
+
+O TanStack merece uma atenção especial porque não é só UI. Ele possui bibliotecas para Query, Table, Form, Virtual, Router, Hotkeys, etc., todas pensadas para aplicações web TypeScript.
+
+E tem uma categoria ainda mais interessante: componentes específicos para celular
+
+Por exemplo, em vez de você implementar sozinho:
+
+Bottom Sheet
+
+┌─────────────────────────┐
+│                         │
+│       sua tela          │
+│                         │
+│                         │
+├─────────────────────────┤
+│       ━━━━━             │
+│                         │
+│  Opção 1                │
+│  Opção 2                │
+│  Opção 3                │
+└─────────────────────────┘
+
+você pode usar Vaul e ter algo muito próximo da UX de aplicativos nativos.
+
+O mesmo vale para:
+
+swipe actions
+pull-to-refresh
+dialogs
+drawers
+command palette
+skeleton loading
+toast
+dropdown
+date picker
+file upload
+drag & drop
+virtualized lists
+carousels
+menus
+navigation bars
+mobile tabs
+floating action buttons
+keyboard shortcuts
+gestures
+
+E isso é justamente o que eu acho mais interessante para o seu projeto: não ficar limitado a uma única biblioteca gigante.
+
+Outra coisa: procure por "blocks", não só "components"
+
+Essa é uma diferença importante.
+
+Um componente:
+
+<Button />
+
+economiza 20 minutos.
+
+Um block pode economizar horas:
+
+┌─────────────────────────┐
+│ ← Configurações         │
+├─────────────────────────┤
+│                         │
+│ Perfil                  │
+│ ─────────────────────── │
+│                         │
+│ Notificações       >    │
+│                         │
+│ Aparência          >    │
+│                         │
+│ Segurança          >    │
+│                         │
+├─────────────────────────┤
+│ 🏠 Home                 │
+│ 🔍 Buscar               │
+│ ⚙ Configurações        │
+└─────────────────────────┘
+
+Você pega o bloco pronto e adapta.
+
+O ecossistema do shadcn, por exemplo, já segue bastante essa filosofia de componentes/blocos copiáveis.
+
+Se seu objetivo é "quero construir o mínimo possível"
+
+Eu consideraria esta stack:
+
+React/Next.js + Tailwind + shadcn/ui + Vaul + Sonner + Lucide + TanStack Query
+
+Isso te dá uma base bem completa para um PWA com aparência de aplicativo, sem você precisar criar do zero a infraestrutura visual.
+
+E, diferentemente de simplesmente colocar MUI ou outra biblioteca monolítica, você consegue deixar a UI com uma aparência bastante própria. O shadcn também permite que o código dos componentes fique dentro do seu próprio projeto, em vez de você depender de uma abstração fechada da biblioteca.
+
+Se você me disser qual é o framework (React/Vue/etc.), eu posso te passar uma lista bem maior, separada em UI, mobile/PWA, animações, gráficos, mapas, formulários, tabelas, autenticação, uploads, editor, drag-and-drop, notificações, ícones e componentes especificamente mobile, priorizando projetos open source que você possa simplesmente incorporar.

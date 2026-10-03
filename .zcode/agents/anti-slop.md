@@ -81,6 +81,7 @@ Caution: never rewrite a Supabase migration that has already been applied - fix 
 - Keep the diff focused. No repository-wide sweep unless explicitly requested.
 - Follow AGENTS.md at the repository root when it conflicts with anything here.
 - Report what was deleted and why; do not hide removals inside unrelated changes.
+- Final build gate: whenever any file was modified (code, SQL migrations, or edge functions), run `npm run build` at the repository root as the last step and ensure it passes. Fix build failures introduced by the cleanup; if a failure is pre-existing and out of scope, report it instead of fixing it. Include the build result in the final report.
 
 ---
 

@@ -1,0 +1,39 @@
+eu tenho um frontend em typescript, quais são os projetos e afins que existem open source que eu posso usar no meu projeto? to atras de coisas pré prontas que eu possa imcorporar ao inves de ter que criar as componentes e afins.
+
+leve em consideração que meu projeto é um site no navegador atraves do vercel, porém eu uso mesmo como um app no celular atravez do download como PWA. Lembre então que suas dicas devem ser orientadas a site no celular
+
+Para transformar um site TypeScript hospedado na Vercel em um PWA com sensação de aplicativo nativo (touch responsiveness, bottom sheets, animações a 60fps e gestos), você não precisa reinventar a roda.
+
+As melhores bibliotecas e ferramentas open source prontas para uso focadas em experiência mobile:
+
+1. Primitivos Mobile & Gestos de App Nativo
+Vaul (vaul): Componente de drawer / bottom sheet estilo iOS para React/TS. Suporta arrastar para fechar com inércia, snap points ajustáveis e background scaling. Essencial para substituir modais desktop no celular.
+
+Sonner (sonner): Sistema de toasts opinativo e fluido. No mobile, se posiciona perfeitamente na parte inferior ou superior da viewport sem quebrar a área útil.
+
+use-gesture (@use-gesture/react ou vanilla): Biblioteca para manipular gestos touch: swipe para deletar itens de lista, pinch-to-zoom em imagens e pull-to-refresh nativo.
+
+Framer Motion (framer-motion): Cria transições de páginas, tabs animadas e feedback visual em toques sem engasgos na thread principal.
+
+2. Design Systems e Componentes Completos
+shadcn/ui: Código-fonte de componentes (Radix UI + Tailwind CSS) que você copia diretamente para seu repositório TypeScript. Permite ajustar áreas de clique (mínimo de 44x44px recomendado para touch) e espaçamentos sem lutar contra temas de terceiros.
+
+Konsta UI: Biblioteca de componentes UI estilizados especificamente para se parecerem com iOS (Human Interface) ou Android (Material Design). Funciona com React, Vue, Svelte e Tailwind CSS.
+
+Ionic Core / Components (@ionic/react ou core web components): Framework completo focado em componentes mobile nativos (Navbar com back-button com histórico, segment controls, action sheets e ion-tabs).
+
+3. PWA Engine, Cache e Offline
+Vite PWA (vite-plugin-pwa) / @ducanh2912/next-pwa: Se você usa Vite ou Next.js no Vercel, esses plugins geram o Web App Manifest e configuram o Workbox automaticamente para cache offline, precache de assets e prompts de atualização de versão.
+
+TanStack Query (@tanstack/react-query): Cache assíncrono de dados da API com persistência local (persistQueryClient). Em conexões instáveis de 4G/5G, sua tela carrega instantaneamente usando dados locais enquanto revalida em segundo plano.
+
+4. Checklist de CSS & Viewport para Mobile PWA
+Para garantir que o app pareça nativo dentro do shell do navegador/PWA:
+
+Safe Areas: Use env(safe-area-inset-top) e env(safe-area-inset-bottom) no layout principal para acomodar o notch e a barra de navegação por gestos do iOS/Android.
+
+Scroll Bouncing & Pull-to-refresh: Configure overscroll-behavior-y: none; no body para evitar que a página inteira recarregue ou "descole" do topo ao puxar para baixo se você implementar um gesto próprio.
+
+Double-Tap Zoom & Seleção: Adicione touch-action: manipulation; para eliminar o atraso de 300ms do duplo toque e use user-select: none; em botões e barras de navegação para evitar popups indesejados de cópia de texto ao pressionar.
+
+Quer um exemplo prático configurando o Vaul e safe areas no Tailwind?
