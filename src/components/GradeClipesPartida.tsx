@@ -35,6 +35,35 @@ export function GradeClipesPartida({
   desabilitarExclusao = false,
 }: GradeClipesPartidaProps) {
   const [copiadoId, setCopiadoId] = useState<number | null>(null);
+  const [baixandoId, setBaixandoId] = useState<number | null>(null);
+
+  // Download via blob: navegar para a URL (mesmo com Content-Disposition:
+  // attachment do ?download=) abre Custom Tab/visualizador de vídeo dentro do
+  // PWA standalone no Android em vez de baixar. Fetch + objectURL + clique em
+  // âncora temporária baixa dentro do próprio app em site, browser e PWA.
+  async function baixar(clipe: ClipeComUrl) {
+    if (baixandoId != null) return;
+    setBaixandoId(clipe.id);
+    try {
+      const resposta = await fetch(clipe.urlDownload);
+      if (!resposta.ok) throw new Error(`HTTP ${resposta.status}`);
+      const url = URL.createObjectURL(await resposta.blob());
+      const ancora = document.createElement('a');
+      ancora.href = url;
+      ancora.download = clipe.caminho.split('/').pop() ?? 'clipe.mp4';
+      document.body.appendChild(ancora);
+      ancora.click();
+      ancora.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      // Sem blob (offline/falha de rede): abre a URL — o visualizador do
+      // browser tem botão de download próprio e, fora do PWA, o ?download=
+      // já entrega attachment.
+      window.open(clipe.urlDownload, '_blank', 'noopener,noreferrer');
+    } finally {
+      setBaixandoId((atual) => (atual === clipe.id ? null : atual));
+    }
+  }
 
   // RF04 "compartilhar": Web Share API quando existir (mobile/PWA — o alvo é o
   // aparelho); fallback = copiar o link (clipboard), com feedback inline de 2 s.
@@ -113,20 +142,18 @@ export function GradeClipesPartida({
                 )}
               </span>
               <div className="flex items-center gap-2">
-                {/* Baixar: ?download= faz o Storage responder Content-Disposition:
-                    attachment e o browser baixa sem abrir aba (o atributo
-                    `download` sozinho é ignorado cross-origin — bucket no
-                    supabase.co; fica para o dia em que a origem mudar). */}
-                <a
-                  href={clipe.urlDownload}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  download
-                  className="flex items-center gap-1.5 rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 font-display font-bold uppercase tracking-wider text-xs text-giz hover:bg-superficie transition active:translate-y-px"
+                {/* Baixar: blob (função baixar). O ?download= da URL segue como
+                    fallback — o atributo `download` de <a> sozinho é ignorado
+                    cross-origin e navegação no PWA standalone abre visualizador. */}
+                <button
+                  type="button"
+                  onClick={() => baixar(clipe)}
+                  disabled={baixandoId === clipe.id}
+                  className="flex items-center gap-1.5 rounded-[4px] border border-borda bg-superficie-2 px-3 py-2 font-display font-bold uppercase tracking-wider text-xs text-giz hover:bg-superficie transition active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Download className="size-3.5" aria-hidden="true" />
-                  Baixar
-                </a>
+                  {baixandoId === clipe.id ? 'Baixando…' : 'Baixar'}
+                </button>
                 <button
                   type="button"
                   onClick={() => compartilhar(clipe)}
