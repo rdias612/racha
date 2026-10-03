@@ -87,6 +87,20 @@ Total hoje: **1 commit aplicável** (Passo 4, junto do plano 01). Passos 1 e 3 f
 - **Correção**: com o mecanismo existindo, `invalidarCachesDependentesDePartida()` passa a invalidar `stats-jogador:*` junto de `CHAVE_MEDIAS_NOTAS` e `chavePartidasRecentesJogadores(2)`.
 - Não criar testes, libs ou abstrações auxiliares para isso.
 
+### Passo 6 — Extrair componente de abas genérico `<Abas>` · **APENAS AO TOCAR OS ARQUIVOS** (registrado pelo plano 36)
+
+- **Origem**: passo 3 do plano 36 — `AbasClipesAdmin.tsx` foi criado replicando o padrão de barra de abas `NavLink` de `AbasNotificacoes.tsx` (nav + map sobre const `ABAS`, mesmas classes, `aria-label`, prop `className`), divergindo só no `end` por aba (necessário porque `/clipes/admin` é prefixo de `/clipes/admin/repositorio`).
+- **Gatilho**: a 3ª ocorrência do padrão — **já alcançada**: `AbasNotificacoes.tsx`, `AbasEstatisticas.tsx` e `AbasClipesAdmin.tsx` em `src/components/` (as três são barras `NavLink` praticamente idênticas; `AbasEstatisticas` diverge em detalhes de classe e não usa `end`). Executar **ao tocar qualquer um dos três arquivos por outro motivo**, ou na criação da 4ª barra de abas. Não abrir trabalho dedicado — DRY com critério (AGENTS.md: remover duplicação real, sem abstração prematura).
+- **Correção**: extrair `<Abas abas={...} ariaLabel ...>` genérico — lista de `{ to, label, end? }`, os estilos atuais como padrão único (com `no-scrollbar`), e migrar as 3 barras existentes; decidir no toque se `AbasNotificacoes`/`AbasEstatisticas`/`AbasClipesAdmin` viram wrappers de 1 linha ou são substituídas nos call sites (preferir a substituição direta — menos camadas).
+- Não criar testes, libs ou abstrações auxiliares para isso.
+
+### Passo 7 — Nomenclatura de edge functions: verbo-primeiro vs `admin-` · **CONVENÇÃO / EXCEÇÃO CONSCIENTE** (registrado pelo plano 36)
+
+- **Origem**: passo 1 do plano 36 — as edge functions existentes seguem verbo-primeiro (`notificar-clipes`, `send-confirmation-requests`, `send-test-push`, `send-voting-reminders`); a função nova `admin-excluir-clipes` é sujeito-primeiro, quebrando o padrão.
+- **Exceção consciente, mantida**: o prefixo `admin-` agrupa visualmente as funções que recebem a credencial de admin no corpo (modelo da migration 066) e são chamadas do browser — diferentemente das irmãs, todas server→server de automação/notificação. Renomear para `excluir-clipes-admin` perderia esse agrupamento.
+- **Gatilho para revisar**: criação da 2ª edge function do grupo admin — decidir então se `admin-` vira o padrão das funções de painel; enquanto isso, funções de automação/notificação continuam verbo-primeiro.
+- **NÃO renomear** as funções existentes retroativamente — o nome é identidade pública no Supabase (deploy, invoke, painel); renomeação cosmética ampla (AGENTS.md proíbe).
+
 ## 5. Validação manual
 
 Sem testes automáticos (AGENTS.md). Checklist por passo executado:
