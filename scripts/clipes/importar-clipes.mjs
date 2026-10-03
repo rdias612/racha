@@ -359,7 +359,12 @@ async function main() {
       console.log('[clipes] sem clipes no slot — run verde, ledger com sucesso=false (alerta para fase 5)');
     }
   } catch (erro) {
-    const mensagem = erro instanceof Error ? erro.message : String(erro);
+    // PostgrestError/StorageError do supabase-js são objetos planos {message, ...},
+    // não instanceof Error — sem este degrau o ledger registra [object Object].
+    const mensagem =
+      erro instanceof Error ? erro.message
+      : erro && typeof erro === 'object' && typeof erro.message === 'string' ? erro.message
+      : String(erro);
     if (registroId) {
       await fecharRegistroImportacao(client, registroId, {
         status: 'falha',
