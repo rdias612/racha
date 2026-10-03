@@ -15,14 +15,14 @@ Eliminar a dependência de `fonts.googleapis.com` / `fonts.gstatic.com` no carre
 
 ## 2. Estado atual (evidências verificadas)
 
-Evidências conferidas no código em 2026-09-30 (linhas do doc de origem corretas):
+Evidências conferidas no código em 2026-10-03:
 
 - `index.html:27-32`: dois `<link rel="preconnect">` (`fonts.googleapis.com`, `fonts.gstatic.com` com `crossorigin`) + o `<link rel="stylesheet">` da CSS2 API com a tríade: `Archivo` (ital, wght 400..700), `Barlow Condensed` (600, 700, 800 + itálicas 600, 700) e `Chivo Mono` (400–700), `display=swap`.
-- `public/sw.js:199-217`: branch **CacheFirst** dedicado aos hostnames `fonts.googleapis.com`/`fonts.gstatic.com`, cacheando em `CACHE_STATIC` (`racha-static-v3`, linha 15) com fallback offline (503). Este branch fica **código morto** após a migração e deve ser removido.
-- `public/sw.js:220-235`: branch de assets da mesma origem (NetworkFirst com fallback a cache, mesmo `CACHE_STATIC`) — é onde os woff2 locais passarão a ser servidos automaticamente, sem alteração de código nesse trecho.
-- `public/sw.js:28-37`: `ASSETS_PRECACHE` (install) não inclui fontes hoje — a primeira execução offline continua sem fontes mesmo após este plano (ver §6).
-- Tríade tipográfica declarada em `src/index.css:6-8` (`--font-sans: 'Archivo'`, `--font-display: 'Barlow Condensed'` com fallback `'Arial Narrow'`, `--font-mono: 'Chivo Mono'`) e documentada em `DESIGN.md:163-165` (papéis: display para títulos/súmula, sans para corpo, mono para placares/valores) e no checklist de fidelidade `DESIGN.md:520`.
-- Observação registrada como débito (não alterar neste plano): `font-black` (900) aparece 42× em `src/`, mas o link atual carrega Barlow Condensed só até 800 e Archivo até 700 — o peso 900 já é sintetizado pelo navegador hoje. O plano mantém **exatamente** os pesos do link atual para não mudar a renderização.
+- `public/sw.js:199-217`: branch **CacheFirst** dedicado aos hostnames `fonts.googleapis.com`/`fonts.gstatic.com` (comentário do branch em `:198`), cacheando em `CACHE_STATIC` (`racha-static-v3`, linha 7) com fallback offline (503). Este branch fica **código morto** após a migração e deve ser removido.
+- `public/sw.js:220-243`: branch de assets da mesma origem (NetworkFirst com fallback a cache, mesmo `CACHE_STATIC`; comentário em `:219`) — é onde os woff2 locais passarão a ser servidos automaticamente, sem alteração de código nesse trecho.
+- `public/sw.js:35-44`: `ASSETS_PRECACHE` (install) não inclui fontes hoje — a primeira execução offline continua sem fontes mesmo após este plano (ver §6).
+- Tríade tipográfica declarada em `src/index.css:6-8` (`--font-sans: 'Archivo'`, `--font-display: 'Barlow Condensed'` com fallback `'Arial Narrow'`, `--font-mono: 'Chivo Mono'`) e documentada em `DESIGN.md:162-165` (papéis: display para títulos/súmula, sans para corpo, mono para placares/valores) e no checklist de fidelidade `DESIGN.md:530`.
+- Observação registrada como débito (não alterar neste plano): `font-black` (900) aparece 37× em `src/`, mas o link atual carrega Barlow Condensed só até 800 e Archivo até 700 — o peso 900 já é sintetizado pelo navegador hoje. O plano mantém **exatamente** os pesos do link atual para não mudar a renderização.
 
 ## 3. Pré-condições e dependências
 
@@ -47,12 +47,12 @@ Evidências conferidas no código em 2026-09-30 (linhas do doc de origem correta
 ### Passo 3 — Remover os `<link>` do `index.html`
 
 - Remover `index.html:27-32` (os dois preconnect e o stylesheet da CSS2 API). Nenhuma outra linha do arquivo muda.
-- A partir deste commit as fontes são mesma origem e o branch de assets do SW (`sw.js:220-235`) passa a cachear os woff2 automaticamente na primeira visita online.
+- A partir deste commit as fontes são mesma origem e o branch de assets do SW (`sw.js:220-243`) passa a cachear os woff2 automaticamente na primeira visita online.
 
 ### Passo 4 — Remover o branch morto do `sw.js`
 
 - Remover o bloco `public/sw.js:198-217` (condicional de `fonts.googleapis.com`/`fonts.gstatic.com`), que não é mais alcançável.
-- Ajustar o comentário do cabeçalho do arquivo (linhas 3-5), que cita "NetworkFirst/CacheFirst para App Shell e Assets", se ficar impreciso.
+- Ajustar o comentário do cabeçalho do arquivo (linhas 2-5), que cita "NetworkFirst/CacheFirst para App Shell e Assets", se ficar impreciso.
 - **Não** bumpar `CACHE_STATIC` (`racha-static-v3`): nenhum cacheado antigo é invalidado por estas mudanças (os assets locais têm URLs novas, sem conflito).
 
 Ordem rígida: os passos 1–2 precisam preceder o 3 (as fontes locais precisam existir antes de os links caírem); o passo 4 é só limpeza do código morto. Cada passo é revertível por `git revert` isolado.
@@ -73,7 +73,7 @@ Sem testes automáticos (AGENTS.md). Checklist no build de preview (`npm run bui
 
 - **Fontsource ou qualquer dependência npm** para fontes (o plano de origem explicita "sem fontsource/dependências").
 - **Precache das fontes em `ASSETS_PRECACHE`**: mudaria o custo do install para atacar a *primeira* execução offline; se a queixa real for especificamente essa, é uma decisão separada do dono (pesa mais no primeiro acesso).
-- Adicionar pesos novos (ex.: Baixo Condensed 900 real para os 42 `font-black`) ou remover pesos não usados — alteraria a renderização atual; registrar como débito à parte, se aplicável.
+- Adicionar pesos novos (ex.: Barlow Condensed 900 real para os 37 `font-black`) ou remover pesos não usados — alteraria a renderização atual; registrar como débito à parte, se aplicável.
 - Subsetagem, ferramentas de build de woff2, `unicode-range` manuais ou troca de famílias.
 - Outros assets de terceiros (não há outros conhecidos no `index.html`).
 - Qualquer mudança nos tokens tipográficos de `src/index.css:6-8` ou nos papéis de `DESIGN.md`.

@@ -9,7 +9,7 @@ Fazer o `activate` do service worker podar as entradas `/assets/*` antigas dentr
 
 ## 2. Estado atual (evidências verificadas)
 
-Verificado no código em **30/09/2026**; linhas do doc de origem conferidas:
+Verificado no código em **2026-10-03**; linhas do doc de origem conferidas:
 
 - `public/sw.js:58-68` — o handler `activate` lista `caches.keys()` e apaga apenas caches cujo **nome** está fora de `[CACHE_STATIC, CACHE_API]`; **nenhuma entrada interna** de `CACHE_STATIC` é removida. O doc de origem cita `sw.js:58-68` — confere.
 - `public/sw.js:220-243` — o handler same-origin (bloco 3 do `fetch`) cacheia **toda** resposta `status === 200 && type === 'basic'` em `CACHE_STATIC` (`sw.js:225-227`), sem limite de quantidade nem política de expiração. O doc de origem cita `sw.js:220-243` — confere.

@@ -3,6 +3,7 @@
 > Um plano por item do ranking em `docs/rank-melhorias-reuso-codigo.md` (critério: redução de code slop / duplicação / reuso). Estrutura padrão em `TEMPLATE.md`.
 > Registros de execução/validação de planos executados ficam em [`registros/`](registros/).
 > Plano de origem: `docs/plano-melhorias-frontend-pwa.md`. Filosofia: `AGENTS.md` — passos pequenos, 1 commit por passo, sem novas bibliotecas, validação manual.
+> Todos os planos pendentes foram re-medidos e atualizados contra o código em **2026-10-03** (validação de conformidade com o `AGENTS.md`: sem violações; os docs carregam a data da re-medição na seção "Estado atual").
 
 ## Processo padrão de execução (válido para todo plano deste diretório)
 
@@ -30,16 +31,16 @@ As validações visuais/funcionais no aparelho listadas na seção 5 de cada pla
 | 07 | [queries-fora-da-lib.md](07-queries-fora-da-lib.md) | D5 · Queries fora da `lib` → `lib` — ✅ **executado** ([registro](registros/07-queries-fora-da-lib.md)) | 2 |
 | 08 | [dialogo-evento-modal-base.md](08-dialogo-evento-modal-base.md) | A5 · `DialogoEvento` → `ModalBase` — ✅ **executado** ([registro](registros/08-dialogo-evento-modal-base.md)) | 2 |
 | 09 | [pecas-listas-financeiras.md](09-pecas-listas-financeiras.md) | A6 · Peças das listas financeiras — ✅ **executado** ([registro](registros/09-pecas-listas-financeiras.md)) | 2 |
+| 10 | [tipos-derivados.md](10-tipos-derivados.md) | D4 · Derivar tipos de `database.types.ts` — ✅ **executado** ([registro](registros/10-tipos-derivados.md)) | 2 |
 | 11 | [badge-mini.md](11-badge-mini.md) | A8 · Chip "mini" no `Badge` — ✅ **executado** ([registro](registros/11-badge-mini.md)) | 3 |
 | 12 | [token-scrim.md](12-token-scrim.md) | C3 · Token `--cor-scrim` — ✅ **executado** ([registro](registros/12-token-scrim.md)) | 3 |
 | 13 | [remocao-tokens-mortos.md](13-remocao-tokens-mortos.md) | C4 · Remoção de tokens/dados mortos — ✅ **executado** ([registro](registros/13-remocao-tokens-mortos.md)) | 3 |
 | 14 | [higiene-nomenclatura.md](14-higiene-nomenclatura.md) | A4 · Higiene de nomenclatura — ✅ **executado** ([registro](registros/14-higiene-nomenclatura.md)) | 3 |
+| 15 | [pilula-filtro.md](15-pilula-filtro.md) | A7 · `PilulaFiltro` — 🔶 **gatilho revisado (03/10)**: restam 2 call sites inline e o `Botao` já cobre o estado ativo; executar só para pílulas fora do alcance do `Botao` — decida aposentar ou executar | 3 |
 | 16 | [retry-ptr-partida.md](16-retry-ptr-partida.md) | E3 · Retry/PTR/haptics nas telas de partida | 4 |
 | 17 | [pasta-ui.md](17-pasta-ui.md) | A9 · Pasta `ui/` para novas primitivas | 4 |
 | 18 | [revalidar-online.md](18-revalidar-online.md) | B1 · Revalidar dados ao voltar online — ✅ **executado** ([registro](registros/18-revalidar-online.md)) | 4 |
 | 19 | [ctas-44px.md](19-ctas-44px.md) | C1 · Alvos de 44px nos CTAs-Link — ✅ **executado** ([registro](registros/19-ctas-44px.md)) | 4 |
-| 20 | [aviso-nova-versao.md](20-aviso-nova-versao.md) | B3 · Aviso "nova versão disponível" | 4 |
-| 21 | [cedula-sinal-honesto.md](21-cedula-sinal-honesto.md) | E1 · Cédula de votação: sinal honesto | 4 |
 | 22 | [poda-assets-cache.md](22-poda-assets-cache.md) | B4 · Poda de `/assets/*` no `CACHE_STATIC` | 4 |
 | 23 | [tokens-contraste.md](23-tokens-contraste.md) | C2 · Tokens `--cor-ok-texto`/`--cor-perigo-texto` | 4 |
 | 24 | [painel-da-semana.md](24-painel-da-semana.md) | E2 · Painel da Semana na home | 4 |
@@ -58,9 +59,9 @@ As validações visuais/funcionais no aparelho listadas na seção 5 de cada pla
 
 | # | Plano | Item | Status |
 |---|---|---|---|
-| 35 | [35-clipes-filmaeu.md](35-clipes-filmaeu.md) | Clipes do Filma Eu no app (requisito: [`docs/requisito-clipes-filmaeu.md`](../requisito-clipes-filmaeu.md)) | 🔨 **implementado** — 8 fases executadas/auditadas ([registros](registros/35-fase-1-banco.md) a [35-fase-8](registros/35-fase-8-frontend-admin.md)); pendente validação E2E do dono ([roteiro](35-fases/fase-8-tasks.md), Task 5) |
-| 36 | [36-repositorio-exclusao-clipes.md](36-repositorio-exclusao-clipes.md) | Repositório e exclusão manual de clipes em `/clipes/admin` (precedente de domínio: [plano 35](35-clipes-filmaeu.md)) | 🔨 **implementado** — 4 passos executados ([registros](registros/36-passo-1-edge-function.md) a [36-passo-4](registros/36-passo-4-documentacao.md)); pendente deploy da edge function e validação E2E do dono |
 | 37 | [37-correcao-importacao-clipes.md](37-correcao-importacao-clipes.md) | Correção da importação de clipes em produção: grants `SELECT`/`INSERT` do `service_role` (migration 118) + `verify_jwt=false` da `notificar-clipes` + erro legível no catch | ✅ **executado** — 3 passos executados com alterações de produção aplicadas ([registro](registros/37-correcao-importacao-clipes.md)); pendente validação manual do dono |
+
+> Planos **35** (Clipes do Filma Eu) e **36** (Repositório e exclusão manual de clipes) foram executados e seus docs removidos; os registros de execução/validação permanecem em [`registros/`](registros/) (`35-fase-*.md`, `36-passo-*.md`).
 
 ## Ordem de execução recomendada
 
@@ -68,4 +69,4 @@ As validações visuais/funcionais no aparelho listadas na seção 5 de cada pla
 - **Junto de qualquer extração**: 17 (pasta `ui/`) custa ~zero se aplicado no commit de criação dos componentes novos.
 - **Tier 3**: executar "ao tocar o arquivo" conforme oportunidade.
 - **Tier 4**: seguir a ordem de fases do plano original (`docs/plano-melhorias-frontend-pwa.md` §4) — este diretório não altera a prioridade de produto.
-- **Decisões do dono antes de executar**: 02 (componente vs constantes), 24 (aprovar escopo do Painel da Semana), 26 (sincronizar com roadmap "Minhas Dívidas"), 08 (janela fora de ao-vivo).
+- **Decisões do dono antes de executar**: 15 (aposentar após migrar os 2 modais restantes para `Botao`, ou executar para pílulas fora do alcance dele), 24 (aprovar escopo do Painel da Semana), 26 (sincronizar com roadmap "Minhas Dívidas"), 32 (permanece arquivado até que exista queixa real de "primeira execução offline").

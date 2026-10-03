@@ -9,14 +9,14 @@ Adicionar 2 atalhos estáticos ("Jogos" → `/jogos`, "Ranking" → `/ranking/po
 
 ## 2. Estado atual (evidências verificadas)
 
-Verificado no código em **30/09/2026**; todas as linhas do doc de origem conferidas e corretas:
+Verificado no código em **03/10/2026**; todas as linhas do doc de origem conferidas e corretas:
 
 - `public/manifest.webmanifest:1-46` — **sem a chave `shortcuts`** (grep confirmado; o doc de origem diz "grep vazio" — confere). Estrutura atual: `name`, `short_name`, `id`, `start_url`, `scope`, `display`, `categories` (`:13`) e `icons` (`:14-45`).
 - `public/manifest.webmanifest:14-20` — `icons` já declara `/icon.svg` (512x512, `image/svg+xml`, `purpose: any`) e `/icon-maskable.svg` — os atalhos reutilizam o SVG existente, sem arquivo novo.
 - `public/icon.svg` existe em `public/` (confirmado por listagem: `icon.svg`, `icon-maskable.svg`, `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`).
 - Rotas de destino existem de fato no router:
-  - `src/App.tsx:47` — `<Route path="/jogos" element={<Jogos />} />`.
-  - `src/App.tsx:48` — `/ranking` redireciona para `/ranking/pontos`; `src/App.tsx:49` — `<Route path="/ranking/:metrica" element={<Ranking />} />`. `/ranking/pontos` é a rota efetiva canônica (também usada em `src/routes/Layout.tsx:74,293` e `src/routes/Ranking.tsx:94,235`).
+  - `src/App.tsx:49` — `<Route path="/jogos" element={<Jogos />} />`.
+  - `src/App.tsx:50` — `/ranking` redireciona para `/ranking/pontos`; `src/App.tsx:51` — `<Route path="/ranking/:metrica" element={<Ranking />} />`. `/ranking/pontos` é a rota efetiva canônica (também usada em `src/routes/Layout.tsx:76,309` e `src/routes/Ranking.tsx:82,182`).
 - `public/sw.js:35-44` — `ASSETS_PRECACHE` inclui `/manifest.webmanifest` (`:37`), precacheado em `racha-static-v3` (`:7`). `public/sw.js:220-242` — o handler same-origin do `fetch` é **NetworkFirst** com `cache.put` (`:224-227`): o manifest atualizado é baixado na 1ª visita online após o deploy, mesmo sem alterar o `sw.js`.
 - `src/lib/pwa.ts:70` — registro do `/sw.js` após o `load`, sem alterações necessárias.
 
@@ -51,7 +51,7 @@ Verificado no código em **30/09/2026**; todas as linhas do doc de origem confer
 
 **Decisões embutidas**:
 
-- **`url` absoluto a partir da raiz** (`/jogos`, `/ranking/pontos`), no padrão do restante do manifest (`start_url: "/"`, `scope: "/"`). Aponta direto para `/ranking/pontos` (rota efetiva) em vez de `/ranking` (que é só redirect — `App.tsx:48`).
+- **`url` absoluto a partir da raiz** (`/jogos`, `/ranking/pontos`), no padrão do restante do manifest (`start_url: "/"`, `scope: "/"`). Aponta direto para `/ranking/pontos` (rota efetiva) em vez de `/ranking` (que é só redirect — `App.tsx:50`).
 - **Sem `description`/`short_name` por atalho**: campos opcionais que não agregam neste caso (nomes de 1 palavra já são curtos).
 - **Sem bump de `CACHE_STATIC`**: o manifest não é imutável e o handler same-origin já é NetworkFirst (`sw.js:222-228`) — o conteúdo novo chega ao cache na 1ª visita online, como hoje. Bump forçaria re-precache completo sem ganho (mesma justificativa do plano 22).
 - **Ícone reutilizado**: o Chrome recomenda ícone ≥96px por atalho; `/icon.svg` já atende e evita criar PNG novo.

@@ -1,72 +1,83 @@
 # 17 · Pasta `ui/` para novas primitivas (adoção por toque) — Plano de Implementação
 
 > Ref.: item **A9** do `docs/plano-melhorias-frontend-pwa.md` · Ranking anti-slop: **#17 (nota 2,0)**, Tier 4 (`docs/rank-melhorias-reuso-codigo.md`)
-> Esforço estimado: S · Risco: mínimo · Prioridade global do plano: P3
+> Esforço estimado: XS · Risco: mínimo · Prioridade global do plano: P3 · Última verificação: **2026-10-03**
 
 ## 1. Objetivo
 
-Estabelecer a convenção de que **toda primitiva de UI nova nasce em `src/components/ui/`**, impedindo que a raiz de `src/components/` (hoje com 63 arquivos planos misturando primitivas, navegação e seções de tela) inche com as extrações dos planos 01–15. Este plano é **de convenção/adoção, não de código**: ele não extrai componente algum, não move arquivo existente e praticamente não adiciona código próprio — o único artefato permanente é a regra registrada em documentação.
+Estabelecer a convenção de que **toda primitiva de UI nova nasce em `src/components/ui/`**, impedindo que a raiz de `src/components/` (hoje com 68 arquivos planos misturando primitivas, navegação e seções de tela) inche com novas extrações. Este plano é **de convenção/adoção, não de código**: ele não extrai componente algum, não move arquivo existente e praticamente não adiciona código próprio — o único artefato permanente é a regra registrada em documentação.
+
+**Situação atual da adoção**: a pasta `ui/` **já existe** e a convenção **já está em adoção de fato** — os planos 01, 02, 04 e 09 criaram suas primitivas diretamente em `ui/`, correndo à frente da parte documental deste plano. O resíduo acionável restante é registrar a regra em documentação e validar a conformidade do que já foi criado.
 
 ## 2. Estado atual (evidências verificadas)
 
-Evidências conferidas no código em 2026-09-30:
+Evidências conferidas no código em **2026-10-03**:
 
-- **63 arquivos planos** em `src/components/` (contagem confirmada por `find -maxdepth 1 -type f`; bate com o doc de origem A9). A lista mistura primitivas (`Badge.tsx`, `ModalBase.tsx`, `Estado.tsx`, `Snackbar.tsx`, `Toggle.tsx`, `Skeletons.tsx`), navegação (`BotaoVoltar.tsx`, `BarraAcaoInferior.tsx`) e seções de tela (`ResumoGestao.tsx`, `PainelPlacar.tsx`, `Secao*.tsx`).
-- **`src/components/ui/` ainda não existe** (confirmado: nenhum subdiretório em `src/components/`).
-- As extrações previstas que adotam esta convenção:
-  - **Plano 01** → `src/components/ui/CabecalhoSumula.tsx` (`01-cabecalho-sumula.md:37,26`).
-  - **Plano 02** → `src/components/ui/Botao.tsx` (ou `ui/botoes.ts` na Opção B de constantes) (`02-botao-variantes.md:87,71,59`).
-  - **Plano 04** → `src/components/ui/CampoTexto.tsx` e `src/components/ui/CampoTextoLongo.tsx` (`04-campo-texto.md:40`).
-  - **Plano 15** → `src/components/ui/PilulaFiltro.tsx` (débito com gatilho; quando ativar, nasce direto em `ui/`) (`15-pilula-filtro.md:43,51`).
-  - **Plano 11** → `Badge` **já existe** em `src/components/Badge.tsx` (assinatura em `Badge.tsx:86-87`); caso de **migração por toque**, não de criação — quando o plano 11 tocar o arquivo funcionalmente (prop `densidade`), avaliar mover no mesmo commit.
+- **`src/components/ui/` já existe** com 6 componentes, criados pelos planos de extração (a adoção correu à frente deste plano):
+  - `src/components/ui/Botao.tsx` (plano 02);
+  - `src/components/ui/CabecalhoSumula.tsx` (plano 01);
+  - `src/components/ui/CampoTexto.tsx` e `src/components/ui/CampoTextoLongo.tsx` (plano 04);
+  - `src/components/ui/ChipTipoLancamento.tsx` e `src/components/ui/LinhaMetaLancamento.tsx` (plano 09).
+- **68 arquivos planos** na raiz de `src/components/` (contagem confirmada por `find -maxdepth 1 -type f`; eram 63 na medição de 2026-09-30). A lista mistura primitivas (`Badge.tsx`, `ModalBase.tsx`, `Estado.tsx`, `Snackbar.tsx`, `Toggle.tsx`, `Skeletons.tsx`), navegação (`BotaoVoltar.tsx`, `BarraAcaoInferior.tsx`) e seções de tela (`ResumoGestao.tsx`, `PainelPlacar.tsx`, `Secao*.tsx`).
+- **A regra NÃO está registrada em documentação** (único resíduo acionável deste plano):
+  - `DESIGN.md` §3 ("Estrutura de Diretórios e Responsabilidades") não menciona `src/components/ui/`;
+  - `docs/planos-implementacao/README.md` cita o plano 17 na tabela e na filosofia de junção, mas não registra a convenção como regra permanente.
+- **Adoção pendente (regra contínua, sem prazo)**: plano 15 → `src/components/ui/PilulaFiltro.tsx` quando o gatilho de ativação ocorrer; plano 11 → `Badge` (hoje em `src/components/Badge.tsx`) é caso de **migração por toque** — quando o plano tocar o arquivo funcionalmente (prop `densidade`), avaliar mover no mesmo commit.
 - Os planos dependentes já citam este plano como executor da convenção: `01:26,149`, `02:54,59`, `04:29,151`, `15:43,95`.
 
 ## 3. Pré-condições e dependências
 
-- **Nenhum plano é pré-requisito** — ao contrário: este plano deve ser adotado **junto** do primeiro que criar primitiva (01, 02 ou 04, o que vier primeiro). O ranking é explícito: executar **junto** do A1/A2/A3, nunca isolado (`rank-melhorias-reuso-codigo.md`, item #17 e §3.5: "A9 custa ~zero se executado no mesmo commit de criação de A1/A2/A3").
+- **Nenhum plano é pré-requisito para o que resta** — a criação de primitivas já ocorreu (01, 02, 04, 09) e o registro documental é independente. O ranking segue válido para o futuro: novas extrações (15, 11) devem nascer em `ui/` ou migrar no toque (`rank-melhorias-reuso-codigo.md`, item #17 e §3.5).
 - **Decisão do dono exigida antes de executar** (registro, não código):
-  1. Aprovar a regra de convenção em si (novas primitivas em `ui/`; raiz congelada para novos arquivos).
-  2. Escolher **onde registrar**: `DESIGN.md` §3 ("Estrutura de Diretórios e Responsabilidades", linha 62) e/ou `docs/planos-implementacao/README.md`. Sem registro, a convenção não sobrevive a outras sessões.
-- **Restrições de janela**: nenhuma — não há mudança funcional; pode ser aplicado em qualquer momento, inclusive em partida ao vivo (o commit que cria a pasta é o mesmo do componente novo, sem risco adicional).
+  1. Aprovar a regra de convenção em si (novas primitivas em `ui/`; raiz congelada para novos arquivos). Na prática ela já é seguida; o registro formaliza o que já acontece.
+  2. Confirmar **onde registrar**: `DESIGN.md` §3 ("Estrutura de Diretórios e Responsabilidades") e `docs/planos-implementacao/README.md` — os dois destinos já previstos por este plano. Sem registro, a convenção não sobrevive a outras sessões.
+- **Restrições de janela**: nenhuma — não há mudança funcional; o passo documental pode ser aplicado em qualquer momento, inclusive em partida ao vivo.
 
 ## 4. Plano de execução (1 passo = 1 commit)
 
-Como este plano é de convenção, o "passo 1" não cria pasta vazia: **a pasta nasce no commit do primeiro componente que a adotar** (nunca um commit só com diretório vazio).
+### Já satisfeito (contexto histórico — não executar de novo)
 
-1. **Passo 1 — Registrar a convenção na documentação** (único artefato próprio deste plano; pode ser o commit que cria a primeira primitiva em `ui/`, junto do plano 01/02/04):
-   - Em `DESIGN.md`, seção §3 "Estrutura de Diretórios e Responsabilidades": adicionar que **primitivas de UI reutilizáveis e sem domínio de negócio nascem em `src/components/ui/`**; componentes existentes permanecem na raiz.
-   - Em `docs/planos-implementacao/README.md`: acrescentar uma linha à filosofia apontando para o plano 17 como origem da regra.
-   - Não executar nenhuma mudança em `src/` neste passo se ele vier sozinho.
-2. **Passo 2 — Adoção no commit de criação de cada primitiva nova** (executado pelos planos dependentes, não por este):
-   - Plano 01: `src/components/ui/CabecalhoSumula.tsx`.
-   - Plano 02: `src/components/ui/Botao.tsx` (ou `ui/botoes.ts`).
-   - Plano 04: `src/components/ui/CampoTexto.tsx` + `ui/CampoTextoLongo.tsx`.
-   - Plano 15: `src/components/ui/PilulaFiltro.tsx`, quando o gatilho de ativação ocorrer.
-3. **Passo 3 — Migração por toque (regra contínua, sem commit próprio)**:
-   - Um arquivo existente de `src/components/` só se move para `ui/` quando for **tocado por mudança funcional** (não cosmética) **e** for de fato uma primitiva (sem regra de negócio, sem acoplamento a rota).
-   - **Um arquivo por commit**, junto da mudança funcional que o tocou; nunca lote de mudanças.
-   - Primeiro candidato natural: `Badge.tsx`, quando o plano 11 (prop `densidade`) o tocar — avaliar mover no mesmo commit.
+- **Criação da pasta junto do 1º componente novo**: satisfeita. A regra original mandava a pasta nascer no commit do primeiro componente que a adotasse (nunca um commit só com diretório vazio) — os planos 01/02/04/09 seguiram exatamente isso, e `ui/` chegou ao repositório já populada com 6 componentes.
+- **Adoção por criação (Passo 2 da versão anterior)**: satisfeita para os planos 01, 02, 04 e 09. Segue valendo para os pendentes: plano 15 (`ui/PilulaFiltro.tsx`, quando o gatilho ocorrer).
+
+### O que resta executar
+
+1. **Passo 1 — Registrar a convenção na documentação** (único artefato permanente restante; commit próprio, sem nenhuma mudança em `src/`):
+   - Em `DESIGN.md`, seção §3 "Estrutura de Diretórios e Responsabilidades": adicionar que **primitivas de UI reutilizáveis e sem domínio de negócio nascem em `src/components/ui/`**; componentes existentes permanecem na raiz (migração só por toque).
+   - Em `docs/planos-implementacao/README.md`: registrar a regra de forma permanente (não apenas a referência ao plano 17 na tabela), apontando este plano como origem.
+   - Origem dos componentes já criados: mencionar que `ui/` foi adotada pelos planos 01, 02, 04 e 09.
+2. **Passo 2 — Validar conformidade dos 6 componentes existentes** (sem commit; preencher o checklist da seção 5):
+   - Conferir que `Botao`, `CabecalhoSumula`, `CampoTexto`, `CampoTextoLongo`, `ChipTipoLancamento` e `LinhaMetaLancamento` são de fato **primitivas sem domínio de tela**: sem conhecimento de rotas, sem acoplamento a dados de domínio (racha/jogador/financeiro), reutilizáveis entre telas.
+   - Se algum componente violar a regra, **não mover neste plano**: registrar o desvio como débito no plano correspondente (ou em `34-debitos-registrados.md`) e tratá-lo na migração por toque.
+
+### Regra contínua — migração por toque (sem commit próprio deste plano)
+
+- Um arquivo existente de `src/components/` só se move para `ui/` quando for **tocado por mudança funcional** (não cosmética) **e** for de fato uma primitiva (sem regra de negócio, sem acoplamento a rota).
+- **Um arquivo por commit**, junto da mudança funcional que o tocou; nunca lote de mudanças.
+- Primeiro candidato natural: `Badge.tsx`, quando o plano 11 (prop `densidade`) o tocar — avaliar mover no mesmo commit.
 
 Regra de bolso para decidir se um componente novo vai para `ui/`: primitiva visual reutilizável, sem conhecimento de rotas nem de domínio (racha/jogador/financeiro) → `ui/`. Seção de tela, formulário de domínio ou peça acoplada a dado → raiz de `src/components/` ou pacote da feature.
 
 ## 5. Validação manual
 
-- [ ] Após o commit que criar a pasta + primeira primitiva: `npm run build` (ou o build do projeto) passa sem erro de resolução de import.
-- [ ] A tela que consome a primitiva renderiza idêntica à anterior (a mudança é só de caminho/nome de import).
-- [ ] `grep -rn "components/ui" src/` mostra apenas os imports dos componentes efetivamente criados — nada de paths aspirados.
-- [ ] Em cada migração por toque: a tela afetada é exercitada manualmente (abrir, interagir, verificar visual) antes do commit.
+- [ ] **Passo 1**: `DESIGN.md` §3 e `README.md` de `docs/planos-implementacao/` exibem a regra após o commit (revisar o diff antes do push).
+- [ ] **Passo 2**: `grep -rn "components/ui" src/` mostra apenas imports dos 6 componentes existentes — nada de paths aspirados ou componentes fantasma.
+- [ ] **Passo 2**: revisão dos imports dos 6 componentes de `ui/` confirma ausência de dependência de rota, feature ou dado de domínio (conformidade à regra de bolso da seção 4).
+- [ ] `npm run build` (ou o build do projeto) passa sem erro — os componentes já são consumidos pelas telas.
+- [ ] Em cada migração por toque (futura): a tela afetada é exercitada manualmente (abrir, interagir, verificar visual) antes do commit.
 
 ## 6. Fora de escopo
 
-- **Não mover os 63 arquivos existentes** de `src/components/` para `ui/` — migração em massa é exatamente o que este plano proíbe.
+- **Não mover os arquivos existentes na raiz de `src/components/`** (68 hoje) para `ui/` — migração em massa é exatamente o que este plano proíbe.
 - Não renomear nem reorganizar componentes existentes além do movimento para `ui/` (higiene de nomes é do plano 14).
 - Não criar subpastas adicionais (`ui/forms/`, `ui/layout/` etc.) — uma única camada `ui/` enquanto não houver demanda real (YAGNI).
 - Não extrair componente algum (isso é dos planos 01, 02, 04, 11, 15); este plano não gera primitiva própria.
+- Não alterar os 6 componentes já criados em `ui/` — este plano apenas **verifica** sua conformidade (Passo 2); correções são dos planos de origem.
 - Não mover `Badge.tsx` agora: só na ocasião do toque funcional do plano 11.
 
 ## 7. Riscos e rollback
 
 - **Risco: conflito de merge em imports** quando uma migração por toque acontecer em paralelo a outra branch tocando o mesmo arquivo. Mitigação: um arquivo por commit, nunca lote. Rollback: `git revert` do commit move/reverte isoladamente (imports voltam ao estado anterior).
-- **Risco: convenção ignorada por sessões futuras** (pasta nasce, mas próximos componentes voltam à raiz). Mitigação: o Passo 1 registra a regra em `DESIGN.md` + README do diretório de planos; os planos 01/02/04/15 já apontam para cá.
-- **Risco: pasta vazia órfã** se o plano registrador for commitado antes de qualquer primitiva. Mitigação: este plano manda a pasta nascer **no mesmo commit** do primeiro componente — diretório vazio nem chega ao repositório (git não versiona pasta vazia).
-- **Risco de regressão funcional: mínimo** — nenhum passo altera comportamento; movimentações de arquivo são mecânicas e reversíveis por `git revert` isolado.
+- **Risco: convenção ignorada por sessões futuras** (pasta existe, mas próximos componentes voltam à raiz — hoje é o risco central, já que a regra vive só nos planos, não na documentação canônica). Mitigação: o Passo 1 registra a regra em `DESIGN.md` + README do diretório de planos; os planos 01/02/04/15 já apontam para cá.
+- **Risco: pasta vazia órfã** — **extinto**. A pasta nasceu já com 6 componentes (planos 01/02/04/09 seguiram a regra de nascer no commit do primeiro componente); diretório vazio nunca chegou ao repositório.
+- **Risco de regressão funcional: mínimo** — nenhum passo restante altera comportamento; o Passo 1 é documental e o Passo 2 é somente leitura. Movimentações por toque futuras são mecânicas e reversíveis por `git revert` isolado.
