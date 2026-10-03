@@ -8,7 +8,15 @@ import { chromium } from 'playwright';
 import { mkdirSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { URLS, SELETORES, PAGINA, QUADRA, seletorSlot, ErroFilmaeu } from './seletores.mjs';
+import {
+  URLS,
+  SELETORES,
+  PAGINA,
+  QUADRA,
+  QUADRA_CLIENT_ID,
+  seletorSlot,
+  ErroFilmaeu,
+} from './seletores.mjs';
 
 function diretorioDebug() {
   return join(process.env.RUNNER_TEMP || tmpdir(), 'clipes-debug');

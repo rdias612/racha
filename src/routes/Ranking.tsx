@@ -21,7 +21,7 @@ type ColunaOrdenacao =
   | 'username'
   | CampoMetrica
   | 'media_gols'
-  | 'percentual_vitorias'
+  | 'aproveitamento'
   | 'partidas'
   | 'vitorias'
   | 'empates'
@@ -106,8 +106,8 @@ export function Ranking() {
     if (coluna === 'media_gols') {
       return linha.partidas > 0 ? linha.gols / linha.partidas : 0;
     }
-    if (coluna === 'percentual_vitorias') {
-      return linha.partidas > 0 ? linha.vitorias / linha.partidas : 0;
+    if (coluna === 'aproveitamento') {
+      return linha.partidas > 0 ? linha.pontos / (3 * linha.partidas) : 0;
     }
     return linha[coluna as keyof LinhaRanking];
   }
@@ -131,7 +131,7 @@ export function Ranking() {
       { key: 'username', label: 'Atleta' },
       { key: configuracao.campo, label: configuracao.coluna },
       ...(metrica === 'gols' ? [{ key: 'media_gols' as const, label: 'Média' }] : []),
-      { key: 'percentual_vitorias', label: '%V' },
+      { key: 'aproveitamento', label: '%' },
       { key: 'partidas', label: 'J' },
       { key: 'vitorias', label: 'V' },
       { key: 'empates', label: 'E' },
@@ -437,7 +437,7 @@ function TabelaRanking({
                       <span className="font-bold text-giz">{l.username}</span>
                     ) : coluna.key === 'media_gols' ? (
                       numero2casas.format(Number(valorOrdenacao(l, coluna.key)))
-                    ) : coluna.key === 'percentual_vitorias' ? (
+                    ) : coluna.key === 'aproveitamento' ? (
                       `${Math.round(Number(valorOrdenacao(l, coluna.key)) * 100)}%`
                     ) : (
                       l[coluna.key as keyof LinhaRanking]

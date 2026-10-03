@@ -959,6 +959,7 @@ export type Database = {
           gols_contra: number | null
           jogador_id: number | null
           partidas: number | null
+          pontos: number | null
           vitorias: number | null
         }
         Relationships: [

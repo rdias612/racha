@@ -541,6 +541,7 @@ export interface StatsJogador {
   assistencias: number;
   gols_contra: number;
   vitorias: number;
+  pontos: number;
 }
 
 /**
@@ -556,7 +557,7 @@ export async function carregarStatsJogador(
     if (idOuIds.length === 0) return [];
     const { data, error } = await supabase
       .from('stats_jogador')
-      .select('jogador_id, partidas, gols, assistencias, gols_contra, vitorias')
+      .select('jogador_id, partidas, gols, assistencias, gols_contra, vitorias, pontos')
       .in('jogador_id', idOuIds);
 
     if (error) throw error;
@@ -567,12 +568,13 @@ export async function carregarStatsJogador(
       assistencias: row.assistencias ?? 0,
       gols_contra: row.gols_contra ?? 0,
       vitorias: row.vitorias ?? 0,
+      pontos: row.pontos ?? 0,
     }));
   }
 
   const { data, error } = await supabase
     .from('stats_jogador')
-    .select('jogador_id, partidas, gols, assistencias, gols_contra, vitorias')
+    .select('jogador_id, partidas, gols, assistencias, gols_contra, vitorias, pontos')
     .eq('jogador_id', idOuIds)
     .maybeSingle();
 
@@ -586,6 +588,7 @@ export async function carregarStatsJogador(
     assistencias: data.assistencias ?? 0,
     gols_contra: data.gols_contra ?? 0,
     vitorias: data.vitorias ?? 0,
+    pontos: data.pontos ?? 0,
   };
 }
 

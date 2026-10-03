@@ -46,7 +46,7 @@ const COMPARATIVO_VAZIO: ComparativoTela = {
 
 function aproveitamento(stats: StatsJogador | null): number | null {
   if (!stats || stats.partidas <= 0) return null;
-  return (stats.vitorias / stats.partidas) * 100;
+  return (stats.pontos / (3 * stats.partidas)) * 100;
 }
 
 export function Comparador() {
