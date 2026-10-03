@@ -113,12 +113,12 @@ export function GradeClipesPartida({
                 )}
               </span>
               <div className="flex items-center gap-2">
-                {/* Baixar: âncora direta na URL pública. O atributo `download`
-                    é ignorado cross-origin (bucket no supabase.co) — o browser
-                    abre o vídeo numa aba nova, de onde o usuário salva;
-                    o atributo fica para o dia em que a origem mudar. */}
+                {/* Baixar: ?download= faz o Storage responder Content-Disposition:
+                    attachment e o browser baixa sem abrir aba (o atributo
+                    `download` sozinho é ignorado cross-origin — bucket no
+                    supabase.co; fica para o dia em que a origem mudar). */}
                 <a
-                  href={clipe.url}
+                  href={clipe.urlDownload}
                   target="_blank"
                   rel="noopener noreferrer"
                   download

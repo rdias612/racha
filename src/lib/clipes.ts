@@ -17,9 +17,12 @@ export type Clipe = Pick<
   'id' | 'caminho' | 'ordem' | 'size_bytes'
 >;
 
-/** Clipe pronto para render: linha da tabela + URL pública do vídeo (P4, bucket público). */
+/** Clipe pronto para render: linha da tabela + URLs públicas do vídeo (P4, bucket público). */
 export interface ClipeComUrl extends Clipe {
+  /** Streaming (player) e compartilhamento: responde video/mp4 inline. */
   url: string;
+  /** Download no botão Baixar: mesma URL com ?download= (attachment). */
+  urlDownload: string;
 }
 
 /**
@@ -32,6 +35,16 @@ export function urlPublicaDoClipe(caminho: string): string {
   return supabase.storage.from('clipes').getPublicUrl(caminho).data.publicUrl;
 }
 
+/**
+ * URL que força download: `?download=<nome>` do Storage responde com
+ * Content-Disposition: attachment — sem ele o browser abre o vídeo em aba nova,
+ * pois o atributo download do <a> é ignorado cross-origin (bucket no supabase.co).
+ */
+export function urlDownloadDoClipe(caminho: string): string {
+  const nome = caminho.split('/').pop() ?? 'clipe.mp4';
+  return `${urlPublicaDoClipe(caminho)}?download=${encodeURIComponent(nome)}`;
+}
+
 /** Clipes da partida, na ordem do slot (ordem 1-based da Fase 3; null por último). */
 export async function carregarClipesDaPartida(partidaId: number): Promise<ClipeComUrl[]> {
   const { data, error } = await supabase
@@ -41,7 +54,11 @@ export async function carregarClipesDaPartida(partidaId: number): Promise<ClipeC
     .order('ordem', { ascending: true, nullsFirst: false })
     .order('id', { ascending: true });
   if (error) throw error;
-  return (data ?? []).map((row) => ({ ...row, url: urlPublicaDoClipe(row.caminho) }));
+  return (data ?? []).map((row) => ({
+    ...row,
+    url: urlPublicaDoClipe(row.caminho),
+    urlDownload: urlDownloadDoClipe(row.caminho),
+  }));
 }
 
 /** Última partida com clipes segundo P7: status IN ('published','closed'). */
