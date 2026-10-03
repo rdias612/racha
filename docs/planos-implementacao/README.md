@@ -60,6 +60,7 @@ As validações visuais/funcionais no aparelho listadas na seção 5 de cada pla
 |---|---|---|---|
 | 35 | [35-clipes-filmaeu.md](35-clipes-filmaeu.md) | Clipes do Filma Eu no app (requisito: [`docs/requisito-clipes-filmaeu.md`](../requisito-clipes-filmaeu.md)) | 🔨 **implementado** — 8 fases executadas/auditadas ([registros](registros/35-fase-1-banco.md) a [35-fase-8](registros/35-fase-8-frontend-admin.md)); pendente validação E2E do dono ([roteiro](35-fases/fase-8-tasks.md), Task 5) |
 | 36 | [36-repositorio-exclusao-clipes.md](36-repositorio-exclusao-clipes.md) | Repositório e exclusão manual de clipes em `/clipes/admin` (precedente de domínio: [plano 35](35-clipes-filmaeu.md)) | 🔨 **implementado** — 4 passos executados ([registros](registros/36-passo-1-edge-function.md) a [36-passo-4](registros/36-passo-4-documentacao.md)); pendente deploy da edge function e validação E2E do dono |
+| 37 | [37-correcao-importacao-clipes.md](37-correcao-importacao-clipes.md) | Correção da importação de clipes em produção: grants `SELECT`/`INSERT` do `service_role` (migration 118) + `verify_jwt=false` da `notificar-clipes` + erro legível no catch | ✅ **executado** — 3 passos executados com alterações de produção aplicadas ([registro](registros/37-correcao-importacao-clipes.md)); pendente validação manual do dono |
 
 ## Ordem de execução recomendada
 
