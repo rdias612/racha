@@ -5,6 +5,7 @@ import { SeletorNota } from '../components/SeletorNota';
 import { Botao } from '../components/ui/Botao';
 import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 import { Carregando, MensagemEstado } from '../components/Estado';
+import { PullToRefresh } from '../components/PullToRefresh';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import {
   carregarPartida,
@@ -297,118 +298,124 @@ export function PartidaVotar() {
   const minutosRestantes = Math.floor((tempoRestante % (1000 * 60 * 60)) / (1000 * 60));
 
   return (
-    <div className="px-3 py-4 pb-28 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
-      <BotaoVoltar onClick={handleVoltar} />
+    <PullToRefresh onRefresh={() => carregar()}>
+      <div className="px-3 py-4 pb-28 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
+        <BotaoVoltar onClick={handleVoltar} />
 
-      <CabecalhoSumula
-        titulo={`${editando ? 'Editar Votos da Súmula' : 'Cédula de Votação'} — Partida #${partida.id}`}
-        kicker={
-          <>
-            <div className="flex items-center justify-between mt-1">
-              <p className="text-xs font-mono font-bold text-destaque-texto">
-                ⏳ Fecha em {horasRestantes}h {minutosRestantes}min
-              </p>
-              <span className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
-                Urna Anônima
-              </span>
-            </div>
-            <p className="mt-1 text-xs text-giz-fraco">
-              Dê uma nota de 1 a 10 para cada parceiro e adversário. O craque nasce da média da
-              galera.
-            </p>
-
-            {/* Barra de Progresso Real */}
-            <div className="mt-3 space-y-1">
-              <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-giz-fraco">Progresso da cédula:</span>
-                <span
-                  className={todosAvaliados ? 'text-ok font-bold' : 'text-destaque-texto font-bold'}
-                >
-                  {avaliadosCount}/{alvos.length} avaliados
+        <CabecalhoSumula
+          titulo={`${editando ? 'Editar Votos da Súmula' : 'Cédula de Votação'} — Partida #${partida.id}`}
+          kicker={
+            <>
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-xs font-mono font-bold text-destaque-texto">
+                  ⏳ Fecha em {horasRestantes}h {minutosRestantes}min
+                </p>
+                <span className="text-[10px] font-mono uppercase tracking-widest text-giz-fraco">
+                  Urna Anônima
                 </span>
               </div>
-              <div className="h-2 w-full bg-superficie-2 rounded-[2px] overflow-hidden border border-borda">
-                <div
-                  className={`h-full transition-all duration-200 ease-out ${todosAvaliados ? 'bg-ok' : 'bg-destaque'}`}
-                  style={{ width: `${alvos.length ? (avaliadosCount / alvos.length) * 100 : 0}%` }}
-                />
-              </div>
-            </div>
-          </>
-        }
-      />
+              <p className="mt-1 text-xs text-giz-fraco">
+                Dê uma nota de 1 a 10 para cada parceiro e adversário. O craque nasce da média da
+                galera.
+              </p>
 
-      <div className="space-y-4">
-        {(['a', 'b'] as TimeId[]).map((t) => {
-          const jogadoresDoTime = alvos
-            .filter((a) => a.time === t)
-            .sort((a, b) =>
-              (a.username ?? '').localeCompare(b.username ?? '', 'pt-BR', { sensitivity: 'base' })
-            );
-          if (jogadoresDoTime.length === 0) return null;
-          return (
-            <div
-              key={t}
-              className="overflow-hidden rounded-[4px] border border-borda bg-superficie shadow-carimbo"
-            >
-              <CabecalhoTime time={t} />
-              <div className="divide-y divide-borda">
-                {jogadoresDoTime.map((a) => {
-                  const nota = notas[a.jogador_id];
-                  return (
-                    <div
-                      key={a.jogador_id}
-                      className="flex items-center justify-between gap-2 px-3 py-2.5 bg-superficie hover:bg-superficie-2 transition"
-                    >
-                      <div className="min-w-0">
-                        <span className="block truncate text-sm font-bold text-giz">
-                          {a.username}
-                        </span>
-                        <span className="text-[10px] font-display uppercase tracking-wider text-giz-fraco">
-                          {POSICOES[a.posicao]}
-                        </span>
+              {/* Barra de Progresso Real */}
+              <div className="mt-3 space-y-1">
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="text-giz-fraco">Progresso da cédula:</span>
+                  <span
+                    className={
+                      todosAvaliados ? 'text-ok font-bold' : 'text-destaque-texto font-bold'
+                    }
+                  >
+                    {avaliadosCount}/{alvos.length} avaliados
+                  </span>
+                </div>
+                <div className="h-2 w-full bg-superficie-2 rounded-[2px] overflow-hidden border border-borda">
+                  <div
+                    className={`h-full transition-all duration-200 ease-out ${todosAvaliados ? 'bg-ok' : 'bg-destaque'}`}
+                    style={{
+                      width: `${alvos.length ? (avaliadosCount / alvos.length) * 100 : 0}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            </>
+          }
+        />
+
+        <div className="space-y-4">
+          {(['a', 'b'] as TimeId[]).map((t) => {
+            const jogadoresDoTime = alvos
+              .filter((a) => a.time === t)
+              .sort((a, b) =>
+                (a.username ?? '').localeCompare(b.username ?? '', 'pt-BR', { sensitivity: 'base' })
+              );
+            if (jogadoresDoTime.length === 0) return null;
+            return (
+              <div
+                key={t}
+                className="overflow-hidden rounded-[4px] border border-borda bg-superficie shadow-carimbo"
+              >
+                <CabecalhoTime time={t} />
+                <div className="divide-y divide-borda">
+                  {jogadoresDoTime.map((a) => {
+                    const nota = notas[a.jogador_id];
+                    return (
+                      <div
+                        key={a.jogador_id}
+                        className="flex items-center justify-between gap-2 px-3 py-2.5 bg-superficie hover:bg-superficie-2 transition"
+                      >
+                        <div className="min-w-0">
+                          <span className="block truncate text-sm font-bold text-giz">
+                            {a.username}
+                          </span>
+                          <span className="text-[10px] font-display uppercase tracking-wider text-giz-fraco">
+                            {POSICOES[a.posicao]}
+                          </span>
+                        </div>
+                        <SeletorNota
+                          variante="compact"
+                          value={nota}
+                          onChange={(n) => setNota(a.jogador_id, n)}
+                        />
                       </div>
-                      <SeletorNota
-                        variante="compact"
-                        value={nota}
-                        onChange={(n) => setNota(a.jogador_id, n)}
-                      />
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
+
+        {erro && <MensagemEstado>{erro}</MensagemEstado>}
+        {feedback && <MensagemEstado tipo="sucesso">{feedback}</MensagemEstado>}
+
+        <BarraAcaoInferior>
+          <Botao onClick={enviar} disabled={!todosAvaliados || salvando} larguraCompleta>
+            {salvando
+              ? 'Depositando votos na urna…'
+              : editando
+                ? 'Atualizar votos'
+                : todosAvaliados
+                  ? 'Enviar todos os votos'
+                  : `Avalie todos (${alvos.length - avaliadosCount} restantes)`}
+          </Botao>
+        </BarraAcaoInferior>
+
+        <ConfirmDialog
+          open={confirmandoSaida}
+          onClose={() => setConfirmandoSaida(false)}
+          onConfirm={() => {
+            setConfirmandoSaida(false);
+            voltar(navigate, `/partida/${partida.id}`);
+          }}
+          titulo="Sair da votação?"
+          mensagem="Você tem notas não salvas nesta cédula. Se sair agora, as alterações serão descartadas."
+          textoConfirmar="Sair sem salvar"
+          tomConfirmar="perigo"
+        />
       </div>
-
-      {erro && <MensagemEstado>{erro}</MensagemEstado>}
-      {feedback && <MensagemEstado tipo="sucesso">{feedback}</MensagemEstado>}
-
-      <BarraAcaoInferior>
-        <Botao onClick={enviar} disabled={!todosAvaliados || salvando} larguraCompleta>
-          {salvando
-            ? 'Depositando votos na urna…'
-            : editando
-              ? 'Atualizar votos'
-              : todosAvaliados
-                ? 'Enviar todos os votos'
-                : `Avalie todos (${alvos.length - avaliadosCount} restantes)`}
-        </Botao>
-      </BarraAcaoInferior>
-
-      <ConfirmDialog
-        open={confirmandoSaida}
-        onClose={() => setConfirmandoSaida(false)}
-        onConfirm={() => {
-          setConfirmandoSaida(false);
-          voltar(navigate, `/partida/${partida.id}`);
-        }}
-        titulo="Sair da votação?"
-        mensagem="Você tem notas não salvas nesta cédula. Se sair agora, as alterações serão descartadas."
-        textoConfirmar="Sair sem salvar"
-        tomConfirmar="perigo"
-      />
-    </div>
+    </PullToRefresh>
   );
 }
