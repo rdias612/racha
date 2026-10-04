@@ -63,6 +63,18 @@ self.addEventListener('activate', (event) => {
       .then((keys) =>
         Promise.all(keys.filter((k) => !cachesPermitidos.includes(k)).map((k) => caches.delete(k)))
       )
+      .then(() =>
+        caches.open(CACHE_STATIC).then((cache) =>
+          cache.keys().then((requisicoes) => {
+            const antigas = requisicoes.filter((req) =>
+              new URL(req.url).pathname.startsWith('/assets/')
+            );
+            if (!antigas.length) return;
+            console.log(`[SW] Removendo ${antigas.length} entradas /assets/ antigas do cache estático`);
+            return Promise.all(antigas.map((req) => cache.delete(req)));
+          })
+        )
+      )
       .then(() => self.clients.claim())
   );
 });
