@@ -24,7 +24,9 @@
   --color-campo: var(--cor-campo);
   --color-campo-linha: var(--cor-campo-linha);
   --color-perigo: var(--cor-perigo);
+  --color-perigo-texto: var(--cor-perigo-texto);
   --color-ok: var(--cor-ok);
+  --color-ok-texto: var(--cor-ok-texto);
 
   --color-led-fundo: var(--cor-led-fundo);
   --color-led-borda: var(--cor-led-borda);
@@ -46,7 +48,9 @@
   --cor-campo: #dfe8dc;
   --cor-campo-linha: #b9cbb6;
   --cor-perigo: #e4572e;
+  --cor-perigo-texto: #b3401e; /* ~vermelho profundo; contraste alvo ≥ 4,5:1 sobre #faf7ee */
   --cor-ok: #58b368;
+  --cor-ok-texto: #2e7d32; /* ~verde profundo; idem */
   --cor-led-fundo: #0d0d0e;
   --cor-led-borda: #35302a;
 }
@@ -67,7 +71,9 @@
   --cor-campo: #16281c;
   --cor-campo-linha: #2c4433;
   --cor-perigo: #e4572e;
+  --cor-perigo-texto: #e4572e;
   --cor-ok: #58b368;
+  --cor-ok-texto: #58b368;
   --cor-led-fundo: #0d0d0e;
   --cor-led-borda: #35302a;
 }
