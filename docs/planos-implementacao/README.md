@@ -47,7 +47,7 @@ As validações visuais/funcionais no aparelho listadas na seção 5 de cada pla
 | 24 | [painel-da-semana.md](24-painel-da-semana.md) | E2 · Painel da Semana na home — ✅ **executado** ([registro](registros/24-painel-da-semana.md)) | 4 |
 | 26 | [perfil-minhas-dividas.md](26-perfil-minhas-dividas.md) | E5 · Perfil reordenado + Minhas Dívidas | 4 |
 | 27 | [filtro-status-mural.md](27-filtro-status-mural.md) | E6 · Jogos: filtro por status | 4 |
-| 28 | [manifest-shortcuts.md](28-manifest-shortcuts.md) | B5 · Manifest `shortcuts` | 4 |
+| 28 | [manifest-shortcuts.md](28-manifest-shortcuts.md) | B5 · Manifest `shortcuts` — ✅ **executado** ([registro](registros/28-manifest-shortcuts.md)) | 4 |
 | 29 | [design-md-tokens.md](29-design-md-tokens.md) | C5 · DESIGN.md canônico em ordem | 4 |
 | 30 | [micro-ajustes-feedback.md](30-micro-ajustes-feedback.md) | E7 · Micro-ajustes de feedback | 4 |
 | 31 | [detalhes-finos.md](31-detalhes-finos.md) | C6 · Detalhes finos de design | 4 |
