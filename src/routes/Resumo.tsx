@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { MensagemEstado } from '../components/Estado';
 import { Badge } from '../components/Badge';
@@ -70,9 +70,30 @@ export function Resumo() {
   // Boletim completo (RPC resumo_ano + próxima partida draft + ocupação de vagas)
   // cacheado por ano: revisitas renderizam na hora e revalidam em background.
   const buscar = useCallback(async (): Promise<DadosResumo> => {
-    const [resumo, draftAtual] = await Promise.all([
+    // Urna aberta com voto pendente do jogador logado — mesma composição do
+    // verificar() do BannerLembrete, sem polling: a home revalida no mount,
+    // no PTR e após qualquer recarregar; o banner global segue dono do tempo
+    // real. Falha nas queries degrada para `null`: dado opcional não derruba
+    // o boletim (mesma filosofia de card opcional não-bloqueante).
+    const urnaPendente = (async (): Promise<DadosResumo['votacaoAbertaPendente']> => {
+      if (!jogadorId) return null;
+      try {
+        const abertas = await carregarPartidasComVotacaoAberta();
+        if (abertas.length === 0) return null;
+        const votadas = await carregarPartidasVotadas(
+          jogadorId,
+          abertas.map((p) => p.id)
+        );
+        return abertas.find((p) => !votadas.has(p.id)) ?? null;
+      } catch {
+        return null;
+      }
+    })();
+
+    const [resumo, draftAtual, votacaoAbertaPendente] = await Promise.all([
       carregarResumoAno(ano),
       obterPartidaDraftAtual(),
+      urnaPendente,
     ]);
 
     let proxima: DadosResumo['proxima'] = null;
@@ -84,21 +105,6 @@ export function Resumo() {
         confirmacao_closes_at: draftAtual.confirmacao_closes_at,
         participantes: parts,
       };
-    }
-
-    // Urna aberta com voto pendente do jogador logado — mesma composição do
-    // verificar() do BannerLembrete, sem polling: a home revalida no mount,
-    // no PTR e após qualquer recarregar; o banner global segue dono do tempo real.
-    let votacaoAbertaPendente: DadosResumo['votacaoAbertaPendente'] = null;
-    if (jogadorId) {
-      const abertas = await carregarPartidasComVotacaoAberta();
-      if (abertas.length > 0) {
-        const votadas = await carregarPartidasVotadas(
-          jogadorId,
-          abertas.map((p) => p.id)
-        );
-        votacaoAbertaPendente = abertas.find((p) => !votadas.has(p.id)) ?? null;
-      }
     }
 
     return { resumo, proxima, votacaoAbertaPendente };
@@ -295,10 +301,26 @@ function CardProximaPartida({
 }) {
   const jogador = useJogadorLogado();
   // Atualização otimista do próprio status, sem mutar o cache do useCache:
-  // override local limpo após a revalidação (ou revertido no rollback).
+  // override local que vale "até prova em contrário" (ou revertido no rollback).
   const [statusOtimista, setStatusOtimista] = useState<StatusConfirmacao | null>(null);
   const [processando, setProcessando] = useState(false);
   const [erroLocal, setErroLocal] = useState<string | null>(null);
+
+  // O override só é limpo quando uma revalidação traz o status confirmado do
+  // servidor: `recarregar` engole falhas silenciosas, e descartá-lo logo após
+  // a chamada poderia regredir o badge para o status stale do cache mesmo com
+  // a confirmação já registrada no servidor.
+  useEffect(() => {
+    if (
+      statusOtimista &&
+      jogador &&
+      proxima?.participantes.some(
+        (p) => p.jogador_id === jogador.id && p.status_confirmacao === 'confirmado'
+      )
+    ) {
+      setStatusOtimista(null);
+    }
+  }, [statusOtimista, jogador, proxima]);
 
   if (!proxima) return null;
 
@@ -329,10 +351,10 @@ function CardProximaPartida({
         setStatusOtimista(null); // Rollback
         setErroLocal('Não foi possível atualizar — confira as vagas disponíveis.');
       } else {
-        // Revalidação obrigatória: vagas e badge refletem o servidor antes de
-        // soltar o override otimista (sem flash de estado antigo).
+        // Revalidação para alinhar vagas e dados ao servidor; o override
+        // otimista permanece até o useEffect acima ver o status confirmado
+        // vindo do servidor — falha de revalidação não regride o badge.
         await recarregar();
-        setStatusOtimista(null);
       }
     } catch (e) {
       setStatusOtimista(null); // Rollback
