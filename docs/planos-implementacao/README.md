@@ -44,7 +44,7 @@ As validações visuais/funcionais no aparelho listadas na seção 5 de cada pla
 | 19 | [ctas-44px.md](19-ctas-44px.md) | C1 · Alvos de 44px nos CTAs-Link — ✅ **executado** ([registro](registros/19-ctas-44px.md)) | 4 |
 | 22 | [poda-assets-cache.md](22-poda-assets-cache.md) | B4 · Poda de `/assets/*` no `CACHE_STATIC` — ✅ **executado** ([registro](registros/22-poda-assets-cache.md)) | 4 |
 | 23 | [tokens-contraste.md](23-tokens-contraste.md) | C2 · Tokens `--cor-ok-texto`/`--cor-perigo-texto` — ✅ **executado** ([registro](registros/23-tokens-contraste.md)) | 4 |
-| 24 | [painel-da-semana.md](24-painel-da-semana.md) | E2 · Painel da Semana na home | 4 |
+| 24 | [painel-da-semana.md](24-painel-da-semana.md) | E2 · Painel da Semana na home — ✅ **executado** ([registro](registros/24-painel-da-semana.md)) | 4 |
 | 26 | [perfil-minhas-dividas.md](26-perfil-minhas-dividas.md) | E5 · Perfil reordenado + Minhas Dívidas | 4 |
 | 27 | [filtro-status-mural.md](27-filtro-status-mural.md) | E6 · Jogos: filtro por status | 4 |
 | 28 | [manifest-shortcuts.md](28-manifest-shortcuts.md) | B5 · Manifest `shortcuts` | 4 |
