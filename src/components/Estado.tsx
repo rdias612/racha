@@ -51,6 +51,7 @@ export interface MensagemEstadoProps {
   tipo?: TipoMensagemEstado;
   className?: string;
   icone?: ReactNode;
+  acao?: { rotulo: string; aoClicar: () => void };
 }
 
 const ICONES_ESTADO: Record<TipoMensagemEstado, typeof AlertCircle> = {
@@ -70,6 +71,7 @@ export function MensagemEstado({
   tipo = 'erro',
   className = '',
   icone,
+  acao,
 }: MensagemEstadoProps) {
   const IconePadrao = ICONES_ESTADO[tipo];
   const isAlert = tipo === 'erro';
@@ -84,6 +86,15 @@ export function MensagemEstado({
         {icone ?? <IconePadrao className="size-4" />}
       </span>
       <div className="flex-1 min-w-0 leading-relaxed">{children}</div>
+      {acao && (
+        <button
+          type="button"
+          onClick={acao.aoClicar}
+          className="min-h-[44px] shrink-0 self-center cursor-pointer rounded-[2px] border border-current px-2.5 py-1 text-[11px] font-display font-bold uppercase tracking-wider transition hover:bg-branco-time/10"
+        >
+          {acao.rotulo}
+        </button>
+      )}
     </div>
   );
 }

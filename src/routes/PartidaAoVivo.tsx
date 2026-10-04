@@ -96,6 +96,18 @@ export function PartidaAoVivo() {
     return () => clearInterval(intervalo);
   }, [partida?.status, recarregar]);
 
+  async function tentarNovamente() {
+    setCarregando(true);
+    setErro(null);
+    try {
+      await recarregar();
+    } catch (e: unknown) {
+      setErro(formatarMensagemErro(e, 'Erro ao carregar partida.'));
+    } finally {
+      setCarregando(false);
+    }
+  }
+
   const placar = useMemo(() => placarDeEventos(eventos, participantes), [eventos, participantes]);
 
   const companheiros = useMemo(() => {
@@ -109,7 +121,11 @@ export function PartidaAoVivo() {
   if (carregando) return <Carregando>Carregando partida</Carregando>;
   if (!partida) {
     return (
-      <MensagemEstado tipo={erro ? 'erro' : 'info'} className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">
+      <MensagemEstado
+        tipo={erro ? 'erro' : 'info'}
+        className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl"
+        acao={erro ? { rotulo: 'Tentar novamente', aoClicar: tentarNovamente } : undefined}
+      >
         {erro ?? 'Partida não encontrada.'}
       </MensagemEstado>
     );

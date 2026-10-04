@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { useSessao } from '../context/SessaoContext';
 import { SeletorNota } from '../components/SeletorNota';
@@ -78,9 +78,8 @@ export function PartidaVotar() {
 
   const draftKey = partida && jogador ? `racha_voto_draft_${partida.id}_${jogador.id}` : null;
 
-  useEffect(() => {
-    let ativo = true;
-    async function carregar() {
+  const carregar = useCallback(
+    async (isAtivo?: () => boolean) => {
       if (!id || !jogador) return;
       const partidaId = Number(id);
       if (!Number.isFinite(partidaId)) {
@@ -96,23 +95,21 @@ export function PartidaVotar() {
         const p = await carregarPartida(partidaId);
 
         if (!p) {
-          if (ativo) {
-            setErro('Partida não encontrada.');
-            setCarregando(false);
-          }
+          if (isAtivo && !isAtivo()) return;
+          setErro('Partida não encontrada.');
+          setCarregando(false);
           return;
         }
 
         if (!votacaoAberta(p)) {
-          if (ativo) {
-            setErro('A votação desta partida não está aberta ou o prazo de 24h já expirou.');
-            setCarregando(false);
-          }
+          if (isAtivo && !isAtivo()) return;
+          setErro('A votação desta partida não está aberta ou o prazo de 24h já expirou.');
+          setCarregando(false);
           return;
         }
 
         const participantes = await carregarParticipantes(partidaId);
-        if (!ativo) return;
+        if (isAtivo && !isAtivo()) return;
 
         const eu = participantes.find((x) => x.jogador_id === jogador.id);
         if (!eu) {
@@ -149,7 +146,7 @@ export function PartidaVotar() {
 
         const meusVotos = await carregarMeusVotos(partidaId, jogador.id);
 
-        if (!ativo) return;
+        if (isAtivo && !isAtivo()) return;
 
         const mapaNotas: Record<number, number> = {};
         const mapaOriginais = new Map<number, number>();
@@ -183,29 +180,42 @@ export function PartidaVotar() {
           }
         }
 
+        if (isAtivo && !isAtivo()) return;
+
         setPartida(p);
         setAlvos(outros);
         setNotas(mapaNotas);
         setNotasIniciais(mapaNotas);
         setVotosOriginais(mapaOriginais);
       } catch (e) {
-        if (ativo) {
-          setErro(formatarMensagemErro(e, 'Erro ao carregar votação.'));
-        }
+        if (isAtivo && !isAtivo()) return;
+        setErro(formatarMensagemErro(e, 'Erro ao carregar votação.'));
       } finally {
-        if (ativo) setCarregando(false);
+        if (!isAtivo || isAtivo()) setCarregando(false);
       }
-    }
-    carregar();
+    },
+    [id, jogador]
+  );
+
+  useEffect(() => {
+    let ativo = true;
+    carregar(() => ativo);
     return () => {
       ativo = false;
     };
-  }, [id, jogador]);
+  }, [carregar]);
 
   if (!jogador) return <Navigate to="/login" replace />;
   if (carregando) return <Carregando>Carregando cédula de votação…</Carregando>;
   if (erro)
-    return <MensagemEstado className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">{erro}</MensagemEstado>;
+    return (
+      <MensagemEstado
+        className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl"
+        acao={{ rotulo: 'Tentar novamente', aoClicar: () => carregar() }}
+      >
+        {erro}
+      </MensagemEstado>
+    );
   if (!partida) return null;
 
   function setNota(targetId: number, rating: number) {

@@ -147,7 +147,11 @@ export function PartidaDetalhe() {
   if (carregando) return <SkeletonDetalhe />;
   if (!partida)
     return (
-      <MensagemEstado tipo={erro ? 'erro' : 'info'} className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl">
+      <MensagemEstado
+        tipo={erro ? 'erro' : 'info'}
+        className="mx-3 mt-4 sm:mx-auto sm:max-w-2xl"
+        acao={erro ? { rotulo: 'Tentar novamente', aoClicar: () => carregar() } : undefined}
+      >
         {erro ?? 'Partida não encontrada.'}
       </MensagemEstado>
     );
