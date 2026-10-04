@@ -114,7 +114,7 @@ export function LinhaJogadorGestao({
             j.posicao === 'goleiro'
               ? 'border-borda bg-superficie-2 text-giz-fraco/50 cursor-not-allowed'
               : j.is_mensalista
-                ? 'border-ok/60 bg-ok/10 text-ok hover:bg-ok/20'
+                ? 'border-ok/60 bg-ok/10 text-ok-texto hover:bg-ok/20'
                 : bloqMensalista
                   ? 'border-borda bg-superficie-2 text-giz-fraco opacity-60'
                   : 'border-borda bg-superficie-2 text-giz-fraco hover:text-giz hover:border-destaque/40'

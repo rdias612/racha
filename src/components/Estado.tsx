@@ -61,8 +61,8 @@ const ICONES_ESTADO: Record<TipoMensagemEstado, typeof AlertCircle> = {
 };
 
 const ESTILOS_ESTADO: Record<TipoMensagemEstado, string> = {
-  erro: 'border-perigo/40 bg-perigo/10 text-perigo',
-  sucesso: 'border-ok/40 bg-ok/10 text-ok',
+  erro: 'border-perigo/40 bg-perigo/10 text-perigo-texto',
+  sucesso: 'border-ok/40 bg-ok/10 text-ok-texto',
   info: 'border-borda bg-superficie text-giz',
 };
 

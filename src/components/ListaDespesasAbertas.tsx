@@ -27,7 +27,7 @@ export function ListaDespesasAbertas({
         nivel="h3"
         tamanho="sm"
         acao={
-          <span className="font-mono text-base font-bold text-perigo tabular-nums">
+          <span className="font-mono text-base font-bold text-perigo-texto tabular-nums">
             {formatarReais(totalDespesas)}
           </span>
         }
@@ -92,7 +92,7 @@ export function ListaDespesasAbertas({
                   ) : null}
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1.5">
-                  <span className="font-mono text-sm font-bold text-perigo tabular-nums">
+                  <span className="font-mono text-sm font-bold text-perigo-texto tabular-nums">
                     −{formatarReais(Number(d.valor))}
                   </span>
                   <button
@@ -101,7 +101,7 @@ export function ListaDespesasAbertas({
                       e.stopPropagation();
                       onSolicitarQuitar(d.id, d.jogadores?.username ?? 'caixa');
                     }}
-                    className="min-h-[44px] flex items-center gap-1 rounded-[3px] border border-borda bg-superficie-2 px-3 py-1.5 text-xs font-display uppercase tracking-wider font-bold text-giz hover:border-perigo hover:text-perigo transition"
+                    className="min-h-[44px] flex items-center gap-1 rounded-[3px] border border-borda bg-superficie-2 px-3 py-1.5 text-xs font-display uppercase tracking-wider font-bold text-giz hover:border-perigo hover:text-perigo-texto transition"
                   >
                     <Check className="size-3.5" />
                     Pagar

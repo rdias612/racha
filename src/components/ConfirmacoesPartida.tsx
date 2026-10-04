@@ -74,7 +74,7 @@ function BotoesSelf({ status, podeConf, ocupadas, processando, onAtualizar }: Pr
           type="button"
           disabled={processando}
           onClick={() => onAtualizar('recusado')}
-          className={`${btn} border-perigo/40 text-perigo hover:bg-perigo/10`}
+          className={`${btn} border-perigo/40 text-perigo-texto hover:bg-perigo/10`}
         >
           Essa quinta não rola
         </button>
@@ -102,7 +102,7 @@ function BotoesAdmin({
         onClick={() => onAtualizar('confirmado')}
         title="Confirmar"
         className={`${mini} ${
-          status === 'confirmado' ? 'border-ok bg-ok/20 text-ok font-bold' : off
+          status === 'confirmado' ? 'border-ok bg-ok/20 text-ok-texto font-bold' : off
         }`}
       >
         ✓
@@ -126,7 +126,7 @@ function BotoesAdmin({
         onClick={() => onAtualizar('recusado')}
         title="Não vai"
         className={`${mini} ${
-          status === 'recusado' ? 'border-perigo bg-perigo/20 text-perigo font-bold' : off
+          status === 'recusado' ? 'border-perigo bg-perigo/20 text-perigo-texto font-bold' : off
         }`}
       >
         ✗
@@ -137,7 +137,7 @@ function BotoesAdmin({
           disabled={processando}
           onClick={onRemover}
           title="Remover convite"
-          className={`${mini} ${off} hover:border-perigo hover:text-perigo`}
+          className={`${mini} ${off} hover:border-perigo hover:text-perigo-texto`}
         >
           ✕
         </button>
@@ -381,7 +381,7 @@ export function ConfirmacoesPartida({
       )}
 
       {erroLocal && (
-        <p className="px-3 py-2 text-xs font-mono text-perigo border-t border-borda bg-perigo/10">
+        <p className="px-3 py-2 text-xs font-mono text-perigo-texto border-t border-borda bg-perigo/10">
           {erroLocal}
         </p>
       )}

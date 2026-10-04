@@ -66,8 +66,8 @@ const STATUS_CONFIG: Record<
 const VARIANTE_CLASSES: Record<BadgeVariante, string> = {
   posicao: 'border-borda bg-superficie text-giz shadow-xs',
   destaque: 'border-destaque/60 bg-destaque/15 text-destaque-texto',
-  ok: 'border-ok/40 bg-ok/10 text-ok',
-  perigo: 'border-perigo/40 bg-perigo/10 text-perigo',
+  ok: 'border-ok/40 bg-ok/10 text-ok-texto',
+  perigo: 'border-perigo/40 bg-perigo/10 text-perigo-texto',
   'destaque-solido': 'border-transparent bg-destaque text-destaque-tinta shadow-xs',
   neutro: 'border-borda bg-superficie-2 text-giz-fraco',
   status: 'border-borda bg-superficie-2 text-giz-fraco',

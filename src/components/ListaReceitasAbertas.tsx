@@ -55,7 +55,7 @@ export function ListaReceitasAbertas({
         nivel="h3"
         tamanho="sm"
         acao={
-          <span className="font-mono text-base font-bold text-ok tabular-nums">
+          <span className="font-mono text-base font-bold text-ok-texto tabular-nums">
             {formatarReais(totalReceitas)}
           </span>
         }
@@ -107,7 +107,7 @@ export function ListaReceitasAbertas({
                       {g.dividas.length} {g.dividas.length === 1 ? 'lançamento' : 'lançamentos'}
                     </span>
                   </div>
-                  <span className="shrink-0 font-mono text-sm font-bold text-perigo tabular-nums">
+                  <span className="shrink-0 font-mono text-sm font-bold text-perigo-texto tabular-nums">
                     {formatarReais(g.total_devido)}
                   </span>
                   <div className="flex items-center gap-1.5 shrink-0">
@@ -157,7 +157,7 @@ export function ListaReceitasAbertas({
                           )}
                         </div>
                         <div className="flex shrink-0 flex-col items-end gap-1.5">
-                          <span className="font-mono text-sm font-bold text-ok tabular-nums">
+                          <span className="font-mono text-sm font-bold text-ok-texto tabular-nums">
                             +{formatarReais(Number(d.valor))}
                           </span>
                           <button
