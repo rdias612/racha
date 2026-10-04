@@ -21,6 +21,7 @@ import {
 } from '../lib/partidas';
 import { carregarClipesDaPartida, type ClipeComUrl } from '../lib/clipes';
 import { MensagemEstado } from '../components/Estado';
+import { PullToRefresh } from '../components/PullToRefresh';
 import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 import { SkeletonDetalhe } from '../components/Skeletons';
 import { ConfirmDialog } from '../components/ConfirmDialog';
@@ -183,152 +184,154 @@ export function PartidaDetalhe() {
   const isRandom = !!jogadorLogado && isRandomUsername(jogadorLogado.username);
 
   return (
-    <div className="px-3 py-4 pb-16 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
-      <BotaoVoltar fallback="/jogos" />
+    <PullToRefresh onRefresh={() => carregar()}>
+      <div className="px-3 py-4 pb-16 sm:px-4 max-w-2xl mx-auto space-y-4 text-giz">
+        <BotaoVoltar fallback="/jogos" />
 
-      {/* Cabeçalho da Súmula */}
-      <CabecalhoSumula
-        titulo={`Partida #${partida.id}`}
-        kicker={
-          <p className="text-xs text-giz-fraco capitalize font-mono mt-0.5">
-            <span className="sm:hidden">{formatarDataMobile(partida.data_jogo)}</span>
-            <span className="hidden sm:inline">{formatarDataCompleta(partida.data_jogo)}</span>
-          </p>
-        }
-        acao={
-          <div className="text-right flex flex-col items-end">
-            <Badge variante="status" status={partida.status}>
-              {STATUS_LABEL[partida.status]}
-            </Badge>
-            {isVotacaoAberta && partida.voting_closes_at && (
-              <p className="text-[10px] font-mono text-destaque-texto mt-1">
-                Urna fecha {formatarFechamento(partida.voting_closes_at)}
-              </p>
-            )}
-          </div>
-        }
-        className="items-start"
-      />
-
-      {/* Placar: Painel de LED */}
-      {placar && partida.status !== 'draft' && (
-        <PainelPlacar
-          golsTimeA={placar.gols_time_a}
-          golsTimeB={placar.gols_time_b}
-          status={partida.status}
-          variante="completo"
+        {/* Cabeçalho da Súmula */}
+        <CabecalhoSumula
+          titulo={`Partida #${partida.id}`}
+          kicker={
+            <p className="text-xs text-giz-fraco capitalize font-mono mt-0.5">
+              <span className="sm:hidden">{formatarDataMobile(partida.data_jogo)}</span>
+              <span className="hidden sm:inline">{formatarDataCompleta(partida.data_jogo)}</span>
+            </p>
+          }
+          acao={
+            <div className="text-right flex flex-col items-end">
+              <Badge variante="status" status={partida.status}>
+                {STATUS_LABEL[partida.status]}
+              </Badge>
+              {isVotacaoAberta && partida.voting_closes_at && (
+                <p className="text-[10px] font-mono text-destaque-texto mt-1">
+                  Urna fecha {formatarFechamento(partida.voting_closes_at)}
+                </p>
+              )}
+            </div>
+          }
+          className="items-start"
         />
-      )}
 
-      {/* Card do Craque da Partida (quando closed) */}
-      {partida.status === 'closed' && craque && <CardCraquePartida craque={craque} />}
+        {/* Placar: Painel de LED */}
+        {placar && partida.status !== 'draft' && (
+          <PainelPlacar
+            golsTimeA={placar.gols_time_a}
+            golsTimeB={placar.gols_time_b}
+            status={partida.status}
+            variante="completo"
+          />
+        )}
 
-      {/* Notas reveladas quando closed */}
-      {partida.status === 'closed' && notas.length > 0 && <ListaNotasPartida notas={notas} />}
+        {/* Card do Craque da Partida (quando closed) */}
+        {partida.status === 'closed' && craque && <CardCraquePartida craque={craque} />}
 
-      {partida.status === 'draft' && (
-        <ConfirmacoesPartida
-          partida={partida}
-          participantes={participantes}
-          jogadorLogadoId={jogadorLogado?.id ?? null}
-          isAdmin={isAdmin}
-          onAtualizar={carregar}
-        />
-      )}
+        {/* Notas reveladas quando closed */}
+        {partida.status === 'closed' && notas.length > 0 && <ListaNotasPartida notas={notas} />}
 
-      {(partida.status !== 'draft' || participantes.some((p) => p.time !== null)) && (
-        <GridTimesPartida participantes={participantes} />
-      )}
+        {partida.status === 'draft' && (
+          <ConfirmacoesPartida
+            partida={partida}
+            participantes={participantes}
+            jogadorLogadoId={jogadorLogado?.id ?? null}
+            isAdmin={isAdmin}
+            onAtualizar={carregar}
+          />
+        )}
 
-      {/* Clipes do Filma Eu: só existe bloco quando há clipes importados (RF04) */}
-      {clipes.length > 0 && <GradeClipesPartida clipes={clipes} />}
+        {(partida.status !== 'draft' || participantes.some((p) => p.time !== null)) && (
+          <GridTimesPartida participantes={participantes} />
+        )}
 
-      {/* Ações principais por status */}
-      {partida.status === 'draft' && isAdmin && (
-        <div className="space-y-2">
-          <Link
-            to={`/partida/${partida.id}/times`}
-            className="block text-center rounded-[4px] border border-borda bg-superficie-2 px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-giz shadow-carimbo hover:bg-superficie transition active:translate-y-px"
-          >
-            Escalar Times
-          </Link>
-          <Botao type="button" disabled={abrindo} onClick={confirmarAbrir} larguraCompleta>
-            {abrindo ? 'Iniciando partida…' : 'Iniciar Modo Ao Vivo'}
-          </Botao>
-        </div>
-      )}
+        {/* Clipes do Filma Eu: só existe bloco quando há clipes importados (RF04) */}
+        {clipes.length > 0 && <GradeClipesPartida clipes={clipes} />}
 
-      {partida.status === 'live' && (
-        <div className="space-y-2">
-          <Link
-            to={`/partida/${partida.id}/ao-vivo`}
-            className="block text-center rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 transition active:translate-y-px"
-          >
-            {isAdmin ? 'Registrar Eventos na Súmula' : 'Acompanhar Ao Vivo'}
-          </Link>
-        </div>
-      )}
-
-      {(partida.status === 'published' || partida.status === 'closed') && isAdmin && (
-        <div className="space-y-2">
-          <Link
-            to={`/partida/${partida.id}/editar`}
-            className="block text-center rounded-[4px] border border-borda bg-superficie-2 px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-giz shadow-carimbo hover:bg-superficie transition active:translate-y-px"
-          >
-            Editar partida e súmula
-          </Link>
-        </div>
-      )}
-
-      {isVotacaoAberta && jaEhParticipante && !isRandom && (
-        <div className="space-y-2">
-          {jaVotou ? (
-            <>
-              <p className="text-center text-xs font-mono text-ok">
-                Seu voto tá garantido. Dá pra mudar até as urnas fecharem.
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                <Link
-                  to={`/partida/${partida.id}/votar`}
-                  className="flex min-h-[44px] items-center justify-center rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo transition active:translate-y-px"
-                >
-                  Editar votos
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => setConfirmandoDescarte(true)}
-                  className="block text-center rounded-[4px] border border-perigo/50 bg-superficie-2 px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-perigo shadow-carimbo hover:bg-perigo/10 transition active:translate-y-px"
-                >
-                  Descartar votos
-                </button>
-              </div>
-            </>
-          ) : (
+        {/* Ações principais por status */}
+        {partida.status === 'draft' && isAdmin && (
+          <div className="space-y-2">
             <Link
-              to={`/partida/${partida.id}/votar`}
+              to={`/partida/${partida.id}/times`}
+              className="block text-center rounded-[4px] border border-borda bg-superficie-2 px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-giz shadow-carimbo hover:bg-superficie transition active:translate-y-px"
+            >
+              Escalar Times
+            </Link>
+            <Botao type="button" disabled={abrindo} onClick={confirmarAbrir} larguraCompleta>
+              {abrindo ? 'Iniciando partida…' : 'Iniciar Modo Ao Vivo'}
+            </Botao>
+          </div>
+        )}
+
+        {partida.status === 'live' && (
+          <div className="space-y-2">
+            <Link
+              to={`/partida/${partida.id}/ao-vivo`}
               className="block text-center rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 transition active:translate-y-px"
             >
-              Votar nos Jogadores (Craque da Quinta)
+              {isAdmin ? 'Registrar Eventos na Súmula' : 'Acompanhar Ao Vivo'}
             </Link>
-          )}
-        </div>
-      )}
+          </div>
+        )}
 
-      <ConfirmDialog
-        open={confirmandoDescarte}
-        onClose={() => setConfirmandoDescarte(false)}
-        onConfirm={confirmarDescarte}
-        titulo="Descartar seus votos?"
-        mensagem="Isso vai apagar todas as notas que você deu nesta partida. Você poderá votar novamente enquanto a votação estiver aberta."
-        textoConfirmar={descartando ? 'Descartando…' : 'Descartar'}
-        tomConfirmar="perigo"
-      />
+        {(partida.status === 'published' || partida.status === 'closed') && isAdmin && (
+          <div className="space-y-2">
+            <Link
+              to={`/partida/${partida.id}/editar`}
+              className="block text-center rounded-[4px] border border-borda bg-superficie-2 px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-giz shadow-carimbo hover:bg-superficie transition active:translate-y-px"
+            >
+              Editar partida e súmula
+            </Link>
+          </div>
+        )}
 
-      {partida.status === 'published' && !isVotacaoAberta && (
-        <p className="text-center text-xs font-mono text-destaque-texto">
-          As urnas fecharam. O craque está sendo apurado.
-        </p>
-      )}
-    </div>
+        {isVotacaoAberta && jaEhParticipante && !isRandom && (
+          <div className="space-y-2">
+            {jaVotou ? (
+              <>
+                <p className="text-center text-xs font-mono text-ok">
+                  Seu voto tá garantido. Dá pra mudar até as urnas fecharem.
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  <Link
+                    to={`/partida/${partida.id}/votar`}
+                    className="flex min-h-[44px] items-center justify-center rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo transition active:translate-y-px"
+                  >
+                    Editar votos
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmandoDescarte(true)}
+                    className="block text-center rounded-[4px] border border-perigo/50 bg-superficie-2 px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-perigo shadow-carimbo hover:bg-perigo/10 transition active:translate-y-px"
+                  >
+                    Descartar votos
+                  </button>
+                </div>
+              </>
+            ) : (
+              <Link
+                to={`/partida/${partida.id}/votar`}
+                className="block text-center rounded-[4px] border border-destaque bg-destaque px-4 py-3 font-display font-bold uppercase tracking-wider text-xs text-destaque-tinta shadow-carimbo hover:brightness-105 transition active:translate-y-px"
+              >
+                Votar nos Jogadores (Craque da Quinta)
+              </Link>
+            )}
+          </div>
+        )}
+
+        <ConfirmDialog
+          open={confirmandoDescarte}
+          onClose={() => setConfirmandoDescarte(false)}
+          onConfirm={confirmarDescarte}
+          titulo="Descartar seus votos?"
+          mensagem="Isso vai apagar todas as notas que você deu nesta partida. Você poderá votar novamente enquanto a votação estiver aberta."
+          textoConfirmar={descartando ? 'Descartando…' : 'Descartar'}
+          tomConfirmar="perigo"
+        />
+
+        {partida.status === 'published' && !isVotacaoAberta && (
+          <p className="text-center text-xs font-mono text-destaque-texto">
+            As urnas fecharam. O craque está sendo apurado.
+          </p>
+        )}
+      </div>
+    </PullToRefresh>
   );
 }
