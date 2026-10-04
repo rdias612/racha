@@ -21,6 +21,7 @@ import { isRandomUsername } from '../lib/jogadores';
 import { invalidarCache } from '../hooks/useCache';
 import { CHAVE_MEDIAS_NOTAS } from '../lib/chavesCache';
 import { voltar } from '../lib/navegacao';
+import { vibrateSuccess } from '../lib/haptics';
 import { BotaoVoltar } from '../components/BotaoVoltar';
 import { BarraAcaoInferior } from '../components/BarraAcaoInferior';
 import { CabecalhoTime } from '../components/CabecalhoTime';
@@ -277,6 +278,7 @@ export function PartidaVotar() {
 
       setVotosEnviados(true);
       setFeedback(editando ? 'Votos atualizados com sucesso!' : 'Votos registrados na urna!');
+      vibrateSuccess();
       if (timerNavegacaoRef.current) {
         clearTimeout(timerNavegacaoRef.current);
       }

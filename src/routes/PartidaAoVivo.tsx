@@ -16,6 +16,7 @@ import { BotaoVoltar } from '../components/BotaoVoltar';
 import { BarraAcaoInferior } from '../components/BarraAcaoInferior';
 import { Botao } from '../components/ui/Botao';
 import { formatarMensagemErro } from '../lib/erros';
+import { vibrateSuccess } from '../lib/haptics';
 import { dispararPushVotacaoAberta } from '../lib/notificacoes';
 import {
   abrirPartida,
@@ -266,6 +267,7 @@ export function PartidaAoVivo() {
         // registrada em cron_execucoes; os buckets 6h/3h/1h/30m são a rede.
         void dispararPushVotacaoAberta(jogadorLogado.id, partida.id).catch(() => {});
       }
+      vibrateSuccess();
       navigate(`/partida/${partida.id}`, { replace: true });
     } catch (e: unknown) {
       setErro(formatarMensagemErro(e, 'Não foi possível finalizar a partida.'));
