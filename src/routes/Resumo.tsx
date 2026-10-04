@@ -13,6 +13,7 @@ import {
   vagasOcupadas,
   CAPACIDADE_PARTIDA,
   obterPartidaDraftAtual,
+  type Participante,
   type ResumoAno,
 } from '../lib/partidas';
 import { formatarDataCompleta, formatarDataMobile } from '../lib/formatacao';
@@ -23,9 +24,18 @@ import {
   type UltimaPartidaComClipes,
 } from '../lib/clipes';
 
+// Próxima partida draft com o elenco completo: permite ao card derivar vagas
+// e o estado de confirmação do próprio jogador sem query adicional.
+interface ProximaPartida {
+  id: number;
+  data_jogo: string;
+  confirmacao_closes_at: string | null;
+  participantes: Participante[];
+}
+
 interface DadosResumo {
   resumo: ResumoAno | null;
-  proxima: { id: number; data_jogo: string; ocupadas: number } | null;
+  proxima: ProximaPartida | null;
 }
 
 interface DestaqueProps {
@@ -53,7 +63,8 @@ export function Resumo() {
       proxima = {
         id: draftAtual.id,
         data_jogo: draftAtual.data_jogo,
-        ocupadas: vagasOcupadas(parts),
+        confirmacao_closes_at: draftAtual.confirmacao_closes_at,
+        participantes: parts,
       };
     }
 
@@ -235,12 +246,9 @@ function CardClipesDisponiveis({ ultima }: { ultima: UltimaPartidaComClipes | nu
   );
 }
 
-function CardProximaPartida({
-  proxima,
-}: {
-  proxima: { id: number; data_jogo: string; ocupadas: number } | null;
-}) {
+function CardProximaPartida({ proxima }: { proxima: ProximaPartida | null }) {
   if (!proxima) return null;
+  const ocupadas = vagasOcupadas(proxima.participantes);
   return (
     <Link
       to={`/partida/${proxima.id}`}
@@ -251,7 +259,7 @@ function CardProximaPartida({
           PRÓXIMA QUINTA
         </span>
         <span className="font-mono text-xs font-bold text-destaque-texto tabular-nums">
-          {proxima.ocupadas}/{CAPACIDADE_PARTIDA} VAGAS
+          {ocupadas}/{CAPACIDADE_PARTIDA} VAGAS
         </span>
       </div>
       <p className="mt-2 font-display font-bold text-lg uppercase tracking-wider text-giz capitalize">
