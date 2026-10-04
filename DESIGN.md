@@ -87,7 +87,8 @@ racha/
 │   │   ├── PullToRefresh.tsx  # Gesto de refresh mobile com detecção recursiva de scroll
 │   │   ├── SeletorNota.tsx    # Dropdown tátil de notas de 1 a 10
 │   │   ├── Skeletons.tsx      # Skeletons estruturais das telas (CLS = 0)
-│   │   └── Snackbar.tsx       # Toast de notificação rápida com haptics e auto-dismiss
+│   │   ├── Snackbar.tsx       # Toast de notificação rápida com haptics e auto-dismiss
+│   │   └── ui/                # Primitivas de UI reutilizáveis e sem domínio de negócio (Botao, CampoTexto, CabecalhoSumula…)
 │   ├── context/
 │   │   └── SessaoContext.tsx  # Gerenciamento global de sessão e sync do jogador logado
 │   ├── hooks/
@@ -139,6 +140,8 @@ racha/
 │   └── SETUP_FRONTEND_LOCAL.md # Guia de setup do frontend local com Supabase real
 └── docs/                      # Documentação histórica e relatórios de auditoria
 ```
+
+> **Convenção da pasta `src/components/ui/`**: primitivas de UI reutilizáveis e sem domínio de negócio nascem em `src/components/ui/` — adoção iniciada pelos planos 01, 02, 04, 09 e 15 de `docs/planos-implementacao/`. Componentes já existentes na raiz permanecem onde estão: migração para `ui/` ocorre apenas quando o arquivo for tocado por mudança funcional (não cosmética), um arquivo por commit. Regra de bolso: primitiva visual reutilizável, sem conhecimento de rotas nem de domínio (racha/jogador/financeiro) → `ui/`; seção de tela, formulário de domínio ou peça acoplada a dado → raiz de `src/components/`.
 
 ---
 

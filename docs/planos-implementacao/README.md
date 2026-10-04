@@ -4,6 +4,7 @@
 > Registros de execução/validação de planos executados ficam em [`registros/`](registros/).
 > Plano de origem: `docs/plano-melhorias-frontend-pwa.md`. Filosofia: `AGENTS.md` — passos pequenos, 1 commit por passo, sem novas bibliotecas, validação manual.
 > Todos os planos pendentes foram re-medidos e atualizados contra o código em **2026-10-03** (validação de conformidade com o `AGENTS.md`: sem violações; os docs carregam a data da re-medição na seção "Estado atual").
+> Convenção permanente: primitivas de UI reutilizáveis e sem domínio de negócio nascem em `src/components/ui/`; a raiz de `src/components/` fica para os componentes já existentes e para peças acopladas a tela/dado — migração para `ui/` só por toque funcional, um arquivo por commit (regra de bolso: primitiva visual sem conhecimento de rotas/domínio → `ui/`; seção de tela ou peça acoplada a dado → raiz). Origem da regra: [plano 17](17-pasta-ui.md).
 
 ## Processo padrão de execução (válido para todo plano deste diretório)
 
