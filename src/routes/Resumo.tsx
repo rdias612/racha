@@ -9,6 +9,8 @@ import { CardNotificacoes } from '../components/CardNotificacoes';
 import { PullToRefresh } from '../components/PullToRefresh';
 
 import {
+  carregarPartidasComVotacaoAberta,
+  carregarPartidasVotadas,
   confirmarPresenca,
   carregarParticipantes,
   carregarResumoAno,
@@ -18,6 +20,7 @@ import {
   obterPartidaDraftAtual,
   STATUS_CONFIRMACAO_LABEL,
   type Participante,
+  type PartidaVotacaoAberta,
   type StatusConfirmacao,
   type ResumoAno,
 } from '../lib/partidas';
@@ -48,6 +51,7 @@ interface ProximaPartida {
 interface DadosResumo {
   resumo: ResumoAno | null;
   proxima: ProximaPartida | null;
+  votacaoAbertaPendente: PartidaVotacaoAberta | null;
 }
 
 interface DestaqueProps {
@@ -60,6 +64,8 @@ interface DestaqueProps {
 
 export function Resumo() {
   const ano = new Date().getFullYear();
+  const jogador = useJogadorLogado();
+  const jogadorId = jogador?.id ?? null;
 
   // Boletim completo (RPC resumo_ano + próxima partida draft + ocupação de vagas)
   // cacheado por ano: revisitas renderizam na hora e revalidam em background.
@@ -80,8 +86,23 @@ export function Resumo() {
       };
     }
 
-    return { resumo, proxima };
-  }, [ano]);
+    // Urna aberta com voto pendente do jogador logado — mesma composição do
+    // verificar() do BannerLembrete, sem polling: a home revalida no mount,
+    // no PTR e após qualquer recarregar; o banner global segue dono do tempo real.
+    let votacaoAbertaPendente: DadosResumo['votacaoAbertaPendente'] = null;
+    if (jogadorId) {
+      const abertas = await carregarPartidasComVotacaoAberta();
+      if (abertas.length > 0) {
+        const votadas = await carregarPartidasVotadas(
+          jogadorId,
+          abertas.map((p) => p.id)
+        );
+        votacaoAbertaPendente = abertas.find((p) => !votadas.has(p.id)) ?? null;
+      }
+    }
+
+    return { resumo, proxima, votacaoAbertaPendente };
+  }, [ano, jogadorId]);
 
   const { dados, carregando, erro, recarregar } = useCache<DadosResumo>(chaveResumo(ano), buscar);
 
@@ -95,6 +116,7 @@ export function Resumo() {
 
   const resumo = dados?.resumo ?? null;
   const proxima = dados?.proxima ?? null;
+  const votacaoAbertaPendente = dados?.votacaoAbertaPendente ?? null;
 
   if (carregando) return <SkeletonResumo />;
   // Erro apenas na primeira visita (sem cache): com dados em tela, a falha de
@@ -176,7 +198,11 @@ export function Resumo() {
         <BotaoInstalar />
         <CardNotificacoes ocultarQuandoAtivo />
 
-        <CardProximaPartida proxima={proxima} recarregar={recarregar} />
+        <CardProximaPartida
+          proxima={proxima}
+          votacaoAbertaPendente={votacaoAbertaPendente}
+          recarregar={recarregar}
+        />
 
         <CardClipesDisponiveis ultima={ultimaComClipes ?? null} />
 
@@ -260,9 +286,11 @@ function CardClipesDisponiveis({ ultima }: { ultima: UltimaPartidaComClipes | nu
 
 function CardProximaPartida({
   proxima,
+  votacaoAbertaPendente,
   recarregar,
 }: {
   proxima: ProximaPartida | null;
+  votacaoAbertaPendente: PartidaVotacaoAberta | null;
   recarregar: () => Promise<void>;
 }) {
   const jogador = useJogadorLogado();
@@ -355,16 +383,28 @@ function CardProximaPartida({
             : `Reservas liberadas ${formatarFechamento(closesAt)}.`}
         </p>
       )}
-      {meuParticipante && statusEfetivo !== 'confirmado' && (
-        <button
-          type="button"
-          disabled={processando || !podeConf}
-          onClick={confirmar}
-          title={lotado ? 'Vagas esgotadas' : undefined}
-          className="mt-3 w-full min-h-[44px] rounded-[3px] border border-destaque bg-destaque/15 px-3 text-xs font-display font-bold uppercase tracking-wider text-destaque-texto shadow-xs transition hover:bg-destaque hover:text-destaque-tinta active:translate-y-px disabled:opacity-40"
-        >
-          Vou jogar
-        </button>
+      {(votacaoAbertaPendente || (meuParticipante && statusEfetivo !== 'confirmado')) && (
+        <div className="mt-3 space-y-2">
+          {votacaoAbertaPendente && (
+            <Link
+              to={`/partida/${votacaoAbertaPendente.id}/votar`}
+              className="flex min-h-[44px] w-full items-center justify-center rounded-[3px] border border-destaque bg-destaque px-3 text-xs font-display font-bold uppercase tracking-wider text-destaque-tinta shadow-xs transition hover:opacity-90 active:translate-y-px"
+            >
+              Votar no Craque
+            </Link>
+          )}
+          {meuParticipante && statusEfetivo !== 'confirmado' && (
+            <button
+              type="button"
+              disabled={processando || !podeConf}
+              onClick={confirmar}
+              title={lotado ? 'Vagas esgotadas' : undefined}
+              className="w-full min-h-[44px] rounded-[3px] border border-destaque bg-destaque/15 px-3 text-xs font-display font-bold uppercase tracking-wider text-destaque-texto shadow-xs transition hover:bg-destaque hover:text-destaque-tinta active:translate-y-px disabled:opacity-40"
+            >
+              Vou jogar
+            </button>
+          )}
+        </div>
       )}
       {erroLocal && (
         <p className="mt-2 text-xs font-mono text-perigo-texto border-t border-borda pt-2">
