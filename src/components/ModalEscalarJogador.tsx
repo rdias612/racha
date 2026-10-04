@@ -3,6 +3,7 @@ import { UserPlus } from 'lucide-react';
 import { CampoBusca } from './CampoBusca';
 import { ModalBase } from './ModalBase';
 import { Botao } from './ui/Botao';
+import { PilulaFiltro } from './ui/PilulaFiltro';
 import { POSICOES, TIMES, type TimeId } from '../lib/times';
 import type { JogadorLista } from '../lib/jogadores';
 
@@ -78,18 +79,13 @@ export function ModalEscalarJogador({
               { id: 'avulsos', label: 'Avulsos' },
             ] as const
           ).map((f) => (
-            <button
-              key={f.id}
-              type="button"
+            <PilulaFiltro
+              ativo={filtroModal === f.id}
               onClick={() => setFiltroModal(f.id)}
-              className={`min-h-[44px] px-2.5 py-1 rounded-[3px] font-display font-bold uppercase tracking-wider whitespace-nowrap transition cursor-pointer ${
-                filtroModal === f.id
-                  ? 'bg-destaque text-destaque-tinta shadow-carimbo'
-                  : 'bg-superficie-2 border border-borda text-giz-fraco hover:text-giz'
-              }`}
+              className="px-2.5 py-1 whitespace-nowrap"
             >
               {f.label}
-            </button>
+            </PilulaFiltro>
           ))}
         </div>
       </div>
