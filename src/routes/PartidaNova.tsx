@@ -201,10 +201,6 @@ export function PartidaNova() {
         />
       </div>
 
-      {(erroCarregamento ?? erro) && (
-        <MensagemEstado>{erroCarregamento ?? erro}</MensagemEstado>
-      )}
-
       {/* Data e Cota */}
       <div className="rounded-[4px] border border-borda bg-superficie p-3.5 shadow-carimbo space-y-3">
         <label className="block">
@@ -267,6 +263,10 @@ export function PartidaNova() {
         onLimpar={limparGrupo}
         cotaLinhaCheia={linhaSel >= CAPACIDADE_PARTIDA}
       />
+
+      {(erroCarregamento ?? erro) && (
+        <MensagemEstado>{erroCarregamento ?? erro}</MensagemEstado>
+      )}
 
       {/* Barra Fixa Inferior */}
       <BarraAcaoInferior
