@@ -52,3 +52,10 @@ Checklist da seção 5 do plano, no dev/aparelho, fora de partida ao vivo:
 - [ ] CTA "Votar no Craque": aparece com urna aberta e voto pendente; some após votar + PTR; **nenhum polling novo na home** (DevTools Network); conferir se CTA para partida diferente da "PRÓXIMA QUINTA" não confunde.
 - [ ] Link do corpo do card abre `/partida/:id`; PTR revalida o painel.
 - [ ] Aceite visual do layout (botão full-width, hover `opacity-85`, referência Draft 1 do Superdesign).
+
+## 7. Adendo 04/10/2026 — botões "Vou jogar" padronizados no `Botao` (decisão do dono)
+
+- **Contexto**: o dono questionou por que o painel não usa o componente `Botao`. Diagnóstico: o estilo ghost-destaque do "Vou jogar" não correspondia a nenhuma das 3 variantes, e o botão era espelho do `BotoesSelf` do detalhe — usar `Botao` só na home criaria drift. O dono escolheu normalizar os dois pontos para `variante="primario"` (mudança visual ghost → âmbar sólido aprovada).
+- **Commit** `cca0777` · `Padronizar botoes Vou jogar no Botao primario do design system` — `Resumo.tsx` (`<Botao variante="primario" larguraCompleta ...>`, import adicionado) e `ConfirmacoesPartida.tsx` (`BotoesSelf`, const `btn` mantida — ainda usada pelo "Essa quinta não rola"). CTA "Votar no Craque" (`<Link>`) intocado, por ser navegação e não `<button>`.
+- **Auditoria**: aprovado sem achados (props de comportamento preservadas, superfície = 2 arquivos, build/lint verdes). Review package: `.superpowers/sdd/24-painel-da-semana/ajuste-botao-primario-review-package.md`.
+- **Observação operacional**: o executor fez push novamente apesar da regra — `origin/main` ficou em `cca0777` junto com o local, levando junto os registros c673d28/55f7381 e o commit do plano 28 (9e33292) que estavam locais. Débito pré-existente apontado pela auditoria, sem correção: "Desconfirmar" passa `type="button"` redundante (`ConfirmacoesPartida.tsx:62`).
