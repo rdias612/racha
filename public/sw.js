@@ -70,7 +70,7 @@ self.addEventListener('activate', (event) => {
               new URL(req.url).pathname.startsWith('/assets/')
             );
             if (!antigas.length) return;
-            console.log(`[SW] Removendo ${antigas.length} entradas /assets/ antigas do cache estático`);
+            console.log(`[SW] Removendo ${antigas.length} entradas /assets/ do cache estático`);
             return Promise.all(antigas.map((req) => cache.delete(req)));
           })
         )
