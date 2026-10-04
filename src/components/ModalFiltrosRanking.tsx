@@ -4,6 +4,7 @@ import { POSICOES, type PosicaoId } from '../lib/times';
 import { vibrateLight } from '../lib/haptics';
 import { ModalBase } from './ModalBase';
 import { Botao } from './ui/Botao';
+import { PilulaFiltro } from './ui/PilulaFiltro';
 
 export type PosicaoFiltro = Exclude<PosicaoId, 'random'> | 'todas';
 
@@ -113,32 +114,24 @@ export function ModalFiltrosRanking({
             Posição do Atleta
           </span>
           <div className="grid grid-cols-3 gap-2">
-            <button
-              type="button"
+            <PilulaFiltro
+              ativo={draftPosicao === 'todas'}
               onClick={() => handleTrocarPosicao('todas')}
-              className={`min-h-[44px] inline-flex items-center justify-center rounded-[3px] px-2 py-2 text-xs font-display font-bold uppercase tracking-wider transition cursor-pointer ${
-                draftPosicao === 'todas'
-                  ? 'bg-destaque text-destaque-tinta shadow-xs border border-destaque font-black'
-                  : 'border border-borda bg-superficie-2 text-giz-fraco hover:text-giz hover:bg-superficie'
-              }`}
+              className="px-2 py-2"
             >
               Todas
-            </button>
+            </PilulaFiltro>
             {POSICOES_FILTRO.map((pos) => {
               const ativo = draftPosicao === pos;
               return (
-                <button
+                <PilulaFiltro
                   key={pos}
-                  type="button"
+                  ativo={ativo}
                   onClick={() => handleTrocarPosicao(pos)}
-                  className={`min-h-[44px] inline-flex items-center justify-center rounded-[3px] px-2 py-2 text-xs font-display font-bold uppercase tracking-wider transition cursor-pointer ${
-                    ativo
-                      ? 'bg-destaque text-destaque-tinta shadow-xs border border-destaque font-black'
-                      : 'border border-borda bg-superficie-2 text-giz-fraco hover:text-giz hover:bg-superficie'
-                  }`}
+                  className="px-2 py-2"
                 >
                   {POSICOES[pos]}
-                </button>
+                </PilulaFiltro>
               );
             })}
           </div>
