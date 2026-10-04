@@ -45,7 +45,6 @@ As validações visuais/funcionais no aparelho listadas na seção 5 de cada pla
 | 22 | [poda-assets-cache.md](22-poda-assets-cache.md) | B4 · Poda de `/assets/*` no `CACHE_STATIC` — ✅ **executado** ([registro](registros/22-poda-assets-cache.md)) | 4 |
 | 23 | [tokens-contraste.md](23-tokens-contraste.md) | C2 · Tokens `--cor-ok-texto`/`--cor-perigo-texto` — ✅ **executado** ([registro](registros/23-tokens-contraste.md)) | 4 |
 | 24 | [painel-da-semana.md](24-painel-da-semana.md) | E2 · Painel da Semana na home | 4 |
-| 25 | [ranking-sua-posicao.md](25-ranking-sua-posicao.md) | E4 · Ranking "sua posição" com jump | 4 |
 | 26 | [perfil-minhas-dividas.md](26-perfil-minhas-dividas.md) | E5 · Perfil reordenado + Minhas Dívidas | 4 |
 | 27 | [filtro-status-mural.md](27-filtro-status-mural.md) | E6 · Jogos: filtro por status | 4 |
 | 28 | [manifest-shortcuts.md](28-manifest-shortcuts.md) | B5 · Manifest `shortcuts` | 4 |
@@ -62,7 +61,7 @@ As validações visuais/funcionais no aparelho listadas na seção 5 de cada pla
 |---|---|---|---|
 | 37 | [37-correcao-importacao-clipes.md](37-correcao-importacao-clipes.md) | Correção da importação de clipes em produção: grants `SELECT`/`INSERT` do `service_role` (migration 118) + `verify_jwt=false` da `notificar-clipes` + erro legível no catch | ✅ **executado** — 3 passos executados com alterações de produção aplicadas ([registro](registros/37-correcao-importacao-clipes.md)); pendente validação manual do dono |
 
-> Planos **35** (Clipes do Filma Eu) e **36** (Repositório e exclusão manual de clipes) foram executados e seus docs removidos; os registros de execução/validação permanecem em [`registros/`](registros/) (`35-fase-*.md`, `36-passo-*.md`).
+> Plano **25** (E4 · Ranking "sua posição") foi **descartado pelo dono** e seu doc removido em 04/10/2026. Planos **35** (Clipes do Filma Eu) e **36** (Repositório e exclusão manual de clipes) foram executados e seus docs removidos; os registros de execução/validação permanecem em [`registros/`](registros/) (`35-fase-*.md`, `36-passo-*.md`).
 
 ## Ordem de execução recomendada
 
