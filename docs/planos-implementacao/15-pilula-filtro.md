@@ -5,6 +5,8 @@
 
 ## ⚠️ Status: débito arquivado — gatilho original revisto, não executar agora
 
+> **Atualização 04/10/2026**: **executado** por decisão do dono (pedido explícito), sem aguardar o gatilho — caminho da seção 4 (componente próprio), alternativa `Botao` descartada. Ver [registro](registros/15-pilula-filtro.md). O texto abaixo fica como histórico do arquivamento.
+
 O ranking (#15, nota 2,5) é explícito: é o único item "de extração" que o próprio plano de origem limita ("só se houver 4º uso ou evolução visual — teto em um componente"). **A verificação de 2026-10-03 alterou a premissa central do plano**: `GestaoJogadores.tsx` foi migrado para `<Botao variante={...}>` (commit `620f55f`, onda 5 do plano 02), eliminando o maior dos 3 call sites originais — e provando que o `Botao` com variante já produz o estado ativo de pílula em botões-encaixáveis (`ui/Botao.tsx:20` gera exatamente `bg-destaque text-destaque-tinta shadow-carimbo`, o estado que a `PilulaFiltro` replicaria).
 
 Com isso, o critério original do "4º uso" **não é mais o gatilho correto**: restam 2 arquivos com o ternário de classes inline e o componente `Botao` cobre o papel "botão-toggle de filtro". O que restaria para uma `PilulaFiltro` dedicada é um recorte menor — pílulas que não são `<button>`-ação (NavLinks de navegação, fora do alcance do `Botao`) ou onde normalizar para `Botao` não for visualmente aceitável. Há ainda um caminho alternativo mais barato que o componente novo: migrar os 2 modais restantes para `<Botao variante>` com `className` de padding, zerando os ternários sem criar abstração (a decidir pelo dono).

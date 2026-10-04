@@ -36,7 +36,7 @@ As validações visuais/funcionais no aparelho listadas na seção 5 de cada pla
 | 12 | [token-scrim.md](12-token-scrim.md) | C3 · Token `--cor-scrim` — ✅ **executado** ([registro](registros/12-token-scrim.md)) | 3 |
 | 13 | [remocao-tokens-mortos.md](13-remocao-tokens-mortos.md) | C4 · Remoção de tokens/dados mortos — ✅ **executado** ([registro](registros/13-remocao-tokens-mortos.md)) | 3 |
 | 14 | [higiene-nomenclatura.md](14-higiene-nomenclatura.md) | A4 · Higiene de nomenclatura — ✅ **executado** ([registro](registros/14-higiene-nomenclatura.md)) | 3 |
-| 15 | [pilula-filtro.md](15-pilula-filtro.md) | A7 · `PilulaFiltro` — 🔶 **gatilho revisado (03/10)**: restam 2 call sites inline e o `Botao` já cobre o estado ativo; executar só para pílulas fora do alcance do `Botao` — decida aposentar ou executar | 3 |
+| 15 | [pilula-filtro.md](15-pilula-filtro.md) | A7 · `PilulaFiltro` — ✅ **executado** ([registro](registros/15-pilula-filtro.md)) — dono decidiu executar o componente próprio em 04/10/2026, descartando a alternativa `Botao` | 3 |
 | 16 | [retry-ptr-partida.md](16-retry-ptr-partida.md) | E3 · Retry/PTR/haptics nas telas de partida | 4 |
 | 17 | [pasta-ui.md](17-pasta-ui.md) | A9 · Pasta `ui/` para novas primitivas | 4 |
 | 18 | [revalidar-online.md](18-revalidar-online.md) | B1 · Revalidar dados ao voltar online — ✅ **executado** ([registro](registros/18-revalidar-online.md)) | 4 |
@@ -69,4 +69,4 @@ As validações visuais/funcionais no aparelho listadas na seção 5 de cada pla
 - **Junto de qualquer extração**: 17 (pasta `ui/`) custa ~zero se aplicado no commit de criação dos componentes novos.
 - **Tier 3**: executar "ao tocar o arquivo" conforme oportunidade.
 - **Tier 4**: seguir a ordem de fases do plano original (`docs/plano-melhorias-frontend-pwa.md` §4) — este diretório não altera a prioridade de produto.
-- **Decisões do dono antes de executar**: 15 (aposentar após migrar os 2 modais restantes para `Botao`, ou executar para pílulas fora do alcance dele), 24 (aprovar escopo do Painel da Semana), 26 (sincronizar com roadmap "Minhas Dívidas"), 32 (permanece arquivado até que exista queixa real de "primeira execução offline").
+- **Decisões do dono antes de executar**: 24 (aprovar escopo do Painel da Semana), 26 (sincronizar com roadmap "Minhas Dívidas"), 32 (permanece arquivado até que exista queixa real de "primeira execução offline").
