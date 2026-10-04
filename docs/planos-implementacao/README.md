@@ -43,7 +43,7 @@ As validações visuais/funcionais no aparelho listadas na seção 5 de cada pla
 | 18 | [revalidar-online.md](18-revalidar-online.md) | B1 · Revalidar dados ao voltar online — ✅ **executado** ([registro](registros/18-revalidar-online.md)) | 4 |
 | 19 | [ctas-44px.md](19-ctas-44px.md) | C1 · Alvos de 44px nos CTAs-Link — ✅ **executado** ([registro](registros/19-ctas-44px.md)) | 4 |
 | 22 | [poda-assets-cache.md](22-poda-assets-cache.md) | B4 · Poda de `/assets/*` no `CACHE_STATIC` — ✅ **executado** ([registro](registros/22-poda-assets-cache.md)) | 4 |
-| 23 | [tokens-contraste.md](23-tokens-contraste.md) | C2 · Tokens `--cor-ok-texto`/`--cor-perigo-texto` | 4 |
+| 23 | [tokens-contraste.md](23-tokens-contraste.md) | C2 · Tokens `--cor-ok-texto`/`--cor-perigo-texto` — ✅ **executado** ([registro](registros/23-tokens-contraste.md)) | 4 |
 | 24 | [painel-da-semana.md](24-painel-da-semana.md) | E2 · Painel da Semana na home | 4 |
 | 25 | [ranking-sua-posicao.md](25-ranking-sua-posicao.md) | E4 · Ranking "sua posição" com jump | 4 |
 | 26 | [perfil-minhas-dividas.md](26-perfil-minhas-dividas.md) | E5 · Perfil reordenado + Minhas Dívidas | 4 |

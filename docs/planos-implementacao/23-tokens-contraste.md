@@ -26,7 +26,7 @@ Evidências reconferidas no código em **2026-10-03** (revisão anterior: 2026-0
 | Arquivo | Linhas | Uso |
 |---|---|---|
 | `src/components/Badge.tsx` | 69, 70 | variantes `ok` e `perigo` do Badge (`border-ok/40 bg-ok/10 text-ok` / idem perigo — só os `text-ok`/`text-perigo` migram; alimentam Badges `text-[9px]`/`text-[10px]` de todo o app) |
-| `src/components/Estado.tsx` | 63, 64 | variantes `erro` e `sucesso` do `MensagemEstado` (idem: só os tokens de texto migram; corpo da mensagem é `text-xs`) |
+| `src/components/Estado.tsx` | 64, 65 | variantes `erro` e `sucesso` do `MensagemEstado` (idem: só os tokens de texto migram; corpo da mensagem é `text-xs`) |
 | `src/components/LinhaJogadorGestao.tsx` | 117 | toggle mensalista com `text-ok` herdando `text-xs` do grid (`:100`). Os antigos chips `text-[9px]` citados na revisão anterior migraram para `Badge` mini (A8) — o ponto atual do arquivo é este. O checkbox interno usa `text-branco-time` sobre `bg-ok` sólido (`:126`) e não se toca |
 | `src/components/ConfirmacoesPartida.tsx` | 77, 105, 129, 140, 384 | botão "Essa quinta não rola" `text-xs` (77), mini-botões admin ✓/✗ `text-xs` (105, 129), hover do mini-botão remover (140), rodapé de erro `text-xs` (384) |
 | `src/components/ListaReceitasAbertas.tsx` | 58, 110, 160 | valores financeiros em mono (`text-base` em 58; `text-sm` em 110 — total devido `text-perigo` — e 160) |

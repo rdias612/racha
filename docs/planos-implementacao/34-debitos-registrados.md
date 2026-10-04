@@ -107,6 +107,13 @@ Total hoje: **1 commit aplicável** (Passo 4, junto do plano 01). Passos 1 e 3 f
 - **Gatilho**: editar qualquer um dos dois arquivos por outro motivo. Avaliar então desacoplar (labels/tipos passados via props pelo call site, sem import de `lib/dividas` no componente) e/ou movê-los para fora de `ui/` se o acoplamento for intrínseco ao papel deles. Um arquivo por commit, junto da mudança funcional que os tocou.
 - Não mover nem desacoplar fora do gatilho (sem refactor cosmético — AGENTS.md).
 
+### Passo 9 — Tailwind gera utilities mortas a partir de classes citadas em `docs/` · **AO MEXER NA CONFIGURAÇÃO DE BUILD** (registrado pelo plano 23)
+
+- **Origem**: auditoria do plano 23 (04/10/2026) — o Tailwind v4 escaneia todo o projeto fora do `.gitignore`, incluindo `docs/`; a menção literal de `bg-ok-texto` em `23-tokens-contraste.md:78` fez o Tailwind gerar a utility sem nenhum consumidor (~60 bytes de regra morta no bundle). Mesmo mecanismo vale para qualquer classe citada em planos/docs.
+- **Gatilho**: mexer em `src/index.css` (bloco de build do Tailwind) ou na configuração de varredura por outro motivo.
+- **Correção**: restringir a varredura do Tailwind a `src/` (ex.: `@source not docs` em `src/index.css`, ou equivalente da versão em uso), conferindo que nenhuma utility usada só via strings dinâmicas construídas em runtime deixe de ser gerada (revisar os casos antes).
+- Não abrir trabalho dedicado fora do gatilho.
+
 ## 5. Validação manual
 
 Sem testes automáticos (AGENTS.md). Checklist por passo executado:
