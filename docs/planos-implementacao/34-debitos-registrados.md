@@ -101,6 +101,12 @@ Total hoje: **1 commit aplicável** (Passo 4, junto do plano 01). Passos 1 e 3 f
 - **Gatilho para revisar**: criação da 2ª edge function do grupo admin — decidir então se `admin-` vira o padrão das funções de painel; enquanto isso, funções de automação/notificação continuam verbo-primeiro.
 - **NÃO renomear** as funções existentes retroativamente — o nome é identidade pública no Supabase (deploy, invoke, painel); renomeação cosmética ampla (AGENTS.md proíbe).
 
+### Passo 8 — Componentes de `ui/` acoplados a domínio financeiro · **APENAS AO TOCAR OS ARQUIVOS** (registrado pelo plano 17)
+
+- **Origem**: Passo 2 (validação de conformidade) do plano `17-pasta-ui.md`, em 04/10/2026 — `src/components/ui/ChipTipoLancamento.tsx` e `src/components/ui/LinhaMetaLancamento.tsx` (criados pelo plano 09) importam tipos/labels de `lib/dividas` (`TipoDivida`, `NaturezaLancamento`, `labelTipoDivida`), violando a regra de bolso da convenção `ui/` (primitiva sem domínio → `ui/`). A colocação deles em `ui/` foi decisão deliberada do plano 09; o desvio é de acoplamento, não de local.
+- **Gatilho**: editar qualquer um dos dois arquivos por outro motivo. Avaliar então desacoplar (labels/tipos passados via props pelo call site, sem import de `lib/dividas` no componente) e/ou movê-los para fora de `ui/` se o acoplamento for intrínseco ao papel deles. Um arquivo por commit, junto da mudança funcional que os tocou.
+- Não mover nem desacoplar fora do gatilho (sem refactor cosmético — AGENTS.md).
+
 ## 5. Validação manual
 
 Sem testes automáticos (AGENTS.md). Checklist por passo executado:

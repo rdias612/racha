@@ -13,16 +13,17 @@ Estabelecer a convenção de que **toda primitiva de UI nova nasce em `src/compo
 
 Evidências conferidas no código em **2026-10-03**:
 
-- **`src/components/ui/` já existe** com 6 componentes, criados pelos planos de extração (a adoção correu à frente deste plano):
+- **`src/components/ui/` já existe** com 7 componentes, criados pelos planos de extração (a adoção correu à frente deste plano):
   - `src/components/ui/Botao.tsx` (plano 02);
   - `src/components/ui/CabecalhoSumula.tsx` (plano 01);
   - `src/components/ui/CampoTexto.tsx` e `src/components/ui/CampoTextoLongo.tsx` (plano 04);
-  - `src/components/ui/ChipTipoLancamento.tsx` e `src/components/ui/LinhaMetaLancamento.tsx` (plano 09).
+  - `src/components/ui/ChipTipoLancamento.tsx` e `src/components/ui/LinhaMetaLancamento.tsx` (plano 09);
+  - `src/components/ui/PilulaFiltro.tsx` (plano 15, executado em 04/10/2026).
 - **68 arquivos planos** na raiz de `src/components/` (contagem confirmada por `find -maxdepth 1 -type f`; eram 63 na medição de 2026-09-30). A lista mistura primitivas (`Badge.tsx`, `ModalBase.tsx`, `Estado.tsx`, `Snackbar.tsx`, `Toggle.tsx`, `Skeletons.tsx`), navegação (`BotaoVoltar.tsx`, `BarraAcaoInferior.tsx`) e seções de tela (`ResumoGestao.tsx`, `PainelPlacar.tsx`, `Secao*.tsx`).
 - **A regra NÃO está registrada em documentação** (único resíduo acionável deste plano):
   - `DESIGN.md` §3 ("Estrutura de Diretórios e Responsabilidades") não menciona `src/components/ui/`;
   - `docs/planos-implementacao/README.md` cita o plano 17 na tabela e na filosofia de junção, mas não registra a convenção como regra permanente.
-- **Adoção pendente (regra contínua, sem prazo)**: plano 15 → `src/components/ui/PilulaFiltro.tsx` quando o gatilho de ativação ocorrer; plano 11 → `Badge` (hoje em `src/components/Badge.tsx`) é caso de **migração por toque** — quando o plano tocar o arquivo funcionalmente (prop `densidade`), avaliar mover no mesmo commit.
+- **Adoção pendente (regra contínua, sem prazo)**: plano 11 → `Badge` (hoje em `src/components/Badge.tsx`) é caso de **migração por toque** — quando o plano tocar o arquivo funcionalmente (prop `densidade`), avaliar mover no mesmo commit. (A adoção pelo plano 15 foi satisfeita em 04/10/2026: `PilulaFiltro` nasceu direto em `ui/`.)
 - Os planos dependentes já citam este plano como executor da convenção: `01:26,149`, `02:54,59`, `04:29,151`, `15:43,95`.
 
 ## 3. Pré-condições e dependências
@@ -47,7 +48,7 @@ Evidências conferidas no código em **2026-10-03**:
    - Em `docs/planos-implementacao/README.md`: registrar a regra de forma permanente (não apenas a referência ao plano 17 na tabela), apontando este plano como origem.
    - Origem dos componentes já criados: mencionar que `ui/` foi adotada pelos planos 01, 02, 04 e 09.
 2. **Passo 2 — Validar conformidade dos 6 componentes existentes** (sem commit; preencher o checklist da seção 5):
-   - Conferir que `Botao`, `CabecalhoSumula`, `CampoTexto`, `CampoTextoLongo`, `ChipTipoLancamento` e `LinhaMetaLancamento` são de fato **primitivas sem domínio de tela**: sem conhecimento de rotas, sem acoplamento a dados de domínio (racha/jogador/financeiro), reutilizáveis entre telas.
+   - Conferir que `Botao`, `CabecalhoSumula`, `CampoTexto`, `CampoTextoLongo`, `ChipTipoLancamento`, `LinhaMetaLancamento` e `PilulaFiltro` são de fato **primitivas sem domínio de tela**: sem conhecimento de rotas, sem acoplamento a dados de domínio (racha/jogador/financeiro), reutilizáveis entre telas.
    - Se algum componente violar a regra, **não mover neste plano**: registrar o desvio como débito no plano correspondente (ou em `34-debitos-registrados.md`) e tratá-lo na migração por toque.
 
 ### Regra contínua — migração por toque (sem commit próprio deste plano)
@@ -61,7 +62,7 @@ Regra de bolso para decidir se um componente novo vai para `ui/`: primitiva visu
 ## 5. Validação manual
 
 - [ ] **Passo 1**: `DESIGN.md` §3 e `README.md` de `docs/planos-implementacao/` exibem a regra após o commit (revisar o diff antes do push).
-- [ ] **Passo 2**: `grep -rn "components/ui" src/` mostra apenas imports dos 6 componentes existentes — nada de paths aspirados ou componentes fantasma.
+- [ ] **Passo 2**: `grep -rn "from '.*ui/" src/` mostra apenas imports dos 7 componentes existentes (o padrão cobre os imports relativos `./ui/…` da raiz de `src/components/`, que o `grep "components/ui"` não captura) — nada de paths aspirados ou componentes fantasma.
 - [ ] **Passo 2**: revisão dos imports dos 6 componentes de `ui/` confirma ausência de dependência de rota, feature ou dado de domínio (conformidade à regra de bolso da seção 4).
 - [ ] `npm run build` (ou o build do projeto) passa sem erro — os componentes já são consumidos pelas telas.
 - [ ] Em cada migração por toque (futura): a tela afetada é exercitada manualmente (abrir, interagir, verificar visual) antes do commit.
