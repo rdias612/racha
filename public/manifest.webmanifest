@@ -11,6 +11,18 @@
   "theme_color": "#12100d",
   "lang": "pt-BR",
   "categories": ["sports", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Jogos",
+      "url": "/jogos",
+      "icons": [{ "src": "/icon.svg", "sizes": "512x512", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Ranking",
+      "url": "/ranking/pontos",
+      "icons": [{ "src": "/icon.svg", "sizes": "512x512", "type": "image/svg+xml" }]
+    }
+  ],
   "icons": [
     {
       "src": "/icon.svg",
