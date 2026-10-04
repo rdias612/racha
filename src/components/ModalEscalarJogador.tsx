@@ -80,6 +80,7 @@ export function ModalEscalarJogador({
             ] as const
           ).map((f) => (
             <PilulaFiltro
+              key={f.id}
               ativo={filtroModal === f.id}
               onClick={() => setFiltroModal(f.id)}
               className="px-2.5 py-1 whitespace-nowrap"
