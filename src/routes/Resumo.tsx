@@ -1,6 +1,7 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { MensagemEstado } from '../components/Estado';
+import { Badge } from '../components/Badge';
 import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 import { SkeletonResumo } from '../components/Skeletons';
 import { BotaoInstalar } from '../components/BotaoInstalar';
@@ -8,16 +9,27 @@ import { CardNotificacoes } from '../components/CardNotificacoes';
 import { PullToRefresh } from '../components/PullToRefresh';
 
 import {
+  confirmarPresenca,
   carregarParticipantes,
   carregarResumoAno,
+  podeConfirmar,
   vagasOcupadas,
   CAPACIDADE_PARTIDA,
   obterPartidaDraftAtual,
+  STATUS_CONFIRMACAO_LABEL,
   type Participante,
+  type StatusConfirmacao,
   type ResumoAno,
 } from '../lib/partidas';
-import { formatarDataCompleta, formatarDataMobile } from '../lib/formatacao';
+import {
+  formatarDataCompleta,
+  formatarDataMobile,
+  formatarFechamento,
+} from '../lib/formatacao';
 import { useCache } from '../hooks/useCache';
+import { useJogadorLogado } from '../hooks/useJogadorLogado';
+import { vibrateSuccess } from '../lib/haptics';
+import { formatarMensagemErro } from '../lib/erros';
 import { chaveResumo, CHAVE_ULTIMA_PARTIDA_COM_CLIPES } from '../lib/chavesCache';
 import {
   obterUltimaPartidaComClipes,
@@ -164,7 +176,7 @@ export function Resumo() {
         <BotaoInstalar />
         <CardNotificacoes ocultarQuandoAtivo />
 
-        <CardProximaPartida proxima={proxima} />
+        <CardProximaPartida proxima={proxima} recarregar={recarregar} />
 
         <CardClipesDisponiveis ultima={ultimaComClipes ?? null} />
 
@@ -246,14 +258,64 @@ function CardClipesDisponiveis({ ultima }: { ultima: UltimaPartidaComClipes | nu
   );
 }
 
-function CardProximaPartida({ proxima }: { proxima: ProximaPartida | null }) {
+function CardProximaPartida({
+  proxima,
+  recarregar,
+}: {
+  proxima: ProximaPartida | null;
+  recarregar: () => Promise<void>;
+}) {
+  const jogador = useJogadorLogado();
+  // Atualização otimista do próprio status, sem mutar o cache do useCache:
+  // override local limpo após a revalidação (ou revertido no rollback).
+  const [statusOtimista, setStatusOtimista] = useState<StatusConfirmacao | null>(null);
+  const [processando, setProcessando] = useState(false);
+  const [erroLocal, setErroLocal] = useState<string | null>(null);
+
   if (!proxima) return null;
+
+  const meuParticipante = jogador
+    ? (proxima.participantes.find((p) => p.jogador_id === jogador.id) ?? null)
+    : null;
+  const statusEfetivo = statusOtimista ?? meuParticipante?.status_confirmacao ?? null;
   const ocupadas = vagasOcupadas(proxima.participantes);
+  const lotado = ocupadas >= CAPACIDADE_PARTIDA;
+  const podeConf =
+    meuParticipante != null && podeConfirmar(meuParticipante, 'confirmado', proxima.participantes);
+
+  const closesAt = proxima.confirmacao_closes_at;
+  const prazoPassou = !!closesAt && new Date().getTime() >= new Date(closesAt).getTime();
+
+  // Mesmo padrão de atualizar() (ConfirmacoesPartida), restrito ao self:
+  // haptics + status otimista + rollback com mensagem inline + revalidação.
+  async function confirmar() {
+    if (!proxima || !jogador || !meuParticipante) return;
+    setErroLocal(null);
+    setProcessando(true);
+    vibrateSuccess();
+    setStatusOtimista('confirmado');
+
+    try {
+      const ok = await confirmarPresenca(proxima.id, jogador.id, 'confirmado');
+      if (!ok) {
+        setStatusOtimista(null); // Rollback
+        setErroLocal('Não foi possível atualizar — confira as vagas disponíveis.');
+      } else {
+        // Revalidação obrigatória: vagas e badge refletem o servidor antes de
+        // soltar o override otimista (sem flash de estado antigo).
+        await recarregar();
+        setStatusOtimista(null);
+      }
+    } catch (e) {
+      setStatusOtimista(null); // Rollback
+      setErroLocal(formatarMensagemErro(e));
+    } finally {
+      setProcessando(false);
+    }
+  }
+
   return (
-    <Link
-      to={`/partida/${proxima.id}`}
-      className="block rounded-[4px] border-2 border-destaque bg-superficie px-4 py-3.5 shadow-carimbo transition active:scale-[0.99] hover:bg-superficie-2"
-    >
+    <div className="rounded-[4px] border-2 border-destaque bg-superficie px-4 py-3.5 shadow-carimbo">
       <div className="flex items-center justify-between gap-2">
         <span className="font-display font-black text-[10px] uppercase tracking-widest text-destaque-tinta bg-destaque px-2 py-0.5 rounded-[2px] shadow-xs">
           PRÓXIMA QUINTA
@@ -262,13 +324,53 @@ function CardProximaPartida({ proxima }: { proxima: ProximaPartida | null }) {
           {ocupadas}/{CAPACIDADE_PARTIDA} VAGAS
         </span>
       </div>
-      <p className="mt-2 font-display font-bold text-lg uppercase tracking-wider text-giz capitalize">
-        <span className="sm:hidden">{formatarDataMobile(proxima.data_jogo)}</span>
-        <span className="hidden sm:inline">{formatarDataCompleta(proxima.data_jogo)}</span>
-      </p>
-      <p className="mt-0.5 text-xs text-giz-fraco font-mono">
-        Toque para confirmar presença ou consultar a súmula
-      </p>
-    </Link>
+      <Link
+        to={`/partida/${proxima.id}`}
+        className="block mt-2 transition active:scale-[0.99] hover:opacity-85"
+      >
+        <p className="font-display font-bold text-lg uppercase tracking-wider text-giz capitalize">
+          <span className="sm:hidden">{formatarDataMobile(proxima.data_jogo)}</span>
+          <span className="hidden sm:inline">{formatarDataCompleta(proxima.data_jogo)}</span>
+        </p>
+        {meuParticipante && statusEfetivo ? (
+          <p className="mt-1">
+            <Badge variante="status" status={statusEfetivo}>
+              {STATUS_CONFIRMACAO_LABEL[statusEfetivo]}
+            </Badge>
+          </p>
+        ) : jogador ? (
+          <p className="mt-0.5 text-xs text-giz-fraco font-mono">
+            Você não foi convocado nesta quinta — fale com a organização
+          </p>
+        ) : (
+          <p className="mt-0.5 text-xs text-giz-fraco font-mono">
+            Toque para confirmar presença ou consultar a súmula
+          </p>
+        )}
+      </Link>
+      {closesAt && (
+        <p className="mt-2 text-[11px] font-mono text-giz-fraco">
+          {prazoPassou
+            ? 'Prazo encerrado — vagas remanescentes liberadas (primeiro a confirmar leva).'
+            : `Reservas liberadas ${formatarFechamento(closesAt)}.`}
+        </p>
+      )}
+      {meuParticipante && statusEfetivo !== 'confirmado' && (
+        <button
+          type="button"
+          disabled={processando || !podeConf}
+          onClick={confirmar}
+          title={lotado ? 'Vagas esgotadas' : undefined}
+          className="mt-3 w-full min-h-[44px] rounded-[3px] border border-destaque bg-destaque/15 px-3 text-xs font-display font-bold uppercase tracking-wider text-destaque-texto shadow-xs transition hover:bg-destaque hover:text-destaque-tinta active:translate-y-px disabled:opacity-40"
+        >
+          Vou jogar
+        </button>
+      )}
+      {erroLocal && (
+        <p className="mt-2 text-xs font-mono text-perigo-texto border-t border-borda pt-2">
+          {erroLocal}
+        </p>
+      )}
+    </div>
   );
 }
