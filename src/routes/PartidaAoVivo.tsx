@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { CampoPartida } from '../components/CampoPartida';
 import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { DialogoEvento } from '../components/DialogoEvento';
 import { Carregando, MensagemEstado } from '../components/Estado';
+import { PullToRefresh } from '../components/PullToRefresh';
 import { Snackbar } from '../components/Snackbar';
 import { useAdmin } from '../hooks/useAdmin';
 import { useJogadorLogado } from '../hooks/useJogadorLogado';
@@ -60,6 +61,10 @@ export function PartidaAoVivo() {
   const [eventoParaRemover, setEventoParaRemover] = useState<EventoPartida | null>(null);
   const [eventoEmEdicao, setEventoEmEdicao] = useState<EventoPartida | null>(null);
 
+  // Serializa recargas (pull para atualizar x polling de 10s): enquanto uma
+  // recarga está em voo, a outra é ignorada — o polling cobre o dado fresco.
+  const recarregandoRef = useRef(false);
+
   const recarregar = useCallback(async () => {
     if (!partidaId) return;
     const [p, parts, evs] = await Promise.all([
@@ -91,7 +96,13 @@ export function PartidaAoVivo() {
   useEffect(() => {
     if (partida?.status !== 'live') return;
     const intervalo = setInterval(() => {
-      recarregar().catch(() => {});
+      if (recarregandoRef.current) return;
+      recarregandoRef.current = true;
+      recarregar()
+        .catch(() => {})
+        .finally(() => {
+          recarregandoRef.current = false;
+        });
     }, 10_000);
     return () => clearInterval(intervalo);
   }, [partida?.status, recarregar]);
@@ -105,6 +116,19 @@ export function PartidaAoVivo() {
       setErro(formatarMensagemErro(e, 'Erro ao carregar partida.'));
     } finally {
       setCarregando(false);
+    }
+  }
+
+  async function aoPuxar() {
+    if (recarregandoRef.current) return;
+    recarregandoRef.current = true;
+    try {
+      await recarregar();
+      setErro(null);
+    } catch (e: unknown) {
+      setErro(formatarMensagemErro(e, 'Não foi possível atualizar.'));
+    } finally {
+      recarregandoRef.current = false;
     }
   }
 
@@ -252,192 +276,195 @@ export function PartidaAoVivo() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4 px-3 py-4 pb-36 sm:px-4 sm:pb-40 text-giz">
-      <BotaoVoltar fallback={`/partida/${partida.id}`} />
+    <PullToRefresh onRefresh={aoPuxar}>
+      <div className="mx-auto max-w-2xl space-y-4 px-3 py-4 pb-36 sm:px-4 sm:pb-40 text-giz">
+        <BotaoVoltar fallback={`/partida/${partida.id}`} />
 
-      {/* Cabeçalho da Súmula */}
-      <CabecalhoSumula
-        titulo={`Partida #${partida.id}`}
-        kicker={
-          <p className="text-xs text-giz-fraco capitalize font-mono mt-0.5">
-            <span className="sm:hidden">{formatarDataMobile(partida.data_jogo)}</span>
-            <span className="hidden sm:inline">{formatarDataCompleta(partida.data_jogo)}</span>
-          </p>
-        }
-        acao={
-          <div className="text-right">
-            <span
-              className={`inline-block font-display font-black uppercase tracking-widest text-[10px] border px-2 py-0.5 rounded-[2px] shadow-xs ${
-                partida.status === 'live'
-                  ? 'border-destaque text-destaque-texto bg-destaque/10'
-                  : 'border-borda text-giz-fraco bg-superficie-2'
-              }`}
-            >
-              {STATUS_LABEL[partida.status]}
-            </span>
-            {aoVivo && (
-              <p className="text-[10px] font-mono text-destaque-texto flex items-center justify-end gap-1 mt-1 animate-pulse">
-                <span className="size-1.5 rounded-full bg-destaque" /> AO VIVO
-              </p>
-            )}
-          </div>
-        }
-        className="items-start"
-      />
-
-      {partida.status === 'draft' && (
-        <MensagemEstado tipo="info">
-          {isAdmin
-            ? 'Abra a partida para começar a registrar gols no campo.'
-            : 'A partida ainda não começou.'}
-        </MensagemEstado>
-      )}
-
-      {aoVivo && !isAdmin && (
-        <p className="text-xs font-mono text-giz-fraco">
-          Placar ao vivo da súmula. Registrado pelo administrador do racha.
-        </p>
-      )}
-
-      {aoVivo && isAdmin && (
-        <p className="text-xs font-mono text-giz-fraco">
-          Toque em um jogador no campo para lançar gol ou gol contra. Toque num evento para editar.
-        </p>
-      )}
-
-      <CampoPartida
-        participantes={participantes}
-        placar={placar}
-        onJogadorClick={
-          podeRegistrar
-            ? (jogador) => {
-                setEventoEmEdicao(null);
-                setAlvo(jogador);
-              }
-            : undefined
-        }
-        jogadorDestaqueId={alvo?.jogador_id}
-      />
-
-      <section className="rounded-[4px] border border-borda bg-superficie shadow-carimbo overflow-hidden">
-        <div className="border-b border-borda bg-superficie-2 px-3 py-2 text-xs font-display font-bold uppercase tracking-wider text-giz flex items-center justify-between">
-          <span>Eventos da Súmula</span>
-          <span className="font-mono text-destaque-texto font-bold">({eventos.length})</span>
-        </div>
-        {eventos.length === 0 ? (
-          <p className="px-3 py-4 text-xs font-mono text-giz-fraco text-center">
-            Nenhum evento registrado ainda.
-          </p>
-        ) : (
-          <ul className="max-h-48 divide-y divide-borda overflow-y-auto">
-            {[...eventos].reverse().map((evento) => (
-              <li
-                key={evento.id}
-                className="flex items-center justify-between gap-2 px-3 py-1 text-sm hover:bg-superficie-2 transition min-h-[44px]"
-              >
-                <button
-                  type="button"
-                  disabled={!podeRegistrar}
-                  onClick={() => podeRegistrar && abrirEdicao(evento)}
-                  className="flex-1 min-h-[44px] flex items-center cursor-pointer py-1 text-left text-giz disabled:cursor-default"
-                >
-                  {evento.tipo === 'gol' ? (
-                    <span className="font-medium">
-                      ⚽ {nomeDoJogador(participantes, evento.jogador_id)}
-                      {evento.assistencia_jogador_id != null && (
-                        <span className="text-giz-fraco text-xs font-mono">
-                          {' '}
-                          · 🅰️ {nomeDoJogador(participantes, evento.assistencia_jogador_id)}
-                        </span>
-                      )}
-                    </span>
-                  ) : (
-                    <span className="font-medium">
-                      <span className="text-perigo font-bold font-mono">GC</span>{' '}
-                      {nomeDoJogador(participantes, evento.jogador_id)}
-                    </span>
-                  )}
-                </button>
-                {podeRegistrar && (
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => abrirEdicao(evento)}
-                      className="min-h-[44px] inline-flex items-center justify-center cursor-pointer rounded-[2px] border border-destaque/40 bg-destaque/10 px-2.5 py-1 text-[11px] font-display font-bold uppercase tracking-wider text-destaque-texto hover:bg-destaque hover:text-destaque-tinta transition"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setEventoParaRemover(evento)}
-                      className="min-h-[44px] inline-flex items-center justify-center cursor-pointer rounded-[2px] border border-perigo/40 bg-perigo/10 px-2.5 py-1 text-[11px] font-display font-bold uppercase tracking-wider text-perigo hover:bg-perigo hover:text-branco-time transition"
-                    >
-                      Desfazer
-                    </button>
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      {erro && <MensagemEstado>{erro}</MensagemEstado>}
-
-      {isAdmin && partida.status === 'draft' && (
-        <BarraAcaoInferior>
-          <Botao onClick={confirmarAbrir} disabled={abrindo} larguraCompleta>
-            {abrindo ? 'Abrindo partida…' : 'Abrir partida ao vivo'}
-          </Botao>
-        </BarraAcaoInferior>
-      )}
-
-      {isAdmin && aoVivo && (
-        <BarraAcaoInferior legenda="Grava o placar final e abre a urna de votação por 24 horas.">
-          <Botao onClick={() => setConfirmandoFim(true)} larguraCompleta>
-            Finalizar partida e abrir votação
-          </Botao>
-        </BarraAcaoInferior>
-      )}
-
-      <DialogoEvento
-        jogador={alvo}
-        companheiros={companheiros}
-        jogadores={participantes}
-        salvando={salvando}
-        editando={eventoEmEdicao != null}
-        tipoAtual={eventoEmEdicao?.tipo}
-        assistenciaAtual={eventoEmEdicao?.assistencia_jogador_id}
-        onClose={() => {
-          if (!salvando) {
-            setAlvo(null);
-            setEventoEmEdicao(null);
+        {/* Cabeçalho da Súmula */}
+        <CabecalhoSumula
+          titulo={`Partida #${partida.id}`}
+          kicker={
+            <p className="text-xs text-giz-fraco capitalize font-mono mt-0.5">
+              <span className="sm:hidden">{formatarDataMobile(partida.data_jogo)}</span>
+              <span className="hidden sm:inline">{formatarDataCompleta(partida.data_jogo)}</span>
+            </p>
           }
-        }}
-        onTrocarJogador={setAlvo}
-        onConfirmar={confirmarEvento}
-      />
+          acao={
+            <div className="text-right">
+              <span
+                className={`inline-block font-display font-black uppercase tracking-widest text-[10px] border px-2 py-0.5 rounded-[2px] shadow-xs ${
+                  partida.status === 'live'
+                    ? 'border-destaque text-destaque-texto bg-destaque/10'
+                    : 'border-borda text-giz-fraco bg-superficie-2'
+                }`}
+              >
+                {STATUS_LABEL[partida.status]}
+              </span>
+              {aoVivo && (
+                <p className="text-[10px] font-mono text-destaque-texto flex items-center justify-end gap-1 mt-1 animate-pulse">
+                  <span className="size-1.5 rounded-full bg-destaque" /> AO VIVO
+                </p>
+              )}
+            </div>
+          }
+          className="items-start"
+        />
 
-      <Snackbar {...snackbarProps} />
+        {partida.status === 'draft' && (
+          <MensagemEstado tipo="info">
+            {isAdmin
+              ? 'Abra a partida para começar a registrar gols no campo.'
+              : 'A partida ainda não começou.'}
+          </MensagemEstado>
+        )}
 
-      <ConfirmDialog
-        open={eventoParaRemover != null}
-        onClose={() => setEventoParaRemover(null)}
-        onConfirm={confirmarRemocao}
-        titulo="Desfazer este evento?"
-        mensagem="O placar e as estatísticas da partida ao vivo serão atualizados."
-        textoConfirmar={salvando ? 'Desfazendo…' : 'Desfazer'}
-        tomConfirmar="perigo"
-      />
+        {aoVivo && !isAdmin && (
+          <p className="text-xs font-mono text-giz-fraco">
+            Placar ao vivo da súmula. Registrado pelo administrador do racha.
+          </p>
+        )}
 
-      <ConfirmDialog
-        open={confirmandoFim}
-        onClose={() => setConfirmandoFim(false)}
-        onConfirm={confirmarFinalizar}
-        titulo="Finalizar partida?"
-        mensagem={`Placar ${placar.gols_time_a} × ${placar.gols_time_b}. Isso grava gols, assistências e gols contra e abre a votação por 24h.`}
-        textoConfirmar={finalizando ? 'Finalizando…' : 'Finalizar'}
-      />
-    </div>
+        {aoVivo && isAdmin && (
+          <p className="text-xs font-mono text-giz-fraco">
+            Toque em um jogador no campo para lançar gol ou gol contra. Toque num evento para
+            editar.
+          </p>
+        )}
+
+        <CampoPartida
+          participantes={participantes}
+          placar={placar}
+          onJogadorClick={
+            podeRegistrar
+              ? (jogador) => {
+                  setEventoEmEdicao(null);
+                  setAlvo(jogador);
+                }
+              : undefined
+          }
+          jogadorDestaqueId={alvo?.jogador_id}
+        />
+
+        <section className="rounded-[4px] border border-borda bg-superficie shadow-carimbo overflow-hidden">
+          <div className="border-b border-borda bg-superficie-2 px-3 py-2 text-xs font-display font-bold uppercase tracking-wider text-giz flex items-center justify-between">
+            <span>Eventos da Súmula</span>
+            <span className="font-mono text-destaque-texto font-bold">({eventos.length})</span>
+          </div>
+          {eventos.length === 0 ? (
+            <p className="px-3 py-4 text-xs font-mono text-giz-fraco text-center">
+              Nenhum evento registrado ainda.
+            </p>
+          ) : (
+            <ul className="max-h-48 divide-y divide-borda overflow-y-auto">
+              {[...eventos].reverse().map((evento) => (
+                <li
+                  key={evento.id}
+                  className="flex items-center justify-between gap-2 px-3 py-1 text-sm hover:bg-superficie-2 transition min-h-[44px]"
+                >
+                  <button
+                    type="button"
+                    disabled={!podeRegistrar}
+                    onClick={() => podeRegistrar && abrirEdicao(evento)}
+                    className="flex-1 min-h-[44px] flex items-center cursor-pointer py-1 text-left text-giz disabled:cursor-default"
+                  >
+                    {evento.tipo === 'gol' ? (
+                      <span className="font-medium">
+                        ⚽ {nomeDoJogador(participantes, evento.jogador_id)}
+                        {evento.assistencia_jogador_id != null && (
+                          <span className="text-giz-fraco text-xs font-mono">
+                            {' '}
+                            · 🅰️ {nomeDoJogador(participantes, evento.assistencia_jogador_id)}
+                          </span>
+                        )}
+                      </span>
+                    ) : (
+                      <span className="font-medium">
+                        <span className="text-perigo font-bold font-mono">GC</span>{' '}
+                        {nomeDoJogador(participantes, evento.jogador_id)}
+                      </span>
+                    )}
+                  </button>
+                  {podeRegistrar && (
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => abrirEdicao(evento)}
+                        className="min-h-[44px] inline-flex items-center justify-center cursor-pointer rounded-[2px] border border-destaque/40 bg-destaque/10 px-2.5 py-1 text-[11px] font-display font-bold uppercase tracking-wider text-destaque-texto hover:bg-destaque hover:text-destaque-tinta transition"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEventoParaRemover(evento)}
+                        className="min-h-[44px] inline-flex items-center justify-center cursor-pointer rounded-[2px] border border-perigo/40 bg-perigo/10 px-2.5 py-1 text-[11px] font-display font-bold uppercase tracking-wider text-perigo hover:bg-perigo hover:text-branco-time transition"
+                      >
+                        Desfazer
+                      </button>
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        {erro && <MensagemEstado>{erro}</MensagemEstado>}
+
+        {isAdmin && partida.status === 'draft' && (
+          <BarraAcaoInferior>
+            <Botao onClick={confirmarAbrir} disabled={abrindo} larguraCompleta>
+              {abrindo ? 'Abrindo partida…' : 'Abrir partida ao vivo'}
+            </Botao>
+          </BarraAcaoInferior>
+        )}
+
+        {isAdmin && aoVivo && (
+          <BarraAcaoInferior legenda="Grava o placar final e abre a urna de votação por 24 horas.">
+            <Botao onClick={() => setConfirmandoFim(true)} larguraCompleta>
+              Finalizar partida e abrir votação
+            </Botao>
+          </BarraAcaoInferior>
+        )}
+
+        <DialogoEvento
+          jogador={alvo}
+          companheiros={companheiros}
+          jogadores={participantes}
+          salvando={salvando}
+          editando={eventoEmEdicao != null}
+          tipoAtual={eventoEmEdicao?.tipo}
+          assistenciaAtual={eventoEmEdicao?.assistencia_jogador_id}
+          onClose={() => {
+            if (!salvando) {
+              setAlvo(null);
+              setEventoEmEdicao(null);
+            }
+          }}
+          onTrocarJogador={setAlvo}
+          onConfirmar={confirmarEvento}
+        />
+
+        <Snackbar {...snackbarProps} />
+
+        <ConfirmDialog
+          open={eventoParaRemover != null}
+          onClose={() => setEventoParaRemover(null)}
+          onConfirm={confirmarRemocao}
+          titulo="Desfazer este evento?"
+          mensagem="O placar e as estatísticas da partida ao vivo serão atualizados."
+          textoConfirmar={salvando ? 'Desfazendo…' : 'Desfazer'}
+          tomConfirmar="perigo"
+        />
+
+        <ConfirmDialog
+          open={confirmandoFim}
+          onClose={() => setConfirmandoFim(false)}
+          onConfirm={confirmarFinalizar}
+          titulo="Finalizar partida?"
+          mensagem={`Placar ${placar.gols_time_a} × ${placar.gols_time_b}. Isso grava gols, assistências e gols contra e abre a votação por 24h.`}
+          textoConfirmar={finalizando ? 'Finalizando…' : 'Finalizar'}
+        />
+      </div>
+    </PullToRefresh>
   );
 }
