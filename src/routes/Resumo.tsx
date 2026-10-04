@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { MensagemEstado } from '../components/Estado';
 import { Badge } from '../components/Badge';
 import { CabecalhoSumula } from '../components/ui/CabecalhoSumula';
+import { Botao } from '../components/ui/Botao';
 import { SkeletonResumo } from '../components/Skeletons';
 import { BotaoInstalar } from '../components/BotaoInstalar';
 import { CardNotificacoes } from '../components/CardNotificacoes';
@@ -416,15 +417,15 @@ function CardProximaPartida({
             </Link>
           )}
           {meuParticipante && statusEfetivo !== 'confirmado' && (
-            <button
-              type="button"
+            <Botao
+              variante="primario"
+              larguraCompleta
               disabled={processando || !podeConf}
               onClick={confirmar}
               title={lotado ? 'Vagas esgotadas' : undefined}
-              className="w-full min-h-[44px] rounded-[3px] border border-destaque bg-destaque/15 px-3 text-xs font-display font-bold uppercase tracking-wider text-destaque-texto shadow-xs transition hover:bg-destaque hover:text-destaque-tinta active:translate-y-px disabled:opacity-40"
             >
               Vou jogar
-            </button>
+            </Botao>
           )}
         </div>
       )}

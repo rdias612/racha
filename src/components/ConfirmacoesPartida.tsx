@@ -48,15 +48,14 @@ function BotoesSelf({ status, podeConf, ocupadas, processando, onAtualizar }: Pr
   return (
     <>
       {status !== 'confirmado' && (
-        <button
-          type="button"
+        <Botao
+          variante="primario"
           disabled={processando || !podeConf}
           onClick={() => onAtualizar('confirmado')}
           title={lotado ? 'Vagas esgotadas' : undefined}
-          className={`${btn} border-destaque bg-destaque/15 text-destaque-texto shadow-xs hover:bg-destaque hover:text-destaque-tinta`}
         >
           Vou jogar
-        </button>
+        </Botao>
       )}
       {status === 'confirmado' && (
         <Botao
