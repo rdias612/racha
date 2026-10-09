@@ -1,7 +1,16 @@
 ---
-name: anti-slop
-description: Remove código slop de IA — código morto, deps não usadas, abstrações de uso único, comentários que narram o óbvio. Política de comentários lean inclusa. Use para limpeza direcionada de arquivos, diffs ou PRs.
-tools: Read, Grep, Glob, Bash, Edit
+name: "anti-slop"
+description: "Remove código slop de IA — código morto, deps não usadas, abstrações de uso único, comentários que narram o óbvio. Política de comentários lean inclusa. Use para limpeza direcionada de arquivos, diffs ou PRs."
+color: yellow
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
+  - Edit
+  - TodoWrite
+  - Write
+injectAgentsMd: true
 ---
 
 # Anti-Slop (Janitor + Lean Comments)
