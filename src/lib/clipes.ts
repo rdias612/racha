@@ -112,7 +112,8 @@ export interface ImportacaoClipes {
 }
 
 /** RF03: dispara a importação de uma data específica (AAAA-MM-DD; RPC da Fase 6
- *  rejeita data futura e fixa o horário 19:00 — nada disso é decisão da UI). */
+ *  rejeita data futura — nada disso é decisão da UI. O slot/janela vem da partida:
+ *  horários reais quando definidos, senão a hora do data_jogo — Plano 38). */
 export async function dispararImportacaoClipes(adminId: number, data: string): Promise<void> {
   const { error } = await supabase.rpc('disparar_importacao_clipes', {
     p_admin_id: adminId,

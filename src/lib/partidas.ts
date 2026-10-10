@@ -26,6 +26,10 @@ export interface Partida {
   voting_closes_at: string | null;
   confirmacao_closes_at: string | null;
   criado_por: number;
+  // Horário REAL de início/término do jogo (Plano 38); null = não informado
+  // (a importação de clipes usa o slot do data_jogo inteiro).
+  inicio_real: string | null;
+  fim_real: string | null;
 }
 
 export interface Placar {
@@ -70,7 +74,9 @@ export interface EventoPartida {
 export async function carregarPartida(id: number) {
   const { data, error } = await supabase
     .from('partidas')
-    .select('id, data_jogo, status, voting_closes_at, confirmacao_closes_at, criado_por')
+    .select(
+      'id, data_jogo, status, voting_closes_at, confirmacao_closes_at, criado_por, inicio_real, fim_real'
+    )
     .eq('id', id)
     .maybeSingle();
   if (error) throw error;
@@ -476,6 +482,26 @@ export async function excluirPartida(partidaId: number, adminId: number) {
     p_partida_id: partidaId,
     p_admin_id: adminId,
   });
+  if (error) throw error;
+  return data as boolean;
+}
+
+// Admin grava/limpa os horários reais do jogo (HH:MM BRT); null em ambos limpa.
+export async function salvarHorariosReaisPartida(
+  partidaId: number,
+  adminId: number,
+  inicio: string | null,
+  fim: string | null
+) {
+  const { data, error } = await supabase.rpc('salvar_horarios_reais_partida', {
+    p_admin_id: adminId,
+    p_partida_id: partidaId,
+    p_inicio: inicio,
+    p_fim: fim,
+    // Cast de tipagem intencional: o gerado marca p_inicio/p_fim como string
+    // (required — o PostgREST não expõe nullability de args sem default), mas a
+    // RPC aceita NULL em ambos para LIMPAR os horários (migration 120).
+  } as Database['public']['Functions']['salvar_horarios_reais_partida']['Args']);
   if (error) throw error;
   return data as boolean;
 }
