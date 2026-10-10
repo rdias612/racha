@@ -105,12 +105,13 @@ export function formatarTamanhoBytes(bytes: number | null): string | null {
 }
 
 /**
- * Horário 'HH:MM' de um timestamptz ISO em BRT: desloca +3h e lê os campos UTC
- * (Brasil sem DST, offset fixo -03 — padrão 060:7). Sem depender do fuso da
- * máquina do usuário (runner/server pode estar em qualquer TZ).
+ * Horário 'HH:MM' de um timestamptz ISO em BRT: SUBTRAI 3h do epoch e lê os
+ * campos UTC — o relógio BRT está 3h atrás do UTC (Brasil sem DST, offset fixo
+ * -03 — padrão 060:7; conferido contra Intl America/Sao_Paulo). Sem depender do
+ * fuso da máquina do usuário (que pode estar em qualquer TZ).
  */
 export function horarioBRTDeIso(iso: string): string {
-  const emBrt = new Date(new Date(iso).getTime() + 3 * 60 * 60 * 1000);
+  const emBrt = new Date(new Date(iso).getTime() - 3 * 60 * 60 * 1000);
   const hh = String(emBrt.getUTCHours()).padStart(2, '0');
   const mm = String(emBrt.getUTCMinutes()).padStart(2, '0');
   return `${hh}:${mm}`;
