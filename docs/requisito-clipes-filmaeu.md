@@ -113,3 +113,26 @@ O gatilho manual do app segue: **botão admin → RPC `disparar_importacao_clipe
 - Edição/trimming de clipes dentro do app.
 - Streaming adaptativo (HLS) ou transcodificação.
 - Compartilhamento público fora do app (links abertos para não-logados).
+
+## 9. Adendo — Plano 38: janela de horários reais (10/10/2026)
+
+O racha não começa 19h em ponto nem termina 20h em ponto. O requisito D3 ("todos os
+clipes do horário da partida") passa a ser resolvido pela **janela real** do jogo:
+
+- **RF10** — Admin pode registrar, no **detalhe da partida** (card admin, qualquer
+  status), o **horário real de início e término** do jogo (`inicio_real`/`fim_real`
+  em `partidas`, migration 120; RPC `salvar_horarios_reais_partida` com gate
+  `is_admin`, ambos obrigatórios e término > início, ou ambos nulos para limpar).
+- **Comportamento com janela definida**: a importação navega **todos os slots de
+  hora cobertos** (ex.: 19:07–20:04 → slots 19h **e** 20h) e baixa apenas os
+  grupos cujo timestamp (título do grupo, ver mapeamento §2) caia dentro da
+  janela. Arquivos dos slots seguintes ganham prefixo `v_{HH}h_...` para não
+  colidir com títulos iguais entre horas; o slot base mantém o nome histórico
+  (idempotência preservada).
+- **Fallback (sem horários definidos)**: comportamento anterior — slot da hora do
+  `data_jogo` inteiro, sem filtro.
+- **Override manual**: o input `horario` do workflow_dispatch (quando preenchido)
+  força um slot único e desativa a janela — escape hatch pelo GitHub UI. A RPC de
+  disparo não envia mais `horario` fixo; o YAML tem default vazio.
+
+Plano completo: `docs/planos-implementacao/38-janela-horarios-reais-clipes.md`.

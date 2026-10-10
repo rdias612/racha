@@ -53,6 +53,13 @@ Notas:
 - Há outro `#client-search` dentro de um modal oculto. Sempre escopar a busca a `#myModal #client-search`.
 - O filtro do modal reage a `keyup`; preencher o campo sem gerar eventos de teclado não filtrou a lista no teste. Para filtrar, digitar como teclado e então clicar na linha.
 - Cada `.card-videos` contém **dois** vídeos/câmeras e dois `span.download-video`. Os nomes de origem seguem, por exemplo, `v_19m39s_cam0b.mp4` e `v_19m39s_cam1.mp4`.
+- **Interpretação do título do grupo (Plano 38)**: o `.card-header` foi observado
+  como `19m39s`, mas o formato exato (offset dentro da hora do slot vs relógio
+  `19:39`/`19h39`) não foi confirmado. O parser (`parsearTimestampTitulo` em
+  `automacao.mjs`) aceita os dois formatos, e o orquestrador **loga TODOS os
+  títulos coletados por slot** (calibração): a primeira run real com janela deve
+  ser conferida no log da Action para fixar a semântica. Título não parseável é
+  mantido no slot base e excluído nos slots seguintes.
 
 ## 3. Comportamento do download (crítico)
 
