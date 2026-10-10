@@ -29,6 +29,7 @@ import { CardCraquePartida } from '../components/CardCraquePartida';
 import { ConfirmacoesPartida } from '../components/ConfirmacoesPartida';
 import { GridTimesPartida } from '../components/GridTimesPartida';
 import { GradeClipesPartida } from '../components/GradeClipesPartida';
+import { SecaoHorariosReaisPartida } from '../components/SecaoHorariosReaisPartida';
 import { ListaNotasPartida } from '../components/ListaNotasPartida';
 import { formatarDataCompleta, formatarDataMobile, formatarFechamento } from '../lib/formatacao';
 import { Badge } from '../components/Badge';
@@ -241,6 +242,10 @@ export function PartidaDetalhe() {
         {(partida.status !== 'draft' || participantes.some((p) => p.time !== null)) && (
           <GridTimesPartida participantes={participantes} />
         )}
+
+        {/* Janela de horários reais (admin, qualquer status — Plano 38): alimenta a
+            importação de clipes; fica junto da grade que ela molda. */}
+        {isAdmin && <SecaoHorariosReaisPartida partida={partida} onAtualizar={() => carregar()} />}
 
         {/* Clipes do Filma Eu: só existe bloco quando há clipes importados (RF04) */}
         {clipes.length > 0 && <GradeClipesPartida clipes={clipes} />}
