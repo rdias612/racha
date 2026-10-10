@@ -547,7 +547,9 @@ export type Database = {
           created_at: string
           criado_por: number
           data_jogo: string
+          fim_real: string | null
           id: number
+          inicio_real: string | null
           status: string
           voting_closes_at: string | null
         }
@@ -556,7 +558,9 @@ export type Database = {
           created_at?: string
           criado_por: number
           data_jogo: string
+          fim_real?: string | null
           id?: number
+          inicio_real?: string | null
           status?: string
           voting_closes_at?: string | null
         }
@@ -565,7 +569,9 @@ export type Database = {
           created_at?: string
           criado_por?: number
           data_jogo?: string
+          fim_real?: string | null
           id?: number
+          inicio_real?: string | null
           status?: string
           voting_closes_at?: string | null
         }
@@ -1448,6 +1454,15 @@ export type Database = {
           p_participantes: Json
           p_partida_id: number
           p_primeira_vez?: boolean
+        }
+        Returns: boolean
+      }
+      salvar_horarios_reais_partida: {
+        Args: {
+          p_admin_id: number
+          p_fim: string
+          p_inicio: string
+          p_partida_id: number
         }
         Returns: boolean
       }
