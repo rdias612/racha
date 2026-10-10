@@ -14,9 +14,9 @@ on:
         required: false
         default: ''
       horario:
-        description: 'Horário do slot no Filma Eu (usado na Fase 3)'
+        description: 'Slot base no Filma Eu (HH:MM). Vazio = deriva da partida (horários reais ou hora do data_jogo).'
         required: false
-        default: '19:00'
+        default: ''
       partida_id:
         description: 'ID da partida no Supabase (opcional; tem precedência sobre data)'
         required: false

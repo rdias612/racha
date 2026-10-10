@@ -1,7 +1,6 @@
 // Form de disparo manual por dia específico (RF03). O estado do form é da seção;
 // a AÇÃO (RPC + snackbar + recarga) é da rota — padrão SecaoNotificacaoTestes
 // (NotificacoesTestes.tsx:139-146 recebe disparando/onTestarPush).
-// Horário do slot (19:00) é fixo na RPC da Fase 6 e NÃO aparece na UI.
 
 import { useState } from 'react';
 import { Send } from 'lucide-react';
@@ -27,8 +26,9 @@ export function SecaoDisparoClipes({ disparando, onSolicitarDisparo }: SecaoDisp
           Disparar importação
         </h3>
         <p className="text-xs text-giz-fraco mt-0.5">
-          Baixa os clipes do slot de 19h do dia informado no Filma Eu e os publica na partida
-          correspondente. O resultado aparece no histórico abaixo (assíncrono).
+          Baixa os clipes do dia informado no Filma Eu — usando os horários reais da partida quando
+          definidos — e os publica na partida correspondente. O resultado aparece no histórico
+          abaixo (assíncrono).
         </p>
       </div>
 

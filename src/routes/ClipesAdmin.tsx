@@ -109,7 +109,7 @@ export function ClipesAdmin() {
         <ConfirmDialog
           open
           titulo="Disparar importação?"
-          mensagem={`Disparar a importação dos clipes do dia ${dataConfirmacao} (slot 19h) no GitHub Actions?`}
+          mensagem={`Disparar a importação dos clipes do dia ${dataConfirmacao} no GitHub Actions? (usa os horários reais da partida, quando definidos)`}
           onConfirm={handleConfirmarDisparo}
           onClose={() => setDataConfirmacao(null)}
         />
