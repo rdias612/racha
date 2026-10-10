@@ -170,31 +170,37 @@ export async function navegarParaSlot(page, { dataISO, horario }) {
 
     await clicarElemento(page, SELETORES.botaoPesquisar, 'pesquisar', { textoFallback: 'Pesquisar' });
 
-    // Slot ausente ≠ erro: horário sem gravação no dia é condição esperada
-    // (mapeamento §4 — ausente, não desabilitado). Retornar null para o caller
-    // fechar o ledger com 'sem_clipes'.
-    const seletorHorario = seletorSlot(horario);
-    const slotVisivel = await page
-      .waitForSelector(seletorHorario, { state: 'visible', timeout: PAGINA.timeoutElementoMs })
-      .then(() => true)
-      .catch(() => false);
-    if (!slotVisivel) {
-      console.log(`[clipes] horário ${horario} não ofertado — slot ausente`);
-      return null;
-    }
-    await page.click(seletorHorario);
-    console.log(`[clipes] slot ${horario} selecionado`);
-
-    await page
-      .waitForSelector(SELETORES.cardClipe, { state: 'attached', timeout: PAGINA.timeoutElementoMs })
-      .catch(() => {
-        throw new ErroFilmaeu(
-          'grade-clipes',
-          `nenhum grupo apareceu após selecionar ${horario} (esperado: ${SELETORES.cardClipe})`
-        );
-      });
-    return page;
+    return selecionarSlot(page, horario);
   });
+}
+
+// Clica no slot da lista de horários e aguarda o AJAX inserir o primeiro grupo
+// da grade. Extraído de navegarParaSlot porque os slots SEGUINTES são abertos
+// apenas com este clique (a página permanece em /perfil# — mapeamento §1).
+// Slot ausente ≠ erro: horário sem gravação no dia é condição esperada
+// (mapeamento §4 — ausente, não desabilitado) — retorna null e o caller decide.
+export async function selecionarSlot(page, horario) {
+  const seletorHorario = seletorSlot(horario);
+  const slotVisivel = await page
+    .waitForSelector(seletorHorario, { state: 'visible', timeout: PAGINA.timeoutElementoMs })
+    .then(() => true)
+    .catch(() => false);
+  if (!slotVisivel) {
+    console.log(`[clipes] horário ${horario} não ofertado — slot ausente`);
+    return null;
+  }
+  await page.click(seletorHorario);
+  console.log(`[clipes] slot ${horario} selecionado`);
+
+  await page
+    .waitForSelector(SELETORES.cardClipe, { state: 'attached', timeout: PAGINA.timeoutElementoMs })
+    .catch(() => {
+      throw new ErroFilmaeu(
+        'grade-clipes',
+        `nenhum grupo apareceu após selecionar ${horario} (esperado: ${SELETORES.cardClipe})`
+      );
+    });
+  return page;
 }
 
 export async function coletarClipes(page) {
