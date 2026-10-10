@@ -14,8 +14,10 @@ import {
   abrirBrowser,
   logarFilmaeu,
   navegarParaSlot,
+  selecionarSlot,
   coletarClipes,
   baixarClipes,
+  parsearTimestampTitulo,
 } from './filmaeu/automacao.mjs';
 import { caminhosExistentes, subirClipe, resumoDaPartida } from './armazenamento.mjs';
 import { limparPorRetencao, resolverLimiteBytes } from './retencao.mjs';
@@ -40,8 +42,10 @@ function resolverConfig() {
     throw new Error('Credenciais do Filma Eu ausentes: FILMAEU_USER e FILMAEU_SECRET são obrigatórios');
   }
 
-  const horario = process.env.INPUT_HORARIO || '19:00';
-  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(horario)) {
+  // INPUT_HORARIO vazio é válido (Plano 38): vazio = deriva da partida
+  // (horários reais > hora do data_jogo); preenchido = override manual do slot.
+  const horario = process.env.INPUT_HORARIO || '';
+  if (horario && !/^([01]\d|2[0-3]):[0-5]\d$/.test(horario)) {
     throw new Error(`Input horario inválido (esperado HH:MM): "${horario}"`);
   }
 
@@ -99,25 +103,120 @@ function calcularFaixaDataBRT(dataISO) {
   return [`${dataISO}T00:00:00-03:00`, `${dataSeguinteISO}T00:00:00-03:00`];
 }
 
+const OFFSET_BRT_MS = 3 * 60 * 60 * 1000; // BRT = UTC-3 fixo, sem DST (padrão 060:7)
+
+// 'HH:MM' BRT de um timestamptz ISO: SUBTRAI 3h do epoch e lê os campos UTC
+// (relógio BRT está 3h atrás do UTC — conferido contra Intl America/Sao_Paulo);
+// não depende do fuso da máquina (runner do GitHub é UTC).
+function horarioBRTDeIso(iso) {
+  const emBrt = new Date(Date.parse(iso) - OFFSET_BRT_MS);
+  const hh = String(emBrt.getUTCHours()).padStart(2, '0');
+  const mm = String(emBrt.getUTCMinutes()).padStart(2, '0');
+  return `${hh}:${mm}`;
+}
+
+// 'AAAA-MM-DD' BRT de um timestamptz ISO (en-CA emite ISO curto — mesmo
+// formato de resolverDataAlvo).
+function dataBRTDeIso(iso) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date(iso));
+}
+
+// Epoch (ms) de 'HH:MM' no dia BRT informado (offset fixo -03:00).
+function epochDeHorarioBRT(dataISO, horario) {
+  return Date.parse(`${dataISO}T${horario}:00-03:00`);
+}
+
+// Plano de navegação da run (Plano 38): slots a abrir no Filma Eu + janela
+// (epoch ms, inclusiva) para filtrar grupos pelo título. Prioridade:
+// 1. INPUT_HORARIO preenchido → override manual de slot único (escape hatch
+//    pelo dispatch do GitHub UI — comportamento anterior ao Plano 38);
+// 2. horários reais da partida → TODOS os slots de hora cobertos pela janela
+//    (ex.: 19:07–20:04 → 19h e 20h; a RPC garante mesmo dia);
+// 3. senão → fallback: slot da hora do data_jogo (comportamento histórico).
+function resolverPlanoDeSlots({ horarioInput, partida }) {
+  if (horarioInput) {
+    return { slots: [horarioInput], janela: null, descricao: `override slot ${horarioInput}` };
+  }
+
+  if (partida.inicio_real && partida.fim_real) {
+    const horaInicio = Number(horarioBRTDeIso(partida.inicio_real).slice(0, 2));
+    const horaFim = Number(horarioBRTDeIso(partida.fim_real).slice(0, 2));
+    const slots = [];
+    for (let hora = horaInicio; hora <= horaFim; hora++) {
+      slots.push(`${String(hora).padStart(2, '0')}:00`);
+    }
+    return {
+      slots,
+      janela: { inicio: Date.parse(partida.inicio_real), fim: Date.parse(partida.fim_real) },
+      descricao:
+        `janela ${horarioBRTDeIso(partida.inicio_real)}–${horarioBRTDeIso(partida.fim_real)} ` +
+        `(slots ${slots.map((horario) => `${horario.split(':')[0]}h`).join('+')})`,
+    };
+  }
+
+  const horaPrevista = `${horarioBRTDeIso(partida.data_jogo).slice(0, 2)}:00`;
+  return {
+    slots: [horaPrevista],
+    janela: null,
+    descricao: `slot ${horaPrevista.split(':')[0]}h (sem horários reais)`,
+  };
+}
+
+// Filtra a lista do slot pela janela, derivando o epoch de cada grupo do título:
+// offset ('19m39s') soma ao epoch do slot; relógio ('19:39'/'19h39') resolve na
+// data de navegação. Título não parseável: mantém no slot base (comportamento
+// histórico do slot principal) e exclui nos seguintes (não invadir a gravação
+// de outro grupo) — logado em ambos os casos (calibração).
+function filtrarClipesPorJanela(lista, { janela, dataISO, horario, ehSlotBase }) {
+  const epochSlot = epochDeHorarioBRT(dataISO, horario);
+  const mantidos = [];
+  for (const clipe of lista) {
+    const timestamp = parsearTimestampTitulo(clipe.titulo);
+    if (!timestamp) {
+      if (ehSlotBase) {
+        console.log(`[clipes] título não parseável no slot base — mantido: "${clipe.titulo}"`);
+        mantidos.push(clipe);
+      } else {
+        console.log(`[clipes] título não parseável fora do slot base — excluído: "${clipe.titulo}"`);
+      }
+      continue;
+    }
+    const epochGrupo =
+      timestamp.offsetSeg != null
+        ? epochSlot + timestamp.offsetSeg * 1000
+        : epochDeHorarioBRT(dataISO, `${timestamp.hora}:${timestamp.minuto}`);
+    if (janela.inicio <= epochGrupo && epochGrupo <= janela.fim) {
+      mantidos.push(clipe);
+    } else {
+      console.log(`[clipes] grupo fora da janela — descartado: "${clipe.titulo}" (slot ${horario})`);
+    }
+  }
+  return mantidos;
+}
+
 // ---------- partida alvo ----------
 async function buscarPartidaAlvo(client, { partidaId, dataAlvo }) {
   // partidaId do input tem precedência (caminho de reimportação/histórico).
   if (partidaId) {
     const { data, error } = await client
       .from('partidas')
-      .select('id, data_jogo, status')
+      .select('id, data_jogo, status, inicio_real, fim_real')
       .eq('id', partidaId)
       .maybeSingle();
     if (error) throw error;
     // null = partida inexistente (erro registrado, run "verde com falha lógica").
-    return { partida: data ? { id: data.id, data_jogo: data.data_jogo } : null };
+    return {
+      partida: data
+        ? { id: data.id, data_jogo: data.data_jogo, inicio_real: data.inicio_real, fim_real: data.fim_real }
+        : null,
+    };
   }
 
   const [inicio, fim] = calcularFaixaDataBRT(dataAlvo);
   // "Society Gragoatá" é implícito — o app não tem coluna de quadra (004:11-17).
   const { data, error } = await client
     .from('partidas')
-    .select('id, data_jogo, status')
+    .select('id, data_jogo, status, inicio_real, fim_real')
     .gte('data_jogo', inicio)
     .lt('data_jogo', fim)
     .in('status', ['published', 'closed'])
@@ -125,7 +224,11 @@ async function buscarPartidaAlvo(client, { partidaId, dataAlvo }) {
     .limit(1)
     .maybeSingle();
   if (error) throw error;
-  return { partida: data ? { id: data.id, data_jogo: data.data_jogo } : null };
+  return {
+    partida: data
+      ? { id: data.id, data_jogo: data.data_jogo, inicio_real: data.inicio_real, fim_real: data.fim_real }
+      : null,
+  };
 }
 
 // ---------- ledger (interface exata da Fase 1) ----------
@@ -207,8 +310,8 @@ async function registrarFalhaSemPartida(client, { dataReferencia, origem, erro }
   if (error) throw error;
 }
 
-// ---------- importação dos clipes (Fase 3) ----------
-async function importarClipesDaPartida(client, { partida, dataAlvo, horario, credenciais }) {
+// ---------- importação dos clipes (Fase 3 + janela do Plano 38) ----------
+async function importarClipesDaPartida(client, { partida, dataNavegacao, plano, credenciais }) {
   // IDEMPOTÊNCIA (RF02): consultar a TABELA antes de tocar no site e derivar o
   // caminho de forma determinística ({partida_id}/{nomeArquivo}) — baixar
   // SOMENTE o que não tem linha. Comparar hash exigiria baixar tudo (derrota o
@@ -223,27 +326,65 @@ async function importarClipesDaPartida(client, { partida, dataAlvo, horario, cre
 
   const dirTemp = join(process.env.RUNNER_TEMP || tmpdir(), 'clipes-baixa');
 
-  let status;
+  let status = 'sem_clipes';
   let novos = 0;
   const { browser, context } = await abrirBrowser();
   try {
     const page = await logarFilmaeu(context, credenciais);
-    const paginaSlot = await navegarParaSlot(page, { dataISO: dataAlvo, horario });
-    // null = horário não ofertado no dia (mapeamento §4) — caminho 'sem_clipes'.
-    const lista = paginaSlot ? await coletarClipes(page) : [];
 
-    if (lista.length === 0) {
-      // Slot sem clipes: condição esperada — caller fecha o ledger com
-      // 'sem_clipes' (sucesso false, exit 0).
-      console.log('[clipes] grade do slot vazia — nada a importar');
-      status = 'sem_clipes';
-    } else {
-      const baixados = await baixarClipes(page, lista, {
+    // Locators do Playwright são por página/grade: coleta e download ACONTECEM
+    // dentro do slot (a lista de um slot não serve depois de clicar no
+    // seguinte). Ordem renumerada globalmente entre slots p/ grade cronológica.
+    let ordemGlobal = 0;
+    const baixadosTotais = [];
+    for (const [indiceSlot, horario] of plano.slots.entries()) {
+      const ehSlotBase = indiceSlot === 0;
+      // O slot base abre pelo fluxo completo (login → quadra → data → pesquisar);
+      // os seguintes só precisam do clique na lista de horários (a página
+      // permanece em /perfil# — mapeamento §1).
+      const paginaSlot = ehSlotBase
+        ? await navegarParaSlot(page, { dataISO: dataNavegacao, horario })
+        : await selecionarSlot(page, horario);
+
+      if (!paginaSlot) {
+        // Slot base ausente → grade vazia → 'sem_clipes' (comportamento
+        // histórico; selecionarSlot já logou a ausência). Slots seguintes
+        // ausentes são condição esperada — pode não haver gravação da hora
+        // seguinte — loga e segue.
+        if (!ehSlotBase) console.log(`[clipes] slot ${horario} ausente — seguindo para o próximo`);
+        break;
+      }
+
+      let lista = await coletarClipes(page);
+      // Calibração (Plano 38): semântica do título ainda será confirmada na
+      // primeira run real — logar TODOS os títulos coletados do slot.
+      const titulos = [...new Set(lista.map((clipe) => clipe.titulo))].join(', ') || '(nenhum)';
+      console.log(`[clipes] títulos no slot ${horario}: ${titulos}`);
+
+      if (plano.janela) {
+        lista = filtrarClipesPorJanela(lista, {
+          janela: plano.janela,
+          dataISO: dataNavegacao,
+          horario,
+          ehSlotBase,
+        });
+      }
+
+      // Slot base sem prefixo = compatibilidade com todo o histórico; seguintes
+      // 'HHh_' eliminam a colisão de títulos iguais entre horas.
+      const prefixoNome = ehSlotBase ? '' : `${horario.split(':')[0]}h_`;
+      const listaRenumerada = lista.map((clipe) => ({ ...clipe, ordem: (ordemGlobal += 1) }));
+
+      const baixados = await baixarClipes(page, listaRenumerada, {
         dirTemp,
         caminhosPendentes: nomesExistentes,
+        prefixoNome,
       });
+      baixadosTotais.push(...baixados);
+    }
 
-      for (const clipe of baixados) {
+    if (baixadosTotais.length > 0) {
+      for (const clipe of baixadosTotais) {
         await subirClipe(client, {
           partidaId: partida.id,
           dataJogo: partida.data_jogo,
@@ -252,9 +393,13 @@ async function importarClipesDaPartida(client, { partida, dataAlvo, horario, cre
           nomeArquivo: clipe.nomeArquivo,
         });
       }
-
-      novos = baixados.length;
+      novos = baixadosTotais.length;
       status = 'concluido';
+    } else {
+      // Nenhum grupo em nenhum slot: condição esperada — caller fecha o ledger
+      // com 'sem_clipes' (sucesso false, exit 0).
+      console.log('[clipes] grade dos slots vazia — nada a importar');
+      status = 'sem_clipes';
     }
   } finally {
     await browser.close();
@@ -306,10 +451,17 @@ async function main() {
     const credenciais = { usuario: config.filmaeuUsuario, senha: config.filmaeuSenha };
     console.log('[clipes] credenciais filmaeu presentes no ambiente');
 
+    // Navegação no site pela data BRT do data_jogo DA PARTIDA (não do input):
+    // corrige o mismatch latente do caminho partida_id com data divergente.
+    // dataAlvo continua sendo a referência de lookup/ledger.
+    const dataNavegacao = dataBRTDeIso(partida.data_jogo);
+    const plano = resolverPlanoDeSlots({ horarioInput: config.horario, partida });
+    console.log(`[clipes] data de navegação: ${dataNavegacao} | plano: ${plano.descricao}`);
+
     const resultado = await importarClipesDaPartida(client, {
       partida,
-      dataAlvo,
-      horario: config.horario,
+      dataNavegacao,
+      plano,
       credenciais,
     });
     // --- 5.6 (Fase 4): limpeza por retenção | Fase 5: push de resultado
@@ -334,7 +486,7 @@ async function main() {
       quantidadeClipes: resultado.resumo.quantidade,
       bytesTotal: resultado.resumo.bytesTotal,
       detalhe:
-        `${resultado.novos} novos, ${resultado.resumo.quantidade} totais` +
+        `${resultado.novos} novos, ${resultado.resumo.quantidade} totais; ${plano.descricao}` +
         (resultado.limpeza
           ? `; retenção: ${resultado.limpeza.deletadas} partida(s) deletada(s), total restante ${Math.round(resultado.limpeza.totalRestante / MB)} MB`
           : ''),

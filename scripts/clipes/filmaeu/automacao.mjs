@@ -248,16 +248,36 @@ function sanitizarParaNome(texto) {
     .toLowerCase();
 }
 
-function nomeArquivoDoClipe(clipe) {
+// Parser do título do grupo (.card-header). Dois formatos possíveis
+// (mapeamento §2; semântica exata calibrada no log da primeira run real):
+// - offset dentro da hora do slot: '19m39s' → { offsetSeg };
+// - relógio: '19:39' ou '19h39' → { hora, minuto } ('HH'/'MM', 2 dígitos).
+// Sem match → null — o orquestrador decide manter/excluir conforme o slot.
+export function parsearTimestampTitulo(titulo) {
+  let correspondencia = /^(\d{1,2})m(\d{2})s$/.exec(titulo);
+  if (correspondencia) {
+    return { offsetSeg: Number(correspondencia[1]) * 60 + Number(correspondencia[2]) };
+  }
+  correspondencia = /^(\d{1,2})[h:](\d{2})$/.exec(titulo);
+  if (correspondencia) {
+    return { hora: correspondencia[1].padStart(2, '0'), minuto: correspondencia[2] };
+  }
+  return null;
+}
+
+function nomeArquivoDoClipe(clipe, prefixoNome) {
   // O endpoint de download sugere o MESMO nome para todos os clipes do dia
   // (filmaeu_AAAA_MM_DD.mp4 — mapeamento §3): a identidade única vem do grupo
   // (horário de gravação no .card-header) + índice da câmera, ambos estáveis
   // na listagem (grupos em ordem crescente). É a chave da idempotência RF02.
+  // prefixoNome (Plano 38): vazio no slot base (preserva o nome de TODO o
+  // histórico) e 'HHh_' nos slots seguintes — o título é offset dentro da
+  // hora, então horas diferentes colidiriam sem o prefixo.
   const titulo = sanitizarParaNome(clipe.titulo) || `g${clipe.ordem}`;
-  return `v_${titulo}_cam${clipe.camera}.mp4`;
+  return `v_${prefixoNome}${titulo}_cam${clipe.camera}.mp4`;
 }
 
-export async function baixarClipes(page, listaClipes, { dirTemp, caminhosPendentes }) {
+export async function baixarClipes(page, listaClipes, { dirTemp, caminhosPendentes, prefixoNome = '' }) {
   // caminhosPendentes: Set de NOMES DE ARQUIVO que ainda não têm linha na
   // tabela (decisão da Task 6 — tabela antes de baixar). O prefixo
   // {partida_id}/ é constante na run, então basename é suficiente para
@@ -270,7 +290,7 @@ export async function baixarClipes(page, listaClipes, { dirTemp, caminhosPendent
 
   for (const [indice, clipe] of listaClipes.entries()) {
     const rotulo = `${indice + 1}/${total}`;
-    const nomeArquivo = nomeArquivoDoClipe(clipe);
+    const nomeArquivo = nomeArquivoDoClipe(clipe, prefixoNome);
 
     if (caminhosPendentes && caminhosPendentes.has(nomeArquivo)) {
       console.log(`[clipes] ${rotulo}: ${nomeArquivo} já existente — download pulado`);
